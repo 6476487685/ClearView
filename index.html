@@ -76,43 +76,49 @@ input:checked + .slider:before{transform:translateX(22px);}
 .table td,.table th{padding:6px 10px;border-bottom:1px solid var(--divider);}
 
 /* Enhanced Documents Modal Styles */
-.docs-modal{max-width:900px;width:95%;}
-.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid var(--divider);}
-.modal-header h4{margin:0;color:var(--text-body);font-size:18px;font-weight:600;}
+.docs-modal{max-width:800px;width:90%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding-bottom:12px;border-bottom:1px solid var(--divider);flex-shrink:0;}
+.modal-header h4{margin:0;color:var(--text-body);font-size:16px;font-weight:600;}
 
-.upload-section{margin-bottom:25px;}
-.upload-area{border:2px dashed var(--accent-blue);border-radius:12px;padding:30px;text-align:center;background:linear-gradient(135deg, rgba(66,133,244,0.05) 0%, rgba(66,133,244,0.02) 100%);transition:all 0.3s ease;cursor:pointer;position:relative;}
-.upload-area:hover{border-color:var(--accent-blue-hover);background:linear-gradient(135deg, rgba(66,133,244,0.1) 0%, rgba(66,133,244,0.05) 100%);transform:translateY(-2px);box-shadow:var(--shadow);}
+.upload-section{margin-bottom:15px;flex-shrink:0;}
+.upload-area{border:2px dashed var(--accent-blue);border-radius:8px;padding:20px;text-align:center;background:linear-gradient(135deg, rgba(66,133,244,0.05) 0%, rgba(66,133,244,0.02) 100%);transition:all 0.3s ease;cursor:pointer;position:relative;}
+.upload-area:hover{border-color:var(--accent-blue-hover);background:linear-gradient(135deg, rgba(66,133,244,0.1) 0%, rgba(66,133,244,0.05) 100%);transform:translateY(-1px);box-shadow:var(--shadow-xs);}
 .upload-area.dragover{border-color:var(--success);background:linear-gradient(135deg, rgba(52,168,83,0.1) 0%, rgba(52,168,83,0.05) 100%);}
-.upload-icon{font-size:48px;margin-bottom:15px;opacity:0.7;}
-.upload-text{font-size:16px;font-weight:600;color:var(--text-body);margin:0 0 8px 0;}
-.upload-subtext{font-size:12px;color:var(--text-secondary);margin:0 0 20px 0;}
-.upload-btn{background:var(--accent-blue);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.3s ease;box-shadow:var(--shadow-xs);}
+.upload-icon{font-size:32px;margin-bottom:8px;opacity:0.7;}
+.upload-text{font-size:14px;font-weight:600;color:var(--text-body);margin:0 0 4px 0;}
+.upload-subtext{font-size:11px;color:var(--text-secondary);margin:0 0 12px 0;}
+.upload-btn{background:var(--accent-blue);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;box-shadow:var(--shadow-xs);font-size:12px;}
 .upload-btn:hover{background:var(--accent-blue-hover);transform:translateY(-1px);box-shadow:var(--shadow-sm);}
 #docUpload{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;}
 
-.documents-section{background:var(--surface);border-radius:8px;overflow:hidden;box-shadow:var(--shadow-xs);}
-.section-header{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;background:var(--bg);border-bottom:1px solid var(--divider);}
-.section-header h5{margin:0;color:var(--text-body);font-size:14px;font-weight:600;}
-.doc-stats{font-size:12px;color:var(--text-secondary);background:var(--accent-blue);color:#fff;padding:4px 12px;border-radius:12px;font-weight:500;}
+.documents-section{background:var(--surface);border-radius:6px;overflow:hidden;box-shadow:var(--shadow-xs);flex:1;display:flex;flex-direction:column;min-height:0;}
+.section-header{display:flex;justify-content:space-between;align-items:center;padding:10px 15px;background:var(--bg);border-bottom:1px solid var(--divider);flex-shrink:0;}
+.section-header h5{margin:0;color:var(--text-body);font-size:13px;font-weight:600;}
+.doc-stats{font-size:11px;background:var(--accent-blue);color:#fff;padding:3px 8px;border-radius:10px;font-weight:500;}
 
-.table-container{max-height:400px;overflow-y:auto;}
-.docs-table{width:100%;border-collapse:collapse;}
-.docs-table th{background:var(--accent-blue);color:#fff;padding:12px 15px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
-.docs-table td{padding:12px 15px;border-bottom:1px solid var(--divider);font-size:13px;}
+.table-container{flex:1;overflow-y:auto;max-height:300px;}
+.docs-table{width:100%;border-collapse:collapse;font-size:12px;}
+.docs-table th{background:var(--accent-blue);color:#fff;padding:8px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;position:sticky;top:0;z-index:1;}
+.docs-table td{padding:8px 10px;border-bottom:1px solid var(--divider);font-size:11px;}
 .docs-table tbody tr:hover{background:var(--bg);transition:background 0.2s ease;}
 .docs-table tbody tr:last-child td{border-bottom:none;}
 
-.empty-state td{padding:40px 20px;text-align:center;}
+.empty-state td{padding:30px 15px;text-align:center;}
 .empty-message{color:var(--text-secondary);}
-.empty-icon{font-size:48px;margin-bottom:15px;opacity:0.5;}
-.empty-message p{margin:0;font-size:14px;}
+.empty-icon{font-size:32px;margin-bottom:10px;opacity:0.5;}
+.empty-message p{margin:0;font-size:12px;}
 
-.doc-actions{display:flex;gap:8px;}
-.doc-btn{background:var(--danger);color:#fff;border:none;padding:6px 10px;border-radius:4px;font-size:11px;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;gap:4px;}
+.doc-actions{display:flex;gap:4px;flex-wrap:wrap;}
+.doc-btn{background:var(--danger);color:#fff;border:none;padding:4px 8px;border-radius:3px;font-size:10px;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;gap:2px;white-space:nowrap;}
 .doc-btn:hover{background:#d32f2f;transform:translateY(-1px);}
 .doc-btn.download{background:var(--success);}
 .doc-btn.download:hover{background:#2e7d32;}
+.doc-btn.rename{background:var(--accent-blue);}
+.doc-btn.rename:hover{background:var(--accent-blue-hover);}
+
+/* File name editing */
+.file-name-edit{background:transparent;border:1px solid var(--accent-blue);border-radius:3px;padding:2px 4px;font-size:11px;font-weight:500;color:var(--text-body);width:100%;min-width:120px;}
+.file-name-edit:focus{outline:none;border-color:var(--accent-blue-hover);box-shadow:0 0 0 2px rgba(66,133,244,0.1);}
 </style>
 </head>
 <body>
@@ -391,9 +397,9 @@ function renderDocs(){
   docs.forEach((d,i)=>{
     const r=document.createElement('tr');
     r.innerHTML=`<td>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:16px;">${getFileIcon(d.type)}</span>
-        <span style="font-weight:500;">${d.name}</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:14px;">${getFileIcon(d.type)}</span>
+        <span class="file-name-display" data-i="${i}" style="font-weight:500;cursor:pointer;" title="Click to rename">${d.name}</span>
       </div>
     </td>
     <td><span class="file-type">${d.type}</span></td>
@@ -403,6 +409,9 @@ function renderDocs(){
       <div class="doc-actions">
         <button class="doc-btn download" data-i="${i}" title="Download">
           <span>📥</span> Download
+        </button>
+        <button class="doc-btn rename" data-i="${i}" title="Rename">
+          <span>✏️</span> Rename
         </button>
         <button class="doc-btn" data-i="${i}" title="Delete">
           <span>🗑️</span> Delete
@@ -418,9 +427,19 @@ function renderDocs(){
       const i=parseInt(e.target.closest('.doc-btn').dataset.i);
       if(e.target.closest('.doc-btn').classList.contains('download')){
         downloadDocument(i);
+      }else if(e.target.closest('.doc-btn').classList.contains('rename')){
+        renameDocument(i);
       }else{
         deleteDocument(i);
       }
+    });
+  });
+  
+  // Event listeners for file name clicks
+  docsTbody.querySelectorAll('.file-name-display').forEach(span=>{
+    span.addEventListener('click',e=>{
+      const i=parseInt(e.target.dataset.i);
+      renameDocument(i);
     });
   });
 }
@@ -441,6 +460,55 @@ function getFileIcon(type){
 function downloadDocument(index){
   const doc=docs[index];
   alert(`Downloading: ${doc.name}\n\nNote: This is a demo. In a real application, this would download the actual file.`);
+}
+
+function renameDocument(index){
+  const doc=docs[index];
+  const span=document.querySelector(`.file-name-display[data-i="${index}"]`);
+  if(!span) return;
+  
+  // Create input field
+  const input=document.createElement('input');
+  input.type='text';
+  input.className='file-name-edit';
+  input.value=doc.name;
+  input.style.width='100%';
+  
+  // Replace span with input
+  span.style.display='none';
+  span.parentNode.insertBefore(input,span.nextSibling);
+  input.focus();
+  input.select();
+  
+  // Save on Enter or blur
+  function saveRename(){
+    const newName=input.value.trim();
+    if(newName && newName!==doc.name){
+      doc.name=newName;
+      localStorage.setItem('docsList',JSON.stringify(docs));
+      renderDocs();
+    }else{
+      span.style.display='inline';
+      input.remove();
+    }
+  }
+  
+  // Cancel on Escape
+  function cancelRename(){
+    span.style.display='inline';
+    input.remove();
+  }
+  
+  input.addEventListener('blur',saveRename);
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      saveRename();
+    }else if(e.key==='Escape'){
+      e.preventDefault();
+      cancelRename();
+    }
+  });
 }
 
 function deleteDocument(index){
