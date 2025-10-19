@@ -1048,7 +1048,7 @@ function handleFiles(files){
       // Add file directly without duplicate checking
       console.log('Adding file:', file.name);
       const entry=createDocumentEntry(file);
-      docs.push(entry);
+  docs.push(entry);
       addedCount++;
     }else{
       console.log('Invalid file type:', file.name);
@@ -1061,8 +1061,8 @@ function handleFiles(files){
   
   // Save and update UI
   if(addedCount > 0){
-    localStorage.setItem('docsList',JSON.stringify(docs));
-    renderDocs();
+  localStorage.setItem('docsList',JSON.stringify(docs));
+  renderDocs();
     updateStats();
     
     if(addedCount === 1){
@@ -1150,7 +1150,7 @@ function renderDocs(){
     r.innerHTML=`<td>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:14px;">${getFileIcon(d.type)}</span>
-        <span class="file-name-display" data-i="${i}" style="font-weight:500;cursor:pointer;" title="Click to rename">${d.name}</span>
+        <span class="file-name-display" data-i="${i}" style="font-weight:500;cursor:pointer;" title="Click or double-click to rename">${d.name}</span>
       </div>
     </td>
     <td><span class="file-type">${d.type}</span></td>
@@ -1162,7 +1162,7 @@ function renderDocs(){
           <span class="icon-download">⬇</span>
         </button>
         <button class="doc-btn rename" data-i="${i}" title="Rename">
-          <span class="icon-edit">✏</span>
+          <span class="icon-edit">✐</span>
         </button>
         <button class="doc-btn move-up" data-i="${i}" title="Move Up" ${i === 0 ? 'disabled' : ''}>
           <span class="icon-move-up">⬆</span>
@@ -1196,9 +1196,17 @@ function renderDocs(){
     });
   });
   
-  // Event listeners for file name clicks
+  // Event listeners for file name clicks and double-clicks
   docsTbody.querySelectorAll('.file-name-display').forEach(span=>{
     span.addEventListener('click',e=>{
+      const i=parseInt(e.target.dataset.i);
+      renameDocument(i);
+    });
+    
+    // Add double-click event for direct editing
+    span.addEventListener('dblclick',e=>{
+      e.preventDefault();
+      e.stopPropagation();
       const i=parseInt(e.target.dataset.i);
       renameDocument(i);
     });
