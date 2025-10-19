@@ -127,46 +127,6 @@ input:checked + .slider:before{transform:translateX(22px);}
 .file-name-edit{background:transparent;border:1px solid var(--accent-blue);border-radius:3px;padding:4px 6px;font-size:12px;font-weight:500;color:var(--text-body);width:100%;min-width:150px;}
 .file-name-edit:focus{outline:none;border-color:var(--accent-blue-hover);box-shadow:0 0 0 2px rgba(66,133,244,0.1);}
 
-/* Load Local Data Modal Styles */
-.load-modal{max-width:700px;width:70%;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;position:fixed;top:calc(60px + (100vh - 60px) / 2 - 192px);left:calc(260px + (100vw - 260px) / 2);transform:translate(-50%, -50%);z-index:1001;}
-
-/* Warning Section */
-.warning-section{margin-bottom:20px;}
-.warning-box{background:linear-gradient(135deg, rgba(251,191,36,0.1) 0%, rgba(251,191,36,0.05) 100%);border:2px solid var(--warning);border-radius:8px;padding:20px;display:flex;align-items:flex-start;gap:15px;}
-.warning-icon{font-size:24px;flex-shrink:0;}
-.warning-content{flex:1;}
-.warning-content h5{margin:0 0 8px 0;color:var(--warning);font-size:16px;font-weight:600;}
-.warning-content p{margin:0 0 15px 0;color:var(--text-body);font-size:14px;line-height:1.4;}
-.warning-actions{display:flex;gap:10px;justify-content:flex-end;}
-
-/* Backup Section */
-.backup-section{margin-bottom:20px;}
-.backup-box{background:linear-gradient(135deg, rgba(66,133,244,0.1) 0%, rgba(66,133,244,0.05) 100%);border:2px solid var(--accent-blue);border-radius:8px;padding:20px;display:flex;align-items:flex-start;gap:15px;}
-.backup-icon{font-size:24px;flex-shrink:0;}
-.backup-content{flex:1;}
-.backup-content h5{margin:0 0 8px 0;color:var(--accent-blue);font-size:16px;font-weight:600;}
-.backup-content p{margin:0 0 15px 0;color:var(--text-body);font-size:14px;line-height:1.4;}
-.backup-actions{display:flex;gap:10px;justify-content:flex-end;}
-
-/* Success Section */
-.success-section{margin-bottom:20px;}
-.success-box{background:linear-gradient(135deg, rgba(52,168,83,0.1) 0%, rgba(52,168,83,0.05) 100%);border:2px solid var(--success);border-radius:8px;padding:20px;display:flex;align-items:flex-start;gap:15px;}
-.success-icon{font-size:24px;flex-shrink:0;}
-.success-content{flex:1;}
-.success-content h5{margin:0 0 8px 0;color:var(--success);font-size:16px;font-weight:600;}
-.success-content p{margin:0 0 15px 0;color:var(--text-body);font-size:14px;line-height:1.4;}
-
-/* Action Buttons */
-.btn-cancel{background:#6b7280;color:#fff;border:none;padding:10px 20px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:13px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
-.btn-cancel:hover{background:#4b5563;transform:translateY(-1px);box-shadow:0 4px 8px rgba(0,0,0,0.15);}
-.btn-confirm{background:#f59e0b;color:#fff;border:none;padding:10px 20px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:13px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
-.btn-confirm:hover{background:#d97706;transform:translateY(-1px);box-shadow:0 4px 8px rgba(0,0,0,0.15);}
-.btn-skip{background:var(--text-secondary);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:12px;}
-.btn-skip:hover{background:#5f6368;transform:translateY(-1px);}
-.btn-setup{background:var(--accent-blue);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:12px;}
-.btn-setup:hover{background:var(--accent-blue-hover);transform:translateY(-1px);}
-.btn-close-modal{background:var(--success);color:#fff;border:none;padding:10px 20px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:14px;}
-.btn-close-modal:hover{background:#2e7d32;transform:translateY(-1px);}
 </style>
 </head>
 <body>
@@ -193,64 +153,6 @@ input:checked + .slider:before{transform:translateX(22px);}
 <main id="content"></main>
 
 <!-- ========== MODALS ========== -->
-<!-- Load Local Modal -->
-<div id="modal-load" class="modal">
-  <div class="modal-content load-modal">
-    <div class="modal-header">
-      <h4>📁 Load Local Data</h4>
-    <span class="close" data-close="modal-load">&times;</span>
-    </div>
-    
-    <div class="upload-section">
-      <div class="upload-area" id="loadUploadArea">
-        <div class="upload-icon">📊</div>
-        <p class="upload-text">Drag & drop data files here or click to browse</p>
-        <p class="upload-subtext">Supports: .xlsx, .json, .sqlite, .db</p>
-        <button class="upload-btn" id="loadUploadBtn">Choose Files</button>
-    <input type="file" id="fileInput" accept=".xlsx,.json,.sqlite,.db" hidden>
-      </div>
-    </div>
-    
-    <div class="warning-section" id="warningSection" style="display:none;">
-      <div class="warning-box">
-        <div class="warning-icon">⚠️</div>
-        <div class="warning-content">
-          <h5>Data Overwrite Warning</h5>
-          <p>Loading new data will overwrite all existing application data. This action cannot be undone.</p>
-          <div class="warning-actions">
-            <button class="btn-cancel" id="cancelLoad">Cancel</button>
-            <button class="btn-confirm" id="confirmLoad">Yes, Overwrite Data</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="backup-section" id="backupSection" style="display:none;">
-      <div class="backup-box">
-        <div class="backup-icon">💾</div>
-        <div class="backup-content">
-          <h5>Set Backup Folder</h5>
-          <p>Choose a folder where all downloads from this application will be saved.</p>
-          <div class="backup-actions">
-            <button class="btn-skip" id="skipBackup">Skip for Now</button>
-            <button class="btn-setup" id="setupBackup">Choose Backup Folder</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div class="success-section" id="successSection" style="display:none;">
-      <div class="success-box">
-        <div class="success-icon">✅</div>
-        <div class="success-content">
-          <h5>Data Loaded Successfully!</h5>
-          <p id="successMessage">Your data has been loaded and is now available throughout the application.</p>
-          <button class="btn-close-modal" id="closeLoadModal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Documents Modal -->
 <div id="modal-docs" class="modal">
@@ -344,7 +246,7 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     e.preventDefault();
     const t=link.dataset.target;
     if(!t) return;
-    if(t==='load'){openModal('modal-load');}
+    if(t==='load'){showOverwriteWarning();}
     else if(t==='docs'){openModal('modal-docs');}
     else if(t==='expense'){
       window.location.href='2_Expanse_Index.html';
@@ -359,183 +261,115 @@ document.querySelectorAll('.nav-link').forEach(link=>{
   });
 });
 
-/* ---------- Enhanced Load Local Data ---------- */
-const btnLoad=document.getElementById('loadUploadBtn');
-const fileInput=document.getElementById('fileInput');
-const loadUploadArea=document.getElementById('loadUploadArea');
-const warningSection=document.getElementById('warningSection');
-const backupSection=document.getElementById('backupSection');
-const successSection=document.getElementById('successSection');
-const cancelLoadBtn=document.getElementById('cancelLoad');
-const confirmLoadBtn=document.getElementById('confirmLoad');
-const skipBackupBtn=document.getElementById('skipBackup');
-const setupBackupBtn=document.getElementById('setupBackup');
-const closeLoadModalBtn=document.getElementById('closeLoadModal');
+/* ---------- Load Local Data - Complete Implementation ---------- */
 
-let pendingFile=null;
-
-// Upload button click - show overwrite warning first
-btnLoad.addEventListener('click',()=>showOverwriteWarning());
-
-// File input change
-fileInput.addEventListener('change',(e)=>{
-  console.log('File input changed:', e.target.files);
-  if(e.target.files.length > 0){
-    console.log('File detected:', e.target.files[0].name);
-    alert('File selected: ' + e.target.files[0].name);
+// Step 1: Overwrite Warning First
+function showOverwriteWarning(){
+  const existingData=localStorage.getItem('txnData')||localStorage.getItem('expense_records')||localStorage.getItem('income_records');
+  
+  if(existingData){
+    // Show warning popup
+    const confirmed=confirm('⚠️ OVERWRITE WARNING\n\nLoading new data will overwrite all existing application data.\n\nThis action cannot be undone.\n\nDo you want to continue?');
+    if(confirmed){
+      openFilePicker();
+    }
+  }else{
+    // No existing data, proceed directly to file picker
+    openFilePicker();
   }
-  handleFileUpload(e);
-});
+}
 
-// Drag and drop functionality
-loadUploadArea.addEventListener('dragover',e=>{
-  e.preventDefault();
-  loadUploadArea.classList.add('dragover');
-});
+// Step 2: File Picker After Confirmation
+function openFilePicker(){
+  const fileInput=document.createElement('input');
+  fileInput.type='file';
+  fileInput.accept='.xlsx,.json,.sqlite,.db';
+  fileInput.style.display='none';
+  document.body.appendChild(fileInput);
+  
+  fileInput.addEventListener('change',(e)=>{
+    const file=e.target.files[0];
+    if(!file)return;
+    
+    // Validate file type
+    const validExtensions=['.xlsx','.json','.sqlite','.db'];
+    const fileName=file.name.toLowerCase();
+    const isValid=validExtensions.some(ext=>fileName.endsWith(ext));
+    
+    if(!isValid){
+      alert('❌ Invalid file type!\n\nPlease select a valid data file:\n• .xlsx (Excel)\n• .json (JSON)\n• .sqlite (SQLite)\n• .db (Database)');
+      document.body.removeChild(fileInput);
+      return;
+    }
+    
+    // Process the file
+    processFile(file);
+    document.body.removeChild(fileInput);
+  });
+  
+  fileInput.click();
+}
 
-loadUploadArea.addEventListener('dragleave',()=>{
-  loadUploadArea.classList.remove('dragover');
-});
+// Step 3: Process File and Show Toast Notification
+function processFile(file){
+  try{
+    // Save file info to localStorage
+    localStorage.setItem('localDataPath',file.name);
+    localStorage.setItem('txnData','loaded');
+    
+    // Step 3: Toast Notification
+    showToast('✅ Data loaded successfully!');
+    
+    // Update tooltip
+    updateLoadLocalTooltip();
+    
+    // Step 4: Backup Folder Setup
+    setTimeout(()=>{
+      setupBackupFolder();
+    },1000);
+    
+  }catch(error){
+    alert('❌ Error loading file: '+error.message);
+  }
+}
 
-loadUploadArea.addEventListener('drop',e=>{
-  e.preventDefault();
-  loadUploadArea.classList.remove('dragover');
-  const files=e.dataTransfer.files;
-  if(files.length>0){
-    pendingFile=files[0];
-    if(isValidDataFile(pendingFile)){
-      showOverwriteWarning();
-    }else{
-      alert('Please select a valid data file (.xlsx, .json, .sqlite, .db)');
+// Step 4: Backup Folder Setup
+function setupBackupFolder(){
+  const setupBackup=confirm('📁 BACKUP FOLDER SETUP\n\nWould you like to set a default backup folder for downloads?\n\n• Click OK to set backup folder\n• Click Cancel to skip');
+  
+  if(setupBackup){
+    const backupPath=prompt('Enter backup folder path:\n\n(Leave empty for default Downloads folder)');
+    if(backupPath!==null){
+      localStorage.setItem('backupFolderPath',backupPath||'Downloads');
+      showToast('💾 Backup folder set successfully!');
+      
+      // Update Backup & Export tooltip
+      updateBackupTooltip();
     }
   }
-});
-
-// Make the upload area clickable (but not the button)
-loadUploadArea.addEventListener('click',(e)=>{
-  if(e.target.tagName !== 'BUTTON'){
-    showOverwriteWarning();
-  }
-});
-
-function handleFileUpload(e){
-  console.log('handleFileUpload called');
-  const file=e.target.files[0];
-  if(!file){
-    console.log('No file selected');
-    return;
-  }
-  
-  console.log('File selected:', file.name);
-  
-  if(!isValidDataFile(file)){
-    alert('Please select a valid data file (.xlsx, .json, .sqlite, .db)');
-    fileInput.value='';
-    return;
-  }
-  
-  pendingFile=file;
-  console.log('Calling loadData with file:', file.name);
-  loadData();
 }
 
-function isValidDataFile(file){
-  const validExtensions=['.xlsx','.json','.sqlite','.db'];
-  return validExtensions.some(ext=>file.name.toLowerCase().endsWith(ext));
-}
-
-function showOverwriteWarning(){
-  // Always show overwrite warning to ensure user confirmation
-  showWarning();
-}
-
-function showWarning(){
-  warningSection.style.display='block';
-  backupSection.style.display='none';
-  successSection.style.display='none';
-}
-
-function loadData(){
-  if(!pendingFile){
-    alert('No file selected');
-    return;
+// Step 5 & 6: Tooltip Update Functions
+function updateLoadLocalTooltip(){
+  const loadLocalLink=document.querySelector('nav a[data-target="load"]');
+  if(loadLocalLink){
+    const dataPath=localStorage.getItem('localDataPath');
+    loadLocalLink.title=dataPath?`Current data: ${dataPath}`:'Click to load local data files';
   }
-  
-  console.log('Loading file:', pendingFile.name);
-  const fileName=pendingFile.name.toLowerCase();
-  
-  // Save the file info and show success
-  localStorage.setItem('localDataPath',fileName);
-  localStorage.setItem('txnData','loaded'); // Simple marker
-  
-  console.log('Data saved to localStorage');
-  showToast('Data loaded successfully!');
-  
-  // Update tooltip for Load Local Data
+}
+
+function updateBackupTooltip(){
+  const backupLink=document.querySelector('nav a[data-target="backup"]');
+  if(backupLink){
+    const backupPath=localStorage.getItem('backupFolderPath');
+    backupLink.title=backupPath?`Backup folder: ${backupPath}`:'Click to set backup folder';
+  }
+}
+
+// Initialize tooltips on page load
+document.addEventListener('DOMContentLoaded',()=>{
   updateLoadLocalTooltip();
-  
-  showBackupSection('Data loaded successfully!');
-}
-
-function showBackupSection(message){
-  warningSection.style.display='none';
-  backupSection.style.display='block';
-  successSection.style.display='none';
-  document.getElementById('successMessage').textContent=message;
-}
-
-function showSuccess(){
-  warningSection.style.display='none';
-  backupSection.style.display='none';
-  successSection.style.display='block';
-}
-
-function resetModal(){
-  warningSection.style.display='none';
-  backupSection.style.display='none';
-  successSection.style.display='none';
-  pendingFile=null;
-  fileInput.value='';
-}
-
-// Event listeners
-cancelLoadBtn.addEventListener('click',resetModal);
-confirmLoadBtn.addEventListener('click',()=>{
-  // Hide warning and open file picker
-  warningSection.style.display='none';
-  // Clear any existing file first
-  fileInput.value='';
-  // Add a small delay to ensure the warning is hidden
-  setTimeout(()=>{
-    fileInput.click();
-  },100);
-});
-skipBackupBtn.addEventListener('click',()=>{
-  showSuccess();
-  setTimeout(()=>{
-    resetModal();
-    closeModal('modal-load');
-  },2000);
-});
-setupBackupBtn.addEventListener('click',()=>{
-  // In a real application, this would open a folder picker
-  const backupPath=prompt('Enter backup folder path (or leave empty for default Downloads folder):');
-  if(backupPath!==null){
-    localStorage.setItem('backupFolderPath',backupPath||'Downloads');
-    showToast('Backup folder set successfully!');
-    
-    // Update tooltip for Backup & Export
-    updateBackupTooltip();
-  }
-  showSuccess();
-  setTimeout(()=>{
-    resetModal();
-    closeModal('modal-load');
-  },2000);
-});
-closeLoadModalBtn.addEventListener('click',()=>{
-  resetModal();
-  closeModal('modal-load');
+  updateBackupTooltip();
 });
 
 // Toast notification function
@@ -562,29 +396,6 @@ function showToast(message){
   },3000);
 }
 
-// Tooltip update functions
-function updateLoadLocalTooltip(){
-  const loadLocalLink=document.querySelector('nav a[data-target="load"]');
-  if(loadLocalLink){
-    const dataPath=localStorage.getItem('localDataPath');
-    loadLocalLink.title=dataPath?`Current data: ${dataPath}`:'Click to load local data files';
-  }
-}
-
-function updateBackupTooltip(){
-  const backupLink=document.querySelector('nav a[data-target="backup"]');
-  if(backupLink){
-    const backupPath=localStorage.getItem('backupFolderPath');
-    backupLink.title=backupPath?`Backup folder: ${backupPath}`:'Click to set backup folder';
-  }
-}
-
-// Add hover tooltips for sidebar items
-document.addEventListener('DOMContentLoaded',()=>{
-  // Initialize tooltips
-  updateLoadLocalTooltip();
-  updateBackupTooltip();
-});
 
 /* ---------- Enhanced Documents ---------- */
 const docUpload=document.getElementById('docUpload');
