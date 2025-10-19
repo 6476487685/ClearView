@@ -238,8 +238,8 @@ btnPDF.onclick=()=>{
    const pageY = doc.internal.pageSize.height - 10;
    doc.setFontSize(8);
    doc.text(`Page ${currentPage}/${totalPages}`, 20, pageY);
-   doc.text(`Generated: ${new Date().toLocaleString()}`, 105, pageY, { align: 'center' });
-   doc.text(`Total Records: ${data.length}`, 270, pageY, { align: 'right' });
+   doc.text(`Total Records: ${data.length}`, 105, pageY, { align: 'center' });
+   doc.text(`Generated: ${new Date().toLocaleString()}`, 270, pageY, { align: 'right' });
  }
  
  // Helper function to add new page
