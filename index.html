@@ -399,17 +399,20 @@ loadUploadArea.addEventListener('drop',e=>{
   }
 });
 
-loadUploadArea.addEventListener('click',()=>fileInput.click());
+// Make the upload area clickable (but not the button)
+loadUploadArea.addEventListener('click',(e)=>{
+  if(e.target.tagName !== 'BUTTON'){
+    fileInput.click();
+  }
+});
 
 function handleFileUpload(e){
   const file=e.target.files[0];
   if(!file)return;
   
-  // Clear the input to allow selecting the same file again
-  e.target.value='';
-  
   if(!isValidDataFile(file)){
     alert('Please select a valid data file (.xlsx, .json, .sqlite, .db)');
+    fileInput.value='';
     return;
   }
   
@@ -481,9 +484,6 @@ function resetModal(){
   successSection.style.display='none';
   pendingFile=null;
   fileInput.value='';
-  // Reset the file input to allow selecting the same file again
-  fileInput.type='text';
-  fileInput.type='file';
 }
 
 // Event listeners
