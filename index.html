@@ -124,13 +124,11 @@ input:checked + .slider:before{transform:translateX(22px);}
 
 /* Icon-specific styling */
 .doc-btn .icon-download{color:#28a745;font-size:18px;font-weight:bold;}
-.doc-btn .icon-edit{color:#007bff;font-size:18px;font-weight:bold;}
 .doc-btn .icon-move-up,.doc-btn .icon-move-down{color:#6f42c1;font-size:18px;font-weight:bold;}
 .doc-btn .icon-delete{color:#dc3545;font-size:18px;font-weight:bold;}
 
 /* Hover effects for icons */
 .doc-btn.download:hover .icon-download{color:#1e7e34;}
-.doc-btn.rename:hover .icon-edit{color:#0056b3;}
 .doc-btn.move-up:hover .icon-move-up{color:#5a2d91;}
 .doc-btn.move-down:hover .icon-move-down{color:#5a2d91;}
 .doc-btn.delete:hover .icon-delete{color:#bd2130;}
@@ -1159,10 +1157,7 @@ function renderDocs(){
     <td>
       <div class="doc-actions">
         <button class="doc-btn download" data-i="${i}" title="Download">
-          <span class="icon-download">⬇</span>
-        </button>
-        <button class="doc-btn rename" data-i="${i}" title="Rename">
-          <span class="icon-edit">✐</span>
+          <span class="icon-download">📥</span>
         </button>
         <button class="doc-btn move-up" data-i="${i}" title="Move Up" ${i === 0 ? 'disabled' : ''}>
           <span class="icon-move-up">⬆</span>
@@ -1184,8 +1179,6 @@ function renderDocs(){
       const i=parseInt(e.target.closest('.doc-btn').dataset.i);
       if(e.target.closest('.doc-btn').classList.contains('download')){
         downloadDocument(i);
-      }else if(e.target.closest('.doc-btn').classList.contains('rename')){
-        renameDocument(i);
       }else if(e.target.closest('.doc-btn').classList.contains('move-up')){
         moveFileUp(i);
       }else if(e.target.closest('.doc-btn').classList.contains('move-down')){
