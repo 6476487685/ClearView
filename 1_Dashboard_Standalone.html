@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>TxnMgr v3.3 — Transaction Manager</title>
+<title>TxnMgr v3.3 — Transaction Manager (Standalone)</title>
 <style>
 :root {
  --header-bg:#EAF3FB;--sidebar-bg:#F0F3F5;--content-bg:#FFFFFF;--primary-bg:#F6F8FA;
@@ -65,7 +65,7 @@ input:checked + .slider:before{transform:translateX(22px);}
 <body>
 <header>
   <label class="theme-switch"><input type="checkbox" id="themeSwitch"><span class="slider"></span></label>
-  <h1>💰 Transaction Manager</h1>
+  <h1>💰 Transaction Manager (Standalone)</h1>
   <button id="logoutBtn">🚪 Logout</button>
 </header>
 
@@ -75,7 +75,7 @@ input:checked + .slider:before{transform:translateX(22px);}
   <a href="#" class="nav-link" data-target="accounts"><span class="icon">🗂️</span>Manage Accounts</a>
   <a href="#" class="nav-link" data-target="load"><span class="icon">📁</span>Load Local Data</a>
   <a href="#" class="nav-link disabled" title="Coming soon"><span class="icon">☁️</span>Google Drive</a>
-  <a href="#" class="nav-link" data-target="expense"><span class="icon">💸</span>Expense Transactions</a>
+  <a href="#" class="nav-link disabled" title="Standalone Mode - No Expense Link"><span class="icon">💸</span>Expense Transactions</a>
   <a href="#" class="nav-link" data-target="income"><span class="icon">💰</span>Income Transactions</a>
   <a href="#" class="nav-link" data-target="investments"><span class="icon">📈</span>Investments</a>
   <a href="#" class="nav-link" data-target="analytics"><span class="icon">📊</span>Analytics</a>
@@ -156,9 +156,6 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     if(!t) return;
     if(t==='load'){openModal('modal-load');}
     else if(t==='docs'){openModal('modal-docs');}
-    else if(t==='expense'){
-      window.location.href='2_Expanse_Index.html';
-    }
     else if(['masters','tasks','accounts','income','investments','analytics','backup'].includes(t)){
       document.getElementById('genericTitle').textContent=link.textContent;
       openModal('modal-generic');

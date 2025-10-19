@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Transaction Manager — Expense Dashboard</title>
+  <link rel="stylesheet" href="2_Expanse_Style.css">
+</head>
+
+<body>
+  <header class="header">
+    <div class="left">
+      <button class="black" onclick="window.location.href='1_Dasboard.html'">← Back to Main Dashboard</button>
+    </div>
+    <div class="title">Transaction Manager — Expense Dashboard</div>
+    <div class="right">
+      <button class="pdf" id="btnPDF">📘 Export PDF</button>
+      <button class="excel" id="btnExcel">📗 Export Excel</button>
+      <button class="primary" id="btnAdd">➕ Add Expense</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="filter-card">
+      <div class="filter-grid filter-labels">
+        <div>Category</div>
+        <div>Account Tag</div>
+        <div>Holder</div>
+        <div>Status</div>
+        <div>From</div>
+        <div>To</div>
+        <div>Search</div>
+      </div>
+
+      <div class="filter-grid">
+        <select id="fCategory"><option value="">All</option></select>
+        <select id="fTag"><option value="">All</option></select>
+        <select id="fHolder"><option value="">All</option></select>
+        <select id="fStatus">
+          <option value="">All</option>
+          <option>Paid</option>
+          <option>Unpaid</option>
+          <option>Pending</option>
+          <option>Cancelled</option>
+        </select>
+        <input type="date" id="fFrom">
+        <input type="date" id="fTo">
+        <input type="search" id="globalSearch" placeholder="Search...">
+        <button id="btnClear">🧹 Clear All</button>
+      </div>
+    </section>
+
+    <section class="table-card">
+      <table id="expenseTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="resizable">Description</th>
+            <th class="resizable">Category</th>
+            <th class="resizable">Account Tag</th>
+            <th class="resizable">Currency</th>
+            <th class="resizable">Amount</th>
+            <th class="resizable">Mode</th>
+            <th class="resizable">Holder</th>
+            <th class="resizable">Due Date</th>
+            <th class="resizable">Paid Date</th>
+            <th class="resizable">Frequency</th>
+            <th class="resizable">Ac Status</th>
+            <th class="resizable">Txn Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="expenseBody"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- Modal -->
+  <div id="expenseModal" class="modal">
+    <div class="modal-content">
+      <h3 id="modalTitle">Add Expense</h3>
+      <form id="expenseForm">
+        <div class="row-full">
+          <label>Description</label>
+          <input type="text" id="desc" required>
+        </div>
+
+        <!-- Line 1: Category, Amount, Tag, Holder -->
+        <div class="row4">
+          <div><label>Category</label><select id="cat"></select></div>
+          <div><label>Amount</label><input type="text" id="amt" placeholder="0.00" pattern="[0-9]+(\.[0-9]{1,2})?" title="Enter amount with up to 2 decimal places"></div>
+          <div><label>Account Tag</label><select id="tag"></select></div>
+          <div><label>Holder</label><select id="holder"></select></div>
+        </div>
+
+        <!-- Line 2: Due Date, Currency, Mode, Paid Date -->
+        <div class="row4">
+          <div><label>Due Date</label><input type="date" id="due"></div>
+          <div><label>Currency</label><select id="cur"></select></div>
+          <div><label>Mode</label><select id="mode"></select></div>
+          <div><label>Paid Date</label><input type="date" id="paid"></div>
+        </div>
+
+        <!-- Line 3: Frequency, Account Status, Transaction Status -->
+        <div class="row3">
+          <div><label>Frequency</label><select id="freq"></select></div>
+          <div><label>Account Status</label>
+            <select id="acstatus">
+              <option>Active</option>
+              <option>Inactive</option>
+            </select>
+          </div>
+          <div><label>Transaction Status</label>
+            <select id="txnstatus">
+              <option>Paid</option>
+              <option>Unpaid</option>
+              <option>Pending</option>
+              <option>Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelBtn">Cancel</button>
+          <button type="submit" id="saveBtn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="2_Expanse_Main.js"></script>
+</body>
+</html>
