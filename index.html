@@ -534,30 +534,30 @@ function showFolderPicker(){
              style="width:100%;padding:12px;border:2px solid var(--divider);border-radius:6px;
              font-size:14px;background:var(--content-bg);color:var(--text-body);
              transition:border-color 0.3s ease;box-shadow:0 2px 4px rgba(0,0,0,0.1);" />
-      <div style="margin-top:15px;display:flex;gap:12px;justify-content:center;">
+      <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
         <button id="browseBtn" style="
-          flex:1;padding:14px 20px;background:var(--accent-blue);color:#fff;border:none;
+          width:100%;padding:16px 24px;background:var(--accent-blue);color:#fff;border:none;
           border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
-          box-shadow:0 3px 6px rgba(66,133,244,0.3);font-size:14px;
-          display:flex;align-items:center;justify-content:center;gap:8px;
-          min-width:160px;
+          box-shadow:0 4px 8px rgba(66,133,244,0.3);font-size:16px;
+          display:flex;align-items:center;justify-content:center;gap:12px;
+          text-align:center;
         ">
-          <span style="font-size:16px;">📂</span>
+          <span style="font-size:24px;">📂</span>
           <span>Select Folder</span>
         </button>
         <button id="defaultBtn" style="
-          flex:1;padding:14px 20px;background:var(--text-secondary);color:#fff;border:none;
+          width:100%;padding:16px 24px;background:var(--text-secondary);color:#fff;border:none;
           border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
-          box-shadow:0 3px 6px rgba(107,114,128,0.3);font-size:14px;
-          display:flex;align-items:center;justify-content:center;gap:8px;
-          min-width:140px;
+          box-shadow:0 4px 8px rgba(107,114,128,0.3);font-size:16px;
+          display:flex;align-items:center;justify-content:center;gap:12px;
+          text-align:center;
         ">
-          <span style="font-size:16px;">📥</span>
-          <span>Downloads</span>
+          <span style="font-size:24px;">📥</span>
+          <span>Use Downloads Folder</span>
         </button>
       </div>
-      <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);">
-        💡 Tip: Click "Select Folder" to open native folder picker or "Downloads" for default
+      <div style="margin-top:12px;font-size:13px;color:var(--text-secondary);text-align:center;">
+        💡 Click "Select Folder" to browse your computer or "Use Downloads Folder" for default
       </div>
     </div>
     
@@ -592,11 +592,41 @@ function showFolderPicker(){
     e.stopPropagation();
     console.log('Select Folder button clicked');
     
+    // Add visual feedback immediately
+    browseBtn.style.background='var(--accent-blue-hover)';
+    browseBtn.style.transform='scale(0.98)';
+    
     try{
-      await showFolderPicker(folderInput);
+      // Check if File System Access API is supported
+      if('showDirectoryPicker' in window){
+        console.log('Using File System Access API');
+        const directoryHandle = await window.showDirectoryPicker({
+          mode: 'readwrite',
+          startIn: 'documents'
+        });
+        
+        const folderName = directoryHandle.name;
+        console.log('Selected folder:', folderName);
+        
+        folderInput.value = folderName;
+        showToast(`📁 Folder selected: ${folderName}`);
+        
+      }else{
+        console.log('File System Access API not supported');
+        alert('Native folder picker not supported in this browser. Using fallback options.');
+        showFolderFallback(folderInput);
+      }
     }catch(error){
-      console.error('Error in folder picker:', error);
-      alert('Error opening folder picker. Please try again or use the Downloads button.');
+      if(error.name === 'AbortError'){
+        console.log('User cancelled folder selection');
+      }else{
+        console.error('Error in folder picker:', error);
+        alert('Error opening folder picker. Please try again or use the Downloads button.');
+      }
+    }finally{
+      // Reset button style
+      browseBtn.style.background='var(--accent-blue)';
+      browseBtn.style.transform='scale(1)';
     }
   });
   
@@ -615,11 +645,16 @@ function showFolderPicker(){
   defaultBtn.addEventListener('click',()=>{
     folderInput.value='Downloads';
     console.log('Default Downloads button clicked, set to:', 'Downloads');
+    
     // Add visual feedback
     defaultBtn.style.background='var(--success)';
+    defaultBtn.style.transform='scale(0.98)';
     setTimeout(()=>{
       defaultBtn.style.background='var(--text-secondary)';
+      defaultBtn.style.transform='scale(1)';
     },200);
+    
+    showToast('📥 Downloads folder selected');
   });
   
   // Cancel button
