@@ -378,7 +378,10 @@ let pendingFile=null;
 btnLoad.addEventListener('click',()=>showOverwriteWarning());
 
 // File input change
-fileInput.addEventListener('change',handleFileUpload);
+fileInput.addEventListener('change',(e)=>{
+  console.log('File input changed:', e.target.files);
+  handleFileUpload(e);
+});
 
 // Drag and drop functionality
 loadUploadArea.addEventListener('dragover',e=>{
@@ -412,8 +415,14 @@ loadUploadArea.addEventListener('click',(e)=>{
 });
 
 function handleFileUpload(e){
+  console.log('handleFileUpload called');
   const file=e.target.files[0];
-  if(!file)return;
+  if(!file){
+    console.log('No file selected');
+    return;
+  }
+  
+  console.log('File selected:', file.name);
   
   if(!isValidDataFile(file)){
     alert('Please select a valid data file (.xlsx, .json, .sqlite, .db)');
@@ -422,7 +431,7 @@ function handleFileUpload(e){
   }
   
   pendingFile=file;
-  console.log('File selected:', file.name); // Debug log
+  console.log('Calling loadData with file:', file.name);
   loadData();
 }
 
@@ -451,39 +460,45 @@ function showWarning(){
 
 async function loadData(){
   if(!pendingFile){
-    console.log('No pending file'); // Debug log
+    console.log('No pending file');
+    alert('No file selected');
     return;
   }
   
-  console.log('Loading file:', pendingFile.name); // Debug log
+  console.log('Loading file:', pendingFile.name);
   const fileName=pendingFile.name.toLowerCase();
   
   try{
     if(fileName.endsWith('.json')){
-      console.log('Processing JSON file'); // Debug log
+      console.log('Processing JSON file');
       const txt=await pendingFile.text();
       localStorage.setItem('txnData',txt);
       localStorage.setItem('localDataPath',fileName);
+      console.log('JSON data saved to localStorage');
       showToast('JSON data loaded successfully!');
       showBackupSection('JSON data loaded successfully!');
     }else if(fileName.endsWith('.xlsx')){
-      console.log('Processing Excel file'); // Debug log
+      console.log('Processing Excel file');
+      if(typeof XLSX === 'undefined'){
+        alert('XLSX library not loaded. Please refresh the page and try again.');
+        return;
+      }
       const buf=await pendingFile.arrayBuffer();
       const wb=XLSX.read(buf);
       const js=JSON.stringify(wb.Sheets);
       localStorage.setItem('txnData',js);
       localStorage.setItem('localDataPath',fileName);
+      console.log('Excel data saved to localStorage');
       showToast('Excel data loaded successfully!');
       showBackupSection('Excel data loaded successfully!');
     }else{
-      console.log('Processing database file'); // Debug log
-      // Placeholder for SQLite/DB files
+      console.log('Processing database file');
       localStorage.setItem('localDataPath',fileName);
       showToast('Database file loaded successfully!');
       showBackupSection('Database file loaded successfully!');
     }
   }catch(error){
-    console.error('Error loading file:', error); // Debug log
+    console.error('Error loading file:', error);
     alert('Error loading file: '+error.message);
     resetModal();
   }
