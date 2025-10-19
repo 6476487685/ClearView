@@ -947,10 +947,18 @@ const uploadBtn=document.getElementById('uploadBtn');
 const docStats=document.getElementById('docStats');
 let docs=JSON.parse(localStorage.getItem('docsList')||'[]');
 let isFilePickerOpen = false;
+let enableDuplicateDetection = true; // Toggle for duplicate detection
 
 // Initialize
 renderDocs();
 updateStats();
+
+// Debug command to toggle duplicate detection
+window.toggleDuplicateDetection = function() {
+  enableDuplicateDetection = !enableDuplicateDetection;
+  console.log('Duplicate detection', enableDuplicateDetection ? 'ENABLED' : 'DISABLED');
+  showToast(`Duplicate detection ${enableDuplicateDetection ? 'ENABLED' : 'DISABLED'}`);
+};
 
 // Upload button click - ONLY way to open file picker
 // Clear any existing event listeners and add only one
@@ -1001,6 +1009,10 @@ uploadArea.addEventListener('drop',e=>{
 function handleFileUpload(e){
   const files=e.target.files;
   isFilePickerOpen = false; // Reset flag when files are selected
+  
+  // Clear the input to prevent issues with subsequent uploads
+  e.target.value = '';
+  
   handleFiles(files);
 }
 
@@ -1008,34 +1020,50 @@ function handleFiles(files){
   let addedCount = 0;
   let skippedCount = 0;
   let duplicateCount = 0;
+  const duplicateFiles = [];
   
+  console.log('Processing files:', Array.from(files).map(f => f.name));
+  console.log('Current docs:', docs.map(d => d.name));
+  
+  // First pass: process non-duplicate files immediately
   Array.from(files).forEach(file=>{
+    console.log('Processing file:', file.name);
+    
     if(isValidFileType(file)){
-      // Check for duplicate files
-      const existingFile = docs.find(doc => doc.name === file.name);
+      // Check for duplicate files only if detection is enabled
+      let existingFile = null;
+      if(enableDuplicateDetection){
+        existingFile = docs.find(doc => doc.name === file.name);
+        console.log('Duplicate check for', file.name, ':', existingFile ? 'DUPLICATE FOUND' : 'NO DUPLICATE');
+      }
       
       if(existingFile){
-        // Duplicate file found - offer to save with different name
-        handleDuplicateFile(file, existingFile);
+        // Store duplicate file for later processing
+        console.log('Storing duplicate file for later:', file.name);
+        duplicateFiles.push({file, existingFile});
         duplicateCount++;
       }else{
         // No duplicate - add file normally
+        console.log('Adding new file:', file.name);
         const entry=createDocumentEntry(file);
         docs.push(entry);
         addedCount++;
       }
     }else{
+      console.log('Invalid file type:', file.name);
       alert(`File type not supported: ${file.name}`);
       skippedCount++;
     }
   });
   
+  console.log('Final counts - Added:', addedCount, 'Skipped:', skippedCount, 'Duplicates:', duplicateCount);
+  
+  // Save and update UI for non-duplicate files
+  if(addedCount > 0){
   localStorage.setItem('docsList',JSON.stringify(docs));
   renderDocs();
-  updateStats();
-  
-  // Show appropriate toast notification
-  if(addedCount > 0){
+    updateStats();
+    
     if(addedCount === 1){
       showToast(`📁 File uploaded successfully`);
     }else{
@@ -1049,9 +1077,15 @@ function handleFiles(files){
     }, 1500);
   }
   
-  if(duplicateCount > 0){
+  // Handle duplicate files one by one
+  if(duplicateFiles.length > 0){
     setTimeout(() => {
       showToast(`🔄 ${duplicateCount} duplicate file(s) detected - check for rename options`);
+      // Process first duplicate file
+      if(duplicateFiles.length > 0){
+        const firstDuplicate = duplicateFiles.shift();
+        handleDuplicateFile(firstDuplicate.file, firstDuplicate.existingFile);
+      }
     }, 2000);
   }
 }
