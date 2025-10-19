@@ -430,30 +430,59 @@ function showFolderOptions(folderInput){
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
   
-  // Add hover effects to folder options
+  // Add hover effects and click handlers to folder options
   const folderOptions=modal.querySelectorAll('.folder-option');
   folderOptions.forEach(option=>{
+    // Hover effects
     option.addEventListener('mouseenter',()=>{
       option.style.background='var(--accent-blue)';
       option.style.color='#fff';
       option.style.borderColor='var(--accent-blue)';
+      option.style.transform='translateY(-2px)';
+      option.style.boxShadow='0 4px 12px rgba(66,133,244,0.3)';
     });
+    
     option.addEventListener('mouseleave',()=>{
       option.style.background='var(--primary-bg)';
       option.style.color='var(--text-body)';
       option.style.borderColor='var(--divider)';
+      option.style.transform='translateY(0)';
+      option.style.boxShadow='none';
     });
-    option.addEventListener('click',()=>{
+    
+    // Click handler
+    option.addEventListener('click',(e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      
       const path=option.dataset.path;
+      console.log('Folder option clicked:', path);
+      
       if(path==='Custom'){
-        const customPath=prompt('Enter custom folder path:');
-        if(customPath&&customPath.trim()){
+        // Handle custom path
+        const customPath=prompt('Enter custom folder path:\n\nExample: C:\\Users\\YourName\\Documents\\ClearView_Downloads');
+        if(customPath!==null&&customPath.trim()){
           folderInput.value=customPath.trim();
+          console.log('Custom path set:', customPath.trim());
+          document.body.removeChild(overlay);
         }
       }else{
+        // Handle predefined paths
         folderInput.value=path;
+        console.log('Predefined path set:', path);
+        document.body.removeChild(overlay);
       }
-      document.body.removeChild(overlay);
+    });
+    
+    // Add visual feedback for click
+    option.addEventListener('mousedown',()=>{
+      option.style.transform='translateY(0)';
+      option.style.boxShadow='0 2px 6px rgba(66,133,244,0.2)';
+    });
+    
+    option.addEventListener('mouseup',()=>{
+      option.style.transform='translateY(-2px)';
+      option.style.boxShadow='0 4px 12px rgba(66,133,244,0.3)';
     });
   });
   
@@ -496,19 +525,24 @@ function showFolderPicker(){
     
     <div style="margin-bottom:20px;">
       <label style="display:block;margin-bottom:8px;color:var(--text-body);font-weight:600;">Folder Path:</label>
-      <input type="text" id="folderPathInput" placeholder="Enter folder path or click 'Browse'" 
+      <input type="text" id="folderPathInput" placeholder="Click 'Browse' to select folder or type custom path" 
              style="width:100%;padding:12px;border:2px solid var(--divider);border-radius:6px;
-             font-size:14px;background:var(--primary-bg);color:var(--text-body);
-             transition:border-color 0.3s ease;" />
+             font-size:14px;background:var(--content-bg);color:var(--text-body);
+             transition:border-color 0.3s ease;box-shadow:0 2px 4px rgba(0,0,0,0.1);" />
       <div style="margin-top:10px;display:flex;gap:10px;">
         <button id="browseBtn" style="
           flex:1;padding:12px;background:var(--accent-blue);color:#fff;border:none;
           border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
-        ">📂 Browse</button>
+          box-shadow:0 2px 4px rgba(66,133,244,0.2);
+        ">📂 Browse Options</button>
         <button id="defaultBtn" style="
           flex:1;padding:12px;background:var(--text-secondary);color:#fff;border:none;
           border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
-        ">📥 Use Downloads</button>
+          box-shadow:0 2px 4px rgba(107,114,128,0.2);
+        ">📥 Downloads</button>
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);">
+        💡 Tip: Click "Browse Options" to see available folders or type a custom path directly
       </div>
     </div>
     
@@ -541,6 +575,12 @@ function showFolderPicker(){
   // Default Downloads button
   defaultBtn.addEventListener('click',()=>{
     folderInput.value='Downloads';
+    console.log('Default Downloads button clicked, set to:', 'Downloads');
+    // Add visual feedback
+    defaultBtn.style.background='var(--success)';
+    setTimeout(()=>{
+      defaultBtn.style.background='var(--text-secondary)';
+    },200);
   });
   
   // Cancel button
@@ -551,15 +591,19 @@ function showFolderPicker(){
   // Save button
   saveBtn.addEventListener('click',()=>{
     const folderPath=folderInput.value.trim();
+    console.log('Save button clicked, folder path:', folderPath);
+    
     if(folderPath){
       localStorage.setItem('backupFolderPath',folderPath);
+      console.log('Backup folder saved to localStorage:', folderPath);
       showToast('💾 Backup folder set successfully!');
       updateBackupTooltip();
+      document.body.removeChild(overlay);
     }else{
-      alert('Please enter a folder path or use the default Downloads folder.');
+      alert('Please enter a folder path or use the default Downloads folder.\n\nYou can:\n• Click "Browse Options" to select a folder\n• Click "Downloads" to use the default folder\n• Type a custom path directly in the input field');
+      folderInput.focus();
       return;
     }
-    document.body.removeChild(overlay);
   });
   
   // Close on overlay click
