@@ -124,8 +124,21 @@ input:checked + .slider:before{transform:translateX(22px);}
 .doc-btn.download:hover{background:#2e7d32;}
 .doc-btn.rename{background:var(--accent-blue);}
 .doc-btn.rename:hover{background:var(--accent-blue-hover);}
-.doc-btn.move-up,.doc-btn.move-down{background:var(--accent-purple);padding:6px 8px;min-width:32px;justify-content:center;}
-.doc-btn.move-up:hover:not(:disabled),.doc-btn.move-down:hover:not(:disabled){background:var(--accent-purple-hover);}
+.doc-btn.move-up,.doc-btn.move-down{background:linear-gradient(135deg,var(--accent-purple),var(--accent-purple-hover));padding:10px 14px;min-width:44px;justify-content:center;font-size:14px;font-weight:700;border:2px solid var(--accent-purple);box-shadow:0 3px 10px rgba(139,92,246,0.4);transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);position:relative;overflow:hidden;}
+.doc-btn.move-up:hover:not(:disabled),.doc-btn.move-down:hover:not(:disabled){background:linear-gradient(135deg,var(--accent-purple-hover),var(--accent-purple));transform:translateY(-3px) scale(1.05);box-shadow:0 6px 16px rgba(139,92,246,0.5);}
+.doc-btn.move-up:active:not(:disabled),.doc-btn.move-down:active:not(:disabled){transform:translateY(-1px) scale(0.98);transition:all 0.1s ease;}
+.doc-btn.move-up:disabled,.doc-btn.move-down:disabled{background:#9ca3af;border-color:#9ca3af;box-shadow:none;transform:none;opacity:0.6;}
+
+/* Pulse animation for move buttons */
+@keyframes pulse-purple {
+  0% { box-shadow: 0 3px 10px rgba(139,92,246,0.4); }
+  50% { box-shadow: 0 3px 10px rgba(139,92,246,0.6), 0 0 0 4px rgba(139,92,246,0.2); }
+  100% { box-shadow: 0 3px 10px rgba(139,92,246,0.4); }
+}
+
+.doc-btn.move-up:not(:disabled),.doc-btn.move-down:not(:disabled) {
+  animation: pulse-purple 2s ease-in-out infinite;
+}
 
 /* File name display and editing */
 .file-name-display{font-size:12px;font-weight:500;color:var(--text-body);cursor:pointer;transition:color 0.2s ease;}
@@ -971,6 +984,13 @@ window.toggleDuplicateDetection = function() {
   showToast(`Duplicate detection ${enableDuplicateDetection ? 'ENABLED' : 'DISABLED'}`);
 };
 
+// Debug command to test duplicate detection
+window.testDuplicateDetection = function() {
+  console.log('Current duplicate detection status:', enableDuplicateDetection);
+  console.log('Current docs:', docs.map(d => d.name));
+  showToast(`Duplicate detection is ${enableDuplicateDetection ? 'ENABLED' : 'DISABLED'}`);
+};
+
 // Upload button click - ONLY way to open file picker
 // Clear any existing event listeners and add only one
 if(uploadBtn.onclick){
@@ -1050,7 +1070,8 @@ function handleFiles(files){
       
       if(existingFile){
         // Store duplicate file for later processing
-        console.log('Storing duplicate file for later:', file.name);
+        console.log('DUPLICATE FILE DETECTED:', file.name);
+        console.log('Existing file details:', existingFile);
         duplicateFiles.push({file, existingFile});
         duplicateCount++;
       }else{
@@ -1088,20 +1109,23 @@ function handleFiles(files){
     }, 1500);
   }
   
-  // Handle duplicate files one by one
+  // Handle duplicate files immediately
   if(duplicateFiles.length > 0){
-    setTimeout(() => {
-      showToast(`🔄 ${duplicateCount} duplicate file(s) detected - check for rename options`);
-      // Process first duplicate file
-      if(duplicateFiles.length > 0){
-        const firstDuplicate = duplicateFiles.shift();
-        handleDuplicateFile(firstDuplicate.file, firstDuplicate.existingFile);
-      }
-    }, 2000);
+    // Show immediate toast notification
+    showToast(`🔄 ${duplicateCount} duplicate file(s) detected - check for options`);
+    
+    // Process first duplicate file immediately
+    const firstDuplicate = duplicateFiles.shift();
+    console.log('Processing duplicate file:', firstDuplicate.file.name);
+    
+    // Show the duplicate handling modal
+    handleDuplicateFile(firstDuplicate.file, firstDuplicate.existingFile);
   }
 }
 
 function handleDuplicateFile(newFile, existingFile){
+  console.log('handleDuplicateFile called with:', newFile.name);
+  
   // Create modal for duplicate file handling
   const overlay = document.createElement('div');
   overlay.style.cssText = `
@@ -1184,6 +1208,15 @@ function handleDuplicateFile(newFile, existingFile){
   
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
+  console.log('Duplicate file modal added to DOM');
+  
+  // Fallback alert in case modal doesn't show
+  setTimeout(() => {
+    if (!document.body.contains(overlay)) {
+      console.log('Modal not visible, showing fallback alert');
+      alert(`File "${newFile.name}" already exists. Please choose a different name or replace the existing file.`);
+    }
+  }, 100);
   
   // Event handlers
   const skipBtn = modal.querySelector('#skipFileBtn');
@@ -1344,10 +1377,10 @@ function renderDocs(){
           <span>✏️</span> Rename
         </button>
         <button class="doc-btn move-up" data-i="${i}" title="Move Up" ${i === 0 ? 'disabled' : ''}>
-          <span>⬆️</span>
+          <span style="font-size:16px;">⬆️</span>
         </button>
         <button class="doc-btn move-down" data-i="${i}" title="Move Down" ${i === docs.length - 1 ? 'disabled' : ''}>
-          <span>⬇️</span>
+          <span style="font-size:16px;">⬇️</span>
         </button>
         <button class="doc-btn" data-i="${i}" title="Delete">
           <span>🗑️</span> Delete
