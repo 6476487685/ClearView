@@ -157,10 +157,10 @@ input:checked + .slider:before{transform:translateX(22px);}
 .success-content p{margin:0 0 15px 0;color:var(--text-body);font-size:14px;line-height:1.4;}
 
 /* Action Buttons */
-.btn-cancel{background:var(--text-secondary);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:12px;}
-.btn-cancel:hover{background:#5f6368;transform:translateY(-1px);}
-.btn-confirm{background:var(--warning);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:12px;}
-.btn-confirm:hover{background:#f59e0b;transform:translateY(-1px);}
+.btn-cancel{background:#6b7280;color:#fff;border:none;padding:10px 20px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:13px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.btn-cancel:hover{background:#4b5563;transform:translateY(-1px);box-shadow:0 4px 8px rgba(0,0,0,0.15);}
+.btn-confirm{background:#f59e0b;color:#fff;border:none;padding:10px 20px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:13px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.btn-confirm:hover{background:#d97706;transform:translateY(-1px);box-shadow:0 4px 8px rgba(0,0,0,0.15);}
 .btn-skip{background:var(--text-secondary);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:12px;}
 .btn-skip:hover{background:#5f6368;transform:translateY(-1px);}
 .btn-setup{background:var(--accent-blue);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:12px;}
@@ -198,7 +198,7 @@ input:checked + .slider:before{transform:translateX(22px);}
   <div class="modal-content load-modal">
     <div class="modal-header">
       <h4>📁 Load Local Data</h4>
-      <span class="close" data-close="modal-load">&times;</span>
+    <span class="close" data-close="modal-load">&times;</span>
     </div>
     
     <div class="upload-section">
@@ -207,7 +207,7 @@ input:checked + .slider:before{transform:translateX(22px);}
         <p class="upload-text">Drag & drop data files here or click to browse</p>
         <p class="upload-subtext">Supports: .xlsx, .json, .sqlite, .db</p>
         <button class="upload-btn" id="loadUploadBtn">Choose Files</button>
-        <input type="file" id="fileInput" accept=".xlsx,.json,.sqlite,.db" hidden>
+    <input type="file" id="fileInput" accept=".xlsx,.json,.sqlite,.db" hidden>
       </div>
     </div>
     
@@ -257,7 +257,7 @@ input:checked + .slider:before{transform:translateX(22px);}
   <div class="modal-content docs-modal">
     <div class="modal-header">
       <h4>📑 Document Manager</h4>
-      <span class="close" data-close="modal-docs">&times;</span>
+    <span class="close" data-close="modal-docs">&times;</span>
     </div>
     
     <div class="upload-section">
@@ -295,7 +295,7 @@ input:checked + .slider:before{transform:translateX(22px);}
               </td>
             </tr>
           </tbody>
-        </table>
+    </table>
       </div>
     </div>
   </div>
@@ -422,6 +422,7 @@ function handleFileUpload(e){
   }
   
   pendingFile=file;
+  console.log('File selected:', file.name); // Debug log
   loadData();
 }
 
@@ -449,18 +450,24 @@ function showWarning(){
 }
 
 async function loadData(){
-  if(!pendingFile)return;
+  if(!pendingFile){
+    console.log('No pending file'); // Debug log
+    return;
+  }
   
+  console.log('Loading file:', pendingFile.name); // Debug log
   const fileName=pendingFile.name.toLowerCase();
   
   try{
     if(fileName.endsWith('.json')){
+      console.log('Processing JSON file'); // Debug log
       const txt=await pendingFile.text();
       localStorage.setItem('txnData',txt);
       localStorage.setItem('localDataPath',fileName);
       showToast('JSON data loaded successfully!');
       showBackupSection('JSON data loaded successfully!');
     }else if(fileName.endsWith('.xlsx')){
+      console.log('Processing Excel file'); // Debug log
       const buf=await pendingFile.arrayBuffer();
       const wb=XLSX.read(buf);
       const js=JSON.stringify(wb.Sheets);
@@ -469,12 +476,14 @@ async function loadData(){
       showToast('Excel data loaded successfully!');
       showBackupSection('Excel data loaded successfully!');
     }else{
+      console.log('Processing database file'); // Debug log
       // Placeholder for SQLite/DB files
       localStorage.setItem('localDataPath',fileName);
       showToast('Database file loaded successfully!');
       showBackupSection('Database file loaded successfully!');
     }
   }catch(error){
+    console.error('Error loading file:', error); // Debug log
     alert('Error loading file: '+error.message);
     resetModal();
   }
@@ -506,6 +515,8 @@ cancelLoadBtn.addEventListener('click',resetModal);
 confirmLoadBtn.addEventListener('click',()=>{
   // Hide warning and open file picker
   warningSection.style.display='none';
+  // Clear any existing file first
+  fileInput.value='';
   fileInput.click();
 });
 skipBackupBtn.addEventListener('click',()=>{
@@ -619,7 +630,7 @@ function handleFiles(files){
   Array.from(files).forEach(file=>{
     if(isValidFileType(file)){
       const entry=createDocumentEntry(file);
-      docs.push(entry);
+  docs.push(entry);
     }else{
       alert(`File type not supported: ${file.name}`);
     }
