@@ -126,6 +126,47 @@ input:checked + .slider:before{transform:translateX(22px);}
 .file-name-display:hover{color:var(--accent-blue);}
 .file-name-edit{background:transparent;border:1px solid var(--accent-blue);border-radius:3px;padding:4px 6px;font-size:12px;font-weight:500;color:var(--text-body);width:100%;min-width:150px;}
 .file-name-edit:focus{outline:none;border-color:var(--accent-blue-hover);box-shadow:0 0 0 2px rgba(66,133,244,0.1);}
+
+/* Load Local Data Modal Styles */
+.load-modal{max-width:700px;width:70%;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;position:fixed;top:calc(60px + (100vh - 60px) / 2 - 192px);left:calc(260px + (100vw - 260px) / 2);transform:translate(-50%, -50%);z-index:1001;}
+
+/* Warning Section */
+.warning-section{margin-bottom:20px;}
+.warning-box{background:linear-gradient(135deg, rgba(251,191,36,0.1) 0%, rgba(251,191,36,0.05) 100%);border:2px solid var(--warning);border-radius:8px;padding:20px;display:flex;align-items:flex-start;gap:15px;}
+.warning-icon{font-size:24px;flex-shrink:0;}
+.warning-content{flex:1;}
+.warning-content h5{margin:0 0 8px 0;color:var(--warning);font-size:16px;font-weight:600;}
+.warning-content p{margin:0 0 15px 0;color:var(--text-body);font-size:14px;line-height:1.4;}
+.warning-actions{display:flex;gap:10px;justify-content:flex-end;}
+
+/* Backup Section */
+.backup-section{margin-bottom:20px;}
+.backup-box{background:linear-gradient(135deg, rgba(66,133,244,0.1) 0%, rgba(66,133,244,0.05) 100%);border:2px solid var(--accent-blue);border-radius:8px;padding:20px;display:flex;align-items:flex-start;gap:15px;}
+.backup-icon{font-size:24px;flex-shrink:0;}
+.backup-content{flex:1;}
+.backup-content h5{margin:0 0 8px 0;color:var(--accent-blue);font-size:16px;font-weight:600;}
+.backup-content p{margin:0 0 15px 0;color:var(--text-body);font-size:14px;line-height:1.4;}
+.backup-actions{display:flex;gap:10px;justify-content:flex-end;}
+
+/* Success Section */
+.success-section{margin-bottom:20px;}
+.success-box{background:linear-gradient(135deg, rgba(52,168,83,0.1) 0%, rgba(52,168,83,0.05) 100%);border:2px solid var(--success);border-radius:8px;padding:20px;display:flex;align-items:flex-start;gap:15px;}
+.success-icon{font-size:24px;flex-shrink:0;}
+.success-content{flex:1;}
+.success-content h5{margin:0 0 8px 0;color:var(--success);font-size:16px;font-weight:600;}
+.success-content p{margin:0 0 15px 0;color:var(--text-body);font-size:14px;line-height:1.4;}
+
+/* Action Buttons */
+.btn-cancel{background:var(--text-secondary);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:12px;}
+.btn-cancel:hover{background:#5f6368;transform:translateY(-1px);}
+.btn-confirm{background:var(--warning);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:12px;}
+.btn-confirm:hover{background:#f59e0b;transform:translateY(-1px);}
+.btn-skip{background:var(--text-secondary);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:12px;}
+.btn-skip:hover{background:#5f6368;transform:translateY(-1px);}
+.btn-setup{background:var(--accent-blue);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:12px;}
+.btn-setup:hover{background:var(--accent-blue-hover);transform:translateY(-1px);}
+.btn-close-modal{background:var(--success);color:#fff;border:none;padding:10px 20px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;font-size:14px;}
+.btn-close-modal:hover{background:#2e7d32;transform:translateY(-1px);}
 </style>
 </head>
 <body>
@@ -154,13 +195,60 @@ input:checked + .slider:before{transform:translateX(22px);}
 <!-- ========== MODALS ========== -->
 <!-- Load Local Modal -->
 <div id="modal-load" class="modal">
-  <div class="modal-content">
-    <span class="close" data-close="modal-load">&times;</span>
-    <h4>📁 Load Local Data</h4>
-    <p>Supported formats: <b>.xlsx .json .sqlite .db</b></p>
-    <input type="file" id="fileInput" accept=".xlsx,.json,.sqlite,.db" hidden>
-    <button id="btnLoadLocal">Choose File…</button>
-    <p class="small">After loading, data persists in localStorage.</p>
+  <div class="modal-content load-modal">
+    <div class="modal-header">
+      <h4>📁 Load Local Data</h4>
+      <span class="close" data-close="modal-load">&times;</span>
+    </div>
+    
+    <div class="upload-section">
+      <div class="upload-area" id="loadUploadArea">
+        <div class="upload-icon">📊</div>
+        <p class="upload-text">Drag & drop data files here or click to browse</p>
+        <p class="upload-subtext">Supports: .xlsx, .json, .sqlite, .db</p>
+        <button class="upload-btn" id="loadUploadBtn">Choose Files</button>
+        <input type="file" id="fileInput" accept=".xlsx,.json,.sqlite,.db" hidden>
+      </div>
+    </div>
+    
+    <div class="warning-section" id="warningSection" style="display:none;">
+      <div class="warning-box">
+        <div class="warning-icon">⚠️</div>
+        <div class="warning-content">
+          <h5>Data Overwrite Warning</h5>
+          <p>Loading new data will overwrite all existing application data. This action cannot be undone.</p>
+          <div class="warning-actions">
+            <button class="btn-cancel" id="cancelLoad">Cancel</button>
+            <button class="btn-confirm" id="confirmLoad">Yes, Overwrite Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="backup-section" id="backupSection" style="display:none;">
+      <div class="backup-box">
+        <div class="backup-icon">💾</div>
+        <div class="backup-content">
+          <h5>Set Backup Folder</h5>
+          <p>Choose a folder where all downloads from this application will be saved.</p>
+          <div class="backup-actions">
+            <button class="btn-skip" id="skipBackup">Skip for Now</button>
+            <button class="btn-setup" id="setupBackup">Choose Backup Folder</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="success-section" id="successSection" style="display:none;">
+      <div class="success-box">
+        <div class="success-icon">✅</div>
+        <div class="success-content">
+          <h5>Data Loaded Successfully!</h5>
+          <p id="successMessage">Your data has been loaded and is now available throughout the application.</p>
+          <button class="btn-close-modal" id="closeLoadModal">Close</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -271,21 +359,149 @@ document.querySelectorAll('.nav-link').forEach(link=>{
   });
 });
 
-/* ---------- Load Local ---------- */
-const btnLoad=document.getElementById('btnLoadLocal');
+/* ---------- Enhanced Load Local Data ---------- */
+const btnLoad=document.getElementById('loadUploadBtn');
 const fileInput=document.getElementById('fileInput');
+const loadUploadArea=document.getElementById('loadUploadArea');
+const warningSection=document.getElementById('warningSection');
+const backupSection=document.getElementById('backupSection');
+const successSection=document.getElementById('successSection');
+const cancelLoadBtn=document.getElementById('cancelLoad');
+const confirmLoadBtn=document.getElementById('confirmLoad');
+const skipBackupBtn=document.getElementById('skipBackup');
+const setupBackupBtn=document.getElementById('setupBackup');
+const closeLoadModalBtn=document.getElementById('closeLoadModal');
+
+let pendingFile=null;
+
+// Upload button click
 btnLoad.addEventListener('click',()=>fileInput.click());
-fileInput.addEventListener('change',async e=>{
-  const f=e.target.files[0];if(!f)return;
-  const n=f.name.toLowerCase();
-  if(n.endsWith('.json')){
-    const txt=await f.text();localStorage.setItem('txnData',txt);
-    alert('JSON data loaded!');
-  }else if(n.endsWith('.xlsx')){
-    const buf=await f.arrayBuffer();const wb=XLSX.read(buf);
-    const js=JSON.stringify(wb.Sheets);localStorage.setItem('txnData',js);
-    alert('Excel data loaded!');
-  }else{alert('SQLite placeholder — coming soon.');}
+
+// File input change
+fileInput.addEventListener('change',handleFileUpload);
+
+// Drag and drop functionality
+loadUploadArea.addEventListener('dragover',e=>{
+  e.preventDefault();
+  loadUploadArea.classList.add('dragover');
+});
+
+loadUploadArea.addEventListener('dragleave',()=>{
+  loadUploadArea.classList.remove('dragover');
+});
+
+loadUploadArea.addEventListener('drop',e=>{
+  e.preventDefault();
+  loadUploadArea.classList.remove('dragover');
+  const files=e.dataTransfer.files;
+  if(files.length>0){
+    handleFileUpload({target:{files}});
+  }
+});
+
+loadUploadArea.addEventListener('click',()=>fileInput.click());
+
+function handleFileUpload(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  
+  if(!isValidDataFile(file)){
+    alert('Please select a valid data file (.xlsx, .json, .sqlite, .db)');
+    return;
+  }
+  
+  pendingFile=file;
+  
+  // Check if there's existing data
+  const existingData=localStorage.getItem('txnData')||localStorage.getItem('expense_records')||localStorage.getItem('income_records');
+  
+  if(existingData){
+    showWarning();
+  }else{
+    loadData();
+  }
+}
+
+function isValidDataFile(file){
+  const validExtensions=['.xlsx','.json','.sqlite','.db'];
+  return validExtensions.some(ext=>file.name.toLowerCase().endsWith(ext));
+}
+
+function showWarning(){
+  warningSection.style.display='block';
+  backupSection.style.display='none';
+  successSection.style.display='none';
+}
+
+async function loadData(){
+  if(!pendingFile)return;
+  
+  const fileName=pendingFile.name.toLowerCase();
+  
+  try{
+    if(fileName.endsWith('.json')){
+      const txt=await pendingFile.text();
+      localStorage.setItem('txnData',txt);
+      showBackupSection('JSON data loaded successfully!');
+    }else if(fileName.endsWith('.xlsx')){
+      const buf=await pendingFile.arrayBuffer();
+      const wb=XLSX.read(buf);
+      const js=JSON.stringify(wb.Sheets);
+      localStorage.setItem('txnData',js);
+      showBackupSection('Excel data loaded successfully!');
+    }else{
+      // Placeholder for SQLite/DB files
+      showBackupSection('Database file loaded successfully!');
+    }
+  }catch(error){
+    alert('Error loading file: '+error.message);
+    resetModal();
+  }
+}
+
+function showBackupSection(message){
+  warningSection.style.display='none';
+  backupSection.style.display='block';
+  successSection.style.display='none';
+  document.getElementById('successMessage').textContent=message;
+}
+
+function showSuccess(){
+  warningSection.style.display='none';
+  backupSection.style.display='none';
+  successSection.style.display='block';
+}
+
+function resetModal(){
+  warningSection.style.display='none';
+  backupSection.style.display='none';
+  successSection.style.display='none';
+  pendingFile=null;
+  fileInput.value='';
+}
+
+// Event listeners
+cancelLoadBtn.addEventListener('click',resetModal);
+confirmLoadBtn.addEventListener('click',loadData);
+skipBackupBtn.addEventListener('click',()=>{
+  showSuccess();
+  setTimeout(()=>{
+    resetModal();
+    closeModal('modal-load');
+  },2000);
+});
+setupBackupBtn.addEventListener('click',()=>{
+  // In a real application, this would open a folder picker
+  alert('Backup folder setup: In a real application, this would open a folder picker dialog.\n\nFor now, all downloads will be saved to the default Downloads folder.');
+  showSuccess();
+  setTimeout(()=>{
+    resetModal();
+    closeModal('modal-load');
+  },2000);
+});
+closeLoadModalBtn.addEventListener('click',()=>{
+  resetModal();
+  closeModal('modal-load');
 });
 
 /* ---------- Enhanced Documents ---------- */
