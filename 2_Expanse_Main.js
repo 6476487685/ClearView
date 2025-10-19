@@ -217,7 +217,7 @@ btnPDF.onclick=()=>{
  doc.setFontSize(12);
  doc.setFont('helvetica', 'normal');
  const criteriaText = getFilterCriteria();
- doc.text(criteriaText, 20, 35);
+ doc.text(criteriaText, 105, 35, { align: 'center' });
  
  // Compact table layout for 20+ records per page
  const headers = ['#', 'Description', 'Category', 'Tag', 'Currency', 'Amount', 'Mode', 'Holder', 'Due Date', 'Paid Date', 'Frequency', 'Ac Status', 'Txn Status'];
@@ -227,6 +227,11 @@ btnPDF.onclick=()=>{
  let currentY = startY;
  let currentPage = 1;
  const totalPages = Math.ceil(data.length / 22); // ~22 records per page with compact layout
+ 
+ // Calculate total table width and center it
+ const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+ const pageWidth = doc.internal.pageSize.width;
+ const tableStartX = (pageWidth - totalTableWidth) / 2; // Center the table
  
  // Helper function to add footer
  function addFooter() {
@@ -253,7 +258,7 @@ btnPDF.onclick=()=>{
  function drawHeaders() {
    doc.setFontSize(8);
    doc.setFont('helvetica', 'bold');
-   let x = 20;
+   let x = tableStartX;
    headers.forEach((header, i) => {
      doc.text(header, x, currentY);
      x += colWidths[i];
@@ -261,7 +266,7 @@ btnPDF.onclick=()=>{
    
    // Header line
    currentY += 1;
-   doc.line(20, currentY, x, currentY);
+   doc.line(tableStartX, currentY, x, currentY);
    currentY += 2;
  }
  
@@ -295,7 +300,7 @@ btnPDF.onclick=()=>{
      row.txnstatus
    ];
    
-   let x = 20;
+   let x = tableStartX;
    rowData.forEach((cell, i) => {
      // Truncate long text to fit columns
      let cellText = cell.toString();
