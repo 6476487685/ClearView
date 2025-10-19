@@ -342,6 +342,134 @@ function setupBackupFolder(){
   }
 }
 
+// Show folder options function
+function showFolderOptions(folderInput){
+  const overlay=document.createElement('div');
+  overlay.style.cssText=`
+    position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);
+    display:flex;justify-content:center;align-items:center;z-index:10002;
+    backdrop-filter:blur(5px);
+  `;
+  
+  const modal=document.createElement('div');
+  modal.style.cssText=`
+    background:var(--content-bg);padding:30px;border-radius:12px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.3);max-width:400px;width:90%;
+    border:1px solid var(--divider);
+  `;
+  
+  modal.innerHTML=`
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:36px;margin-bottom:10px;">📂</div>
+      <h3 style="margin:0 0 10px 0;color:var(--text-body);font-size:16px;">Choose Folder Location</h3>
+      <p style="margin:0;color:var(--text-secondary);font-size:14px;">Select a common folder for downloads</p>
+    </div>
+    
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+      <button class="folder-option" data-path="Downloads" style="
+        padding:12px 16px;background:var(--primary-bg);color:var(--text-body);
+        border:2px solid var(--divider);border-radius:6px;text-align:left;
+        cursor:pointer;transition:all 0.3s ease;font-size:14px;
+        display:flex;align-items:center;gap:10px;
+      ">
+        <span style="font-size:20px;">📥</span>
+        <div>
+          <div style="font-weight:600;">Downloads</div>
+          <div style="font-size:12px;color:var(--text-secondary);">Default download folder</div>
+        </div>
+      </button>
+      
+      <button class="folder-option" data-path="Documents" style="
+        padding:12px 16px;background:var(--primary-bg);color:var(--text-body);
+        border:2px solid var(--divider);border-radius:6px;text-align:left;
+        cursor:pointer;transition:all 0.3s ease;font-size:14px;
+        display:flex;align-items:center;gap:10px;
+      ">
+        <span style="font-size:20px;">📄</span>
+        <div>
+          <div style="font-weight:600;">Documents</div>
+          <div style="font-size:12px;color:var(--text-secondary);">Documents folder</div>
+        </div>
+      </button>
+      
+      <button class="folder-option" data-path="Desktop" style="
+        padding:12px 16px;background:var(--primary-bg);color:var(--text-body);
+        border:2px solid var(--divider);border-radius:6px;text-align:left;
+        cursor:pointer;transition:all 0.3s ease;font-size:14px;
+        display:flex;align-items:center;gap:10px;
+      ">
+        <span style="font-size:20px;">🖥️</span>
+        <div>
+          <div style="font-weight:600;">Desktop</div>
+          <div style="font-size:12px;color:var(--text-secondary);">Desktop folder</div>
+        </div>
+      </button>
+      
+      <button class="folder-option" data-path="Custom" style="
+        padding:12px 16px;background:var(--primary-bg);color:var(--text-body);
+        border:2px solid var(--divider);border-radius:6px;text-align:left;
+        cursor:pointer;transition:all 0.3s ease;font-size:14px;
+        display:flex;align-items:center;gap:10px;
+      ">
+        <span style="font-size:20px;">📁</span>
+        <div>
+          <div style="font-weight:600;">Custom Path</div>
+          <div style="font-size:12px;color:var(--text-secondary);">Enter custom folder path</div>
+        </div>
+      </button>
+    </div>
+    
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button id="cancelFolderOptions" style="
+        padding:8px 16px;background:#6b7280;color:#fff;border:none;
+        border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+      ">Cancel</button>
+    </div>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  
+  // Add hover effects to folder options
+  const folderOptions=modal.querySelectorAll('.folder-option');
+  folderOptions.forEach(option=>{
+    option.addEventListener('mouseenter',()=>{
+      option.style.background='var(--accent-blue)';
+      option.style.color='#fff';
+      option.style.borderColor='var(--accent-blue)';
+    });
+    option.addEventListener('mouseleave',()=>{
+      option.style.background='var(--primary-bg)';
+      option.style.color='var(--text-body)';
+      option.style.borderColor='var(--divider)';
+    });
+    option.addEventListener('click',()=>{
+      const path=option.dataset.path;
+      if(path==='Custom'){
+        const customPath=prompt('Enter custom folder path:');
+        if(customPath&&customPath.trim()){
+          folderInput.value=customPath.trim();
+        }
+      }else{
+        folderInput.value=path;
+      }
+      document.body.removeChild(overlay);
+    });
+  });
+  
+  // Cancel button
+  modal.querySelector('#cancelFolderOptions').addEventListener('click',()=>{
+    document.body.removeChild(overlay);
+  });
+  
+  // Close on overlay click
+  overlay.addEventListener('click',(e)=>{
+    if(e.target===overlay){
+      document.body.removeChild(overlay);
+    }
+  });
+}
+
 // Folder picker function
 function showFolderPicker(){
   // Create a modal overlay for the folder picker
@@ -405,26 +533,9 @@ function showFolderPicker(){
   const cancelBtn=modal.querySelector('#cancelFolderBtn');
   const saveBtn=modal.querySelector('#saveFolderBtn');
   
-  // Browse button - simulate folder picker
+  // Browse button - show common folder options
   browseBtn.addEventListener('click',()=>{
-    // Since browsers don't support folder picking directly, we'll use a file input
-    // and extract the directory path
-    const fileInput=document.createElement('input');
-    fileInput.type='file';
-    fileInput.webkitdirectory=true;
-    fileInput.style.display='none';
-    document.body.appendChild(fileInput);
-    
-    fileInput.addEventListener('change',(e)=>{
-      if(e.target.files.length>0){
-        const filePath=e.target.files[0].webkitRelativePath;
-        const folderPath=filePath.split('/')[0];
-        folderInput.value=folderPath;
-      }
-      document.body.removeChild(fileInput);
-    });
-    
-    fileInput.click();
+    showFolderOptions(folderInput);
   });
   
   // Default Downloads button
