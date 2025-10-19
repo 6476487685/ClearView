@@ -186,48 +186,97 @@ btnPDF.onclick=()=>{
  const { jsPDF } = window.jspdf;
  const doc = new jsPDF('l', 'mm', 'a4'); // landscape, millimeters, A4
  
+ // Helper function to format dates to YYYY/MM/DD
+ function formatDate(dateStr) {
+   if (!dateStr) return '';
+   const date = new Date(dateStr);
+   return date.toISOString().split('T')[0].replace(/-/g, '/');
+ }
+ 
+ // Helper function to get current filter criteria
+ function getFilterCriteria() {
+   const criteria = [];
+   if (fCategory.value) criteria.push(`Category = ${fCategory.value}`);
+   if (fTag.value) criteria.push(`Account Tag = ${fTag.value}`);
+   if (fHolder.value) criteria.push(`Holder = ${fHolder.value}`);
+   if (fStatus.value) criteria.push(`Status = ${fStatus.value}`);
+   if (fFrom.value) criteria.push(`Date From: ${formatDate(fFrom.value)}`);
+   if (fTo.value) criteria.push(`Date To: ${formatDate(fTo.value)}`);
+   return criteria.length > 0 ? criteria.join(', ') : 'No filters applied';
+ }
+ 
  // Set font
  doc.setFont('helvetica');
  
- // Title
+ // Title - Font Size 16, bold
  doc.setFontSize(16);
  doc.setFont('helvetica', 'bold');
- doc.text('Expense Filtered Report', 105, 20, { align: 'center' });
+ doc.text('Expanse Filtered Report', 105, 20, { align: 'center' });
  
- // Date and total records
- doc.setFontSize(10);
+ // Filter Criteria - Font Size 12
+ doc.setFontSize(12);
  doc.setFont('helvetica', 'normal');
- doc.text(`Generated on: ${new Date().toLocaleString()}`, 20, 35);
- doc.text(`Total Records: ${data.length}`, 20, 42);
+ const criteriaText = getFilterCriteria();
+ doc.text(criteriaText, 20, 35);
  
- // Table headers
- const headers = ['#', 'Description', 'Category', 'Tag', 'Cur', 'Amount', 'Mode', 'Holder', 'Due Date', 'Paid Date', 'Freq', 'Ac Status', 'Txn Status'];
- const colWidths = [8, 25, 18, 20, 8, 12, 15, 12, 15, 15, 12, 12, 12];
- const startY = 55;
+ // Compact table layout for 20+ records per page
+ const headers = ['#', 'Description', 'Category', 'Tag', 'Currency', 'Amount', 'Mode', 'Holder', 'Due Date', 'Paid Date', 'Frequency', 'Ac Status', 'Txn Status'];
+ const colWidths = [8, 35, 20, 25, 10, 15, 18, 15, 18, 18, 15, 15, 15];
+ const rowHeight = 5; // Compact row height
+ const startY = 45;
  let currentY = startY;
+ let currentPage = 1;
+ const totalPages = Math.ceil(data.length / 22); // ~22 records per page with compact layout
  
- // Header row
- doc.setFontSize(8);
- doc.setFont('helvetica', 'bold');
- let x = 20;
- headers.forEach((header, i) => {
-   doc.text(header, x, currentY);
-   x += colWidths[i];
- });
+ // Helper function to add footer
+ function addFooter() {
+   const pageY = doc.internal.pageSize.height - 10;
+   doc.setFontSize(8);
+   doc.text(`Page ${currentPage}/${totalPages}`, 20, pageY);
+   doc.text(`Generated: ${new Date().toLocaleString()}`, 105, pageY, { align: 'center' });
+   doc.text(`Total Records: ${data.length}`, 270, pageY, { align: 'right' });
+ }
  
- // Header line
- currentY += 3;
- doc.line(20, currentY, x, currentY);
+ // Helper function to add new page
+ function addNewPage() {
+   doc.addPage();
+   currentPage++;
+   currentY = startY;
+   addFooter();
+   // Redraw headers on new page
+   drawHeaders();
+   currentY += 4;
+   doc.setFont('helvetica', 'normal');
+ }
  
- // Data rows
+ // Helper function to draw table headers
+ function drawHeaders() {
+   doc.setFontSize(8);
+   doc.setFont('helvetica', 'bold');
+   let x = 20;
+   headers.forEach((header, i) => {
+     doc.text(header, x, currentY);
+     x += colWidths[i];
+   });
+   
+   // Header line
+   currentY += 1;
+   doc.line(20, currentY, x, currentY);
+   currentY += 2;
+ }
+ 
+ // Draw initial headers
+ drawHeaders();
+ 
+ // Data rows with compact layout
+ doc.setFontSize(7); // Smaller font for compact layout
  doc.setFont('helvetica', 'normal');
- currentY += 7;
+ currentY += 2;
  
  data.forEach((row, index) => {
-   // Check if we need a new page
-   if (currentY > 280) {
-     doc.addPage();
-     currentY = 20;
+   // Check if we need a new page (leaving space for footer)
+   if (currentY > 180) {
+     addNewPage();
    }
    
    const rowData = [
@@ -239,28 +288,32 @@ btnPDF.onclick=()=>{
      Number(row.amt).toFixed(2),
      row.mode,
      row.holder,
-     row.due,
-     row.paid,
+     formatDate(row.due),
+     formatDate(row.paid),
      row.freq,
      row.acstatus,
      row.txnstatus
    ];
    
-   x = 20;
+   let x = 20;
    rowData.forEach((cell, i) => {
-     // Truncate long text
+     // Truncate long text to fit columns
      let cellText = cell.toString();
-     if (cellText.length > 15 && i !== 0) { // Don't truncate description
-       cellText = cellText.substring(0, 12) + '...';
+     const maxLength = i === 1 ? 20 : 10; // Description can be longer
+     if (cellText.length > maxLength) {
+       cellText = cellText.substring(0, maxLength - 3) + '...';
      }
      doc.text(cellText, x, currentY);
      x += colWidths[i];
    });
    
-   currentY += 6;
+   currentY += rowHeight;
  });
  
- // Download the PDF
+ // Add final footer
+ addFooter();
+ 
+ // Download the PDF with proper filename
  doc.save(generateFilename('pdf'));
 };
 });
