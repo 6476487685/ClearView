@@ -342,8 +342,48 @@ function setupBackupFolder(){
   }
 }
 
-// Show folder options function
-function showFolderOptions(folderInput){
+// Native folder picker function
+async function showFolderPicker(folderInput){
+  try{
+    // Check if File System Access API is supported
+    if('showDirectoryPicker' in window){
+      console.log('Using File System Access API for folder selection');
+      
+      // Show native folder picker
+      const directoryHandle = await window.showDirectoryPicker({
+        mode: 'readwrite',
+        startIn: 'documents'
+      });
+      
+      // Get folder name
+      const folderName = directoryHandle.name;
+      console.log('Selected folder:', folderName);
+      
+      // Set the folder name in the input
+      folderInput.value = folderName;
+      
+      // Show success message
+      showToast(`📁 Folder selected: ${folderName}`);
+      
+    }else{
+      // Fallback for browsers that don't support File System Access API
+      console.log('File System Access API not supported, using fallback');
+      showFolderFallback(folderInput);
+    }
+  }catch(error){
+    if(error.name === 'AbortError'){
+      console.log('User cancelled folder selection');
+      // User cancelled, do nothing
+    }else{
+      console.error('Error selecting folder:', error);
+      // Fallback to manual selection
+      showFolderFallback(folderInput);
+    }
+  }
+}
+
+// Fallback folder selection for older browsers
+function showFolderFallback(folderInput){
   const overlay=document.createElement('div');
   overlay.style.cssText=`
     position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);
@@ -362,7 +402,7 @@ function showFolderOptions(folderInput){
     <div style="text-align:center;margin-bottom:20px;">
       <div style="font-size:36px;margin-bottom:10px;">📂</div>
       <h3 style="margin:0 0 10px 0;color:var(--text-body);font-size:16px;">Choose Folder Location</h3>
-      <p style="margin:0;color:var(--text-secondary);font-size:14px;">Select a common folder for downloads</p>
+      <p style="margin:0;color:var(--text-secondary);font-size:14px;">Select a folder for downloads</p>
     </div>
     
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
@@ -404,19 +444,6 @@ function showFolderOptions(folderInput){
           <div style="font-size:12px;color:var(--text-secondary);">Desktop folder</div>
         </div>
       </button>
-      
-      <button class="folder-option" data-path="Custom" style="
-        padding:12px 16px;background:var(--primary-bg);color:var(--text-body);
-        border:2px solid var(--divider);border-radius:6px;text-align:left;
-        cursor:pointer;transition:all 0.3s ease;font-size:14px;
-        display:flex;align-items:center;gap:10px;
-      ">
-        <span style="font-size:20px;">📁</span>
-        <div>
-          <div style="font-weight:600;">Custom Path</div>
-          <div style="font-size:12px;color:var(--text-secondary);">Enter custom folder path</div>
-        </div>
-      </button>
     </div>
     
     <div style="display:flex;gap:10px;justify-content:flex-end;">
@@ -430,7 +457,7 @@ function showFolderOptions(folderInput){
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
   
-  // Add hover effects and click handlers to folder options
+  // Add click handlers to folder options
   const folderOptions=modal.querySelectorAll('.folder-option');
   folderOptions.forEach(option=>{
     // Hover effects
@@ -458,31 +485,9 @@ function showFolderOptions(folderInput){
       const path=option.dataset.path;
       console.log('Folder option clicked:', path);
       
-      if(path==='Custom'){
-        // Handle custom path
-        const customPath=prompt('Enter custom folder path:\n\nExample: C:\\Users\\YourName\\Documents\\ClearView_Downloads');
-        if(customPath!==null&&customPath.trim()){
-          folderInput.value=customPath.trim();
-          console.log('Custom path set:', customPath.trim());
-          document.body.removeChild(overlay);
-        }
-      }else{
-        // Handle predefined paths
-        folderInput.value=path;
-        console.log('Predefined path set:', path);
-        document.body.removeChild(overlay);
-      }
-    });
-    
-    // Add visual feedback for click
-    option.addEventListener('mousedown',()=>{
-      option.style.transform='translateY(0)';
-      option.style.boxShadow='0 2px 6px rgba(66,133,244,0.2)';
-    });
-    
-    option.addEventListener('mouseup',()=>{
-      option.style.transform='translateY(-2px)';
-      option.style.boxShadow='0 4px 12px rgba(66,133,244,0.3)';
+      folderInput.value=path;
+      console.log('Folder path set:', path);
+      document.body.removeChild(overlay);
     });
   });
   
@@ -534,7 +539,7 @@ function showFolderPicker(){
           flex:1;padding:12px;background:var(--accent-blue);color:#fff;border:none;
           border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
           box-shadow:0 2px 4px rgba(66,133,244,0.2);
-        ">📂 Browse Options</button>
+        ">📂 Select Folder</button>
         <button id="defaultBtn" style="
           flex:1;padding:12px;background:var(--text-secondary);color:#fff;border:none;
           border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
@@ -542,7 +547,7 @@ function showFolderPicker(){
         ">📥 Downloads</button>
       </div>
       <div style="margin-top:8px;font-size:12px;color:var(--text-secondary);">
-        💡 Tip: Click "Browse Options" to see available folders or type a custom path directly
+        💡 Tip: Click "Select Folder" to open native folder picker or "Downloads" for default
       </div>
     </div>
     
@@ -567,9 +572,9 @@ function showFolderPicker(){
   const cancelBtn=modal.querySelector('#cancelFolderBtn');
   const saveBtn=modal.querySelector('#saveFolderBtn');
   
-  // Browse button - show common folder options
-  browseBtn.addEventListener('click',()=>{
-    showFolderOptions(folderInput);
+  // Browse button - show native folder picker
+  browseBtn.addEventListener('click',async ()=>{
+    await showFolderPicker(folderInput);
   });
   
   // Default Downloads button
