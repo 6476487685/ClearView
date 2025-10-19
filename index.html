@@ -1007,12 +1007,23 @@ function handleFileUpload(e){
 function handleFiles(files){
   let addedCount = 0;
   let skippedCount = 0;
+  let duplicateCount = 0;
   
   Array.from(files).forEach(file=>{
     if(isValidFileType(file)){
-      const entry=createDocumentEntry(file);
-      docs.push(entry);
-      addedCount++;
+      // Check for duplicate files
+      const existingFile = docs.find(doc => doc.name === file.name);
+      
+      if(existingFile){
+        // Duplicate file found - offer to save with different name
+        handleDuplicateFile(file, existingFile);
+        duplicateCount++;
+      }else{
+        // No duplicate - add file normally
+        const entry=createDocumentEntry(file);
+        docs.push(entry);
+        addedCount++;
+      }
     }else{
       alert(`File type not supported: ${file.name}`);
       skippedCount++;
@@ -1037,6 +1048,170 @@ function handleFiles(files){
       showToast(`⚠️ ${skippedCount} file(s) skipped due to unsupported format`);
     }, 1500);
   }
+  
+  if(duplicateCount > 0){
+    setTimeout(() => {
+      showToast(`🔄 ${duplicateCount} duplicate file(s) detected - check for rename options`);
+    }, 2000);
+  }
+}
+
+function handleDuplicateFile(newFile, existingFile){
+  // Create modal for duplicate file handling
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.6); display: flex; justify-content: center; 
+    align-items: center; z-index: 10002; backdrop-filter: blur(5px);
+  `;
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: var(--content-bg); padding: 24px; border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3); max-width: 500px; width: 90%;
+    border: 1px solid var(--divider);
+  `;
+  
+  modal.innerHTML = `
+    <div style="text-align: center; margin-bottom: 20px;">
+      <div style="font-size: 48px; margin-bottom: 10px;">🔄</div>
+      <h3 style="margin: 0 0 10px 0; color: var(--text-body); font-size: 18px;">Duplicate File Detected</h3>
+      <p style="margin: 0; color: var(--text-secondary); font-size: 14px;">A file with the same name already exists</p>
+    </div>
+    
+    <div style="margin-bottom: 20px; padding: 16px; background: var(--primary-bg); border-radius: 8px;">
+      <div style="font-weight: 600; color: var(--text-body); margin-bottom: 8px;">File Name:</div>
+      <div style="color: var(--text-secondary); font-size: 14px;">"${newFile.name}"</div>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 8px; color: var(--text-body); font-weight: 600;">What would you like to do?</label>
+      
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <button id="skipFileBtn" style="
+          padding: 12px 16px; background: var(--primary-bg); color: var(--text-body);
+          border: 2px solid var(--divider); border-radius: 8px; text-align: left;
+          cursor: pointer; transition: all 0.3s ease; font-size: 14px;
+          display: flex; align-items: center; gap: 10px;
+        ">
+          <span style="font-size: 20px;">⏭️</span>
+          <div>
+            <div style="font-weight: 600;">Skip this file</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">Don't upload the duplicate file</div>
+          </div>
+        </button>
+        
+        <button id="replaceFileBtn" style="
+          padding: 12px 16px; background: var(--primary-bg); color: var(--text-body);
+          border: 2px solid var(--divider); border-radius: 8px; text-align: left;
+          cursor: pointer; transition: all 0.3s ease; font-size: 14px;
+          display: flex; align-items: center; gap: 10px;
+        ">
+          <span style="font-size: 20px;">🔄</span>
+          <div>
+            <div style="font-weight: 600;">Replace existing file</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">Overwrite the existing file</div>
+          </div>
+        </button>
+        
+        <button id="renameFileBtn" style="
+          padding: 12px 16px; background: var(--primary-bg); color: var(--text-body);
+          border: 2px solid var(--divider); border-radius: 8px; text-align: left;
+          cursor: pointer; transition: all 0.3s ease; font-size: 14px;
+          display: flex; align-items: center; gap: 10px;
+        ">
+          <span style="font-size: 20px;">✏️</span>
+          <div>
+            <div style="font-weight: 600;">Save with different name</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">Create a new file with a modified name</div>
+          </div>
+        </button>
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+      <button id="cancelDuplicateBtn" style="
+        padding: 10px 20px; background: #6b7280; color: #fff; border: none;
+        border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+      ">Cancel</button>
+    </div>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  
+  // Event handlers
+  const skipBtn = modal.querySelector('#skipFileBtn');
+  const replaceBtn = modal.querySelector('#replaceFileBtn');
+  const renameBtn = modal.querySelector('#renameFileBtn');
+  const cancelBtn = modal.querySelector('#cancelDuplicateBtn');
+  
+  // Skip file
+  skipBtn.addEventListener('click', () => {
+    document.body.removeChild(overlay);
+    showToast(`⏭️ File "${newFile.name}" skipped (duplicate)`);
+  });
+  
+  // Replace existing file
+  replaceBtn.addEventListener('click', () => {
+    // Find and replace the existing file
+    const existingIndex = docs.findIndex(doc => doc.name === existingFile.name);
+    if(existingIndex !== -1){
+      docs[existingIndex] = createDocumentEntry(newFile);
+      localStorage.setItem('docsList', JSON.stringify(docs));
+      renderDocs();
+      updateStats();
+      document.body.removeChild(overlay);
+      showToast(`🔄 File "${newFile.name}" replaced successfully`);
+    }
+  });
+  
+  // Rename and save file
+  renameBtn.addEventListener('click', () => {
+    const newName = prompt(`Enter a new name for the file:`, `${newFile.name.split('.')[0]} (Copy).${newFile.name.split('.').pop()}`);
+    if(newName && newName.trim()){
+      const entry = createDocumentEntry(newFile);
+      entry.name = newName.trim();
+      docs.push(entry);
+      localStorage.setItem('docsList', JSON.stringify(docs));
+      renderDocs();
+      updateStats();
+      document.body.removeChild(overlay);
+      showToast(`✏️ File saved as "${newName.trim()}"`);
+    }
+  });
+  
+  // Cancel
+  cancelBtn.addEventListener('click', () => {
+    document.body.removeChild(overlay);
+    showToast(`❌ File upload cancelled`);
+  });
+  
+  // Close on overlay click
+  overlay.addEventListener('click', (e) => {
+    if(e.target === overlay){
+      document.body.removeChild(overlay);
+    }
+  });
+  
+  // Add hover effects to buttons
+  [skipBtn, replaceBtn, renameBtn].forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+      btn.style.background = 'var(--accent-blue)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = 'var(--accent-blue)';
+      btn.style.transform = 'translateY(-2px)';
+      btn.style.boxShadow = '0 4px 12px rgba(66,133,244,0.3)';
+    });
+    
+    btn.addEventListener('mouseleave', () => {
+      btn.style.background = 'var(--primary-bg)';
+      btn.style.color = 'var(--text-body)';
+      btn.style.borderColor = 'var(--divider)';
+      btn.style.transform = 'translateY(0)';
+      btn.style.boxShadow = 'none';
+    });
+  });
 }
 
 function isValidFileType(file){
