@@ -180,89 +180,87 @@ btnExcel.onclick=()=>{
  URL.revokeObjectURL(a.href);
 };
 btnPDF.onclick=()=>{
- // Create a temporary window for PDF generation
- const win = window.open('', '_blank');
  const data = getData();
  
- // Create the HTML content
- const htmlContent = `
- <!DOCTYPE html>
- <html>
- <head>
-   <title>Expense Filtered Report</title>
-   <meta charset="utf-8">
-   <style>
-     @media print {
-       @page { margin: 0.5in; size: A4; }
-       body { font-family: Arial, sans-serif; font-size: 10pt; margin: 0; padding: 0; }
+ // Create PDF using jsPDF
+ const { jsPDF } = window.jspdf;
+ const doc = new jsPDF('l', 'mm', 'a4'); // landscape, millimeters, A4
+ 
+ // Set font
+ doc.setFont('helvetica');
+ 
+ // Title
+ doc.setFontSize(16);
+ doc.setFont('helvetica', 'bold');
+ doc.text('Expense Filtered Report', 105, 20, { align: 'center' });
+ 
+ // Date and total records
+ doc.setFontSize(10);
+ doc.setFont('helvetica', 'normal');
+ doc.text(`Generated on: ${new Date().toLocaleString()}`, 20, 35);
+ doc.text(`Total Records: ${data.length}`, 20, 42);
+ 
+ // Table headers
+ const headers = ['#', 'Description', 'Category', 'Tag', 'Cur', 'Amount', 'Mode', 'Holder', 'Due Date', 'Paid Date', 'Freq', 'Ac Status', 'Txn Status'];
+ const colWidths = [8, 25, 18, 20, 8, 12, 15, 12, 15, 15, 12, 12, 12];
+ const startY = 55;
+ let currentY = startY;
+ 
+ // Header row
+ doc.setFontSize(8);
+ doc.setFont('helvetica', 'bold');
+ let x = 20;
+ headers.forEach((header, i) => {
+   doc.text(header, x, currentY);
+   x += colWidths[i];
+ });
+ 
+ // Header line
+ currentY += 3;
+ doc.line(20, currentY, x, currentY);
+ 
+ // Data rows
+ doc.setFont('helvetica', 'normal');
+ currentY += 7;
+ 
+ data.forEach((row, index) => {
+   // Check if we need a new page
+   if (currentY > 280) {
+     doc.addPage();
+     currentY = 20;
+   }
+   
+   const rowData = [
+     (index + 1).toString(),
+     row.desc,
+     row.cat,
+     row.tag,
+     row.cur,
+     Number(row.amt).toFixed(2),
+     row.mode,
+     row.holder,
+     row.due,
+     row.paid,
+     row.freq,
+     row.acstatus,
+     row.txnstatus
+   ];
+   
+   x = 20;
+   rowData.forEach((cell, i) => {
+     // Truncate long text
+     let cellText = cell.toString();
+     if (cellText.length > 15 && i !== 0) { // Don't truncate description
+       cellText = cellText.substring(0, 12) + '...';
      }
-     body { font-family: Arial, sans-serif; font-size: 10pt; margin: 20px; }
-     h2 { text-align: center; font-weight: bold; margin-bottom: 20px; }
-     table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-     th, td { border: 1px solid #000; padding: 6px; text-align: left; }
-     th { background-color: #f0f0f0; font-weight: bold; }
-     .number { text-align: left; }
-     .currency { text-align: center; }
-     .amount { text-align: right; }
-     .footer { margin-top: 20px; display: flex; justify-content: space-between; font-size: 10pt; }
-   </style>
- </head>
- <body>
-   <h2>Expense Filtered Report</h2>
-   <table>
-     <thead>
-       <tr>
-         <th class="number">#</th>
-         <th>Description</th>
-         <th>Category</th>
-         <th>Account Tag</th>
-         <th class="currency">Currency</th>
-         <th class="amount">Amount</th>
-         <th>Mode</th>
-         <th>Holder</th>
-         <th>Due Date</th>
-         <th>Paid Date</th>
-         <th>Frequency</th>
-         <th>Ac Status</th>
-         <th>Txn Status</th>
-       </tr>
-     </thead>
-     <tbody>
-       ${data.map((row, index) => `
-         <tr>
-           <td class="number">${index + 1}</td>
-           <td>${row.desc}</td>
-           <td>${row.cat}</td>
-           <td>${row.tag}</td>
-           <td class="currency">${row.cur}</td>
-           <td class="amount">${Number(row.amt).toFixed(2)}</td>
-           <td>${row.mode}</td>
-           <td>${row.holder}</td>
-           <td>${row.due}</td>
-           <td>${row.paid}</td>
-           <td>${row.freq}</td>
-           <td>${row.acstatus}</td>
-           <td>${row.txnstatus}</td>
-         </tr>
-       `).join('')}
-     </tbody>
-   </table>
-   <div class="footer">
-     <span>Generated on: ${new Date().toLocaleString()}</span>
-     <span>Total Records: ${data.length}</span>
-   </div>
- </body>
- </html>`;
+     doc.text(cellText, x, currentY);
+     x += colWidths[i];
+   });
+   
+   currentY += 6;
+ });
  
- // Write content to the new window
- win.document.write(htmlContent);
- win.document.close();
- 
- // Wait for content to load, then print
- setTimeout(() => {
-   win.print();
-   // Close the window after a short delay
-   setTimeout(() => win.close(), 1000);
- }, 500);
+ // Download the PDF
+ doc.save(generateFilename('pdf'));
 };
 });
