@@ -1467,13 +1467,26 @@ function downloadDocument(index){
     const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${folderPath}\nBackup Folder: ${backupFolderPath || 'Not set'}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
     const blob = new Blob([content], { type: 'text/plain' });
     
-    // Try to save to Backup folder if available
-    if(backupFolderPath && 'showSaveFilePicker' in window) {
-      downloadToBackupFolder(blob, doc.name, backupFolderPath);
-    } else {
-      // Fallback to default download
-      downloadToDefaultLocation(blob, doc.name, backupFolderPath);
-    }
+    // Create filename with Backup folder path for easy identification
+    const fileName = backupFolderPath ? `[${backupFolderPath}]_${doc.name}` : doc.name;
+    
+    // Silent download to default location
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    // Show success message
+    setTimeout(() => {
+      const message = backupFolderPath 
+        ? `<i class="fas fa-download"></i> Download completed: "${doc.name}"<br><small>Saved with Backup folder: ${backupFolderPath}</small>`
+        : `<i class="fas fa-download"></i> Download completed: "${doc.name}"<br><small>Set Backup folder to auto-save downloads</small>`;
+      showToast(message);
+    }, 500);
     
   } catch (error) {
     console.error('Download error:', error);
@@ -1481,79 +1494,6 @@ function downloadDocument(index){
   }
 }
 
-async function downloadToBackupFolder(blob, fileName, backupFolderPath) {
-  try {
-    // First try to use directory picker to select the Backup folder
-    const directoryHandle = await window.showDirectoryPicker({
-      mode: 'readwrite',
-      startIn: 'documents'
-    });
-    
-    // Create file in the selected directory
-    const fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
-    const writable = await fileHandle.createWritable();
-    await writable.write(blob);
-    await writable.close();
-    
-    showToast(`<i class="fas fa-download"></i> File saved to Backup folder: "${fileName}"`);
-    
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      console.log('User cancelled directory selection');
-      return;
-    }
-    
-    console.error('Error saving to Backup folder:', error);
-    
-    // Fallback to save file picker
-    try {
-      const fileHandle = await window.showSaveFilePicker({
-        suggestedName: fileName,
-        startIn: 'documents'
-      });
-      
-      const writable = await fileHandle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      
-      showToast(`<i class="fas fa-download"></i> File saved: "${fileName}"<br><small>Please move to Backup folder: ${backupFolderPath}</small>`);
-      
-    } catch (fallbackError) {
-      if (fallbackError.name === 'AbortError') {
-        console.log('User cancelled save dialog');
-        return;
-      }
-      
-      // Final fallback to default download
-      downloadToDefaultLocation(blob, fileName, backupFolderPath);
-    }
-  }
-}
-
-function downloadToDefaultLocation(blob, fileName, backupFolderPath) {
-  // Create download link
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  
-  // Trigger download
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  // Clean up
-  URL.revokeObjectURL(url);
-  
-  // Show success toast with Backup folder info
-  const message = backupFolderPath 
-    ? `<i class="fas fa-download"></i> Download completed: "${fileName}"<br><small>Please move to Backup folder: ${backupFolderPath}</small>`
-    : `<i class="fas fa-download"></i> Download completed: "${fileName}"<br><small>Set Backup folder to auto-save downloads</small>`;
-  
-  setTimeout(() => {
-    showToast(message);
-  }, 500);
-}
 
 async function downloadAllDocuments() {
   const backupFolderPath = localStorage.getItem('backupFolderPath');
@@ -1568,100 +1508,64 @@ async function downloadAllDocuments() {
     return;
   }
   
-  showToast(`<i class="fas fa-download"></i> Preparing to download ${docs.length} documents to Backup folder...`);
+  showToast(`<i class="fas fa-download"></i> Downloading ${docs.length} documents to Backup folder: ${backupFolderPath}`);
   
   try {
-    // Check if File System Access API is available
-    if('showDirectoryPicker' in window) {
-      await downloadAllToBackupFolder();
-    } else {
-      downloadAllToDefaultLocation();
-    }
+    // Download all documents with Backup folder path in filename
+    downloadAllToBackupFolderSilent(backupFolderPath);
   } catch (error) {
     console.error('Error downloading all documents:', error);
     showToast(`<i class="fas fa-exclamation-triangle"></i> Download failed: ${error.message}`);
   }
 }
 
-async function downloadAllToBackupFolder() {
-  try {
-    // Show directory picker to select Backup folder
-    const directoryHandle = await window.showDirectoryPicker({
-      mode: 'readwrite',
-      startIn: 'documents'
-    });
-    
-    let successCount = 0;
-    let errorCount = 0;
-    
-    // Download each document
-    for (let i = 0; i < docs.length; i++) {
-      const doc = docs[i];
+function downloadAllToBackupFolderSilent(backupFolderPath) {
+  let successCount = 0;
+  let errorCount = 0;
+  
+  // Download each document with Backup folder path in the filename
+  docs.forEach((doc, index) => {
+    setTimeout(() => {
       try {
-        // Create file content
-        const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${doc.folderPath || 'Documents'}\nBackup Folder: ${localStorage.getItem('backupFolderPath')}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
+        // Create file content with Backup folder information
+        const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${doc.folderPath || 'Documents'}\nBackup Folder: ${backupFolderPath}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
         const blob = new Blob([content], { type: 'text/plain' });
         
-        // Create file in the selected directory
-        const fileHandle = await directoryHandle.getFileHandle(doc.name, { create: true });
-        const writable = await fileHandle.createWritable();
-        await writable.write(blob);
-        await writable.close();
+        // Create filename with Backup folder path for easy identification
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        const fileName = `[${backupFolderPath}]_${doc.name}`;
+        
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
         
         successCount++;
         
         // Update progress
-        if(i % 5 === 0 || i === docs.length - 1) {
-          showToast(`<i class="fas fa-download"></i> Downloaded ${i + 1}/${docs.length} documents...`);
+        if(index % 3 === 0 || index === docs.length - 1) {
+          showToast(`<i class="fas fa-download"></i> Downloaded ${index + 1}/${docs.length} documents...`);
         }
         
       } catch (error) {
         console.error(`Error downloading ${doc.name}:`, error);
         errorCount++;
       }
-    }
-    
-    // Show final result
-    if(errorCount === 0) {
-      showToast(`<i class="fas fa-check-circle"></i> Successfully downloaded all ${successCount} documents to Backup folder!`);
-    } else {
-      showToast(`<i class="fas fa-exclamation-triangle"></i> Downloaded ${successCount} documents, ${errorCount} failed`);
-    }
-    
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      console.log('User cancelled directory selection');
-      showToast(`<i class="fas fa-times-circle"></i> Download cancelled`);
-      return;
-    }
-    
-    console.error('Error accessing Backup folder:', error);
-    // Fallback to default download
-    downloadAllToDefaultLocation();
-  }
-}
-
-function downloadAllToDefaultLocation() {
-  const backupFolderPath = localStorage.getItem('backupFolderPath');
-  
-  // Download each document individually
-  docs.forEach((doc, index) => {
-    setTimeout(() => {
-      const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${doc.folderPath || 'Documents'}\nBackup Folder: ${backupFolderPath || 'Not set'}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
-      const blob = new Blob([content], { type: 'text/plain' });
-      
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = doc.name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }, index * 500); // Stagger downloads by 500ms
+    }, index * 300); // Stagger downloads by 300ms
   });
   
-  showToast(`<i class="fas fa-download"></i> Downloading ${docs.length} documents...<br><small>Please move to Backup folder: ${backupFolderPath || 'Not set'}</small>`);
+  // Show final result after all downloads complete
+  setTimeout(() => {
+    if(errorCount === 0) {
+      showToast(`<i class="fas fa-check-circle"></i> Successfully downloaded all ${successCount} documents!<br><small>Files saved with Backup folder: ${backupFolderPath}</small>`);
+    } else {
+      showToast(`<i class="fas fa-exclamation-triangle"></i> Downloaded ${successCount} documents, ${errorCount} failed<br><small>Files saved with Backup folder: ${backupFolderPath}</small>`);
+    }
+  }, docs.length * 300 + 1000);
 }
 
 function renameDocument(index){
