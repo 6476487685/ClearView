@@ -374,8 +374,8 @@ const closeLoadModalBtn=document.getElementById('closeLoadModal');
 
 let pendingFile=null;
 
-// Upload button click
-btnLoad.addEventListener('click',()=>fileInput.click());
+// Upload button click - show overwrite warning first
+btnLoad.addEventListener('click',()=>showOverwriteWarning());
 
 // File input change
 fileInput.addEventListener('change',handleFileUpload);
@@ -395,14 +395,19 @@ loadUploadArea.addEventListener('drop',e=>{
   loadUploadArea.classList.remove('dragover');
   const files=e.dataTransfer.files;
   if(files.length>0){
-    handleFileUpload({target:{files}});
+    pendingFile=files[0];
+    if(isValidDataFile(pendingFile)){
+      showOverwriteWarning();
+    }else{
+      alert('Please select a valid data file (.xlsx, .json, .sqlite, .db)');
+    }
   }
 });
 
 // Make the upload area clickable (but not the button)
 loadUploadArea.addEventListener('click',(e)=>{
   if(e.target.tagName !== 'BUTTON'){
-    fileInput.click();
+    showOverwriteWarning();
   }
 });
 
@@ -417,20 +422,24 @@ function handleFileUpload(e){
   }
   
   pendingFile=file;
-  
+  loadData();
+}
+
+function isValidDataFile(file){
+  const validExtensions=['.xlsx','.json','.sqlite','.db'];
+  return validExtensions.some(ext=>file.name.toLowerCase().endsWith(ext));
+}
+
+function showOverwriteWarning(){
   // Check if there's existing data
   const existingData=localStorage.getItem('txnData')||localStorage.getItem('expense_records')||localStorage.getItem('income_records');
   
   if(existingData){
     showWarning();
   }else{
-    loadData();
+    // No existing data, proceed directly to file picker
+    fileInput.click();
   }
-}
-
-function isValidDataFile(file){
-  const validExtensions=['.xlsx','.json','.sqlite','.db'];
-  return validExtensions.some(ext=>file.name.toLowerCase().endsWith(ext));
 }
 
 function showWarning(){
@@ -448,15 +457,21 @@ async function loadData(){
     if(fileName.endsWith('.json')){
       const txt=await pendingFile.text();
       localStorage.setItem('txnData',txt);
+      localStorage.setItem('localDataPath',fileName);
+      showToast('JSON data loaded successfully!');
       showBackupSection('JSON data loaded successfully!');
     }else if(fileName.endsWith('.xlsx')){
       const buf=await pendingFile.arrayBuffer();
       const wb=XLSX.read(buf);
       const js=JSON.stringify(wb.Sheets);
       localStorage.setItem('txnData',js);
+      localStorage.setItem('localDataPath',fileName);
+      showToast('Excel data loaded successfully!');
       showBackupSection('Excel data loaded successfully!');
     }else{
       // Placeholder for SQLite/DB files
+      localStorage.setItem('localDataPath',fileName);
+      showToast('Database file loaded successfully!');
       showBackupSection('Database file loaded successfully!');
     }
   }catch(error){
@@ -488,7 +503,11 @@ function resetModal(){
 
 // Event listeners
 cancelLoadBtn.addEventListener('click',resetModal);
-confirmLoadBtn.addEventListener('click',loadData);
+confirmLoadBtn.addEventListener('click',()=>{
+  // Hide warning and open file picker
+  warningSection.style.display='none';
+  fileInput.click();
+});
 skipBackupBtn.addEventListener('click',()=>{
   showSuccess();
   setTimeout(()=>{
@@ -498,7 +517,11 @@ skipBackupBtn.addEventListener('click',()=>{
 });
 setupBackupBtn.addEventListener('click',()=>{
   // In a real application, this would open a folder picker
-  alert('Backup folder setup: In a real application, this would open a folder picker dialog.\n\nFor now, all downloads will be saved to the default Downloads folder.');
+  const backupPath=prompt('Enter backup folder path (or leave empty for default Downloads folder):');
+  if(backupPath!==null){
+    localStorage.setItem('backupFolderPath',backupPath||'Downloads');
+    showToast('Backup folder set successfully!');
+  }
   showSuccess();
   setTimeout(()=>{
     resetModal();
@@ -508,6 +531,46 @@ setupBackupBtn.addEventListener('click',()=>{
 closeLoadModalBtn.addEventListener('click',()=>{
   resetModal();
   closeModal('modal-load');
+});
+
+// Toast notification function
+function showToast(message){
+  const toast=document.createElement('div');
+  toast.style.cssText=`
+    position:fixed;top:20px;right:20px;background:var(--success);color:#fff;
+    padding:12px 20px;border-radius:6px;box-shadow:var(--shadow);
+    z-index:10000;font-weight:600;font-size:14px;opacity:0;
+    transition:opacity 0.3s ease;transform:translateX(100%);
+  `;
+  toast.textContent=message;
+  document.body.appendChild(toast);
+  
+  setTimeout(()=>{
+    toast.style.opacity='1';
+    toast.style.transform='translateX(0)';
+  },100);
+  
+  setTimeout(()=>{
+    toast.style.opacity='0';
+    toast.style.transform='translateX(100%)';
+    setTimeout(()=>document.body.removeChild(toast),300);
+  },3000);
+}
+
+// Add hover tooltips for sidebar items
+document.addEventListener('DOMContentLoaded',()=>{
+  // Load Local Data tooltip
+  const loadLocalLink=document.querySelector('nav a[data-target="load"]');
+  if(loadLocalLink){
+    loadLocalLink.title=localStorage.getItem('localDataPath')||'Click to load local data files';
+  }
+  
+  // Backup & Export tooltip
+  const backupLink=document.querySelector('nav a[data-target="backup"]');
+  if(backupLink){
+    const backupPath=localStorage.getItem('backupFolderPath');
+    backupLink.title=backupPath?`Backup folder: ${backupPath}`:'Click to set backup folder';
+  }
 });
 
 /* ---------- Enhanced Documents ---------- */
