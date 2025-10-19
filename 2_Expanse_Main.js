@@ -169,8 +169,8 @@ function createExcelFile(data) {
   return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }
 
-// Exports
-btnExcel.onclick=()=>{
+ // Exports
+ btnExcel.onclick=()=>{
  const data = getData();
  const blob = createExcelFile(data);
  const a = document.createElement('a');
@@ -178,13 +178,21 @@ btnExcel.onclick=()=>{
  a.download = generateFilename('xlsx');
  a.click();
  URL.revokeObjectURL(a.href);
-};
-btnPDF.onclick=()=>{
- const data = getData();
- 
+ };
+ btnPDF.onclick=()=>{
+ try {
+  const data = getData();
+  
+  // Check if jsPDF is loaded
+  if (!window.jspdf) {
+    alert('PDF library not loaded. Please refresh the page and try again.');
+    return;
+  }
+  
  // Create PDF using jsPDF
  const { jsPDF } = window.jspdf;
  const doc = new jsPDF('l', 'mm', 'a4'); // landscape, millimeters, A4
+ const pageWidth = doc.internal.pageSize.width; // Define pageWidth early
  
  // Helper function to format dates to YYYY/MM/DD
  function formatDate(dateStr) {
@@ -211,17 +219,17 @@ btnPDF.onclick=()=>{
  // Title - Font Size 16, bold
  doc.setFontSize(16);
  doc.setFont('helvetica', 'bold');
- doc.text('Expanse Filtered Report', 105, 20, { align: 'center' });
+ doc.text('Expanse Filtered Report', pageWidth / 2, 20, { align: 'center' });
  
  // Filter Criteria - Font Size 12
  doc.setFontSize(12);
  doc.setFont('helvetica', 'normal');
  const criteriaText = getFilterCriteria();
- doc.text(criteriaText, 105, 35, { align: 'center' });
+ doc.text(criteriaText, pageWidth / 2, 35, { align: 'center' });
  
  // Compact table layout for 20+ records per page
  const headers = ['#', 'Description', 'Category', 'Tag', 'Currency', 'Amount', 'Mode', 'Holder', 'Due Date', 'Paid Date', 'Frequency', 'Ac Status', 'Txn Status'];
- const colWidths = [8, 35, 20, 25, 10, 15, 18, 15, 18, 18, 15, 15, 15];
+ const colWidths = [10, 40, 22, 28, 15, 20, 20, 18, 20, 20, 18, 18, 18];
  const rowHeight = 5; // Compact row height
  const startY = 45;
  let currentY = startY;
@@ -230,7 +238,6 @@ btnPDF.onclick=()=>{
  
  // Calculate total table width and center it
  const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0);
- const pageWidth = doc.internal.pageSize.width;
  const tableStartX = (pageWidth - totalTableWidth) / 2; // Center the table
  
  // Helper function to add footer
@@ -238,8 +245,8 @@ btnPDF.onclick=()=>{
    const pageY = doc.internal.pageSize.height - 10;
    doc.setFontSize(8);
    doc.text(`Page ${currentPage}/${totalPages}`, 20, pageY);
-   doc.text(`Total Records: ${data.length}`, 105, pageY, { align: 'center' });
-   doc.text(`Generated: ${new Date().toLocaleString()}`, 270, pageY, { align: 'right' });
+   doc.text(`Total Records: ${data.length}`, pageWidth / 2, pageY, { align: 'center' });
+   doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth - 20, pageY, { align: 'right' });
  }
  
  // Helper function to add new page
@@ -304,7 +311,9 @@ btnPDF.onclick=()=>{
    rowData.forEach((cell, i) => {
      // Truncate long text to fit columns
      let cellText = cell.toString();
-     const maxLength = i === 1 ? 20 : 10; // Description can be longer
+     // Define max lengths based on column widths
+     const maxLengths = [3, 25, 15, 20, 10, 15, 15, 12, 15, 15, 12, 12, 12];
+     const maxLength = maxLengths[i];
      if (cellText.length > maxLength) {
        cellText = cellText.substring(0, maxLength - 3) + '...';
      }
@@ -320,5 +329,10 @@ btnPDF.onclick=()=>{
  
  // Download the PDF with proper filename
  doc.save(generateFilename('pdf'));
+ 
+ } catch (error) {
+   console.error('PDF generation error:', error);
+   alert('Error generating PDF: ' + error.message + '. Please try again.');
+ }
 };
 });
