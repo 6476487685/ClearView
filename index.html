@@ -74,6 +74,45 @@ input:checked + .slider:before{transform:translateX(22px);}
 .close{float:right;font-size:20px;font-weight:bold;cursor:pointer;}
 .table thead{background:var(--accent-blue);color:#fff;}
 .table td,.table th{padding:6px 10px;border-bottom:1px solid var(--divider);}
+
+/* Enhanced Documents Modal Styles */
+.docs-modal{max-width:900px;width:95%;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid var(--divider);}
+.modal-header h4{margin:0;color:var(--text-body);font-size:18px;font-weight:600;}
+
+.upload-section{margin-bottom:25px;}
+.upload-area{border:2px dashed var(--accent-blue);border-radius:12px;padding:30px;text-align:center;background:linear-gradient(135deg, rgba(66,133,244,0.05) 0%, rgba(66,133,244,0.02) 100%);transition:all 0.3s ease;cursor:pointer;position:relative;}
+.upload-area:hover{border-color:var(--accent-blue-hover);background:linear-gradient(135deg, rgba(66,133,244,0.1) 0%, rgba(66,133,244,0.05) 100%);transform:translateY(-2px);box-shadow:var(--shadow);}
+.upload-area.dragover{border-color:var(--success);background:linear-gradient(135deg, rgba(52,168,83,0.1) 0%, rgba(52,168,83,0.05) 100%);}
+.upload-icon{font-size:48px;margin-bottom:15px;opacity:0.7;}
+.upload-text{font-size:16px;font-weight:600;color:var(--text-body);margin:0 0 8px 0;}
+.upload-subtext{font-size:12px;color:var(--text-secondary);margin:0 0 20px 0;}
+.upload-btn{background:var(--accent-blue);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.3s ease;box-shadow:var(--shadow-xs);}
+.upload-btn:hover{background:var(--accent-blue-hover);transform:translateY(-1px);box-shadow:var(--shadow-sm);}
+#docUpload{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;}
+
+.documents-section{background:var(--surface);border-radius:8px;overflow:hidden;box-shadow:var(--shadow-xs);}
+.section-header{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;background:var(--bg);border-bottom:1px solid var(--divider);}
+.section-header h5{margin:0;color:var(--text-body);font-size:14px;font-weight:600;}
+.doc-stats{font-size:12px;color:var(--text-secondary);background:var(--accent-blue);color:#fff;padding:4px 12px;border-radius:12px;font-weight:500;}
+
+.table-container{max-height:400px;overflow-y:auto;}
+.docs-table{width:100%;border-collapse:collapse;}
+.docs-table th{background:var(--accent-blue);color:#fff;padding:12px 15px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.docs-table td{padding:12px 15px;border-bottom:1px solid var(--divider);font-size:13px;}
+.docs-table tbody tr:hover{background:var(--bg);transition:background 0.2s ease;}
+.docs-table tbody tr:last-child td{border-bottom:none;}
+
+.empty-state td{padding:40px 20px;text-align:center;}
+.empty-message{color:var(--text-secondary);}
+.empty-icon{font-size:48px;margin-bottom:15px;opacity:0.5;}
+.empty-message p{margin:0;font-size:14px;}
+
+.doc-actions{display:flex;gap:8px;}
+.doc-btn{background:var(--danger);color:#fff;border:none;padding:6px 10px;border-radius:4px;font-size:11px;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;gap:4px;}
+.doc-btn:hover{background:#d32f2f;transform:translateY(-1px);}
+.doc-btn.download{background:var(--success);}
+.doc-btn.download:hover{background:#2e7d32;}
 </style>
 </head>
 <body>
@@ -114,14 +153,50 @@ input:checked + .slider:before{transform:translateX(22px);}
 
 <!-- Documents Modal -->
 <div id="modal-docs" class="modal">
-  <div class="modal-content">
-    <span class="close" data-close="modal-docs">&times;</span>
-    <h4>📑 Documents Section</h4>
-    <input type="file" id="docUpload">
-    <table class="table" width="100%">
-      <thead><tr><th>Name</th><th>Type</th><th>Size</th><th>Added</th><th>Actions</th></tr></thead>
-      <tbody id="docsTbody"></tbody>
-    </table>
+  <div class="modal-content docs-modal">
+    <div class="modal-header">
+      <h4>📑 Document Manager</h4>
+      <span class="close" data-close="modal-docs">&times;</span>
+    </div>
+    
+    <div class="upload-section">
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">📁</div>
+        <p class="upload-text">Drag & drop files here or click to browse</p>
+        <p class="upload-subtext">Supports: PDF, DOC, DOCX, XLS, XLSX, TXT, Images</p>
+        <input type="file" id="docUpload" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif">
+        <button class="upload-btn" id="uploadBtn">Choose Files</button>
+      </div>
+    </div>
+    
+    <div class="documents-section">
+      <div class="section-header">
+        <h5>📋 Your Documents</h5>
+        <div class="doc-stats" id="docStats">0 documents</div>
+      </div>
+      
+      <div class="table-container">
+        <table class="table docs-table" width="100%">
+          <thead>
+            <tr>
+              <th>📄 Name</th>
+              <th>📂 Type</th>
+              <th>📏 Size</th>
+              <th>📅 Added</th>
+              <th>⚡ Actions</th>
+            </tr>
+          </thead>
+          <tbody id="docsTbody">
+            <tr class="empty-state">
+              <td colspan="5" class="empty-message">
+                <div class="empty-icon">📭</div>
+                <p>No documents yet. Upload your first document above!</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -200,31 +275,181 @@ fileInput.addEventListener('change',async e=>{
   }else{alert('SQLite placeholder — coming soon.');}
 });
 
-/* ---------- Documents ---------- */
+/* ---------- Enhanced Documents ---------- */
 const docUpload=document.getElementById('docUpload');
 const docsTbody=document.getElementById('docsTbody');
+const uploadArea=document.getElementById('uploadArea');
+const uploadBtn=document.getElementById('uploadBtn');
+const docStats=document.getElementById('docStats');
 let docs=JSON.parse(localStorage.getItem('docsList')||'[]');
+
+// Initialize
 renderDocs();
-docUpload.addEventListener('change',e=>{
-  const f=e.target.files[0];if(!f)return;
-  const entry={name:f.name,type:f.type||'file',size:(f.size/1024).toFixed(1)+' KB',date:new Date().toLocaleString()};
-  docs.push(entry);
+updateStats();
+
+// Upload button click
+uploadBtn.addEventListener('click',()=>docUpload.click());
+
+// File input change
+docUpload.addEventListener('change',handleFileUpload);
+
+// Drag and drop functionality
+uploadArea.addEventListener('dragover',e=>{
+  e.preventDefault();
+  uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave',()=>{
+  uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop',e=>{
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+  const files=e.dataTransfer.files;
+  handleFiles(files);
+});
+
+uploadArea.addEventListener('click',()=>docUpload.click());
+
+function handleFileUpload(e){
+  const files=e.target.files;
+  handleFiles(files);
+}
+
+function handleFiles(files){
+  Array.from(files).forEach(file=>{
+    if(isValidFileType(file)){
+      const entry=createDocumentEntry(file);
+      docs.push(entry);
+    }else{
+      alert(`File type not supported: ${file.name}`);
+    }
+  });
   localStorage.setItem('docsList',JSON.stringify(docs));
   renderDocs();
-});
+  updateStats();
+}
+
+function isValidFileType(file){
+  const validTypes=['.pdf','.doc','.docx','.xls','.xlsx','.txt','.jpg','.jpeg','.png','.gif'];
+  return validTypes.some(type=>file.name.toLowerCase().endsWith(type));
+}
+
+function createDocumentEntry(file){
+  return {
+    name:file.name,
+    type:getFileType(file.name),
+    size:formatFileSize(file.size),
+    date:new Date().toLocaleString(),
+    id:Date.now()+Math.random()
+  };
+}
+
+function getFileType(filename){
+  const ext=filename.split('.').pop().toLowerCase();
+  const typeMap={
+    'pdf':'PDF Document',
+    'doc':'Word Document',
+    'docx':'Word Document',
+    'xls':'Excel Spreadsheet',
+    'xlsx':'Excel Spreadsheet',
+    'txt':'Text File',
+    'jpg':'JPEG Image',
+    'jpeg':'JPEG Image',
+    'png':'PNG Image',
+    'gif':'GIF Image'
+  };
+  return typeMap[ext]||'Unknown';
+}
+
+function formatFileSize(bytes){
+  if(bytes===0)return'0 B';
+  const k=1024;
+  const sizes=['B','KB','MB','GB'];
+  const i=Math.floor(Math.log(bytes)/Math.log(k));
+  return parseFloat((bytes/Math.pow(k,i)).toFixed(1))+' '+sizes[i];
+}
+
+function updateStats(){
+  const count=docs.length;
+  docStats.textContent=`${count} document${count!==1?'s':''}`;
+}
+
 function renderDocs(){
   docsTbody.innerHTML='';
+  if(docs.length===0){
+    docsTbody.innerHTML=`<tr class="empty-state">
+      <td colspan="5" class="empty-message">
+        <div class="empty-icon">📭</div>
+        <p>No documents yet. Upload your first document above!</p>
+      </td>
+    </tr>`;
+    return;
+  }
+  
   docs.forEach((d,i)=>{
     const r=document.createElement('tr');
-    r.innerHTML=`<td contenteditable="true">${d.name}</td>
-      <td>${d.type}</td><td>${d.size}</td><td>${d.date}</td>
-      <td><button data-i="${i}" class="delBtn">🗑</button></td>`;
+    r.innerHTML=`<td>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">${getFileIcon(d.type)}</span>
+        <span style="font-weight:500;">${d.name}</span>
+      </div>
+    </td>
+    <td><span class="file-type">${d.type}</span></td>
+    <td><span class="file-size">${d.size}</span></td>
+    <td><span class="file-date">${d.date}</span></td>
+    <td>
+      <div class="doc-actions">
+        <button class="doc-btn download" data-i="${i}" title="Download">
+          <span>📥</span> Download
+        </button>
+        <button class="doc-btn" data-i="${i}" title="Delete">
+          <span>🗑️</span> Delete
+        </button>
+      </div>
+    </td>`;
     docsTbody.appendChild(r);
   });
-  docsTbody.querySelectorAll('.delBtn').forEach(b=>b.addEventListener('click',e=>{
-    const i=e.target.dataset.i;docs.splice(i,1);
-    localStorage.setItem('docsList',JSON.stringify(docs));renderDocs();
-  }));
+  
+  // Event listeners for action buttons
+  docsTbody.querySelectorAll('.doc-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const i=parseInt(e.target.closest('.doc-btn').dataset.i);
+      if(e.target.closest('.doc-btn').classList.contains('download')){
+        downloadDocument(i);
+      }else{
+        deleteDocument(i);
+      }
+    });
+  });
+}
+
+function getFileIcon(type){
+  const iconMap={
+    'PDF Document':'📄',
+    'Word Document':'📝',
+    'Excel Spreadsheet':'📊',
+    'Text File':'📄',
+    'JPEG Image':'🖼️',
+    'PNG Image':'🖼️',
+    'GIF Image':'🖼️'
+  };
+  return iconMap[type]||'📁';
+}
+
+function downloadDocument(index){
+  const doc=docs[index];
+  alert(`Downloading: ${doc.name}\n\nNote: This is a demo. In a real application, this would download the actual file.`);
+}
+
+function deleteDocument(index){
+  if(confirm(`Are you sure you want to delete "${docs[index].name}"?`)){
+    docs.splice(index,1);
+    localStorage.setItem('docsList',JSON.stringify(docs));
+    renderDocs();
+    updateStats();
+  }
 }
 </script>
 </body>
