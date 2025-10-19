@@ -115,30 +115,26 @@ input:checked + .slider:before{transform:translateX(22px);}
 .empty-icon{font-size:32px;margin-bottom:10px;opacity:0.5;}
 .empty-message p{margin:0;font-size:12px;}
 
-.doc-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start;}
-.doc-btn{background:var(--danger);color:#fff;border:none;padding:8px 12px;border-radius:4px;font-size:12px;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;gap:3px;white-space:nowrap;font-weight:600;border:2px solid var(--danger);box-shadow:0 2px 6px rgba(239,68,68,0.3);}
-.doc-btn:hover{background:#d32f2f;border-color:#d32f2f;box-shadow:0 3px 8px rgba(239,68,68,0.4);transform:none;}
-.doc-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
-.doc-btn:disabled:hover{background:var(--danger);transform:none;}
-.doc-btn.download{background:var(--success);padding:8px 12px;font-size:12px;font-weight:600;border:2px solid var(--success);box-shadow:0 2px 6px rgba(16,185,129,0.3);}
-.doc-btn.download:hover{background:#2e7d32;border-color:#2e7d32;box-shadow:0 3px 8px rgba(16,185,129,0.4);}
-.doc-btn.rename{background:var(--accent-blue);padding:8px 12px;font-size:12px;font-weight:600;border:2px solid var(--accent-blue);box-shadow:0 2px 6px rgba(59,130,246,0.3);}
-.doc-btn.rename:hover{background:var(--accent-blue-hover);border-color:var(--accent-blue-hover);box-shadow:0 3px 8px rgba(59,130,246,0.4);}
-.doc-btn.move-up,.doc-btn.move-down{background:linear-gradient(135deg,var(--accent-purple),var(--accent-purple-hover));padding:10px 14px;min-width:44px;justify-content:center;font-size:14px;font-weight:700;border:2px solid var(--accent-purple);box-shadow:0 3px 10px rgba(139,92,246,0.4);transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);position:relative;overflow:hidden;}
-.doc-btn.move-up:hover:not(:disabled),.doc-btn.move-down:hover:not(:disabled){background:linear-gradient(135deg,var(--accent-purple-hover),var(--accent-purple));transform:translateY(-3px) scale(1.05);box-shadow:0 6px 16px rgba(139,92,246,0.5);}
-.doc-btn.move-up:active:not(:disabled),.doc-btn.move-down:active:not(:disabled){transform:translateY(-1px) scale(0.98);transition:all 0.1s ease;}
-.doc-btn.move-up:disabled,.doc-btn.move-down:disabled{background:#9ca3af;border-color:#9ca3af;box-shadow:none;transform:none;opacity:0.6;}
+.doc-actions{display:flex;gap:4px;flex-wrap:nowrap;justify-content:flex-start;align-items:center;}
+.doc-btn{background:#f8f9fa;color:#495057;border:2px solid #dee2e6;padding:8px;border-radius:6px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:36px;height:36px;min-width:36px;transition:none;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.doc-btn:hover{background:#e9ecef;border-color:#adb5bd;box-shadow:0 3px 6px rgba(0,0,0,0.15);transform:none;}
+.doc-btn:active{background:#dee2e6;transform:none;}
+.doc-btn:disabled{opacity:0.5;cursor:not-allowed;background:#f8f9fa;border-color:#dee2e6;}
+.doc-btn:disabled:hover{background:#f8f9fa;border-color:#dee2e6;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
 
-/* Pulse animation for move buttons */
-@keyframes pulse-purple {
-  0% { box-shadow: 0 3px 10px rgba(139,92,246,0.4); }
-  50% { box-shadow: 0 3px 10px rgba(139,92,246,0.6), 0 0 0 4px rgba(139,92,246,0.2); }
-  100% { box-shadow: 0 3px 10px rgba(139,92,246,0.4); }
-}
+/* Icon-specific styling */
+.doc-btn .icon-download{color:#28a745;font-size:18px;font-weight:bold;}
+.doc-btn .icon-edit{color:#007bff;font-size:18px;font-weight:bold;}
+.doc-btn .icon-move-up,.doc-btn .icon-move-down{color:#6f42c1;font-size:18px;font-weight:bold;}
+.doc-btn .icon-delete{color:#dc3545;font-size:18px;font-weight:bold;}
 
-.doc-btn.move-up:not(:disabled),.doc-btn.move-down:not(:disabled) {
-  animation: pulse-purple 2s ease-in-out infinite;
-}
+/* Hover effects for icons */
+.doc-btn.download:hover .icon-download{color:#1e7e34;}
+.doc-btn.rename:hover .icon-edit{color:#0056b3;}
+.doc-btn.move-up:hover .icon-move-up{color:#5a2d91;}
+.doc-btn.move-down:hover .icon-move-down{color:#5a2d91;}
+.doc-btn.delete:hover .icon-delete{color:#bd2130;}
+
 
 /* File name display and editing */
 .file-name-display{font-size:12px;font-weight:500;color:var(--text-body);cursor:pointer;transition:color 0.2s ease;}
@@ -1029,10 +1025,14 @@ function handleFileUpload(e){
   
   console.log('File upload triggered, files selected:', files.length);
   
-  // Clear the input to prevent issues with subsequent uploads
-  e.target.value = '';
+  if(files && files.length > 0){
+    handleFiles(files);
+  }
   
-  handleFiles(files);
+  // Clear the input AFTER processing to allow re-uploading same files
+  setTimeout(() => {
+    e.target.value = '';
+  }, 100);
 }
 
 function handleFiles(files){
@@ -1159,19 +1159,19 @@ function renderDocs(){
     <td>
       <div class="doc-actions">
         <button class="doc-btn download" data-i="${i}" title="Download">
-          <span>📥</span> Download
+          <span class="icon-download">⬇</span>
         </button>
         <button class="doc-btn rename" data-i="${i}" title="Rename">
-          <span>✏️</span> Rename
+          <span class="icon-edit">✏</span>
         </button>
         <button class="doc-btn move-up" data-i="${i}" title="Move Up" ${i === 0 ? 'disabled' : ''}>
-          <span style="font-size:16px;">⬆️</span>
+          <span class="icon-move-up">⬆</span>
         </button>
         <button class="doc-btn move-down" data-i="${i}" title="Move Down" ${i === docs.length - 1 ? 'disabled' : ''}>
-          <span style="font-size:16px;">⬇️</span>
+          <span class="icon-move-down">⬇</span>
         </button>
-        <button class="doc-btn" data-i="${i}" title="Delete">
-          <span>🗑️</span> Delete
+        <button class="doc-btn delete" data-i="${i}" title="Delete">
+          <span class="icon-delete">🗑</span>
         </button>
       </div>
     </td>`;
