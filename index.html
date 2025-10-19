@@ -947,7 +947,10 @@ renderDocs();
 updateStats();
 
 // Upload button click
-uploadBtn.addEventListener('click',()=>docUpload.click());
+uploadBtn.addEventListener('click',(e)=>{
+  e.stopPropagation();
+  docUpload.click();
+});
 
 // File input change
 docUpload.addEventListener('change',handleFileUpload);
@@ -969,7 +972,12 @@ uploadArea.addEventListener('drop',e=>{
   handleFiles(files);
 });
 
-uploadArea.addEventListener('click',()=>docUpload.click());
+// Upload area click - only trigger if not clicking the button
+uploadArea.addEventListener('click',(e)=>{
+  if(e.target !== uploadBtn && !uploadBtn.contains(e.target)){
+    docUpload.click();
+  }
+});
 
 function handleFileUpload(e){
   const files=e.target.files;
