@@ -1710,21 +1710,21 @@ function getFileIcon(type){
 async function downloadDocument(index){
   const doc=docs[index];
   const folderPath = doc.folderPath || 'Documents';
-  const downloadsFolderPath = localStorage.getItem('downloadsFolderPath');
+  const docsFolderPath = localStorage.getItem('docsFolderPath');
   
   showToast(`<i class="fas fa-download"></i> Downloading "${doc.name}" from ${folderPath}...`);
   
   try {
     // Create a blob with the file content
-    const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${folderPath}\nDownloads Folder: ${downloadsFolderPath || 'Not set'}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
+    const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${folderPath}\nDocuments Folder: ${docsFolderPath || 'Not set'}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
     const blob = new Blob([content], { type: 'text/plain' });
     
-    if(downloadsFolderPath && 'showDirectoryPicker' in window) {
-      // Try to save directly to Downloads folder
-      await downloadToDownloadsFolderDirect(blob, doc.name, downloadsFolderPath);
+    if(docsFolderPath && 'showDirectoryPicker' in window) {
+      // Try to save directly to Documents folder
+      await downloadToDocsFolderDirect(blob, doc.name, docsFolderPath);
     } else {
       // Fallback to default download
-      downloadToDefaultLocation(blob, doc.name, downloadsFolderPath);
+      downloadToDefaultLocation(blob, doc.name, docsFolderPath);
     }
     
   } catch (error) {
@@ -1733,9 +1733,9 @@ async function downloadDocument(index){
   }
 }
 
-async function downloadToDownloadsFolderDirect(blob, fileName, downloadsFolderPath) {
+async function downloadToDocsFolderDirect(blob, fileName, docsFolderPath) {
   try {
-    // Show directory picker to select Downloads folder
+    // Show directory picker to select Documents folder
     const directoryHandle = await window.showDirectoryPicker({
       mode: 'readwrite',
       startIn: 'documents'
@@ -1747,7 +1747,7 @@ async function downloadToDownloadsFolderDirect(blob, fileName, downloadsFolderPa
     await writable.write(blob);
     await writable.close();
     
-    showToast(`<i class="fas fa-download"></i> File saved to Downloads folder: "${fileName}"`);
+    showToast(`<i class="fas fa-download"></i> File saved to Documents folder: "${fileName}"`);
     
   } catch (error) {
     if (error.name === 'AbortError') {
@@ -1755,15 +1755,15 @@ async function downloadToDownloadsFolderDirect(blob, fileName, downloadsFolderPa
       return;
     }
     
-    console.error('Error saving to Downloads folder:', error);
+    console.error('Error saving to Documents folder:', error);
     // Fallback to default download
-    downloadToDefaultLocation(blob, fileName, downloadsFolderPath);
+    downloadToDefaultLocation(blob, fileName, docsFolderPath);
   }
 }
 
-function downloadToDefaultLocation(blob, fileName, downloadsFolderPath) {
-  // Create filename with Downloads folder path for easy identification
-  const finalFileName = downloadsFolderPath ? `[${downloadsFolderPath}]_${fileName}` : fileName;
+function downloadToDefaultLocation(blob, fileName, docsFolderPath) {
+  // Create filename with Documents folder path for easy identification
+  const finalFileName = docsFolderPath ? `[${docsFolderPath}]_${fileName}` : fileName;
   
   // Silent download to default location
   const url = URL.createObjectURL(blob);
@@ -1777,69 +1777,69 @@ function downloadToDefaultLocation(blob, fileName, downloadsFolderPath) {
   
   // Show success message
   setTimeout(() => {
-    const message = downloadsFolderPath 
-      ? `<i class="fas fa-download"></i> Download completed: "${fileName}"<br><small>Please move to Downloads folder: ${downloadsFolderPath}</small>`
-      : `<i class="fas fa-download"></i> Download completed: "${fileName}"<br><small>Set Downloads folder to auto-save downloads</small>`;
+    const message = docsFolderPath 
+      ? `<i class="fas fa-download"></i> Download completed: "${fileName}"<br><small>Please move to Documents folder: ${docsFolderPath}</small>`
+      : `<i class="fas fa-download"></i> Download completed: "${fileName}"<br><small>Set Documents folder to auto-save downloads</small>`;
     showToast(message);
   }, 500);
 }
 
 
 async function downloadAllDocuments() {
-  const downloadsFolderPath = localStorage.getItem('downloadsFolderPath');
+  const docsFolderPath = localStorage.getItem('docsFolderPath');
   
   if(docs.length === 0) {
     showToast(`<i class="fas fa-exclamation-triangle"></i> No documents to download`);
     return;
   }
   
-  if(!downloadsFolderPath) {
-    showToast(`<i class="fas fa-exclamation-triangle"></i> Please set a Downloads folder first`);
+  if(!docsFolderPath) {
+    showToast(`<i class="fas fa-exclamation-triangle"></i> Please set a Documents folder first`);
     return;
   }
   
-  showToast(`<i class="fas fa-download"></i> Downloading ${docs.length} documents to Downloads folder: ${downloadsFolderPath}`);
+  showToast(`<i class="fas fa-download"></i> Downloading ${docs.length} documents to Documents folder: ${docsFolderPath}`);
   
   try {
-    // Download all documents with Downloads folder path in filename
-    downloadAllToDownloadsFolderSilent(downloadsFolderPath);
+    // Download all documents with Documents folder path in filename
+    downloadAllToDocsFolderSilent(docsFolderPath);
   } catch (error) {
     console.error('Error downloading all documents:', error);
     showToast(`<i class="fas fa-exclamation-triangle"></i> Download failed: ${error.message}`);
   }
 }
 
-async function downloadAllToDownloadsFolderSilent(downloadsFolderPath) {
-  // Check if we have a stored directory handle for the Downloads folder
-  const downloadsFolderHandle = localStorage.getItem('downloadsFolderHandle');
+async function downloadAllToDocsFolderSilent(docsFolderPath) {
+  // Check if we have a stored directory handle for the Documents folder
+  const docsFolderHandle = localStorage.getItem('docsFolderHandle');
   
-  if(downloadsFolderHandle && 'showDirectoryPicker' in window) {
+  if(docsFolderHandle && 'showDirectoryPicker' in window) {
     // Try to use the stored handle to save files directly
-    await downloadAllToStoredDownloadsFolder(downloadsFolderPath);
+    await downloadAllToStoredDocsFolder(docsFolderPath);
   } else {
-    // Fallback: ask user to select Downloads folder for direct saving
-    await downloadAllToDownloadsFolderWithPicker(downloadsFolderPath);
+    // Fallback: ask user to select Documents folder for direct saving
+    await downloadAllToDocsFolderWithPicker(docsFolderPath);
   }
 }
 
-async function downloadAllToStoredDownloadsFolder(downloadsFolderPath) {
+async function downloadAllToStoredDocsFolder(docsFolderPath) {
   try {
     // Parse the stored directory handle (we'll need to store it properly)
-    showToast(`<i class="fas fa-download"></i> Saving files directly to Downloads folder: ${downloadsFolderPath}`);
+    showToast(`<i class="fas fa-download"></i> Saving files directly to Documents folder: ${docsFolderPath}`);
     
     // For now, fallback to picker method since we need to implement proper handle storage
-    await downloadAllToDownloadsFolderWithPicker(downloadsFolderPath);
+    await downloadAllToDocsFolderWithPicker(docsFolderPath);
     
   } catch (error) {
-    console.error('Error using stored Downloads folder:', error);
+    console.error('Error using stored Documents folder:', error);
     // Fallback to picker method
-    await downloadAllToDownloadsFolderWithPicker(downloadsFolderPath);
+    await downloadAllToDocsFolderWithPicker(docsFolderPath);
   }
 }
 
-async function downloadAllToDownloadsFolderWithPicker(downloadsFolderPath) {
+async function downloadAllToDocsFolderWithPicker(docsFolderPath) {
   try {
-    // Show directory picker to select Downloads folder
+    // Show directory picker to select Documents folder
     const directoryHandle = await window.showDirectoryPicker({
       mode: 'readwrite',
       startIn: 'documents'
@@ -1847,20 +1847,20 @@ async function downloadAllToDownloadsFolderWithPicker(downloadsFolderPath) {
     
     // Store the directory handle for future use
     // Note: In a real implementation, you'd need to serialize the handle properly
-    localStorage.setItem('downloadsFolderHandle', 'stored');
-    localStorage.setItem('downloadsFolderPath', directoryHandle.name);
+    localStorage.setItem('docsFolderHandle', 'stored');
+    localStorage.setItem('docsFolderPath', directoryHandle.name);
     
     let successCount = 0;
     let errorCount = 0;
     
-    showToast(`<i class="fas fa-download"></i> Saving ${docs.length} documents to Downloads folder...`);
+    showToast(`<i class="fas fa-download"></i> Saving ${docs.length} documents to Documents folder...`);
     
     // Download each document directly to the selected folder
     for (let i = 0; i < docs.length; i++) {
       const doc = docs[i];
       try {
         // Create file content
-        const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${doc.folderPath || 'Documents'}\nDownloads Folder: ${downloadsFolderPath}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
+        const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${doc.folderPath || 'Documents'}\nDocuments Folder: ${docsFolderPath}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
         const blob = new Blob([content], { type: 'text/plain' });
         
         // Create file in the selected directory
@@ -1873,7 +1873,7 @@ async function downloadAllToDownloadsFolderWithPicker(downloadsFolderPath) {
         
         // Update progress
         if(i % 3 === 0 || i === docs.length - 1) {
-          showToast(`<i class="fas fa-download"></i> Saved ${i + 1}/${docs.length} documents to Downloads folder...`);
+          showToast(`<i class="fas fa-download"></i> Saved ${i + 1}/${docs.length} documents to Documents folder...`);
         }
         
       } catch (error) {
@@ -1884,9 +1884,9 @@ async function downloadAllToDownloadsFolderWithPicker(downloadsFolderPath) {
     
     // Show final result
     if(errorCount === 0) {
-      showToast(`<i class="fas fa-check-circle"></i> Successfully saved all ${successCount} documents to Downloads folder!`);
+      showToast(`<i class="fas fa-check-circle"></i> Successfully saved all ${successCount} documents to Documents folder!`);
     } else {
-      showToast(`<i class="fas fa-exclamation-triangle"></i> Saved ${successCount} documents, ${errorCount} failed to Downloads folder`);
+      showToast(`<i class="fas fa-exclamation-triangle"></i> Saved ${successCount} documents, ${errorCount} failed to Documents folder`);
     }
     
   } catch (error) {
@@ -1896,26 +1896,26 @@ async function downloadAllToDownloadsFolderWithPicker(downloadsFolderPath) {
       return;
     }
     
-    console.error('Error accessing Downloads folder:', error);
+    console.error('Error accessing Documents folder:', error);
     // Fallback to default download
-    downloadAllToDefaultLocation(downloadsFolderPath);
+    downloadAllToDefaultLocation(docsFolderPath);
   }
 }
 
-function downloadAllToDefaultLocation(downloadsFolderPath) {
+function downloadAllToDefaultLocation(docsFolderPath) {
   let successCount = 0;
   let errorCount = 0;
   
-  // Download each document with Downloads folder path in the filename
+  // Download each document with Documents folder path in the filename
   docs.forEach((doc, index) => {
     setTimeout(() => {
       try {
-        // Create file content with Downloads folder information
-        const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${doc.folderPath || 'Documents'}\nDownloads Folder: ${downloadsFolderPath}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
+        // Create file content with Documents folder information
+        const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${doc.folderPath || 'Documents'}\nDocuments Folder: ${docsFolderPath}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
         const blob = new Blob([content], { type: 'text/plain' });
         
-        // Create filename with Downloads folder path for easy identification
-        const fileName = `[${downloadsFolderPath}]_${doc.name}`;
+        // Create filename with Documents folder path for easy identification
+        const fileName = `[${docsFolderPath}]_${doc.name}`;
         
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -1943,9 +1943,9 @@ function downloadAllToDefaultLocation(downloadsFolderPath) {
   // Show final result after all downloads complete
   setTimeout(() => {
     if(errorCount === 0) {
-      showToast(`<i class="fas fa-check-circle"></i> Downloaded all ${successCount} documents!<br><small>Please move to Downloads folder: ${downloadsFolderPath}</small>`);
+      showToast(`<i class="fas fa-check-circle"></i> Downloaded all ${successCount} documents!<br><small>Please move to Documents folder: ${docsFolderPath}</small>`);
     } else {
-      showToast(`<i class="fas fa-exclamation-triangle"></i> Downloaded ${successCount} documents, ${errorCount} failed<br><small>Please move to Downloads folder: ${downloadsFolderPath}</small>`);
+      showToast(`<i class="fas fa-exclamation-triangle"></i> Downloaded ${successCount} documents, ${errorCount} failed<br><small>Please move to Documents folder: ${docsFolderPath}</small>`);
     }
   }, docs.length * 300 + 1000);
 }
