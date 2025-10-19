@@ -941,16 +941,35 @@ const uploadArea=document.getElementById('uploadArea');
 const uploadBtn=document.getElementById('uploadBtn');
 const docStats=document.getElementById('docStats');
 let docs=JSON.parse(localStorage.getItem('docsList')||'[]');
+let isFilePickerOpen = false;
 
 // Initialize
 renderDocs();
 updateStats();
 
-// Upload button click
-uploadBtn.addEventListener('click',(e)=>{
+// Upload button click - ONLY way to open file picker
+// Clear any existing event listeners and add only one
+if(uploadBtn.onclick){
+  uploadBtn.onclick = null;
+}
+uploadBtn.onclick = function(e){
+  e.preventDefault();
   e.stopPropagation();
+  
+  if(isFilePickerOpen){
+    console.log('File picker already open - ignoring click');
+    return;
+  }
+  
+  console.log('Upload button clicked - opening file picker ONCE');
+  isFilePickerOpen = true;
   docUpload.click();
-});
+  
+  // Reset flag after a short delay
+  setTimeout(() => {
+    isFilePickerOpen = false;
+  }, 1000);
+};
 
 // File input change
 docUpload.addEventListener('change',handleFileUpload);
@@ -972,15 +991,11 @@ uploadArea.addEventListener('drop',e=>{
   handleFiles(files);
 });
 
-// Upload area click - only trigger if not clicking the button
-uploadArea.addEventListener('click',(e)=>{
-  if(e.target !== uploadBtn && !uploadBtn.contains(e.target)){
-    docUpload.click();
-  }
-});
+// NO upload area click event - removed to prevent double file picker
 
 function handleFileUpload(e){
   const files=e.target.files;
+  isFilePickerOpen = false; // Reset flag when files are selected
   handleFiles(files);
 }
 
