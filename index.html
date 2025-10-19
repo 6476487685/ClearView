@@ -231,6 +231,11 @@ document.getElementById('logoutBtn').addEventListener('click',()=>{
 /* ---------- Modal Logic ---------- */
 function openModal(id){
   document.getElementById(id).style.display='block';
+  
+  // Update document stats when Documents modal is opened
+  if(id === 'modal-docs'){
+    updateStats();
+  }
 }
 function closeModal(id){
   document.getElementById(id).style.display='none';
@@ -1000,17 +1005,38 @@ function handleFileUpload(e){
 }
 
 function handleFiles(files){
+  let addedCount = 0;
+  let skippedCount = 0;
+  
   Array.from(files).forEach(file=>{
     if(isValidFileType(file)){
       const entry=createDocumentEntry(file);
-  docs.push(entry);
+      docs.push(entry);
+      addedCount++;
     }else{
       alert(`File type not supported: ${file.name}`);
+      skippedCount++;
     }
   });
+  
   localStorage.setItem('docsList',JSON.stringify(docs));
   renderDocs();
   updateStats();
+  
+  // Show appropriate toast notification
+  if(addedCount > 0){
+    if(addedCount === 1){
+      showToast(`📁 File uploaded successfully`);
+    }else{
+      showToast(`📁 ${addedCount} files uploaded successfully`);
+    }
+  }
+  
+  if(skippedCount > 0){
+    setTimeout(() => {
+      showToast(`⚠️ ${skippedCount} file(s) skipped due to unsupported format`);
+    }, 1500);
+  }
 }
 
 function isValidFileType(file){
@@ -1055,7 +1081,13 @@ function formatFileSize(bytes){
 
 function updateStats(){
   const count=docs.length;
-  docStats.textContent=`${count} document${count!==1?'s':''}`;
+  console.log('Updating stats - document count:', count);
+  if(docStats){
+    docStats.textContent=`${count} document${count!==1?'s':''}`;
+    console.log('Stats updated to:', docStats.textContent);
+  }else{
+    console.error('docStats element not found');
+  }
 }
 
 function renderDocs(){
@@ -1135,7 +1167,11 @@ function getFileIcon(type){
 
 function downloadDocument(index){
   const doc=docs[index];
-  alert(`Downloading: ${doc.name}\n\nNote: This is a demo. In a real application, this would download the actual file.`);
+  showToast(`📥 Downloading "${doc.name}"...`);
+  // Note: This is a demo. In a real application, this would download the actual file.
+  setTimeout(() => {
+    showToast(`📥 Download completed: "${doc.name}"`);
+  }, 1000);
 }
 
 function renameDocument(index){
@@ -1160,9 +1196,12 @@ function renameDocument(index){
   function saveRename(){
     const newName=input.value.trim();
     if(newName && newName!==doc.name){
+      const oldName = doc.name;
       doc.name=newName;
       localStorage.setItem('docsList',JSON.stringify(docs));
       renderDocs();
+      updateStats();
+      showToast(`📝 File renamed from "${oldName}" to "${newName}"`);
     }else{
       span.style.display='inline';
       input.remove();
@@ -1188,11 +1227,13 @@ function renameDocument(index){
 }
 
 function deleteDocument(index){
-  if(confirm(`Are you sure you want to delete "${docs[index].name}"?`)){
+  const fileName = docs[index].name;
+  if(confirm(`Are you sure you want to delete "${fileName}"?`)){
     docs.splice(index,1);
     localStorage.setItem('docsList',JSON.stringify(docs));
     renderDocs();
     updateStats();
+    showToast(`🗑️ File "${fileName}" deleted successfully`);
   }
 }
 </script>
