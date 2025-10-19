@@ -104,19 +104,165 @@ document.addEventListener("DOMContentLoaded",()=>{
  function resize(e){if(!th)return;const diff=e.pageX-startX;th.style.width=(startW+diff)+'px';}
  function stop(){document.removeEventListener('mousemove',resize);document.removeEventListener('mouseup',stop);document.body.style.userSelect='auto';th=null;}
 
- // Exports
- btnExcel.onclick=()=>{
-  const blob=new Blob([JSON.stringify(getData(),null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`TaskMgr_Filter_Report_${new Date().toISOString().replace(/[:.]/g,'-')}.xlsx`;a.click();
- };
- btnPDF.onclick=()=>{
-  const win=window.open('','_blank');
-  win.document.write(`<html><head><title>Expense Filtered Report</title></head><body style='font-family:Arial;font-size:10pt;'>`);
-  win.document.write(`<h2 style='text-align:center;font-weight:bold;'>Expense Filtered Report</h2>`);
-  win.document.write(`<table border='1' cellspacing='0' cellpadding='4' width='100%'>${document.querySelector('#expenseTable').innerHTML}</table>`);
-  win.document.write(`<div style='margin-top:10px;display:flex;justify-content:space-between;font-size:10pt;'>
-  <span>Page 1 of 1</span><span>${new Date().toLocaleString()}</span></div></body></html>`);
-  win.document.close();win.print();win.close();
- };
+// Helper function to generate filename
+function generateFilename(extension) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  return `Expanse_Filter_Report_${year}-${month}-${day}_${hours}-${minutes}-${seconds}.${extension}`;
+}
+
+// Helper function to create Excel file using SheetJS
+function createExcelFile(data) {
+  // Prepare worksheet data
+  const headers = ['#', 'Description', 'Category', 'Account Tag', 'Currency', 'Amount', 'Mode', 'Holder', 'Due Date', 'Paid Date', 'Frequency', 'Ac Status', 'Txn Status'];
+  const worksheetData = [headers];
+  
+  data.forEach((row, index) => {
+    const rowData = [
+      index + 1,
+      row.desc,
+      row.cat,
+      row.tag,
+      row.cur,
+      Number(row.amt).toFixed(2),
+      row.mode,
+      row.holder,
+      row.due,
+      row.paid,
+      row.freq,
+      row.acstatus,
+      row.txnstatus
+    ];
+    worksheetData.push(rowData);
+  });
+  
+  // Create workbook and worksheet
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+  
+  // Set column widths for better readability
+  ws['!cols'] = [
+    { wch: 5 },   // #
+    { wch: 25 },  // Description
+    { wch: 15 },  // Category
+    { wch: 20 },  // Account Tag
+    { wch: 10 },  // Currency
+    { wch: 12 },  // Amount
+    { wch: 15 },  // Mode
+    { wch: 12 },  // Holder
+    { wch: 12 },  // Due Date
+    { wch: 12 },  // Paid Date
+    { wch: 12 },  // Frequency
+    { wch: 12 },  // Ac Status
+    { wch: 12 }   // Txn Status
+  ];
+  
+  XLSX.utils.book_append_sheet(wb, ws, "Expense Report");
+  
+  // Generate Excel file
+  const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+// Exports
+btnExcel.onclick=()=>{
+ const data = getData();
+ const blob = createExcelFile(data);
+ const a = document.createElement('a');
+ a.href = URL.createObjectURL(blob);
+ a.download = generateFilename('xlsx');
+ a.click();
+ URL.revokeObjectURL(a.href);
+};
+btnPDF.onclick=()=>{
+ // Create a temporary window for PDF generation
+ const win = window.open('', '_blank');
+ const data = getData();
+ 
+ // Create the HTML content
+ const htmlContent = `
+ <!DOCTYPE html>
+ <html>
+ <head>
+   <title>Expense Filtered Report</title>
+   <meta charset="utf-8">
+   <style>
+     @media print {
+       @page { margin: 0.5in; size: A4; }
+       body { font-family: Arial, sans-serif; font-size: 10pt; margin: 0; padding: 0; }
+     }
+     body { font-family: Arial, sans-serif; font-size: 10pt; margin: 20px; }
+     h2 { text-align: center; font-weight: bold; margin-bottom: 20px; }
+     table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+     th, td { border: 1px solid #000; padding: 6px; text-align: left; }
+     th { background-color: #f0f0f0; font-weight: bold; }
+     .number { text-align: left; }
+     .currency { text-align: center; }
+     .amount { text-align: right; }
+     .footer { margin-top: 20px; display: flex; justify-content: space-between; font-size: 10pt; }
+   </style>
+ </head>
+ <body>
+   <h2>Expense Filtered Report</h2>
+   <table>
+     <thead>
+       <tr>
+         <th class="number">#</th>
+         <th>Description</th>
+         <th>Category</th>
+         <th>Account Tag</th>
+         <th class="currency">Currency</th>
+         <th class="amount">Amount</th>
+         <th>Mode</th>
+         <th>Holder</th>
+         <th>Due Date</th>
+         <th>Paid Date</th>
+         <th>Frequency</th>
+         <th>Ac Status</th>
+         <th>Txn Status</th>
+       </tr>
+     </thead>
+     <tbody>
+       ${data.map((row, index) => `
+         <tr>
+           <td class="number">${index + 1}</td>
+           <td>${row.desc}</td>
+           <td>${row.cat}</td>
+           <td>${row.tag}</td>
+           <td class="currency">${row.cur}</td>
+           <td class="amount">${Number(row.amt).toFixed(2)}</td>
+           <td>${row.mode}</td>
+           <td>${row.holder}</td>
+           <td>${row.due}</td>
+           <td>${row.paid}</td>
+           <td>${row.freq}</td>
+           <td>${row.acstatus}</td>
+           <td>${row.txnstatus}</td>
+         </tr>
+       `).join('')}
+     </tbody>
+   </table>
+   <div class="footer">
+     <span>Generated on: ${new Date().toLocaleString()}</span>
+     <span>Total Records: ${data.length}</span>
+   </div>
+ </body>
+ </html>`;
+ 
+ // Write content to the new window
+ win.document.write(htmlContent);
+ win.document.close();
+ 
+ // Wait for content to load, then print
+ setTimeout(() => {
+   win.print();
+   // Close the window after a short delay
+   setTimeout(() => win.close(), 1000);
+ }, 500);
+};
 });
