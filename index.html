@@ -217,6 +217,14 @@ body.dark .modal-header h4 i{color:var(--text-body);}
           <i class="fas fa-download"></i>
           <span>Download All</span>
         </button>
+        <button id="quickChangeDocsBtn" style="
+          background:var(--accent-gold);color:#fff;border:none;padding:8px 12px;
+          border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
+          display:flex;align-items:center;gap:6px;font-weight:500;
+        " title="Quick change Documents folder">
+          <i class="fas fa-sync-alt"></i>
+          <span>Quick Change</span>
+        </button>
         <button id="changeDocsFolderBtn" style="
           background:var(--accent-blue);color:#fff;border:none;padding:8px 12px;
           border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
@@ -1432,7 +1440,19 @@ updateStats();
 // Change Documents folder button and Download All button
 document.addEventListener('DOMContentLoaded', function() {
   const changeDocsFolderBtn = document.getElementById('changeDocsFolderBtn');
+  const quickChangeDocsBtn = document.getElementById('quickChangeDocsBtn');
   const downloadAllBtn = document.getElementById('downloadAllBtn');
+  
+  if(quickChangeDocsBtn) {
+    quickChangeDocsBtn.addEventListener('click', async function() {
+      const docsFolderPath = localStorage.getItem('docsFolderPath');
+      if(docsFolderPath) {
+        await showFolderChoiceDialog(docsFolderPath, 'Documents');
+      } else {
+        showToast(`<i class="fas fa-exclamation-triangle"></i> No Documents folder set. Please set up Documents folder first.`);
+      }
+    });
+  }
   
   if(changeDocsFolderBtn) {
     changeDocsFolderBtn.addEventListener('click', function() {
@@ -1711,6 +1731,7 @@ async function downloadDocument(index){
   const doc=docs[index];
   const folderPath = doc.folderPath || 'Documents';
   const docsFolderPath = localStorage.getItem('docsFolderPath');
+  const lastDocsFolder = localStorage.getItem('lastDocsFolder');
   
   showToast(`<i class="fas fa-download"></i> Downloading "${doc.name}" from ${folderPath}...`);
   
@@ -1722,6 +1743,10 @@ async function downloadDocument(index){
     if(docsFolderPath && 'showDirectoryPicker' in window) {
       // Try to save directly to Documents folder
       await downloadToDocsFolderDirect(blob, doc.name, docsFolderPath);
+    } else if(lastDocsFolder) {
+      // Use last chosen folder
+      showToast(`<i class="fas fa-folder-open"></i> Using last folder: ${lastDocsFolder}`);
+      downloadToDefaultLocation(blob, doc.name, lastDocsFolder);
     } else {
       // Fallback to default download
       downloadToDefaultLocation(blob, doc.name, docsFolderPath);
@@ -1746,6 +1771,9 @@ async function downloadToDocsFolderDirect(blob, fileName, docsFolderPath) {
     const writable = await fileHandle.createWritable();
     await writable.write(blob);
     await writable.close();
+    
+    // Store the last chosen folder
+    localStorage.setItem('lastDocsFolder', directoryHandle.name);
     
     showToast(`<i class="fas fa-download"></i> File saved to Documents folder: "${fileName}"`);
     
@@ -1812,14 +1840,128 @@ async function downloadAllDocuments() {
 async function downloadAllToDocsFolderSilent(docsFolderPath) {
   // Check if we have a stored directory handle for the Documents folder
   const docsFolderHandle = localStorage.getItem('docsFolderHandle');
+  const lastDocsFolder = localStorage.getItem('lastDocsFolder');
   
   if(docsFolderHandle && 'showDirectoryPicker' in window) {
     // Try to use the stored handle to save files directly
     await downloadAllToStoredDocsFolder(docsFolderPath);
+  } else if(lastDocsFolder) {
+    // Show option to use last folder or choose new one
+    await showFolderChoiceDialog(docsFolderPath, 'Documents');
   } else {
     // Fallback: ask user to select Documents folder for direct saving
     await downloadAllToDocsFolderWithPicker(docsFolderPath);
   }
+}
+
+async function showFolderChoiceDialog(folderPath, folderType) {
+  const lastFolder = localStorage.getItem(`last${folderType}Folder`);
+  
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.6); display: flex; justify-content: center; 
+    align-items: center; z-index: 10001; backdrop-filter: blur(8px);
+  `;
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: var(--content-bg); padding: 32px; border-radius: 20px;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.2); max-width: 420px; width: 90%;
+    border: 1px solid var(--divider); backdrop-filter: blur(15px);
+    position: relative;
+  `;
+  
+  modal.innerHTML = `
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="font-size: 56px; margin-bottom: 12px;"><i class="fas fa-folder-open"></i></div>
+      <h3 style="margin: 0 0 8px 0; color: var(--text-body); font-size: 20px; font-weight: 700;">
+        Choose ${folderType} Folder
+      </h3>
+      <p style="margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5;">
+        Select where to save your files
+      </p>
+    </div>
+    
+    <div style="margin-bottom: 24px;">
+      <div style="background: var(--primary-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--accent-blue);">
+        <p style="margin: 0 0 8px 0; font-size: 14px; color: var(--text-body);">
+          <strong>Last Used Folder:</strong> ${lastFolder}
+        </p>
+        <p style="margin: 0; font-size: 12px; color: var(--text-secondary);">
+          Click "Use Last Folder" to save to this location
+        </p>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <button id="useLastFolderBtn" style="
+          width: 100%; padding: 14px 18px; background: var(--accent-blue); color: #fff; border: none;
+          border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(66,133,244,0.3); font-size: 15px;
+          display: flex; align-items: center; justify-content: center; gap: 10px;
+        ">
+          <i class="fas fa-check-circle"></i>
+          <span>Use Last Folder</span>
+        </button>
+        
+        <button id="chooseNewFolderBtn" style="
+          width: 100%; padding: 14px 18px; background: var(--accent-gold); color: #fff; border: none;
+          border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(245,158,11,0.3); font-size: 15px;
+          display: flex; align-items: center; justify-content: center; gap: 10px;
+        ">
+          <i class="fas fa-folder-plus"></i>
+          <span>Choose New Folder</span>
+        </button>
+        
+        <button id="cancelFolderChoiceBtn" style="
+          width: 100%; padding: 14px 18px; background: #6b7280; color: #fff; border: none;
+          border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(107,114,128,0.2); font-size: 15px;
+        ">
+          Cancel
+        </button>
+      </div>
+    </div>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  
+  const useLastBtn = modal.querySelector('#useLastFolderBtn');
+  const chooseNewBtn = modal.querySelector('#chooseNewFolderBtn');
+  const cancelBtn = modal.querySelector('#cancelFolderChoiceBtn');
+  
+  // Use last folder
+  useLastBtn.addEventListener('click', async () => {
+    document.body.removeChild(overlay);
+    showToast(`<i class="fas fa-folder-open"></i> Using last folder: ${lastFolder}`);
+    
+    // Download to last folder (fallback to default location with folder name)
+    if(folderType === 'Documents') {
+      downloadAllToDefaultLocation(lastFolder);
+    }
+  });
+  
+  // Choose new folder
+  chooseNewBtn.addEventListener('click', async () => {
+    document.body.removeChild(overlay);
+    if(folderType === 'Documents') {
+      await downloadAllToDocsFolderWithPicker(folderPath);
+    }
+  });
+  
+  // Cancel
+  cancelBtn.addEventListener('click', () => {
+    document.body.removeChild(overlay);
+  });
+  
+  // Close on overlay click
+  overlay.addEventListener('click', (e) => {
+    if(e.target === overlay) {
+      document.body.removeChild(overlay);
+    }
+  });
 }
 
 async function downloadAllToStoredDocsFolder(docsFolderPath) {
@@ -1849,6 +1991,7 @@ async function downloadAllToDocsFolderWithPicker(docsFolderPath) {
     // Note: In a real implementation, you'd need to serialize the handle properly
     localStorage.setItem('docsFolderHandle', 'stored');
     localStorage.setItem('docsFolderPath', directoryHandle.name);
+    localStorage.setItem('lastDocsFolder', directoryHandle.name);
     
     let successCount = 0;
     let errorCount = 0;
