@@ -173,7 +173,10 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     else if(t==='expense'){
       window.location.href='2_Expanse_Index.html';
     }
-    else if(['masters','tasks','accounts','income','investments','analytics','backup'].includes(t)){
+    else if(t==='income'){
+      window.location.href='3_Income_Index.html';
+    }
+    else if(['masters','tasks','accounts','investments','analytics','backup'].includes(t)){
       document.getElementById('genericTitle').textContent=link.textContent;
       openModal('modal-generic');
     }
