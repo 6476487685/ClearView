@@ -569,7 +569,7 @@ function showFolderPicker(){
         </button>
       </div>
       <div style="margin-top:12px;font-size:13px;color:var(--text-secondary);text-align:center;">
-        💡 Click "Select Folder" to browse, "Paste" to paste from clipboard, or "Use Downloads Folder" for default
+        💡 <strong>Select Folder:</strong> Browse your computer | <strong>Paste:</strong> Paste copied folder path | <strong>Downloads:</strong> Use default folder
       </div>
     </div>
     
@@ -613,6 +613,15 @@ function showFolderPicker(){
       // Check if File System Access API is supported
       if('showDirectoryPicker' in window){
         console.log('Using File System Access API');
+        
+        // Show instruction to user
+        const proceed = confirm('📁 FOLDER PICKER INSTRUCTIONS\n\n1. Click "Allow" in the browser permission dialog\n2. Browse and select your desired folder\n3. The folder name will be saved as your backup location\n\nClick OK to proceed with folder selection.');
+        
+        if(!proceed){
+          console.log('User cancelled folder selection');
+          return;
+        }
+        
         const directoryHandle = await window.showDirectoryPicker({
           mode: 'readwrite',
           startIn: 'documents'
@@ -633,9 +642,12 @@ function showFolderPicker(){
     }catch(error){
       if(error.name === 'AbortError'){
         console.log('User cancelled folder selection');
+      }else if(error.name === 'NotAllowedError'){
+        console.log('User denied permission');
+        alert('❌ Permission Denied\n\nYou denied permission to access folders. You can:\n• Try again and click "Allow"\n• Use the "Paste" button to manually enter a folder path\n• Use "Use Downloads Folder" for default location');
       }else{
         console.error('Error in folder picker:', error);
-        alert('Error opening folder picker. Please try again or use the Downloads button.');
+        alert('❌ Error opening folder picker\n\nPlease try:\n• Click "Paste" to manually enter a folder path\n• Click "Use Downloads Folder" for default location\n• Make sure your browser supports folder selection');
       }
     }finally{
       // Reset button style
@@ -664,11 +676,11 @@ function showFolderPicker(){
         console.log('Pasted folder path:', text.trim());
         showToast('📋 Folder path pasted from clipboard');
       }else{
-        alert('Clipboard is empty or contains no text.');
+        alert('📋 CLIPBOARD EMPTY\n\nYour clipboard is empty or contains no text.\n\nTo use this feature:\n1. Copy a folder path from Windows Explorer\n2. Click "Paste" again\n\nOr use "Use Downloads Folder" for default location.');
       }
     }catch(error){
       console.error('Error reading clipboard:', error);
-      alert('Unable to access clipboard. Please paste manually.');
+      alert('📋 CLIPBOARD ACCESS DENIED\n\nUnable to access clipboard. You can:\n• Copy a folder path and paste it manually in the input field\n• Use "Use Downloads Folder" for default location\n• Try the "Select Folder" button for native folder picker');
     }
   });
 
