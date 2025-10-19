@@ -333,13 +333,204 @@ function processFile(file){
   }
 }
 
-// Step 4: Backup Folder Setup
+// Step 4: Backup Folder Setup - Fresh Implementation
 function setupBackupFolder(){
   const setupBackup=confirm('📁 BACKUP FOLDER SETUP\n\nWould you like to set a default backup folder for downloads?\n\n• Click OK to set backup folder\n• Click Cancel to skip');
   
   if(setupBackup){
-    showFolderPicker();
+    showSimpleBackupDialog();
   }
+}
+
+// Simple backup folder dialog - no complex folder picker
+function showSimpleBackupDialog(){
+  const overlay=document.createElement('div');
+  overlay.style.cssText=`
+    position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);
+    display:flex;justify-content:center;align-items:center;z-index:10001;
+    backdrop-filter:blur(8px);
+  `;
+  
+  const modal=document.createElement('div');
+  modal.style.cssText=`
+    background:var(--content-bg);padding:32px;border-radius:20px;
+    box-shadow:0 32px 64px rgba(0,0,0,0.2);max-width:420px;width:90%;
+    border:1px solid var(--divider);backdrop-filter:blur(15px);
+    position:relative;
+  `;
+  
+  modal.innerHTML=`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:56px;margin-bottom:12px;">📁</div>
+      <h3 style="margin:0 0 8px 0;color:var(--text-body);font-size:20px;font-weight:700;">Choose Backup Folder</h3>
+      <p style="margin:0;color:var(--text-secondary);font-size:14px;line-height:1.5;">Select a folder where downloads will be saved</p>
+    </div>
+    
+    <div style="margin-bottom:24px;">
+      <label style="display:block;margin-bottom:12px;color:var(--text-body);font-weight:600;font-size:15px;">Folder Name:</label>
+      <input type="text" id="folderNameInput" placeholder="Enter folder name (e.g., ClearView_Backups)" 
+             style="width:100%;padding:16px 18px;border:2px solid var(--divider);border-radius:12px;
+             font-size:15px;background:var(--content-bg);color:var(--text-body);
+             transition:all 0.3s ease;box-shadow:0 4px 12px rgba(0,0,0,0.08);
+             margin-bottom:20px;outline:none;" />
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <button class="quick-folder" data-path="Downloads" style="
+          padding:16px 12px;background:var(--primary-bg);color:var(--text-body);
+          border:2px solid var(--divider);border-radius:10px;text-align:center;
+          cursor:pointer;transition:all 0.3s ease;font-size:14px;font-weight:600;
+          display:flex;flex-direction:column;align-items:center;gap:8px;
+        ">
+          <span style="font-size:24px;">📥</span>
+          <span>Downloads</span>
+        </button>
+        
+        <button class="quick-folder" data-path="Documents" style="
+          padding:16px 12px;background:var(--primary-bg);color:var(--text-body);
+          border:2px solid var(--divider);border-radius:10px;text-align:center;
+          cursor:pointer;transition:all 0.3s ease;font-size:14px;font-weight:600;
+          display:flex;flex-direction:column;align-items:center;gap:8px;
+        ">
+          <span style="font-size:24px;">📄</span>
+          <span>Documents</span>
+        </button>
+      </div>
+      
+      <button id="pastePathBtn" style="
+        width:100%;padding:14px 18px;background:var(--accent-blue);color:#fff;border:none;
+        border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 4px 12px rgba(66,133,244,0.3);font-size:15px;
+        display:flex;align-items:center;justify-content:center;gap:10px;
+        text-align:center;margin-bottom:16px;
+      ">
+        <span style="font-size:20px;">📋</span>
+        <span>Paste Custom Path</span>
+      </button>
+      
+      <div style="font-size:12px;color:var(--text-secondary);text-align:center;line-height:1.4;padding:12px;background:var(--primary-bg);border-radius:8px;">
+        💡 <strong>Quick Select:</strong> Click Downloads or Documents | <strong>Custom:</strong> Type folder name or paste full path
+      </div>
+    </div>
+    
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button id="cancelBackupBtn" style="
+        padding:14px 24px;background:#6b7280;color:#fff;border:none;
+        border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 4px 12px rgba(107,114,128,0.2);font-size:15px;
+        min-width:100px;
+      ">Cancel</button>
+      <button id="saveBackupBtn" style="
+        padding:14px 24px;background:var(--success);color:#fff;border:none;
+        border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 4px 12px rgba(52,168,83,0.2);font-size:15px;
+        min-width:100px;
+      ">Save</button>
+    </div>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  
+  const folderInput=modal.querySelector('#folderNameInput');
+  const quickFolders=modal.querySelectorAll('.quick-folder');
+  const pasteBtn=modal.querySelector('#pastePathBtn');
+  const cancelBtn=modal.querySelector('#cancelBackupBtn');
+  const saveBtn=modal.querySelector('#saveBackupBtn');
+  
+  // Quick folder selection
+  quickFolders.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const folderName=btn.dataset.path;
+      folderInput.value=folderName;
+      console.log('Quick folder selected:', folderName);
+      
+      // Visual feedback
+      btn.style.background='var(--accent-blue)';
+      btn.style.color='#fff';
+      btn.style.borderColor='var(--accent-blue)';
+      btn.style.transform='scale(0.95)';
+      
+      setTimeout(()=>{
+        btn.style.background='var(--primary-bg)';
+        btn.style.color='var(--text-body)';
+        btn.style.borderColor='var(--divider)';
+        btn.style.transform='scale(1)';
+      },200);
+    });
+    
+    // Hover effects
+    btn.addEventListener('mouseenter',()=>{
+      btn.style.background='var(--accent-blue)';
+      btn.style.color='#fff';
+      btn.style.borderColor='var(--accent-blue)';
+      btn.style.transform='translateY(-2px)';
+      btn.style.boxShadow='0 8px 20px rgba(66,133,244,0.3)';
+    });
+    
+    btn.addEventListener('mouseleave',()=>{
+      if(btn.style.background!=='var(--accent-blue)'){
+        btn.style.background='var(--primary-bg)';
+        btn.style.color='var(--text-body)';
+        btn.style.borderColor='var(--divider)';
+        btn.style.transform='translateY(0)';
+        btn.style.boxShadow='none';
+      }
+    });
+  });
+  
+  // Paste custom path
+  pasteBtn.addEventListener('click',async ()=>{
+    try{
+      const text=await navigator.clipboard.readText();
+      if(text.trim()){
+        folderInput.value=text.trim();
+        console.log('Pasted custom path:', text.trim());
+        showToast('📋 Custom path pasted from clipboard');
+      }else{
+        alert('📋 CLIPBOARD EMPTY\n\nYour clipboard is empty.\n\nCopy a folder path and try again, or type a folder name manually.');
+      }
+    }catch(error){
+      console.error('Error reading clipboard:', error);
+      alert('📋 CLIPBOARD ACCESS DENIED\n\nUnable to access clipboard.\n\nPlease type the folder name or path manually.');
+    }
+  });
+  
+  // Cancel button
+  cancelBtn.addEventListener('click',()=>{
+    document.body.removeChild(overlay);
+  });
+  
+  // Save button
+  saveBtn.addEventListener('click',()=>{
+    const folderPath=folderInput.value.trim();
+    console.log('Save button clicked, folder path:', folderPath);
+    
+    if(folderPath){
+      localStorage.setItem('backupFolderPath',folderPath);
+      console.log('Backup folder saved to localStorage:', folderPath);
+      showToast('💾 Backup folder set successfully!');
+      
+      // Update tooltip immediately
+      setTimeout(()=>{
+        updateBackupTooltip();
+      },100);
+      
+      document.body.removeChild(overlay);
+    }else{
+      alert('Please enter a folder name or select a quick option.\n\nYou can:\n• Click "Downloads" or "Documents" for quick selection\n• Type a custom folder name\n• Use "Paste Custom Path" for full paths');
+      folderInput.focus();
+    }
+  });
+  
+  // Close on overlay click
+  overlay.addEventListener('click',(e)=>{
+    if(e.target===overlay){
+      document.body.removeChild(overlay);
+    }
+  });
+  
+  // Focus on input
+  setTimeout(()=>folderInput.focus(),100);
 }
 
 // Native folder picker function
