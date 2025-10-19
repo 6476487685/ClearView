@@ -338,15 +338,128 @@ function setupBackupFolder(){
   const setupBackup=confirm('📁 BACKUP FOLDER SETUP\n\nWould you like to set a default backup folder for downloads?\n\n• Click OK to set backup folder\n• Click Cancel to skip');
   
   if(setupBackup){
-    const backupPath=prompt('Enter backup folder path:\n\n(Leave empty for default Downloads folder)');
-    if(backupPath!==null){
-      localStorage.setItem('backupFolderPath',backupPath||'Downloads');
-      showToast('💾 Backup folder set successfully!');
-      
-      // Update Backup & Export tooltip
-      updateBackupTooltip();
-    }
+    showFolderPicker();
   }
+}
+
+// Folder picker function
+function showFolderPicker(){
+  // Create a modal overlay for the folder picker
+  const overlay=document.createElement('div');
+  overlay.style.cssText=`
+    position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);
+    display:flex;justify-content:center;align-items:center;z-index:10001;
+    backdrop-filter:blur(5px);
+  `;
+  
+  const modal=document.createElement('div');
+  modal.style.cssText=`
+    background:var(--content-bg);padding:30px;border-radius:12px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.3);max-width:500px;width:90%;
+    border:1px solid var(--divider);
+  `;
+  
+  modal.innerHTML=`
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:48px;margin-bottom:10px;">📁</div>
+      <h3 style="margin:0 0 10px 0;color:var(--text-body);font-size:18px;">Choose Backup Folder</h3>
+      <p style="margin:0;color:var(--text-secondary);font-size:14px;">Select a folder where downloads will be saved</p>
+    </div>
+    
+    <div style="margin-bottom:20px;">
+      <label style="display:block;margin-bottom:8px;color:var(--text-body);font-weight:600;">Folder Path:</label>
+      <input type="text" id="folderPathInput" placeholder="Enter folder path or click 'Browse'" 
+             style="width:100%;padding:12px;border:2px solid var(--divider);border-radius:6px;
+             font-size:14px;background:var(--primary-bg);color:var(--text-body);
+             transition:border-color 0.3s ease;" />
+      <div style="margin-top:10px;display:flex;gap:10px;">
+        <button id="browseBtn" style="
+          flex:1;padding:12px;background:var(--accent-blue);color:#fff;border:none;
+          border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        ">📂 Browse</button>
+        <button id="defaultBtn" style="
+          flex:1;padding:12px;background:var(--text-secondary);color:#fff;border:none;
+          border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        ">📥 Use Downloads</button>
+      </div>
+    </div>
+    
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button id="cancelFolderBtn" style="
+        padding:10px 20px;background:#6b7280;color:#fff;border:none;
+        border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+      ">Cancel</button>
+      <button id="saveFolderBtn" style="
+        padding:10px 20px;background:var(--success);color:#fff;border:none;
+        border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+      ">Save Folder</button>
+    </div>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  
+  const folderInput=modal.querySelector('#folderPathInput');
+  const browseBtn=modal.querySelector('#browseBtn');
+  const defaultBtn=modal.querySelector('#defaultBtn');
+  const cancelBtn=modal.querySelector('#cancelFolderBtn');
+  const saveBtn=modal.querySelector('#saveFolderBtn');
+  
+  // Browse button - simulate folder picker
+  browseBtn.addEventListener('click',()=>{
+    // Since browsers don't support folder picking directly, we'll use a file input
+    // and extract the directory path
+    const fileInput=document.createElement('input');
+    fileInput.type='file';
+    fileInput.webkitdirectory=true;
+    fileInput.style.display='none';
+    document.body.appendChild(fileInput);
+    
+    fileInput.addEventListener('change',(e)=>{
+      if(e.target.files.length>0){
+        const filePath=e.target.files[0].webkitRelativePath;
+        const folderPath=filePath.split('/')[0];
+        folderInput.value=folderPath;
+      }
+      document.body.removeChild(fileInput);
+    });
+    
+    fileInput.click();
+  });
+  
+  // Default Downloads button
+  defaultBtn.addEventListener('click',()=>{
+    folderInput.value='Downloads';
+  });
+  
+  // Cancel button
+  cancelBtn.addEventListener('click',()=>{
+    document.body.removeChild(overlay);
+  });
+  
+  // Save button
+  saveBtn.addEventListener('click',()=>{
+    const folderPath=folderInput.value.trim();
+    if(folderPath){
+      localStorage.setItem('backupFolderPath',folderPath);
+      showToast('💾 Backup folder set successfully!');
+      updateBackupTooltip();
+    }else{
+      alert('Please enter a folder path or use the default Downloads folder.');
+      return;
+    }
+    document.body.removeChild(overlay);
+  });
+  
+  // Close on overlay click
+  overlay.addEventListener('click',(e)=>{
+    if(e.target===overlay){
+      document.body.removeChild(overlay);
+    }
+  });
+  
+  // Focus on input
+  setTimeout(()=>folderInput.focus(),100);
 }
 
 // Step 5 & 6: Tooltip Update Functions
@@ -374,25 +487,43 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 // Toast notification function
 function showToast(message){
+  // Remove any existing toast
+  const existingToast=document.querySelector('.toast-notification');
+  if(existingToast){
+    existingToast.remove();
+  }
+  
   const toast=document.createElement('div');
+  toast.className='toast-notification';
   toast.style.cssText=`
     position:fixed;top:20px;right:20px;background:var(--success);color:#fff;
     padding:12px 20px;border-radius:6px;box-shadow:var(--shadow);
     z-index:10000;font-weight:600;font-size:14px;opacity:0;
-    transition:opacity 0.3s ease;transform:translateX(100%);
+    transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);transform:translateX(100%);
+    border:1px solid rgba(255,255,255,0.2);
+    backdrop-filter:blur(10px);
   `;
   toast.textContent=message;
   document.body.appendChild(toast);
   
+  // Force reflow to ensure initial styles are applied
+  toast.offsetHeight;
+  
+  // Show toast
   setTimeout(()=>{
     toast.style.opacity='1';
     toast.style.transform='translateX(0)';
   },100);
   
+  // Hide toast after 3 seconds
   setTimeout(()=>{
     toast.style.opacity='0';
     toast.style.transform='translateX(100%)';
-    setTimeout(()=>document.body.removeChild(toast),300);
+    setTimeout(()=>{
+      if(document.body.contains(toast)){
+        document.body.removeChild(toast);
+      }
+    },300);
   },3000);
 }
 
