@@ -78,7 +78,7 @@ input:checked + .slider:before{transform:translateX(22px);}
 .table td,.table th{padding:6px 10px;border-bottom:1px solid var(--divider);}
 
 /* Enhanced Documents Modal Styles */
-.docs-modal{max-width:800px;width:70%;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;position:fixed;top:calc(60px + (100vh - 60px) / 2 - 192px);left:calc(260px + (100vw - 260px) / 2);transform:translate(-50%, -50%);z-index:1001;}
+.docs-modal{max-width:896px;width:75%;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;position:fixed;top:calc(60px + (100vh - 60px) / 2 - 192px);left:calc(260px + (100vw - 260px) / 2);transform:translate(-50%, -50%);z-index:1001;}
 .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--divider);flex-shrink:0;}
 .modal-header h4{margin:0;color:var(--text-body);font-size:16px;font-weight:600;}
 
@@ -991,6 +991,17 @@ window.testDuplicateDetection = function() {
   showToast(`Duplicate detection is ${enableDuplicateDetection ? 'ENABLED' : 'DISABLED'}`);
 };
 
+// Debug command to simulate duplicate file
+window.simulateDuplicateFile = function() {
+  if(docs.length > 0) {
+    const existingFile = docs[0];
+    console.log('Simulating duplicate file:', existingFile.name);
+    handleDuplicateFile(existingFile, existingFile);
+  } else {
+    alert('No files to test with. Upload a file first.');
+  }
+};
+
 // Upload button click - ONLY way to open file picker
 // Clear any existing event listeners and add only one
 if(uploadBtn.onclick){
@@ -1041,6 +1052,8 @@ function handleFileUpload(e){
   const files=e.target.files;
   isFilePickerOpen = false; // Reset flag when files are selected
   
+  console.log('File upload triggered, files selected:', files.length);
+  
   // Clear the input to prevent issues with subsequent uploads
   e.target.value = '';
   
@@ -1055,6 +1068,7 @@ function handleFiles(files){
   
   console.log('Processing files:', Array.from(files).map(f => f.name));
   console.log('Current docs:', docs.map(d => d.name));
+  console.log('Duplicate detection enabled:', enableDuplicateDetection);
   
   // First pass: process non-duplicate files immediately
   Array.from(files).forEach(file=>{
@@ -1111,6 +1125,8 @@ function handleFiles(files){
   
   // Handle duplicate files immediately
   if(duplicateFiles.length > 0){
+    console.log('Found duplicate files:', duplicateFiles.length);
+    
     // Show immediate toast notification
     showToast(`🔄 ${duplicateCount} duplicate file(s) detected - check for options`);
     
@@ -1119,7 +1135,14 @@ function handleFiles(files){
     console.log('Processing duplicate file:', firstDuplicate.file.name);
     
     // Show the duplicate handling modal
-    handleDuplicateFile(firstDuplicate.file, firstDuplicate.existingFile);
+    setTimeout(() => {
+      handleDuplicateFile(firstDuplicate.file, firstDuplicate.existingFile);
+    }, 100);
+    
+    // Fallback alert in case modal doesn't work
+    setTimeout(() => {
+      alert(`File "${firstDuplicate.file.name}" already exists!\n\nChoose an option:\n- Skip: Don't upload this file\n- Replace: Replace the existing file\n- Rename: Save with a different name`);
+    }, 500);
   }
 }
 
