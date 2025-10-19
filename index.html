@@ -6,15 +6,17 @@
 <title>ClearView 1.0 — Transaction Manager</title>
 <style>
 :root {
- --header-bg:linear-gradient(135deg, #667eea 0%, #764ba2 100%);--sidebar-bg:#f8fafc;--content-bg:#ffffff;--primary-bg:#f1f5f9;
- --accent-blue:#3b82f6;--accent-blue-hover:#2563eb;--accent-gold:#f59e0b;
- --text-body:#1e293b;--divider:#e2e8f0;--shadow:0 4px 6px -1px rgba(0,0,0,0.1);
- --gradient-primary:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --header-bg:linear-gradient(135deg, #667eea 0%, #764ba2 100%);--sidebar-bg:#f8fafc;--content-bg:#ffffff;--primary-bg:#f1f5f9;
+  --accent-blue:#3b82f6;--accent-blue-hover:#2563eb;--accent-gold:#f59e0b;
+  --accent-purple:#8b5cf6;--accent-purple-hover:#7c3aed;
+  --text-body:#1e293b;--divider:#e2e8f0;--shadow:0 4px 6px -1px rgba(0,0,0,0.1);
+  --gradient-primary:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 body.dark {
- --header-bg:linear-gradient(135deg, #1e293b 0%, #334155 100%);--sidebar-bg:#1e293b;--content-bg:#0f172a;--primary-bg:#0f172a;
- --accent-blue:#60a5fa;--accent-blue-hover:#3b82f6;--accent-gold:#fbbf24;
- --text-body:#f1f5f9;--divider:#334155;--shadow:0 4px 6px -1px rgba(0,0,0,0.3);
+  --header-bg:linear-gradient(135deg, #1e293b 0%, #334155 100%);--sidebar-bg:#1e293b;--content-bg:#0f172a;--primary-bg:#0f172a;
+  --accent-blue:#60a5fa;--accent-blue-hover:#3b82f6;--accent-gold:#fbbf24;
+  --accent-purple:#a78bfa;--accent-purple-hover:#8b5cf6;
+  --text-body:#f1f5f9;--divider:#334155;--shadow:0 4px 6px -1px rgba(0,0,0,0.3);
 }
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--primary-bg);color:var(--text-body);line-height:1.6;}
 header{
@@ -116,16 +118,25 @@ input:checked + .slider:before{transform:translateX(22px);}
 .doc-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start;}
 .doc-btn{background:var(--danger);color:#fff;border:none;padding:6px 10px;border-radius:4px;font-size:11px;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;gap:3px;white-space:nowrap;font-weight:500;}
 .doc-btn:hover{background:#d32f2f;transform:translateY(-1px);}
+.doc-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+.doc-btn:disabled:hover{background:var(--danger);transform:none;}
 .doc-btn.download{background:var(--success);}
 .doc-btn.download:hover{background:#2e7d32;}
 .doc-btn.rename{background:var(--accent-blue);}
 .doc-btn.rename:hover{background:var(--accent-blue-hover);}
+.doc-btn.move-up,.doc-btn.move-down{background:var(--accent-purple);padding:6px 8px;min-width:32px;justify-content:center;}
+.doc-btn.move-up:hover:not(:disabled),.doc-btn.move-down:hover:not(:disabled){background:var(--accent-purple-hover);}
 
 /* File name display and editing */
 .file-name-display{font-size:12px;font-weight:500;color:var(--text-body);cursor:pointer;transition:color 0.2s ease;}
 .file-name-display:hover{color:var(--accent-blue);}
 .file-name-edit{background:transparent;border:1px solid var(--accent-blue);border-radius:3px;padding:4px 6px;font-size:12px;font-weight:500;color:var(--text-body);width:100%;min-width:150px;}
 .file-name-edit:focus{outline:none;border-color:var(--accent-blue-hover);box-shadow:0 0 0 2px rgba(66,133,244,0.1);}
+
+/* Drag and drop styles */
+.docs-table tr[draggable="true"]{cursor:move;transition:all 0.2s ease;}
+.docs-table tr[draggable="true"]:hover{background:rgba(139,92,246,0.05);}
+.docs-table tr.drag-over{background:rgba(139,92,246,0.1);border:2px dashed var(--accent-purple);}
 
 </style>
 </head>
@@ -1046,7 +1057,7 @@ function handleFiles(files){
         // No duplicate - add file normally
         console.log('Adding new file:', file.name);
         const entry=createDocumentEntry(file);
-        docs.push(entry);
+  docs.push(entry);
         addedCount++;
       }
     }else{
@@ -1313,6 +1324,8 @@ function renderDocs(){
   
   docs.forEach((d,i)=>{
     const r=document.createElement('tr');
+    r.draggable = true;
+    r.dataset.index = i;
     r.innerHTML=`<td>
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:14px;">${getFileIcon(d.type)}</span>
@@ -1330,6 +1343,12 @@ function renderDocs(){
         <button class="doc-btn rename" data-i="${i}" title="Rename">
           <span>✏️</span> Rename
         </button>
+        <button class="doc-btn move-up" data-i="${i}" title="Move Up" ${i === 0 ? 'disabled' : ''}>
+          <span>⬆️</span>
+        </button>
+        <button class="doc-btn move-down" data-i="${i}" title="Move Down" ${i === docs.length - 1 ? 'disabled' : ''}>
+          <span>⬇️</span>
+        </button>
         <button class="doc-btn" data-i="${i}" title="Delete">
           <span>🗑️</span> Delete
         </button>
@@ -1346,6 +1365,10 @@ function renderDocs(){
         downloadDocument(i);
       }else if(e.target.closest('.doc-btn').classList.contains('rename')){
         renameDocument(i);
+      }else if(e.target.closest('.doc-btn').classList.contains('move-up')){
+        moveFileUp(i);
+      }else if(e.target.closest('.doc-btn').classList.contains('move-down')){
+        moveFileDown(i);
       }else{
         deleteDocument(i);
       }
@@ -1358,6 +1381,14 @@ function renderDocs(){
       const i=parseInt(e.target.dataset.i);
       renameDocument(i);
     });
+  });
+  
+  // Drag and drop event listeners
+  docsTbody.querySelectorAll('tr').forEach(row => {
+    row.addEventListener('dragstart', handleDragStart);
+    row.addEventListener('dragover', handleDragOver);
+    row.addEventListener('drop', handleDrop);
+    row.addEventListener('dragend', handleDragEnd);
   });
 }
 
@@ -1433,6 +1464,71 @@ function renameDocument(index){
       cancelRename();
     }
   });
+}
+
+function moveFileUp(index){
+  if(index > 0){
+    // Swap with the file above
+    const temp = docs[index];
+    docs[index] = docs[index - 1];
+    docs[index - 1] = temp;
+    
+    localStorage.setItem('docsList', JSON.stringify(docs));
+    renderDocs();
+    showToast(`⬆️ File "${temp.name}" moved up`);
+  }
+}
+
+function moveFileDown(index){
+  if(index < docs.length - 1){
+    // Swap with the file below
+    const temp = docs[index];
+    docs[index] = docs[index + 1];
+    docs[index + 1] = temp;
+    
+    localStorage.setItem('docsList', JSON.stringify(docs));
+    renderDocs();
+    showToast(`⬇️ File "${temp.name}" moved down`);
+  }
+}
+
+// Drag and drop functions
+let draggedRow = null;
+
+function handleDragStart(e) {
+  draggedRow = this;
+  this.style.opacity = '0.5';
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  this.style.backgroundColor = 'rgba(139, 92, 246, 0.1)';
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  if (draggedRow !== this) {
+    const fromIndex = parseInt(draggedRow.dataset.index);
+    const toIndex = parseInt(this.dataset.index);
+    
+    // Move the item in the docs array
+    const item = docs.splice(fromIndex, 1)[0];
+    docs.splice(toIndex, 0, item);
+    
+    // Save and re-render
+    localStorage.setItem('docsList', JSON.stringify(docs));
+    renderDocs();
+    showToast(`🔄 File "${item.name}" moved to position ${toIndex + 1}`);
+  }
+  this.style.backgroundColor = '';
+}
+
+function handleDragEnd(e) {
+  this.style.opacity = '';
+  this.style.backgroundColor = '';
+  draggedRow = null;
 }
 
 function deleteDocument(index){
