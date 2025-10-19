@@ -369,32 +369,10 @@ function showSimpleBackupDialog(){
     <div style="margin-bottom:24px;">
       <label style="display:block;margin-bottom:12px;color:var(--text-body);font-weight:600;font-size:15px;">Folder Name:</label>
       <input type="text" id="folderNameInput" placeholder="Enter folder name (e.g., ClearView_Backups)" 
-             style="width:100%;padding:16px 18px;border:2px solid var(--divider);border-radius:12px;
+             style="width:calc(100% - 36px);padding:16px 18px;border:2px solid var(--divider);border-radius:12px;
              font-size:15px;background:var(--content-bg);color:var(--text-body);
              transition:all 0.3s ease;box-shadow:0 4px 12px rgba(0,0,0,0.08);
              margin-bottom:20px;outline:none;" />
-      
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-        <button class="quick-folder" data-path="Downloads" style="
-          padding:16px 12px;background:var(--primary-bg);color:var(--text-body);
-          border:2px solid var(--divider);border-radius:10px;text-align:center;
-          cursor:pointer;transition:all 0.3s ease;font-size:14px;font-weight:600;
-          display:flex;flex-direction:column;align-items:center;gap:8px;
-        ">
-          <span style="font-size:24px;">📥</span>
-          <span>Downloads</span>
-        </button>
-        
-        <button class="quick-folder" data-path="Documents" style="
-          padding:16px 12px;background:var(--primary-bg);color:var(--text-body);
-          border:2px solid var(--divider);border-radius:10px;text-align:center;
-          cursor:pointer;transition:all 0.3s ease;font-size:14px;font-weight:600;
-          display:flex;flex-direction:column;align-items:center;gap:8px;
-        ">
-          <span style="font-size:24px;">📄</span>
-          <span>Documents</span>
-        </button>
-      </div>
       
       <button id="pastePathBtn" style="
         width:100%;padding:14px 18px;background:var(--accent-blue);color:#fff;border:none;
@@ -408,7 +386,7 @@ function showSimpleBackupDialog(){
       </button>
       
       <div style="font-size:12px;color:var(--text-secondary);text-align:center;line-height:1.4;padding:12px;background:var(--primary-bg);border-radius:8px;">
-        💡 <strong>Quick Select:</strong> Click Downloads or Documents | <strong>Custom:</strong> Type folder name or paste full path
+        💡 <strong>Copy your Custom Folder Path using File Explorer and hit Paste Button</strong>
       </div>
     </div>
     
@@ -420,7 +398,7 @@ function showSimpleBackupDialog(){
         min-width:100px;
       ">Cancel</button>
       <button id="saveBackupBtn" style="
-        padding:14px 24px;background:var(--success);color:#fff;border:none;
+        padding:14px 24px;background:#34a853;color:#ffffff;border:none;
         border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
         box-shadow:0 4px 12px rgba(52,168,83,0.2);font-size:15px;
         min-width:100px;
@@ -432,51 +410,9 @@ function showSimpleBackupDialog(){
   document.body.appendChild(overlay);
   
   const folderInput=modal.querySelector('#folderNameInput');
-  const quickFolders=modal.querySelectorAll('.quick-folder');
   const pasteBtn=modal.querySelector('#pastePathBtn');
   const cancelBtn=modal.querySelector('#cancelBackupBtn');
   const saveBtn=modal.querySelector('#saveBackupBtn');
-  
-  // Quick folder selection
-  quickFolders.forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const folderName=btn.dataset.path;
-      folderInput.value=folderName;
-      console.log('Quick folder selected:', folderName);
-      
-      // Visual feedback
-      btn.style.background='var(--accent-blue)';
-      btn.style.color='#fff';
-      btn.style.borderColor='var(--accent-blue)';
-      btn.style.transform='scale(0.95)';
-      
-      setTimeout(()=>{
-        btn.style.background='var(--primary-bg)';
-        btn.style.color='var(--text-body)';
-        btn.style.borderColor='var(--divider)';
-        btn.style.transform='scale(1)';
-      },200);
-    });
-    
-    // Hover effects
-    btn.addEventListener('mouseenter',()=>{
-      btn.style.background='var(--accent-blue)';
-      btn.style.color='#fff';
-      btn.style.borderColor='var(--accent-blue)';
-      btn.style.transform='translateY(-2px)';
-      btn.style.boxShadow='0 8px 20px rgba(66,133,244,0.3)';
-    });
-    
-    btn.addEventListener('mouseleave',()=>{
-      if(btn.style.background!=='var(--accent-blue)'){
-        btn.style.background='var(--primary-bg)';
-        btn.style.color='var(--text-body)';
-        btn.style.borderColor='var(--divider)';
-        btn.style.transform='translateY(0)';
-        btn.style.boxShadow='none';
-      }
-    });
-  });
   
   // Paste custom path
   pasteBtn.addEventListener('click',async ()=>{
@@ -517,7 +453,7 @@ function showSimpleBackupDialog(){
       
       document.body.removeChild(overlay);
     }else{
-      alert('Please enter a folder name or select a quick option.\n\nYou can:\n• Click "Downloads" or "Documents" for quick selection\n• Type a custom folder name\n• Use "Paste Custom Path" for full paths');
+      alert('Please enter a folder name.\n\nYou can:\n• Type a custom folder name\n• Use "Paste Custom Path" to paste a folder path from clipboard');
       folderInput.focus();
     }
   });
