@@ -445,15 +445,8 @@ function isValidDataFile(file){
 }
 
 function showOverwriteWarning(){
-  // Check if there's existing data
-  const existingData=localStorage.getItem('txnData')||localStorage.getItem('expense_records')||localStorage.getItem('income_records');
-  
-  if(existingData){
-    showWarning();
-  }else{
-    // No existing data, proceed directly to file picker
-    fileInput.click();
-  }
+  // Always show overwrite warning to ensure user confirmation
+  showWarning();
 }
 
 function showWarning(){
@@ -471,12 +464,16 @@ function loadData(){
   console.log('Loading file:', pendingFile.name);
   const fileName=pendingFile.name.toLowerCase();
   
-  // Simple approach - just save the file info and show success
+  // Save the file info and show success
   localStorage.setItem('localDataPath',fileName);
   localStorage.setItem('txnData','loaded'); // Simple marker
   
   console.log('Data saved to localStorage');
   showToast('Data loaded successfully!');
+  
+  // Update tooltip for Load Local Data
+  updateLoadLocalTooltip();
+  
   showBackupSection('Data loaded successfully!');
 }
 
@@ -526,6 +523,9 @@ setupBackupBtn.addEventListener('click',()=>{
   if(backupPath!==null){
     localStorage.setItem('backupFolderPath',backupPath||'Downloads');
     showToast('Backup folder set successfully!');
+    
+    // Update tooltip for Backup & Export
+    updateBackupTooltip();
   }
   showSuccess();
   setTimeout(()=>{
@@ -562,20 +562,28 @@ function showToast(message){
   },3000);
 }
 
-// Add hover tooltips for sidebar items
-document.addEventListener('DOMContentLoaded',()=>{
-  // Load Local Data tooltip
+// Tooltip update functions
+function updateLoadLocalTooltip(){
   const loadLocalLink=document.querySelector('nav a[data-target="load"]');
   if(loadLocalLink){
-    loadLocalLink.title=localStorage.getItem('localDataPath')||'Click to load local data files';
+    const dataPath=localStorage.getItem('localDataPath');
+    loadLocalLink.title=dataPath?`Current data: ${dataPath}`:'Click to load local data files';
   }
-  
-  // Backup & Export tooltip
+}
+
+function updateBackupTooltip(){
   const backupLink=document.querySelector('nav a[data-target="backup"]');
   if(backupLink){
     const backupPath=localStorage.getItem('backupFolderPath');
     backupLink.title=backupPath?`Backup folder: ${backupPath}`:'Click to set backup folder';
   }
+}
+
+// Add hover tooltips for sidebar items
+document.addEventListener('DOMContentLoaded',()=>{
+  // Initialize tooltips
+  updateLoadLocalTooltip();
+  updateBackupTooltip();
 });
 
 /* ---------- Enhanced Documents ---------- */
