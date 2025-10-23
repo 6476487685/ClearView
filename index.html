@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>ClearView 1.0 — Transaction Manager</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="assets/font-awesome.min.css">
 <style>
 :root {
   --header-bg:linear-gradient(135deg, #667eea 0%, #764ba2 100%);--sidebar-bg:#f8fafc;--content-bg:#ffffff;--primary-bg:#f1f5f9;
@@ -387,7 +387,7 @@ body.dark .modal-header h4 i{color:var(--text-body);}
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="assets/xlsx.full.min.js"></script>
 <script>
 /* ---------- Theme ---------- */
 const themeSwitch=document.getElementById('themeSwitch');
@@ -434,7 +434,10 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     else if(t==='income'){
       window.location.href='3_Income_Index.html';
     }
-    else if(['masters','tasks','accounts','investments','analytics','backup'].includes(t)){
+    else if(t==='accounts'){
+      window.location.href='Manage_Accounts_Module/manage_accounts_browser.html';
+    }
+    else if(['masters','tasks','investments','analytics','backup'].includes(t)){
       document.getElementById('genericTitle').textContent=link.textContent;
       openModal('modal-generic');
     }
