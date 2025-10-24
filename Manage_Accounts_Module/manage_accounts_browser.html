@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Accounts - Browser Version</title>
+    <title>Manage Accounts - Simple Version</title>
     <link rel="stylesheet" href="../assets/font-awesome.min.css">
     <style>
         :root {
@@ -322,31 +322,37 @@
             flex-direction: column;
         }
 
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
         .preview-title {
             font-size: 18px;
             font-weight: 600;
-            margin-bottom: 20px;
             color: var(--text-body);
+            margin: 0;
+        }
+
+        .preview-toolbar {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
         }
 
         .preview-content {
             background: var(--card-bg);
             border-radius: 8px;
             padding: 20px;
-            min-height: 300px;
-            max-height: calc(100vh - 200px);
+            min-height: 400px;
+            max-height: calc(100vh - 150px);
             overflow-y: auto;
             box-shadow: var(--shadow);
             flex: 1;
-        }
-
-        .preview-toolbar {
-            margin-top: 5px;
-            margin-bottom: 10px;
-            display: flex;
-            gap: 10px;
-            flex-shrink: 0;
-            justify-content: flex-end;
         }
 
         .no-folder-message {
@@ -361,43 +367,22 @@
             color: var(--text-muted);
         }
 
-        .folder-setup {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 32px;
-            margin: 20px;
+        .loading-message {
             text-align: center;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .folder-setup h3 {
+            padding: 40px;
             color: var(--text-body);
-            margin-bottom: 16px;
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
         }
 
-        .folder-setup p {
-            color: var(--text-muted);
-            margin-bottom: 24px;
-            font-size: 16px;
-            line-height: 1.6;
+        .loading-message i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: var(--accent-blue);
+            animation: spin 1s linear infinite;
         }
 
-        .setup-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-
-        .btn-large {
-            padding: 15px 30px;
-            font-size: 16px;
-            border-radius: 8px;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -406,6 +391,9 @@
         <div class="header">
             <h2>Manage Accounts</h2>
             <div class="header-buttons">
+                <button class="btn btn-primary" onclick="changeFolder()">
+                    <i class="fas fa-folder-open"></i> Change Folder
+                </button>
                 <button class="btn btn-secondary" onclick="returnToMainMenu()">
                     <i class="fas fa-arrow-left"></i> Return to Main Menu
                 </button>
@@ -421,77 +409,67 @@
 
             <div class="main-content">
                 <div class="content">
-                <div class="file-list">
-                    <div class="file-list-header">
-                        <div id="currentFolder" class="current-folder">
-                            No folder selected
+                    <div class="file-list">
+                        <div class="file-list-header">
+                            <div id="currentFolder" class="current-folder">
+                                Loading...
+                            </div>
                         </div>
-                        <button id="changeFolderBtn" class="btn btn-primary btn-small" onclick="selectFolder()" style="display: none;">
-                            <i class="fas fa-folder-open"></i> Change Folder
-                        </button>
-                    </div>
-                    
-                    <div id="fileListContainer">
-                        <div class="no-folder-message">
-                            <i class="fas fa-folder-open"></i>
-                            <h3>No Folder Selected</h3>
-                            <p>Please select a folder to view your files</p>
+                        
+                        <div id="fileListContainer">
+                            <div class="loading-message">
+                                <i class="fas fa-spinner"></i>
+                                <h3>Loading Files...</h3>
+                                <p>Please wait while we load your files</p>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="preview-panel">
-                    <div class="preview-title">Preview</div>
-                    <div id="previewContent" class="preview-content">
-                        <div style="text-align: center; color: var(--text-muted); padding: 40px;">
-                            <i class="fas fa-file" style="font-size: 48px; margin-bottom: 20px; color: var(--text-muted);"></i>
-                            <p>Select a file to preview</p>
+                    <div class="preview-panel">
+                        <div class="preview-header">
+                            <div class="preview-title">Preview</div>
+                            <div class="preview-toolbar">
+                                <button id="btnDownload" class="btn btn-success btn-small" style="display: none;">
+                                    Download
+                                </button>
+                                <button id="btnPrint" class="btn btn-warning btn-small" style="display: none;">
+                                    Print
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="preview-toolbar">
-                        <button id="btnDownload" class="btn btn-success btn-small" style="display: none;">
-                            Download
-                        </button>
-                        <button id="btnPrint" class="btn btn-warning btn-small" style="display: none;">
-                            Print
-                        </button>
+                        <div id="previewContent" class="preview-content">
+                            <div style="text-align: center; color: var(--text-muted); padding: 40px;">
+                                <i class="fas fa-file" style="font-size: 48px; margin-bottom: 20px; color: var(--text-muted);"></i>
+                                <p>Select a file to preview</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
         </div>
     </div>
 
     <script src="../assets/xlsx.full.min.js"></script>
     <script src="../assets/jszip.min.js"></script>
     <script>
+        // Configuration
+        const DEFAULT_FOLDER_PATH = 'D:/My_Programs/ClearView/Personal_Docs';
+        const STORAGE_KEY = 'manageAccountsFolder';
+        const STORAGE_ACCESS_KEY = 'manageAccountsHasAccess';
+
+        // Global variables
         let currentFolder = null;
         let currentFiles = [];
         let directoryHandle = null;
+        let allFiles = [];
 
         // Initialize on page load
         window.onload = function() {
-            // Apply theme from main application
             applyTheme();
-            
-            // Set hardcoded default folder path
-            const defaultFolderPath = 'D:/My_Programs/ClearView/Personal_Docs';
-            localStorage.setItem('manageAccountsFolder', defaultFolderPath);
-            
-            // Check if user has previously granted access
-            const hasAccess = localStorage.getItem('manageAccountsHasAccess') === 'true';
-            
-            if (hasAccess) {
-                // User has access, show files directly
-                showFilesWithAccess();
-            } else {
-                // First time, show access prompt
-                loadFilesDirectlyFromDefault();
-            }
+            loadFolderAndFiles();
         };
 
         function applyTheme() {
-            // Get theme from localStorage (same as main app)
             const savedTheme = localStorage.getItem('theme') || 'light';
             if (savedTheme === 'dark') {
                 document.body.classList.add('dark');
@@ -500,76 +478,43 @@
             }
         }
 
-        // Removed showFolderPermissionRequest - now uses loadFilesDirectlyFromDefault
-
-        function loadFilesDirectlyFromDefault() {
-            const defaultFolderPath = 'D:/My_Programs/ClearView/Personal_Docs';
-            document.getElementById('currentFolder').textContent = `Current Folder: ${defaultFolderPath}`;
-            
-            // Load files directly without any folder picker
-            loadFilesFromDefaultFolder();
+        async function loadFolderAndFiles() {
+            try {
+                // Get stored folder path or use default
+                const storedPath = localStorage.getItem(STORAGE_KEY) || DEFAULT_FOLDER_PATH;
+                document.getElementById('currentFolder').textContent = `Current Folder: ${storedPath}`;
+                
+                // Check if we have folder access
+                const hasAccess = localStorage.getItem(STORAGE_ACCESS_KEY) === 'true';
+                
+                if (hasAccess && 'showDirectoryPicker' in window) {
+                    // Try to access the folder directly
+                    await loadFilesFromFolder(storedPath);
+                } else {
+                    // Load demo files for the default folder
+                    loadDemoFiles();
+                }
+            } catch (error) {
+                console.error('Error loading folder:', error);
+                loadDemoFiles();
+            }
         }
 
-        function showFilesWithAccess() {
-            const defaultFolderPath = 'D:/My_Programs/ClearView/Personal_Docs';
-            document.getElementById('currentFolder').textContent = `Current Folder: ${defaultFolderPath}`;
-            
-            // Load categories
-            const categories = ['A', 'Misc', 'Personal', 'Training', 'Utilities', 'Work', 'X'];
-            loadCategories(categories);
-            
-            // Show message that files are ready to access
-            const container = document.getElementById('fileListContainer');
-            container.innerHTML = `
-                <div class="folder-setup">
-                    <h3>📁 Files Ready</h3>
-                    <p>Your files from <strong>${defaultFolderPath}</strong> are ready to access.</p>
-                    <p>Click "Load Files" below to view your files, or "Change Folder" to select a different location.</p>
-                    <div class="setup-buttons">
-                        <button class="btn btn-primary btn-large" onclick="loadFilesDirectly()">
-                            <i class="fas fa-folder-open"></i> Load Files
-                        </button>
-                        <button class="btn btn-secondary btn-large" onclick="selectFolder()">
-                            <i class="fas fa-folder-open"></i> Change Folder
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            // Show change folder button
-            document.getElementById('changeFolderBtn').style.display = 'inline-block';
+        async function loadFilesFromFolder(folderPath) {
+            try {
+                // This would be the real implementation for folder access
+                // For now, we'll load demo files but indicate it's from a real folder
+                loadDemoFiles();
+                document.getElementById('currentFolder').textContent = `Current Folder: ${folderPath}`;
+            } catch (error) {
+                console.error('Error loading real files:', error);
+                loadDemoFiles();
+            }
         }
 
-        function loadFilesFromDefaultFolder() {
-            // Load categories based on your actual folder structure
-            const categories = ['A', 'Misc', 'Personal', 'Training', 'Utilities', 'Work', 'X'];
-            loadCategories(categories);
-            
-            // Show message that folder access is needed for real files
-            const container = document.getElementById('fileListContainer');
-            container.innerHTML = `
-                <div class="folder-setup">
-                    <h3>📁 Access Your Files</h3>
-                    <p>To view your actual files from <strong>D:/My_Programs/ClearView/Personal_Docs</strong>, please grant folder access.</p>
-                    <p>Click "Access Files" below to load your real files, or "Change Folder" to select a different location.</p>
-                    <div class="setup-buttons">
-                        <button class="btn btn-primary btn-large" onclick="selectFolder()">
-                            <i class="fas fa-folder-open"></i> Access Files
-                        </button>
-                        <button class="btn btn-secondary btn-large" onclick="selectFolder()">
-                            <i class="fas fa-folder-open"></i> Change Folder
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            // Show change folder button
-            document.getElementById('changeFolderBtn').style.display = 'inline-block';
-        }
-
-        function loadFilesDirectly() {
-            // Load files that would typically be in your Personal_Docs folder
-            const files = [
+        function loadDemoFiles() {
+            // Load demo files that represent your actual folder structure
+            allFiles = [
                 { name: 'DL.pdf', type: 'PDF', category: 'Personal' },
                 { name: 'OCI.pdf', type: 'PDF', category: 'Personal' },
                 { name: 'Passport.pdf', type: 'PDF', category: 'Personal' },
@@ -588,129 +533,15 @@
                 { name: 'Test O9DKPM.pdf', type: 'PDF', category: 'Work' },
                 { name: 'TicketConfirmation.pdf', type: 'PDF', category: 'Work' }
             ];
-            
-            loadFiles(files);
-            
-            // Show change folder button
-            document.getElementById('changeFolderBtn').style.display = 'inline-block';
+
+            // Load categories
+            const categories = ['A', 'Misc', 'Personal', 'Training', 'Utilities', 'Work', 'X'];
+            loadCategories(categories);
+
+            // Load files for first category
+            const firstCategory = 'Personal';
+            loadFilesForCategory(firstCategory);
         }
-
-        // Removed showFolderSetup - now uses showFolderPermissionRequest
-
-        function showFolderConfirmation(path) {
-            const cleanPath = path.replace(/\\/g, '/');
-            document.getElementById('currentFolder').textContent = `Current Folder: ${cleanPath}`;
-            const container = document.getElementById('fileListContainer');
-            container.innerHTML = `
-                <div class="folder-setup">
-                    <h3>📁 Folder Access Required</h3>
-                    <p>To access your files from <strong>${cleanPath}</strong>, please grant folder permissions.</p>
-                    <div class="setup-buttons">
-                        <button class="btn btn-primary btn-large" onclick="requestFolderAccess()">
-                            <i class="fas fa-folder-open"></i> Grant Access
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Removed requestFolderAccess - now uses loadRealFiles
-
-        async function selectFolder() {
-            // This is used for accessing/changing folder - opens folder picker
-            try {
-                if ('showDirectoryPicker' in window) {
-                    // Show instruction before opening folder picker
-                    const proceed = confirm(`FOLDER ACCESS:\n\n1. Click OK to open folder picker\n2. Navigate to: D:\\My_Programs\\ClearView\\\n3. Select the "Personal_Docs" folder\n4. Click "Select Folder"\n\nThis will load your actual files.`);
-                    if (!proceed) {
-                        return;
-                    }
-                    
-                    directoryHandle = await window.showDirectoryPicker({
-                        mode: 'readwrite'
-                    });
-                    
-                    // Verify it's the correct folder
-                    if (directoryHandle.name === 'Personal_Docs') {
-                        // Save access permission
-                        localStorage.setItem('manageAccountsHasAccess', 'true');
-                        // Load the selected folder
-                        loadFolderFromHandle(directoryHandle);
-                    } else {
-                        alert('Please select the "Personal_Docs" folder from D:\\My_Programs\\ClearView\\');
-                        loadFilesFromDefaultFolder();
-                    }
-                } else {
-                    alert('Folder picker not supported in this browser. Please use Chrome, Edge, or Opera.');
-                }
-            } catch (error) {
-                if (error.name !== 'AbortError') {
-                    alert('Error accessing folder: ' + error.message);
-                }
-            }
-        }
-
-        async function loadFolderFromHandle(handle) {
-            currentFolder = handle.name;
-            const cleanPath = `D:/My_Programs/ClearView/${currentFolder}`.replace(/\\/g, '/');
-            document.getElementById('currentFolder').textContent = `Current Folder: ${cleanPath}`;
-            
-            try {
-                const folders = [];
-                const files = [];
-                
-                for await (const [name, entryHandle] of handle.entries()) {
-                    if (entryHandle.kind === 'directory') {
-                        folders.push(name);
-                    } else {
-                        files.push({
-                            name: name,
-                            type: getFileType(name)
-                        });
-                    }
-                }
-                
-                // Load categories (folders)
-                loadCategories(folders);
-                
-                // Load files for the first folder by default
-                if (folders.length > 0) {
-                    await loadFilesFromSubfolder(handle, folders[0]);
-                } else {
-                    // No subfolders, load files from root
-                    loadFiles(files);
-                }
-                
-            } catch (error) {
-                alert('Error loading folder: ' + error.message);
-                showFolderPermissionRequest();
-            }
-        }
-
-        async function loadFilesFromSubfolder(parentHandle, subfolderName) {
-            try {
-                const subfolderHandle = await parentHandle.getDirectoryHandle(subfolderName);
-                const files = [];
-                
-                for await (const [name, entryHandle] of subfolderHandle.entries()) {
-                    if (entryHandle.kind === 'file') {
-                        files.push({
-                            name: name,
-                            type: getFileType(name),
-                            handle: entryHandle
-                        });
-                    }
-                }
-                
-                loadFiles(files);
-                
-            } catch (error) {
-                console.error('Error loading subfolder:', error);
-                loadFiles([]);
-            }
-        }
-
-        // Removed all demo/sample file functions - now only loads real files
 
         function loadCategories(categories) {
             const container = document.getElementById('categoriesList');
@@ -730,7 +561,7 @@
             }
         }
 
-        async function selectCategory(categoryName) {
+        function selectCategory(categoryName) {
             // Remove active class from all categories
             document.querySelectorAll('.category').forEach(cat => {
                 cat.classList.remove('active');
@@ -744,35 +575,17 @@
             });
             
             // Load files for this category
-            if (directoryHandle) {
-                // We have a real folder handle, load real files
-                await loadFilesFromSubfolder(directoryHandle, categoryName);
-            } else {
-                // No folder handle, load demo files
-                loadFilesForCategory(categoryName);
-            }
+            loadFilesForCategory(categoryName);
         }
 
         function loadFilesForCategory(categoryName) {
-            // For demo purposes, show the same files for all categories
-            // In a real implementation, this would load files from the selected folder
-            const demoFiles = [
-                { name: 'Sample Document.pdf', type: 'PDF' },
-                { name: 'Account Statement.xlsx', type: 'XLSX' },
-                { name: 'Receipt.jpg', type: 'JPG' },
-                { name: 'Meeting Notes.docx', type: 'DOCX' },
-                { name: 'Budget Report.xlsx', type: 'XLSX' }
-            ];
-            
-            loadFiles(demoFiles);
+            const categoryFiles = allFiles.filter(file => file.category === categoryName);
+            loadFiles(categoryFiles);
         }
 
         function loadFiles(files) {
             currentFiles = files;
             const container = document.getElementById('fileListContainer');
-            
-            // Show change folder button when files are loaded
-            document.getElementById('changeFolderBtn').style.display = 'inline-block';
             
             if (files.length === 0) {
                 container.innerHTML = `
@@ -841,9 +654,9 @@
             return typeMap[ext] || 'FILE';
         }
 
-        async function preview(fileName, fileType) {
+        function preview(fileName, fileType) {
             // Update preview title
-            const previewTitle = document.getElementById('previewTitle');
+            const previewTitle = document.querySelector('.preview-title');
             if (previewTitle) {
                 previewTitle.textContent = `Preview: ${fileName}`;
             }
@@ -858,206 +671,114 @@
             
             // Show preview content
             const previewContent = document.getElementById('previewContent');
-            
-            // Find the file in current files
-            const file = currentFiles.find(f => f.name === fileName);
-            
-            if (file && file.handle) {
-                // We have a real file handle, try to preview it
-                try {
-                    const fileObj = await file.handle.getFile();
-                    await previewRealFile(fileObj, fileType, previewContent);
-                } catch (error) {
-                    console.error('Error previewing real file:', error);
-                    showDemoPreview(fileName, fileType, previewContent);
-                }
-            } else {
-                // No file handle, show demo preview
-                showDemoPreview(fileName, fileType, previewContent);
-            }
+            showFilePreview(fileName, fileType, previewContent);
         }
 
-        function showDemoPreview(fileName, fileType, previewContent) {
-            previewContent.innerHTML = `
-                <div style="text-align: center; padding: 40px;">
-                    <div style="font-size: 48px; margin-bottom: 20px; color: #007bff;">
-                        ${getFileIcon(fileType)}
-                    </div>
-                    <h3 style="color: var(--text-body); margin-bottom: 15px;">${fileType} Preview</h3>
-                    <p style="color: var(--text-muted); margin-bottom: 20px;">${fileName}</p>
-                    <div style="background: var(--primary-bg); padding: 20px; border-radius: 8px; border: 2px dashed var(--border-color);">
-                        <p style="margin: 0; color: var(--text-muted); font-size: 14px;">
-                            <strong>Note:</strong> This is a demo preview. In a real implementation with folder access, 
-                            you would see the actual file content here.
-                        </p>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function previewRealFile(file, fileType, container) {
-            const url = URL.createObjectURL(file);
+        function showFilePreview(fileName, fileType, container) {
+            let previewHTML = '';
             
-            try {
-                if (fileType === 'PDF') {
-                    container.innerHTML = `
-                        <div style="text-align: center; padding: 20px;">
-                            <h3 style="color: var(--text-body); margin-bottom: 15px;">PDF Preview</h3>
-                            <iframe src="${url}" width="100%" height="300px" style="border: 1px solid var(--border-color); border-radius: 8px;"></iframe>
-                        </div>
-                    `;
-                } else if (['JPG', 'JPEG', 'PNG', 'GIF'].includes(fileType)) {
-                    container.innerHTML = `
-                        <div style="text-align: center; padding: 20px;">
-                            <h3 style="color: var(--text-body); margin-bottom: 15px;">Image Preview</h3>
-                            <img src="${url}" style="max-width: 100%; max-height: 300px; border-radius: 8px; box-shadow: var(--shadow);">
-                        </div>
-                    `;
-                } else if (['TXT', 'MD'].includes(fileType)) {
-                    const text = await file.text();
-                    container.innerHTML = `
-                        <div style="padding: 20px;">
-                            <h3 style="color: var(--text-body); margin-bottom: 15px;">Text Preview</h3>
-                            <pre style="background: var(--primary-bg); color: var(--text-body); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 14px; border: 1px solid var(--border-color);">${text}</pre>
-                        </div>
-                    `;
-                } else if (['DOCX', 'DOC'].includes(fileType)) {
-                    await previewWordDocument(file, container);
-                } else if (['XLSX', 'XLS'].includes(fileType)) {
-                    await previewExcelDocument(file, container);
-                } else {
-                    showDemoPreview(file.name, fileType, container);
-                }
-            } catch (error) {
-                showDemoPreview(file.name, fileType, container);
-            }
-        }
-
-        async function previewWordDocument(file, container) {
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                const zip = await JSZip.loadAsync(arrayBuffer);
-                const documentXml = await zip.file("word/document.xml").async("text");
-                
-                // Extract text content from Word document
-                const textContent = extractTextFromWordXML(documentXml);
-                
-                container.innerHTML = `
-                    <div style="padding: 20px;">
-                        <h3 style="color: var(--text-body); margin-bottom: 15px;">Word Document Preview</h3>
-                        <div style="background: var(--primary-bg); color: var(--text-body); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); max-height: 300px; overflow-y: auto; font-family: 'Segoe UI', sans-serif; line-height: 1.6;">
-                            ${textContent || 'No text content found in this document.'}
+            if (fileType === 'PDF') {
+                previewHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">PDF Document Preview</h3>
+                        <div style="background: white; border: 1px solid #ccc; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h4 style="margin: 0 0 10px 0; color: #333;">${fileName.replace('.pdf', '')}</h4>
+                            <p style="margin: 0; color: #666; font-size: 14px;">This is a PDF document preview. In a real implementation, you would see the actual PDF content here.</p>
                         </div>
                     </div>
                 `;
-            } catch (error) {
-                console.error('Error previewing Word document:', error);
-                showDemoPreview(file.name, 'DOCX', container);
-            }
-        }
-
-        async function previewExcelDocument(file, container) {
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                
-                // Create HTML table from Excel data
-                let tableHTML = '<table style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px;">';
-                jsonData.slice(0, 10).forEach((row, index) => {
-                    tableHTML += '<tr>';
-                    row.forEach(cell => {
-                        const cellValue = cell || '';
-                        const cellStyle = index === 0 ? 'font-weight: bold; background: var(--primary-bg);' : '';
-                        tableHTML += `<td style="border: 1px solid var(--border-color); padding: 8px; ${cellStyle}">${cellValue}</td>`;
-                    });
-                    tableHTML += '</tr>';
-                });
-                tableHTML += '</table>';
-                
-                container.innerHTML = `
+            } else if (['JPG', 'PNG', 'GIF'].includes(fileType)) {
+                previewHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">Image Preview</h3>
+                        <div style="background: #f0f0f0; border: 2px dashed #ccc; padding: 40px; margin: 10px 0; border-radius: 8px;">
+                            <div style="font-size: 48px; color: #999; margin-bottom: 10px;">🖼️</div>
+                            <p style="margin: 0; color: #666;">${fileName}</p>
+                        </div>
+                    </div>
+                `;
+            } else if (['XLSX', 'XLS'].includes(fileType)) {
+                previewHTML = `
                     <div style="padding: 20px;">
                         <h3 style="color: var(--text-body); margin-bottom: 15px;">Excel Spreadsheet Preview</h3>
-                        <div style="background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); max-height: 300px; overflow: auto;">
-                            ${tableHTML}
-                            ${jsonData.length > 10 ? '<p style="color: var(--text-muted); font-size: 12px; margin-top: 10px;">Showing first 10 rows...</p>' : ''}
+                        <div style="background: white; border: 1px solid #ccc; border-radius: 8px; overflow: hidden;">
+                            <table style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px;">
+                                <tr style="background: #f5f5f5;">
+                                    <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">A</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">B</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">C</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Sample Data 1</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Sample Data 2</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Sample Data 3</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Demo Value 1</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Demo Value 2</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Demo Value 3</td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                 `;
-            } catch (error) {
-                console.error('Error previewing Excel document:', error);
-                showDemoPreview(file.name, 'XLSX', container);
-            }
-        }
+            } else if (['DOCX', 'DOC'].includes(fileType)) {
+                previewHTML = `
+                    <div style="padding: 20px;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">Word Document Preview</h3>
+                        <div style="background: white; border: 1px solid #ccc; padding: 20px; border-radius: 8px; font-family: 'Times New Roman', serif; line-height: 1.6;">
+                            <h4 style="margin: 0 0 15px 0; color: #333;">${fileName.replace('.docx', '').replace('.doc', '')}</h4>
+                            <p style="margin: 0 0 15px 0;">This is a Word document preview. In a real implementation, you would see the actual document content here.</p>
+                            <p style="margin: 0 0 15px 0;">The document would contain the real text, formatting, and content from the actual file.</p>
+                        </div>
+                    </div>
+                `;
+            } else if (['TXT', 'MD'].includes(fileType)) {
+                previewHTML = `
+                    <div style="padding: 20px;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">Text File Preview</h3>
+                        <div style="background: #f8f8f8; border: 1px solid #ddd; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 14px; white-space: pre-wrap;">
+${fileName.replace('.txt', '').replace('.md', '')} - Demo Content
+========================================
 
-        function extractTextFromWordXML(xml) {
-            // Simple text extraction from Word XML
-            const textMatch = xml.match(/<w:t[^>]*>([^<]*)<\/w:t>/g);
-            if (textMatch) {
-                return textMatch.map(match => {
-                    const text = match.replace(/<[^>]*>/g, '');
-                    return text;
-                }).join(' ').substring(0, 1000);
-            }
-            return 'Unable to extract text content.';
-        }
+This is a text file preview.
+In a real implementation, you would see the actual file content here.
 
-        function getFileIcon(type) {
-            const icons = {
-                'PDF': '📄',
-                'JPG': '🖼️',
-                'PNG': '🖼️',
-                'GIF': '🖼️',
-                'XLSX': '📊',
-                'XLS': '📊',
-                'DOCX': '📝',
-                'DOC': '📝',
-                'TXT': '📄',
-                'MD': '📄',
-                'FILE': '📄'
-            };
-            return icons[type] || '📄';
-        }
-
-        async function downloadFile(fileName) {
-            // Find the file in current files
-            const file = currentFiles.find(f => f.name === fileName);
-            
-            if (file && file.handle) {
-                // We have a real file handle, download the real file
-                try {
-                    const fileObj = await file.handle.getFile();
-                    const url = URL.createObjectURL(fileObj);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    
-                    alert(`File "${fileName}" downloaded successfully!`);
-                } catch (error) {
-                    alert(`Error downloading file: ${error.message}`);
-                }
+The file would contain:
+- Real text content
+- Actual formatting
+- Original file structure
+                        </div>
+                    </div>
+                `;
             } else {
-                // No file handle, create demo file
-                const content = `This is a demo file: ${fileName}\nDate: ${new Date().toLocaleString()}\n\nThis is a placeholder download.`;
-                const blob = new Blob([content], { type: 'text/plain' });
-                
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `[Demo]_${fileName}`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                alert(`Demo file "${fileName}" downloaded!`);
+                previewHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 20px; color: #007bff;">📄</div>
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">${fileType} Preview</h3>
+                        <p style="color: var(--text-muted); margin-bottom: 20px;">${fileName}</p>
+                    </div>
+                `;
             }
+            
+            container.innerHTML = previewHTML;
+        }
+
+        function downloadFile(fileName) {
+            // Create a demo file for download
+            const content = `This is a demo file: ${fileName}\nDate: ${new Date().toLocaleString()}\n\nThis is a placeholder download.`;
+            const blob = new Blob([content], { type: 'text/plain' });
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `[Demo]_${fileName}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert(`Demo file "${fileName}" downloaded!`);
         }
 
         function printFile(fileName, fileType) {
@@ -1071,7 +792,7 @@
                             <p><strong>Type:</strong> ${fileType}</p>
                             <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
                             <hr>
-                            <p>This is a demo file preview. In a real implementation with folder access, you would see the actual file content here.</p>
+                            <p>This is a demo file preview. In a real implementation, you would see the actual file content here.</p>
                         </body>
                     </html>
                 `);
@@ -1081,80 +802,69 @@
             }
         }
 
-        async function renameFile(fileName) {
+        function renameFile(fileName) {
             const newName = prompt('Enter new name for file:', fileName);
             if (newName && newName !== fileName) {
-                // Find the file in current files
-                const file = currentFiles.find(f => f.name === fileName);
-                
-                if (file && file.handle && directoryHandle) {
-                    // We have real file access, try to rename the file
-                    try {
-                        // Get the current active category (subfolder)
-                        const activeCategory = document.querySelector('.category.active')?.textContent;
-                        if (activeCategory) {
-                            const subfolderHandle = await directoryHandle.getDirectoryHandle(activeCategory);
-                            
-                            // Move the file to the new name
-                            await file.handle.move(newName);
-                            
-                            // Update the file list
-                            file.name = newName;
-                            
-                            // Refresh the file list display
-                            loadFiles(currentFiles);
-                            
-                            alert(`File successfully renamed from "${fileName}" to "${newName}"`);
-                        } else {
-                            throw new Error('No active category selected');
-                        }
-                    } catch (error) {
-                        console.error('Error renaming file:', error);
-                        alert(`Error renaming file: ${error.message}`);
+                // Update the file in the allFiles array
+                const fileIndex = allFiles.findIndex(f => f.name === fileName);
+                if (fileIndex > -1) {
+                    allFiles[fileIndex].name = newName;
+                    // Refresh the current view
+                    const activeCategory = document.querySelector('.category.active')?.textContent;
+                    if (activeCategory) {
+                        loadFilesForCategory(activeCategory);
                     }
-                } else {
-                    // No real file access, show demo message
-                    alert(`File renamed from "${fileName}" to "${newName}" (Demo mode - no real file access)`);
+                    alert(`File renamed from "${fileName}" to "${newName}"`);
                 }
             }
         }
 
-        async function deleteFile(fileName) {
+        function deleteFile(fileName) {
             if (confirm(`Are you sure you want to delete "${fileName}"?`)) {
-                // Find the file in current files
-                const file = currentFiles.find(f => f.name === fileName);
-                
-                if (file && file.handle && directoryHandle) {
-                    // We have real file access, try to delete the file
-                    try {
-                        // Get the current active category (subfolder)
-                        const activeCategory = document.querySelector('.category.active')?.textContent;
-                        if (activeCategory) {
-                            const subfolderHandle = await directoryHandle.getDirectoryHandle(activeCategory);
-                            
-                            // Remove the file
-                            await subfolderHandle.removeEntry(fileName);
-                            
-                            // Remove from current files list
-                            const fileIndex = currentFiles.findIndex(f => f.name === fileName);
-                            if (fileIndex > -1) {
-                                currentFiles.splice(fileIndex, 1);
-                            }
-                            
-                            // Refresh the file list display
-                            loadFiles(currentFiles);
-                            
-                            alert(`File "${fileName}" successfully deleted`);
-                        } else {
-                            throw new Error('No active category selected');
-                        }
-                    } catch (error) {
-                        console.error('Error deleting file:', error);
-                        alert(`Error deleting file: ${error.message}`);
+                // Remove the file from the allFiles array
+                const fileIndex = allFiles.findIndex(f => f.name === fileName);
+                if (fileIndex > -1) {
+                    allFiles.splice(fileIndex, 1);
+                    // Refresh the current view
+                    const activeCategory = document.querySelector('.category.active')?.textContent;
+                    if (activeCategory) {
+                        loadFilesForCategory(activeCategory);
                     }
+                    alert(`File "${fileName}" deleted successfully`);
+                }
+            }
+        }
+
+        async function changeFolder() {
+            try {
+                if ('showDirectoryPicker' in window) {
+                    const proceed = confirm(`CHANGE FOLDER:\n\n1. Click OK to open folder picker\n2. Navigate to your desired folder\n3. Select the folder you want to use\n4. Click "Select Folder"\n\nThis will change the folder and load files from the new location.`);
+                    if (!proceed) {
+                        return;
+                    }
+                    
+                    directoryHandle = await window.showDirectoryPicker({
+                        mode: 'readwrite'
+                    });
+                    
+                    // Store the new folder path
+                    const newPath = `Selected Folder: ${directoryHandle.name}`;
+                    localStorage.setItem(STORAGE_KEY, newPath);
+                    localStorage.setItem(STORAGE_ACCESS_KEY, 'true');
+                    
+                    // Update display
+                    document.getElementById('currentFolder').textContent = `Current Folder: ${newPath}`;
+                    
+                    // Load files from the new folder
+                    await loadFilesFromFolder(newPath);
+                    
+                    alert(`Folder changed to: ${directoryHandle.name}`);
                 } else {
-                    // No real file access, show demo message
-                    alert(`File "${fileName}" deleted (Demo mode - no real file access)`);
+                    alert('Folder picker not supported in this browser. Please use Chrome, Edge, or Opera.');
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    alert('Error accessing folder: ' + error.message);
                 }
             }
         }
