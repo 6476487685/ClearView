@@ -10,12 +10,15 @@ document.addEventListener("DOMContentLoaded",()=>{
  const btnExcel=document.getElementById('btnExcel');
  const filters=document.querySelectorAll('#fCategory,#fTag,#fHolder,#fStatus,#fFrom,#fTo,#globalSearch');
  const clearBtn=document.getElementById('btnClear');
+ const btnClearData=document.getElementById('btnClearData');
+ const btnImportExcel=document.getElementById('btnImportExcel');
+ const excelFileInput=document.getElementById('excelFileInput');
  let editIndex=null;
 
  const sample=[
-  {desc:'Office Rent',cat:'Rent',tag:'CAD-Brightlight',cur:'CAD',amt:1200,mode:'Bank',holder:'Amit',due:'2025-02-01',paid:'2025-02-01',freq:'Monthly',acstatus:'Active',txnstatus:'Paid'},
-  {desc:'Team Lunch',cat:'Meals',tag:'INR-Personal',cur:'INR',amt:2000,mode:'Cash',holder:'Rashmi',due:'2025-05-05',paid:'',freq:'One-Time',acstatus:'Active',txnstatus:'Unpaid'},
-  {desc:'Software Subscription',cat:'Software',tag:'USD-Business',cur:'USD',amt:49,mode:'Credit Card',holder:'Amit',due:'2025-01-10',paid:'2025-01-09',freq:'Yearly',acstatus:'Active',txnstatus:'Paid'}
+  {Expense_Description:'Office Rent',Expense_Category:'Rent',Expense_Tag:'CAD-Brightlight',Expense_Currency:'CAD',Expense_Amount:1200,Expense_Mode:'Bank',Expense_Holder:'Amit',Expense_Due_Date:'2025-02-01',Expense_Paid_Date:'2025-02-01',Expense_Frequency:'Monthly',Expense_Account_Status:'Active',Expense_Txn_Status:'Paid'},
+  {Expense_Description:'Team Lunch',Expense_Category:'Meals',Expense_Tag:'INR-Personal',Expense_Currency:'INR',Expense_Amount:2000,Expense_Mode:'Cash',Expense_Holder:'Rashmi',Expense_Due_Date:'2025-05-05',Expense_Paid_Date:'',Expense_Frequency:'One-Time',Expense_Account_Status:'Active',Expense_Txn_Status:'Unpaid'},
+  {Expense_Description:'Software Subscription',Expense_Category:'Software',Expense_Tag:'USD-Business',Expense_Currency:'USD',Expense_Amount:49,Expense_Mode:'Credit Card',Expense_Holder:'Amit',Expense_Due_Date:'2025-01-10',Expense_Paid_Date:'2025-01-09',Expense_Frequency:'Yearly',Expense_Account_Status:'Active',Expense_Txn_Status:'Paid'}
  ];
  if(!localStorage.getItem('expense_records')) localStorage.setItem('expense_records',JSON.stringify(sample));
  const getData=()=>JSON.parse(localStorage.getItem('expense_records'))||[];
@@ -25,9 +28,9 @@ document.addEventListener("DOMContentLoaded",()=>{
   tbody.innerHTML='';
   d.forEach((r,i)=>{
    const tr=document.createElement('tr');
-   tr.innerHTML=`<td>${i+1}</td><td>${r.desc}</td><td>${r.cat}</td><td>${r.tag}</td>
-   <td>${r.cur}</td><td>${Number(r.amt).toFixed(2)}</td><td>${r.mode}</td><td>${r.holder}</td>
-   <td>${r.due}</td><td>${r.paid}</td><td>${r.freq}</td><td>${r.acstatus}</td><td>${r.txnstatus}</td>
+   tr.innerHTML=`<td>${i+1}</td><td>${r.Expense_Description||r.desc||''}</td><td>${r.Expense_Category||r.cat||''}</td><td>${r.Expense_Tag||r.tag||''}</td>
+   <td>${r.Expense_Currency||r.cur||''}</td><td>${Number(r.Expense_Amount||r.amt||0).toFixed(2)}</td><td>${r.Expense_Mode||r.mode||''}</td><td>${r.Expense_Holder||r.holder||''}</td>
+   <td>${r.Expense_Due_Date||r.due||''}</td><td>${r.Expense_Paid_Date||r.paid||''}</td><td>${r.Expense_Frequency||r.freq||''}</td><td>${r.Expense_Account_Status||r.acstatus||''}</td><td>${r.Expense_Txn_Status||r.txnstatus||''}</td>
    <td><span class='del' title='Delete'>🗑️</span></td>`;
    tbody.appendChild(tr);
   });
@@ -55,11 +58,46 @@ document.addEventListener("DOMContentLoaded",()=>{
  cancelBtn.onclick=()=>modal.style.display='none';
  window.onclick=e=>{if(e.target===modal)modal.style.display='none';};
 
+ // Migrate old data to new field names
+ function migrateData(data){
+  if(!data || data.length===0)return data;
+  // Check if data uses old field names
+  const needsMigration=data.some(r=>r.desc!==undefined);
+  if(!needsMigration)return data;
+  console.log('Migrating Expense data to new field names...');
+  return data.map(r=>({
+   Expense_Description:r.Expense_Description||r.desc||'',
+   Expense_Category:r.Expense_Category||r.cat||'',
+   Expense_Tag:r.Expense_Tag||r.tag||'',
+   Expense_Currency:r.Expense_Currency||r.cur||'',
+   Expense_Amount:r.Expense_Amount||r.amt||0,
+   Expense_Mode:r.Expense_Mode||r.mode||'',
+   Expense_Holder:r.Expense_Holder||r.holder||'',
+   Expense_Due_Date:r.Expense_Due_Date||r.due||'',
+   Expense_Paid_Date:r.Expense_Paid_Date||r.paid||'',
+   Expense_Frequency:r.Expense_Frequency||r.freq||'',
+   Expense_Account_Status:r.Expense_Account_Status||r.acstatus||'',
+   Expense_Txn_Status:r.Expense_Txn_Status||r.txnstatus||''
+  }));
+ }
+
  // Save
  form.onsubmit=e=>{
   e.preventDefault();
-  const rec={desc:form.desc.value,cat:form.cat.value,tag:form.tag.value,cur:form.cur.value,amt:parseFloat(form.amt.value||0).toFixed(2),
-   mode:form.mode.value,holder:form.holder.value,due:form.due.value,paid:form.paid.value,freq:form.freq.value,acstatus:form.acstatus.value,txnstatus:form.txnstatus.value};
+  const rec={
+   Expense_Description:form.desc.value,
+   Expense_Category:form.cat.value,
+   Expense_Tag:form.tag.value,
+   Expense_Currency:form.cur.value,
+   Expense_Amount:parseFloat(form.amt.value||0).toFixed(2),
+   Expense_Mode:form.mode.value,
+   Expense_Holder:form.holder.value,
+   Expense_Due_Date:form.due.value,
+   Expense_Paid_Date:form.paid.value,
+   Expense_Frequency:form.freq.value,
+   Expense_Account_Status:form.acstatus.value,
+   Expense_Txn_Status:form.txnstatus.value
+  };
   const d=getData();
   if(editIndex!==null)d[editIndex]=rec;else d.push(rec);
   saveData(d);renderTable(d);modal.style.display='none';
@@ -69,26 +107,42 @@ document.addEventListener("DOMContentLoaded",()=>{
  function applyFilters(){
   let d=getData();
   const cat=fCategory.value,tag=fTag.value,hol=fHolder.value,st=fStatus.value,from=fFrom.value,to=fTo.value,txt=globalSearch.value.toLowerCase();
-  if(cat)d=d.filter(x=>x.cat===cat);
-  if(tag)d=d.filter(x=>x.tag===tag);
-  if(hol)d=d.filter(x=>x.holder===hol);
-  if(st)d=d.filter(x=>x.txnstatus===st);
-  if(from)d=d.filter(x=>(!x.paid||x.paid>=from||x.due>=from));
-  if(to)d=d.filter(x=>(!x.paid||x.paid<=to||x.due<=to));
+  if(cat)d=d.filter(x=>(x.Expense_Category||x.cat)===cat);
+  if(tag)d=d.filter(x=>(x.Expense_Tag||x.tag)===tag);
+  if(hol)d=d.filter(x=>(x.Expense_Holder||x.holder)===hol);
+  if(st)d=d.filter(x=>(x.Expense_Txn_Status||x.txnstatus)===st);
+  if(from)d=d.filter(x=>{
+   const paid=x.Expense_Paid_Date||x.paid;
+   const due=x.Expense_Due_Date||x.due;
+   return !paid || paid>=from || due>=from;
+  });
+  if(to)d=d.filter(x=>{
+   const paid=x.Expense_Paid_Date||x.paid;
+   const due=x.Expense_Due_Date||x.due;
+   return !paid || paid<=to || due<=to;
+  });
   if(txt)d=d.filter(x=>Object.values(x).join(' ').toLowerCase().includes(txt));
   renderTable(d);
  }
  filters.forEach(el=>el.oninput=applyFilters);
  clearBtn.onclick=()=>{filters.forEach(el=>el.value='');renderTable(getData());};
 
- // Dropdown populate
+ // Dropdown populate - handle both old and new field names
  const all=getData();
- const uniq=k=>[...new Set(all.map(x=>x[k]))];
+ const uniq=k=>{
+  const oldField=k==='cat'?'Expense_Category':k==='tag'?'Expense_Tag':k==='holder'?'Expense_Holder':k==='cur'?'Expense_Currency':k==='mode'?'Expense_Mode':k==='freq'?'Expense_Frequency':k;
+  const values=new Set();
+  all.forEach(x=>{
+   const val=x[oldField]||x[k];
+   if(val && val!=='')values.add(val);
+  });
+  return [...values];
+ };
  uniq('cat').forEach(v=>fCategory.innerHTML+=`<option>${v}</option>`);
  uniq('tag').forEach(v=>fTag.innerHTML+=`<option>${v}</option>`);
  uniq('holder').forEach(v=>fHolder.innerHTML+=`<option>${v}</option>`);
  ['cat','tag','cur','mode','holder','freq'].forEach(k=>{
-  const s=form[k];uniq(k).forEach(v=>s.innerHTML+=`<option>${v}</option>`);
+  const s=form[k];if(s)uniq(k).forEach(v=>s.innerHTML+=`<option>${v}</option>`);
  });
 
  // Column resize with persistent storage
@@ -372,6 +426,102 @@ function createExcelFile(data) {
    alert('Error generating PDF: ' + error.message + '. Please try again.');
  }
 };
+
+// Excel Import and Clear Data functionality
+if (excelFileInput) {
+  excelFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        console.log('Available sheets:', workbook.SheetNames);
+
+        // Load Txn_Expense sheet
+        if (workbook.SheetNames.includes('Txn_Expense')) {
+          const sheet = workbook.Sheets['Txn_Expense'];
+          const jsonData = XLSX.utils.sheet_to_json(sheet);
+          
+          if (jsonData.length === 0) {
+            alert('No data found in Txn_Expense sheet.');
+            return;
+          }
+
+          // Map Excel columns to Expense structure - handle both old and new column names
+          const expenses = jsonData.map(row => {
+            const getValue = (...possibleNames) => {
+              for (let name of possibleNames) {
+                if (row[name] !== undefined && row[name] !== null && row[name] !== '') {
+                  return row[name];
+                }
+              }
+              return '';
+            };
+
+            return {
+              Expense_Description: getValue('Expense_Description', 'Expance_Description', 'Description', 'desc'),
+              Expense_Category: getValue('Expense_Category', 'Category_Expanse', 'Category', 'cat'),
+              Expense_Tag: getValue('Expense_Tag', 'Ac_Tag_Expance', 'Tag', 'tag'),
+              Expense_Currency: getValue('Expense_Currency', 'Currency', 'cur'),
+              Expense_Amount: getValue('Expense_Amount', 'Amount', 'amt'),
+              Expense_Mode: getValue('Expense_Mode', 'Payment_Mode', 'Mode', 'mode'),
+              Expense_Holder: getValue('Expense_Holder', 'Ac_Holder', 'Holder', 'holder'),
+              Expense_Due_Date: getValue('Expense_Due_Date', 'Due_Date', 'Due Date', 'due'),
+              Expense_Paid_Date: getValue('Expense_Paid_Date', 'Paid_Date', 'Paid Date', 'paid'),
+              Expense_Frequency: getValue('Expense_Frequency', 'Frequency', 'freq'),
+              Expense_Account_Status: getValue('Expense_Account_Status', 'Ac_Status', 'Account Status', 'acstatus'),
+              Expense_Txn_Status: getValue('Expense_Txn_Status', 'Txn_Status', 'Transaction Status', 'txnstatus')
+            };
+          });
+
+          console.log('Loaded expenses:', expenses.length);
+          console.log('First expense:', expenses[0]);
+
+          // Save to localStorage
+          localStorage.setItem('expense_records', JSON.stringify(expenses));
+          
+          // Reload page to refresh UI
+          alert(`Successfully loaded ${expenses.length} expenses from Excel file! Reloading page...`);
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          alert('Txn_Expense sheet not found in the Excel file.');
+        }
+      } catch (error) {
+        console.error('Error reading Excel file:', error);
+        alert('Error reading Excel file: ' + error.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// Clear Data functionality
+if (btnClearData) {
+  btnClearData.addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear all expense data? This action cannot be undone.')) {
+      localStorage.removeItem('expense_records');
+      
+      // Clear table
+      if (tbody) tbody.innerHTML = '';
+      
+      // Clear filter dropdowns
+      if (fCategory) fCategory.innerHTML = '<option value="">All</option>';
+      if (fTag) fTag.innerHTML = '<option value="">All</option>';
+      if (fHolder) fHolder.innerHTML = '<option value="">All</option>';
+      if (fStatus) fStatus.value = '';
+      if (fFrom) fFrom.value = '';
+      if (fTo) fTo.value = '';
+      if (globalSearch) globalSearch.value = '';
+      
+      alert('All expense data has been cleared.');
+    }
+  });
+}
 
 // Theme functionality
 const themeSwitch = document.getElementById('themeSwitch');

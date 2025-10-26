@@ -17,6 +17,9 @@
     <div class="title">Transaction Manager — Expense Dashboard</div>
     <div class="right">
       <label class="theme-switch"><input type="checkbox" id="themeSwitch"><span class="slider"></span></label>
+      <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
+      <button class="excel" id="btnImportExcel" onclick="document.getElementById('excelFileInput').click();">📥 Load From Excel</button>
+      <button class="danger" id="btnClearData" style="background:#ea4335;color:white;">🗑️ Clear Data</button>
       <button class="pdf" id="btnPDF">📘 Export PDF</button>
       <button class="excel" id="btnExcel">📗 Export Excel</button>
       <button class="primary" id="btnAdd">➕ Add Expense</button>

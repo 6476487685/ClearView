@@ -1,0 +1,70 @@
+================================================================================
+EXPENSE MODULE - FIELD NAME MIGRATION PLAN
+================================================================================
+
+CURRENT FIELD NAMES → NEW STANDARDIZED FIELD NAMES
+─────────────────────────────────────────────────
+
+desc        → Expense_Description
+cat         → Expense_Category
+tag         → Expense_Tag
+cur         → Expense_Currency
+amt         → Expense_Amount
+mode        → Expense_Mode
+holder       → Expense_Holder
+due         → Expense_Due_Date
+paid        → Expense_Paid_Date
+freq        → Expense_Frequency
+acstatus    → Expense_Account_Status
+txnstatus   → Expense_Txn_Status
+
+FILES TO UPDATE:
+────────────────
+
+1. 2_Expanse_Main.js - Replace all field references
+2. 2_Expanse_Index.html - Update field references if needed
+3. Update Excel Update tool to handle Expense field mappings
+
+CHANGES REQUIRED IN 2_Expanse_Main.js:
+─────────────────────────────────────
+
+1. Sample data array (lines 15-19):
+   {desc:'...', cat:'...', tag:'...'} → 
+   {Expense_Description:'...', Expense_Category:'...', Expense_Tag:'...'}
+
+2. renderTable function (lines 28-30):
+   r.desc, r.cat, r.tag → 
+   r.Expense_Description, r.Expense_Category, r.Expense_Tag
+
+3. form.onsubmit function (line 61):
+   Update rec object to use new field names
+
+4. applyFilters function (lines 71-78):
+   Update filter logic to use new field names
+
+5. Dropdown population (lines 87-92):
+   Update uniq() calls to use new field names
+
+6. Migration function (add to handle old data):
+   Function to convert old field names to new ones
+
+================================================================================
+IMPLEMENTATION APPROACH:
+================================================================================
+
+Due to the extensive changes needed (similar to what was done for Task module),
+the best approach is to:
+
+1. Update 2_Expanse_Main.js file with new field names
+2. Add a migration function to handle existing localStorage data
+3. Update Excel import functionality (similar to Task module)
+4. Update the Excel Update tool to handle Expense field mappings
+
+This will ensure:
+- Backward compatibility with existing data
+- Consistent naming across all modules
+- Excel import/export will work correctly
+- Easy to implement centralized data loader later
+
+================================================================================
+

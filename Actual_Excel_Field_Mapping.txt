@@ -1,0 +1,80 @@
+================================================================================
+ACTUAL EXCEL FIELD MAPPING FOR EXPENSE MODULE
+================================================================================
+
+YOUR EXCEL COLUMNS → INTERNAL DATA STRUCTURE FIELDS
+───────────────────────────────────────────────────
+
+Excel Column              →  Internal Field Name
+───────────────────────────────────────────────────
+Expance_Description      →  Expense_Description
+Category_Expanse         →  Expense_Category
+Ac_Tag_Expance          →  Expense_Tag
+Txn_Tag                 →  ??? (Need clarification - not mapped yet)
+Payment_Mode            →  Expense_Mode
+Ac_Holder               →  Expense_Holder
+Frequency               →  Expense_Frequency
+Amount                  →  Expense_Amount
+Due_Date                →  Expense_Due_Date
+Paid_Date               →  Expense_Paid_Date
+Paid_From               →  Links to Income_Ac_Tag (cross-reference)
+Ac_Status               →  Expense_Account_Status
+Txn_Status              →  Expense_Txn_Status
+
+NOTES:
+──────
+
+1. "Paid_From" field:
+   - This is a cross-reference to Income module
+   - It should link to Income_Ac_Tag field from Income sheet
+   - This means when an expense is paid, it should reference which income account it was paid from
+   - This is a relationship field, not a core expense field
+
+2. "Txn_Tag" field:
+   - Not currently mapped
+   - Need to clarify what this field represents
+   - Possible options:
+     a) Remove it from Expense structure
+     b) Map it to a separate field
+     c) Merge it with Ac_Tag_Expance
+
+3. Currency field missing:
+   - Your Excel doesn't have a Currency column
+   - Need to handle this:
+     a) Add Currency column to Excel
+     b) Default to a currency (USD, INR, etc.)
+     c) Add it as an additional field in Excel
+
+UPDATED EXCEL UPDATE TOOL MAPPING:
+───────────────────────────────────
+
+When updating Excel file, the tool should map:
+- Expance_Description → Expense_Description
+- Category_Expanse → Expense_Category
+- Ac_Tag_Expance → Expense_Tag
+- Payment_Mode → Expense_Mode
+- Ac_Holder → Expense_Holder
+- Frequency → Expense_Frequency
+- Amount → Expense_Amount
+- Due_Date → Expense_Due_Date
+- Paid_Date → Expense_Paid_Date
+- Ac_Status → Expense_Account_Status
+- Txn_Status → Expense_Txn_Status
+- Paid_From → Keep as is (links to Income_Ac_Tag)
+- Txn_Tag → Need clarification
+
+================================================================================
+RECOMMENDATIONS:
+================================================================================
+
+1. Add Currency column to your Expense Excel file
+2. Clarify what Txn_Tag field represents
+3. Decide if Paid_From should be:
+   a) A dropdown in Expense form (showing Income_Ac_Tag values)
+   b) A read-only field
+   c) A relationship field tracked separately
+
+================================================================================
+END OF MAPPING DOCUMENT
+================================================================================
+

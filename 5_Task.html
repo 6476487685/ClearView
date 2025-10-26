@@ -176,7 +176,7 @@
           
           // Load master data sheets
           const masterData = {};
-          const masterSheetNames = ['Category_Task', 'Task_Tag', 'Task_Status', 'Task_Assignee', 'Task_Priority', 'Task_Adhoc'];
+          const masterSheetNames = ['Task_Category', 'Task_Tag', 'Task_Status', 'Task_Assignee', 'Task_Priority', 'Task_Adhoc'];
           
           masterSheetNames.forEach(sheetName => {
             if (sheetNames.includes(sheetName)) {
@@ -245,7 +245,7 @@
             
             return {
               Task_Description: getValue('Task_Description', 'Task Description', 'TaskDescription', 'Description'),
-              Category_Task: getValue('Category_Task', 'Category Task', 'CategoryTask', 'Category'),
+              Task_Category: getValue('Task_Category', 'Category_Task', 'Category Task', 'CategoryTask', 'Category'),
               Task_Tag: getValue('Task_Tag', 'Task Tag', 'TaskTag', 'Tag', 'Tags'),
               Task_Status: getValue('Task_Status', 'Task Status', 'TaskStatus', 'Status'),
               Task_Assignee: getValue('Task_Assignee', 'Task Assignee', 'TaskAssignee', 'Assignee'),
@@ -287,26 +287,26 @@
     
     function loadSampleData() {
       const sample = [
-        {Task_Description:'Complete Project Documentation',Category_Task:'Development',Task_Tag:'PROJ-001',Task_Assignee:'John Doe',Task_Priority:'High',Due_Date:'2025-02-15',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
-        {Task_Description:'Review Code Changes',Category_Task:'Development',Task_Tag:'CODE-002',Task_Assignee:'Jane Smith',Task_Priority:'Medium',Due_Date:'2025-02-10',Completed_On:'2025-02-08',Task_Status:'Completed',Task_Adhoc:'No'},
-        {Task_Description:'Update User Manual',Category_Task:'Documentation',Task_Tag:'DOC-003',Task_Assignee:'Mike Johnson',Task_Priority:'Low',Due_Date:'2025-02-20',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Fix Critical Bug in Login System',Category_Task:'Development',Task_Tag:'BUG-004',Task_Assignee:'Sarah Wilson',Task_Priority:'Critical',Due_Date:'2025-02-05',Completed_On:'2025-02-03',Task_Status:'Completed',Task_Adhoc:'No'},
-        {Task_Description:'Design New Dashboard UI',Category_Task:'Design',Task_Tag:'UI-005',Task_Assignee:'Alex Chen',Task_Priority:'High',Due_Date:'2025-02-18',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
-        {Task_Description:'Write Unit Tests for API',Category_Task:'Testing',Task_Tag:'TEST-006',Task_Assignee:'David Brown',Task_Priority:'Medium',Due_Date:'2025-02-25',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Deploy Application to Production',Category_Task:'DevOps',Task_Tag:'DEPLOY-007',Task_Assignee:'Lisa Garcia',Task_Priority:'High',Due_Date:'2025-02-12',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Create Database Schema',Category_Task:'Database',Task_Tag:'DB-008',Task_Assignee:'Robert Taylor',Task_Priority:'Medium',Due_Date:'2025-02-08',Completed_On:'2025-02-06',Task_Status:'Completed',Task_Adhoc:'No'},
-        {Task_Description:'Setup CI/CD Pipeline',Category_Task:'DevOps',Task_Tag:'CI-009',Task_Assignee:'Lisa Garcia',Task_Priority:'High',Due_Date:'2025-02-14',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
-        {Task_Description:'Conduct Security Audit',Category_Task:'Security',Task_Tag:'SEC-010',Task_Assignee:'Emma Davis',Task_Priority:'Critical',Due_Date:'2025-02-22',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Optimize Database Performance',Category_Task:'Database',Task_Tag:'DB-011',Task_Assignee:'Robert Taylor',Task_Priority:'Medium',Due_Date:'2025-02-28',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Create User Training Materials',Category_Task:'Documentation',Task_Tag:'TRAIN-012',Task_Assignee:'Mike Johnson',Task_Priority:'Low',Due_Date:'2025-03-05',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Implement Payment Gateway',Category_Task:'Development',Task_Tag:'PAY-013',Task_Assignee:'John Doe',Task_Priority:'High',Due_Date:'2025-02-16',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
-        {Task_Description:'Setup Monitoring Dashboard',Category_Task:'DevOps',Task_Tag:'MON-014',Task_Assignee:'Lisa Garcia',Task_Priority:'Medium',Due_Date:'2025-02-19',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Refactor Legacy Code',Category_Task:'Development',Task_Tag:'REF-015',Task_Assignee:'Jane Smith',Task_Priority:'Low',Due_Date:'2025-03-01',Completed_On:'',Task_Status:'Cancelled',Task_Adhoc:'No'},
-        {Task_Description:'Create API Documentation',Category_Task:'Documentation',Task_Tag:'API-016',Task_Assignee:'Mike Johnson',Task_Priority:'Medium',Due_Date:'2025-02-21',Completed_On:'2025-02-19',Task_Status:'Completed',Task_Adhoc:'No'},
-        {Task_Description:'Implement Two-Factor Authentication',Category_Task:'Security',Task_Tag:'2FA-017',Task_Assignee:'Emma Davis',Task_Priority:'High',Due_Date:'2025-02-17',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
-        {Task_Description:'Setup Automated Testing',Category_Task:'Testing',Task_Tag:'AUTO-018',Task_Assignee:'David Brown',Task_Priority:'Medium',Due_Date:'2025-02-26',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Create Backup Strategy',Category_Task:'DevOps',Task_Tag:'BACKUP-019',Task_Assignee:'Lisa Garcia',Task_Priority:'High',Due_Date:'2025-02-13',Completed_On:'2025-02-11',Task_Status:'Completed',Task_Adhoc:'No'},
-        {Task_Description:'Design Mobile App Interface',Category_Task:'Design',Task_Tag:'MOBILE-020',Task_Assignee:'Alex Chen',Task_Priority:'Medium',Due_Date:'2025-02-24',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'}
+        {Task_Description:'Complete Project Documentation',Task_Category:'Development',Task_Tag:'PROJ-001',Task_Assignee:'John Doe',Task_Priority:'High',Due_Date:'2025-02-15',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
+        {Task_Description:'Review Code Changes',Task_Category:'Development',Task_Tag:'CODE-002',Task_Assignee:'Jane Smith',Task_Priority:'Medium',Due_Date:'2025-02-10',Completed_On:'2025-02-08',Task_Status:'Completed',Task_Adhoc:'No'},
+        {Task_Description:'Update User Manual',Task_Category:'Documentation',Task_Tag:'DOC-003',Task_Assignee:'Mike Johnson',Task_Priority:'Low',Due_Date:'2025-02-20',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Fix Critical Bug in Login System',Task_Category:'Development',Task_Tag:'BUG-004',Task_Assignee:'Sarah Wilson',Task_Priority:'Critical',Due_Date:'2025-02-05',Completed_On:'2025-02-03',Task_Status:'Completed',Task_Adhoc:'No'},
+        {Task_Description:'Design New Dashboard UI',Task_Category:'Design',Task_Tag:'UI-005',Task_Assignee:'Alex Chen',Task_Priority:'High',Due_Date:'2025-02-18',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
+        {Task_Description:'Write Unit Tests for API',Task_Category:'Testing',Task_Tag:'TEST-006',Task_Assignee:'David Brown',Task_Priority:'Medium',Due_Date:'2025-02-25',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Deploy Application to Production',Task_Category:'DevOps',Task_Tag:'DEPLOY-007',Task_Assignee:'Lisa Garcia',Task_Priority:'High',Due_Date:'2025-02-12',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Create Database Schema',Task_Category:'Database',Task_Tag:'DB-008',Task_Assignee:'Robert Taylor',Task_Priority:'Medium',Due_Date:'2025-02-08',Completed_On:'2025-02-06',Task_Status:'Completed',Task_Adhoc:'No'},
+        {Task_Description:'Setup CI/CD Pipeline',Task_Category:'DevOps',Task_Tag:'CI-009',Task_Assignee:'Lisa Garcia',Task_Priority:'High',Due_Date:'2025-02-14',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
+        {Task_Description:'Conduct Security Audit',Task_Category:'Security',Task_Tag:'SEC-010',Task_Assignee:'Emma Davis',Task_Priority:'Critical',Due_Date:'2025-02-22',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Optimize Database Performance',Task_Category:'Database',Task_Tag:'DB-011',Task_Assignee:'Robert Taylor',Task_Priority:'Medium',Due_Date:'2025-02-28',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Create User Training Materials',Task_Category:'Documentation',Task_Tag:'TRAIN-012',Task_Assignee:'Mike Johnson',Task_Priority:'Low',Due_Date:'2025-03-05',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Implement Payment Gateway',Task_Category:'Development',Task_Tag:'PAY-013',Task_Assignee:'John Doe',Task_Priority:'High',Due_Date:'2025-02-16',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
+        {Task_Description:'Setup Monitoring Dashboard',Task_Category:'DevOps',Task_Tag:'MON-014',Task_Assignee:'Lisa Garcia',Task_Priority:'Medium',Due_Date:'2025-02-19',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Refactor Legacy Code',Task_Category:'Development',Task_Tag:'REF-015',Task_Assignee:'Jane Smith',Task_Priority:'Low',Due_Date:'2025-03-01',Completed_On:'',Task_Status:'Cancelled',Task_Adhoc:'No'},
+        {Task_Description:'Create API Documentation',Task_Category:'Documentation',Task_Tag:'API-016',Task_Assignee:'Mike Johnson',Task_Priority:'Medium',Due_Date:'2025-02-21',Completed_On:'2025-02-19',Task_Status:'Completed',Task_Adhoc:'No'},
+        {Task_Description:'Implement Two-Factor Authentication',Task_Category:'Security',Task_Tag:'2FA-017',Task_Assignee:'Emma Davis',Task_Priority:'High',Due_Date:'2025-02-17',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
+        {Task_Description:'Setup Automated Testing',Task_Category:'Testing',Task_Tag:'AUTO-018',Task_Assignee:'David Brown',Task_Priority:'Medium',Due_Date:'2025-02-26',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Create Backup Strategy',Task_Category:'DevOps',Task_Tag:'BACKUP-019',Task_Assignee:'Lisa Garcia',Task_Priority:'High',Due_Date:'2025-02-13',Completed_On:'2025-02-11',Task_Status:'Completed',Task_Adhoc:'No'},
+        {Task_Description:'Design Mobile App Interface',Task_Category:'Design',Task_Tag:'MOBILE-020',Task_Assignee:'Alex Chen',Task_Priority:'Medium',Due_Date:'2025-02-24',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'}
       ];
       
       localStorage.setItem('task_records', JSON.stringify(sample));
@@ -331,7 +331,7 @@
       if(!needsMigration)return data;
       return data.map(r=>({
         Task_Description:r.desc||r.Task_Description||'',
-        Category_Task:r.cat||r.Category_Task||'',
+        Task_Category:r.cat||r.Task_Category||'',
         Task_Tag:r.tag||r.Task_Tag||'',
         Task_Assignee:r.assignee||r.Task_Assignee||'',
         Task_Priority:r.priority||r.Task_Priority||'',
@@ -348,7 +348,7 @@
         tbody.innerHTML = '';
         data.forEach((r, i) => {
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${i+1}</td><td>${r.Task_Description}</td><td>${r.Category_Task}</td><td>${r.Task_Tag}</td>
+          tr.innerHTML = `<td>${i+1}</td><td>${r.Task_Description}</td><td>${r.Task_Category}</td><td>${r.Task_Tag}</td>
           <td>${r.Task_Status}</td><td>${r.Task_Assignee}</td><td>${r.Task_Priority}</td><td>${r.Due_Date}</td><td>${r.Completed_On}</td>
           <td><span class='del' title='Delete'>🗑️</span></td>`;
           tbody.appendChild(tr);
@@ -380,7 +380,7 @@
         const rowData = [
           index + 1,
           row.Task_Description,
-          row.Category_Task,
+          row.Task_Category,
           row.Task_Tag,
           row.Task_Status,
           row.Task_Assignee,
@@ -418,7 +418,7 @@
           console.log('Adding master data sheets to export');
           
           // Add each master sheet
-          const masterSheetNames = ['Category_Task', 'Task_Tag', 'Task_Status', 'Task_Assignee', 'Task_Priority', 'Task_Adhoc'];
+          const masterSheetNames = ['Task_Category', 'Task_Tag', 'Task_Status', 'Task_Assignee', 'Task_Priority', 'Task_Adhoc'];
           
           masterSheetNames.forEach(sheetName => {
             if (masterData[sheetName] && Array.isArray(masterData[sheetName]) && masterData[sheetName].length > 0) {
@@ -457,7 +457,7 @@
           if (cells.length >= 9) {
             data.push({
               Task_Description: cells[1].textContent,
-              Category_Task: cells[2].textContent,
+              Task_Category: cells[2].textContent,
               Task_Tag: cells[3].textContent,
               Task_Status: cells[4].textContent,
               Task_Assignee: cells[5].textContent,
@@ -493,7 +493,7 @@
           if (cells.length >= 9) {
             data.push({
               Task_Description: cells[1].textContent,
-              Category_Task: cells[2].textContent,
+              Task_Category: cells[2].textContent,
               Task_Tag: cells[3].textContent,
               Task_Status: cells[4].textContent,
               Task_Assignee: cells[5].textContent,
@@ -631,7 +631,7 @@
           x += colWidths[1];
           
           // Category
-          doc.text(row.Category_Task, x, currentY);
+          doc.text(row.Task_Category, x, currentY);
           x += colWidths[2];
           
           // Tag
@@ -686,7 +686,7 @@
       
       // Get unique values from actual task records
       const data = getData();
-      const uniqueCategories = [...new Set(data.map(t => t.Category_Task).filter(v => v))];
+      const uniqueCategories = [...new Set(data.map(t => t.Task_Category).filter(v => v))];
       const uniqueTags = [...new Set(data.map(t => t.Task_Tag).filter(v => v))];
       const uniqueAssignees = [...new Set(data.map(t => t.Task_Assignee).filter(v => v))];
       const uniquePriorities = [...new Set(data.map(t => t.Task_Priority).filter(v => v))];
@@ -730,7 +730,7 @@
       
       // Get unique values from actual task records
       const data = getData();
-      const uniqueCategories = [...new Set(data.map(t => t.Category_Task).filter(v => v))];
+      const uniqueCategories = [...new Set(data.map(t => t.Task_Category).filter(v => v))];
       const uniqueTags = [...new Set(data.map(t => t.Task_Tag).filter(v => v))];
       const uniqueAssignees = [...new Set(data.map(t => t.Task_Assignee).filter(v => v))];
       const uniqueStatuses = [...new Set(data.map(t => t.Task_Status).filter(v => v))];
@@ -1188,7 +1188,7 @@
           
           // Populate form
           if (form.desc) form.desc.value = data.Task_Description || '';
-          if (form.cat) form.cat.value = data.Category_Task || '';
+          if (form.cat) form.cat.value = data.Task_Category || '';
           if (form.tag) form.tag.value = data.Task_Tag || '';
           if (form.assignee) form.assignee.value = data.Task_Assignee || '';
           if (form.priority) form.priority.value = data.Task_Priority || '';
@@ -1214,7 +1214,7 @@
         e.preventDefault();
         const rec = {
           Task_Description: form.desc.value,
-          Category_Task: form.cat.value,
+          Task_Category: form.cat.value,
           Task_Tag: form.tag.value,
           Task_Assignee: form.assignee.value,
           Task_Priority: form.priority.value,

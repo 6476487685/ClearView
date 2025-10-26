@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Excel Field Names</title>
+    <script src="assets/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; }
+        .container { background: #f5f5f5; padding: 20px; border-radius: 10px; }
+        h1 { color: #333; }
+        .section { margin: 20px 0; padding: 15px; background: white; border-radius: 5px; }
+        input[type="file"] { margin: 10px 0; }
+        button { background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 5px; }
+        button:hover { background: #45a049; }
+        .btn-download { background: #2196F3; }
+        .btn-download:hover { background: #0b7dda; }
+        .log { background: #000; color: #0f0; padding: 10px; font-family: monospace; height: 200px; overflow-y: auto; font-size: 12px; }
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+        th { background-color: #4CAF50; color: white; }
+        .sheet-info { background: #e3f2fd; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Update Excel Field Names</h1>
+        <p>This tool will update field names to match standardized data structure:</p>
+        <ul style="text-align:left;display:inline-block;">
+            <li><strong>Task Module:</strong> Category_Task → Task_Category</li>
+            <li><strong>Expense Module:</strong> Expance_Description, Category_Expanse, etc. → Expense_Description, Expense_Category, etc.</li>
+        </ul>
+        
+        <div class="section">
+            <h2>Step 1: Upload Your Excel File</h2>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" />
+            <div id="uploadStatus"></div>
+        </div>
+
+        <div class="section" id="processSection" style="display:none;">
+            <h2>Step 2: Processing...</h2>
+            <div class="log" id="log"></div>
+            <button onclick="processFile()">Process File</button>
+        </div>
+
+        <div class="section" id="resultSection" style="display:none;">
+            <h2>Step 3: Download Updated File</h2>
+            <p id="resultInfo"></p>
+            <button class="btn-download" onclick="downloadFile()">⬇️ Download Updated Excel File</button>
+        </div>
+    </div>
+
+    <script>
+        let workbook = null;
+        let fileName = '';
+        let updatedData = {};
+
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += message + '<br>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            fileName = file.name;
+            document.getElementById('uploadStatus').innerHTML = 
+                '<p style="color:green;">✓ File loaded: ' + fileName + '</p>';
+            document.getElementById('processSection').style.display = 'block';
+            log('File loaded: ' + fileName);
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    workbook = XLSX.read(data, { type: 'array' });
+                    log('✓ Excel file parsed successfully');
+                    log('Found ' + workbook.SheetNames.length + ' sheets');
+                    processFile();
+                } catch (error) {
+                    log('✗ Error: ' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // Field mapping configurations
+        const fieldMappings = {
+            'Category_Task': {
+                sheetName: 'Category_Task',
+                newSheetName: 'Task_Category',
+                columnName: 'Category_Task',
+                newColumnName: 'Task_Category'
+            },
+            'Expense_Fields': {
+                // Expense field mappings
+                columnMappings: {
+                    'desc': 'Expense_Description',
+                    'cat': 'Expense_Category',
+                    'tag': 'Expense_Tag',
+                    'cur': 'Expense_Currency',
+                    'amt': 'Expense_Amount',
+                    'mode': 'Expense_Mode',
+                    'holder': 'Expense_Holder',
+                    'due': 'Expense_Due_Date',
+                    'paid': 'Expense_Paid_Date',
+                    'freq': 'Expense_Frequency',
+                    'acstatus': 'Expense_Account_Status',
+                    'txnstatus': 'Expense_Txn_Status'
+                }
+            }
+        };
+
+        function processFile() {
+            if (!workbook) {
+                log('✗ No file loaded');
+                return;
+            }
+
+            log('Starting processing...');
+            const changes = [];
+            const sheetRenames = [];
+
+            // First, rename sheet names to match standardized naming
+            workbook.SheetNames.forEach((sheetName, index) => {
+                // Task module sheet renames
+                if (sheetName === 'Category_Task') {
+                    const newSheetName = 'Task_Category';
+                    const sheet = workbook.Sheets[sheetName];
+                    delete workbook.Sheets[sheetName];
+                    workbook.Sheets[newSheetName] = sheet;
+                    workbook.SheetNames[index] = newSheetName;
+                    sheetRenames.push({ old: sheetName, new: newSheetName });
+                    log('✓ Renamed sheet: "Category_Task" → "Task_Category"');
+                }
+                
+                // Expense module sheet renames - common variations
+                const expenseSheetMap = {
+                    'Category_Expanse': 'Expense_Category',
+                    'Category_Expense': 'Expense_Category',
+                    'Tag_Expanse': 'Expense_Tag',
+                    'Tag_Expense': 'Expense_Tag',
+                    'Mode_Expanse': 'Expense_Mode',
+                    'Mode_Expense': 'Expense_Mode',
+                    'Holder_Expanse': 'Expense_Holder',
+                    'Holder_Expense': 'Expense_Holder',
+                    'Txn_Expanse': 'Txn_Expense'
+                };
+                
+                if (expenseSheetMap[sheetName]) {
+                    const newSheetName = expenseSheetMap[sheetName];
+                    const sheet = workbook.Sheets[sheetName];
+                    delete workbook.Sheets[sheetName];
+                    workbook.Sheets[newSheetName] = sheet;
+                    workbook.SheetNames[index] = newSheetName;
+                    sheetRenames.push({ old: sheetName, new: newSheetName });
+                    log('✓ Renamed sheet: "' + sheetName + '" → "' + newSheetName + '"');
+                }
+            });
+
+            // Process each sheet
+            workbook.SheetNames.forEach(sheetName => {
+                const sheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(sheet);
+                
+                if (jsonData.length > 0) {
+                    const headers = Object.keys(jsonData[0]);
+                    log('Processing sheet: ' + sheetName + ' - Headers: ' + headers.join(', '));
+                    
+                    let sheetUpdated = false;
+                    
+                    // Check if sheet has Category_Task column (for Task module)
+                    if (headers.includes('Category_Task')) {
+                        log('✓ Found Category_Task column in sheet: ' + sheetName);
+                        
+                        const updatedData = jsonData.map(row => {
+                            const newRow = { ...row };
+                            newRow['Task_Category'] = row['Category_Task'];
+                            delete newRow['Category_Task'];
+                            return newRow;
+                        });
+                        
+                        const newSheet = XLSX.utils.json_to_sheet(updatedData);
+                        workbook.Sheets[sheetName] = newSheet;
+                        
+                        changes.push(sheetName + ' (Category_Task → Task_Category)');
+                        sheetUpdated = true;
+                        log('✓ Updated column: Category_Task → Task_Category');
+                    }
+                    
+                    // Check for Expense fields (actual Excel field names from user's file)
+                    const expenseFieldMappings = {
+                        'Expance_Description': 'Expense_Description',
+                        'Category_Expanse': 'Expense_Category',
+                        'Ac_Tag_Expance': 'Expense_Tag',
+                        'Payment_Mode': 'Expense_Mode',
+                        'Ac_Holder': 'Expense_Holder',
+                        'Frequency': 'Expense_Frequency',
+                        'Amount': 'Expense_Amount',
+                        'Due_Date': 'Expense_Due_Date',
+                        'Paid_Date': 'Expense_Paid_Date',
+                        'Ac_Status': 'Expense_Account_Status',
+                        'Txn_Status': 'Expense_Txn_Status',
+                        // Also handle old abbreviated names
+                        'desc': 'Expense_Description',
+                        'cat': 'Expense_Category',
+                        'tag': 'Expense_Tag',
+                        'cur': 'Expense_Currency',
+                        'amt': 'Expense_Amount',
+                        'mode': 'Expense_Mode',
+                        'holder': 'Expense_Holder',
+                        'due': 'Expense_Due_Date',
+                        'paid': 'Expense_Paid_Date',
+                        'freq': 'Expense_Frequency',
+                        'acstatus': 'Expense_Account_Status',
+                        'txnstatus': 'Expense_Txn_Status'
+                    };
+                    
+                    const hasExpenseFields = Object.keys(expenseFieldMappings).some(field => headers.includes(field));
+                    
+                    if (hasExpenseFields) {
+                        log('✓ Found Expense field names in sheet: ' + sheetName);
+                        
+                        const updatedData = jsonData.map(row => {
+                            const newRow = { ...row };
+                            
+                            // Map old field names to new standardized names
+                            Object.keys(expenseFieldMappings).forEach(oldField => {
+                                if (row[oldField] !== undefined && row[oldField] !== null) {
+                                    newRow[expenseFieldMappings[oldField]] = row[oldField];
+                                }
+                            });
+                            
+                            // Delete old fields (don't delete if they're the same as new name)
+                            Object.keys(expenseFieldMappings).forEach(field => {
+                                if (field !== expenseFieldMappings[field] && newRow[field]) {
+                                    delete newRow[field];
+                                }
+                            });
+                            
+                            return newRow;
+                        });
+                        
+                        const newSheet = XLSX.utils.json_to_sheet(updatedData);
+                        workbook.Sheets[sheetName] = newSheet;
+                        
+                        if (!sheetUpdated) {
+                            changes.push(sheetName + ' (Expense fields updated to standardized names)');
+                        }
+                        sheetUpdated = true;
+                        log('✓ Updated Expense fields to standardized names');
+                    }
+                }
+            });
+
+            log('Processing complete!');
+            log('Renamed ' + sheetRenames.length + ' sheet name(s)');
+            log('Updated ' + changes.length + ' column(s)');
+            
+            // Always show result section
+            document.getElementById('resultSection').style.display = 'block';
+            
+            if (changes.length > 0 || sheetRenames.length > 0) {
+                let info = '<p style="color:green;">✓ Successfully updated:</p><ul>';
+                if (sheetRenames.length > 0) {
+                    info += '<li>Renamed sheet(s): ' + sheetRenames.map(r => r.old + ' → ' + r.new).join(', ') + '</li>';
+                }
+                if (changes.length > 0) {
+                    info += '<li>Updated column(s) in sheet(s): ' + changes.join(', ') + '</li>';
+                }
+                info += '</ul>';
+                document.getElementById('resultInfo').innerHTML = info;
+            } else {
+                document.getElementById('resultInfo').innerHTML = 
+                    '<p style="color:orange;">⚠ No changes needed. All field names are already up to date.</p>' +
+                    '<p style="color:blue;">You can still download the file to verify.</p>';
+            }
+        }
+
+        function downloadFile() {
+            if (!workbook) {
+                alert('No file to download');
+                return;
+            }
+
+            try {
+                // Generate Excel file
+                const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+                
+                // Create download
+                const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                
+                // Change filename to indicate it's updated
+                const newFileName = fileName.replace('.xlsx', '_Updated.xlsx').replace('.xls', '_Updated.xlsx');
+                a.download = newFileName;
+                
+                a.click();
+                URL.revokeObjectURL(a.href);
+                
+                alert('✓ File downloaded as: ' + newFileName);
+            } catch (error) {
+                alert('Error downloading file: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
+
