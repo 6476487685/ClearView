@@ -91,8 +91,39 @@ document.addEventListener("DOMContentLoaded",()=>{
   const s=form[k];uniq(k).forEach(v=>s.innerHTML+=`<option>${v}</option>`);
  });
 
- // Column resize
+ // Column resize with persistent storage
  let startX,startW,th;
+ const STORAGE_KEY = 'expense_column_widths';
+ 
+ // Load saved column widths
+ function loadColumnWidths() {
+   const savedWidths = localStorage.getItem(STORAGE_KEY);
+   if (savedWidths) {
+     try {
+       const widths = JSON.parse(savedWidths);
+       table.querySelectorAll('th.resizable').forEach((h, index) => {
+         if (widths[index]) {
+           h.style.width = widths[index];
+         }
+       });
+     } catch (e) {
+       console.log('Error loading column widths:', e);
+     }
+   }
+ }
+ 
+ // Save column widths
+ function saveColumnWidths() {
+   const widths = [];
+   table.querySelectorAll('th.resizable').forEach(h => {
+     widths.push(h.style.width || h.offsetWidth + 'px');
+   });
+   localStorage.setItem(STORAGE_KEY, JSON.stringify(widths));
+ }
+ 
+ // Initialize column widths
+ loadColumnWidths();
+ 
  table.querySelectorAll('th.resizable').forEach(h=>{
   h.addEventListener('mousedown',e=>{
    if(e.offsetX>h.offsetWidth-6){
@@ -102,7 +133,13 @@ document.addEventListener("DOMContentLoaded",()=>{
   });
  });
  function resize(e){if(!th)return;const diff=e.pageX-startX;th.style.width=(startW+diff)+'px';}
- function stop(){document.removeEventListener('mousemove',resize);document.removeEventListener('mouseup',stop);document.body.style.userSelect='auto';th=null;}
+ function stop(){
+   document.removeEventListener('mousemove',resize);
+   document.removeEventListener('mouseup',stop);
+   document.body.style.userSelect='auto';
+   saveColumnWidths(); // Save widths after resize
+   th=null;
+ }
 
 // Helper function to generate filename
 function generateFilename(extension) {
