@@ -29,6 +29,17 @@ button.pdf{background:var(--accent);color:var(--surface);}
 button.pdf:hover{background:var(--accent-hover);box-shadow:var(--shadow-xs);}
 button.excel{background:var(--success);color:var(--surface);}
 button.excel:hover{background:#2e7d32;box-shadow:var(--shadow-xs);}
+
+/* Theme Switch */
+.theme-switch{position:relative;width:44px;height:22px;}
+.theme-switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s;border-radius:22px;}
+.slider:before{position:absolute;content:"";height:18px;width:18px;left:2px;bottom:2px;background-color:white;transition:.4s;border-radius:50%;}
+input:checked + .slider{background-color:#4285f4;}
+input:checked + .slider:before{transform:translateX(22px);}
+
+/* Dark Theme */
+body.dark{--bg:#1a1a1a;--surface:#2d2d2d;--border:#404040;--border-light:#333333;--text-primary:#ffffff;--text-secondary:#b3b3b3;--text-muted:#808080;--accent:#5a9fd4;--accent-hover:#4a8bc4;--success:#4caf50;--warning:#ff9800;--danger:#f44336;}
 .filter-card,.table-card{max-width:1400px;margin:16px auto;padding:0 20px;}
 .filter-card{background:#f3e5f5;border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow-xs);}
 .filter-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;align-items:stretch;}
@@ -39,7 +50,7 @@ input[type="search"]:focus,input[type="date"]:focus,select:focus{outline:none;bo
 .table-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-xs);}
 table{width:100%;border-collapse:collapse;table-layout:fixed;}
 th,td{padding:8px 12px;border-bottom:1px solid var(--border-light);font-size:12px;color:var(--text-primary);}
-th{background:var(--bg);font-weight:500;font-size:11px;position:relative;user-select:none;text-align:left;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em;}
+th{background:var(--bg);font-weight:500;font-size:11px;position:relative;user-select:none;text-align:center;color:var(--text-secondary);text-transform:capitalize;letter-spacing:0.08em;}
 th:nth-child(1),td:nth-child(1),
 th:nth-child(2),td:nth-child(2),
 th:nth-child(3),td:nth-child(3),
