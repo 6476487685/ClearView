@@ -398,9 +398,17 @@
             document.getElementById('fileListContainer').innerHTML = `
                 <div class="loading">
                     <h3>📁 Ready to Load Your Files</h3>
-                    <p><strong>Expected folder:</strong> ${expectedPath}</p>
-                    <p>Click "Change Folder" below to select your folder</p>
-                    <p><em>💡 Tip: The folder picker will show the exact path to navigate to</em></p>
+                    <p><strong>Target folder:</strong></p>
+                    <div style="background: #f0f0f0; padding: 10px; border-radius: 5px; margin: 10px 0; font-family: monospace; font-size: 14px;">
+                        ${expectedPath}
+                    </div>
+                    <p><strong>Quick Navigation:</strong></p>
+                    <ol style="text-align: left; margin: 10px 0;">
+                        <li>Click "Change Folder" button</li>
+                        <li>In folder picker address bar, type: <code>D:\\My_Programs\\ClearView\\Personal_Docs</code></li>
+                        <li>Press Enter, then click "Select Folder"</li>
+                    </ol>
+                    <p><em>💡 This will take you directly to your folder!</em></p>
                 </div>
             `;
         }
@@ -411,13 +419,19 @@
                     // Get the expected path
                     const expectedPath = localStorage.getItem(STORAGE_KEY) || DEFAULT_PATH;
                     
-                    // Show helpful instructions
-                    const instructions = `📁 Folder Selection Instructions:\n\n` +
-                        `Expected folder: ${expectedPath}\n\n` +
-                        `1. The folder picker will open\n` +
-                        `2. Navigate to: ${expectedPath}\n` +
-                        `3. Select the folder\n\n` +
-                        `Click OK to open folder picker`;
+                    // Show detailed navigation instructions
+                    const instructions = `📁 Navigation Instructions:\n\n` +
+                        `Target folder: ${expectedPath}\n\n` +
+                        `Quick Navigation Steps:\n` +
+                        `1. Click OK to open folder picker\n` +
+                        `2. In the address bar, type: D:\\My_Programs\\ClearView\\Personal_Docs\n` +
+                        `3. Press Enter\n` +
+                        `4. Click "Select Folder"\n\n` +
+                        `OR navigate manually:\n` +
+                        `• Click "This PC" in sidebar\n` +
+                        `• Double-click "D:" drive\n` +
+                        `• Navigate to: My_Programs > ClearView > Personal_Docs\n\n` +
+                        `Click OK to start`;
                     
                     if (confirm(instructions)) {
                         directoryHandle = await window.showDirectoryPicker({ 
