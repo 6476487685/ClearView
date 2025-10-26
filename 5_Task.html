@@ -244,7 +244,26 @@
     
     // Export to Excel function
     function exportToExcel() {
-      const data = getData();
+      // Get filtered data from the currently visible table rows
+      const visibleRows = document.querySelectorAll('#taskBody tr:not([style*="display: none"])');
+      const data = [];
+      
+      visibleRows.forEach((row, index) => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 9) {
+          data.push({
+            desc: cells[1].textContent,
+            cat: cells[2].textContent,
+            tag: cells[3].textContent,
+            status: cells[4].textContent,
+            assignee: cells[5].textContent,
+            priority: cells[6].textContent,
+            due: cells[7].textContent,
+            completed: cells[8].textContent
+          });
+        }
+      });
+      
       if (data.length === 0) {
         alert('No task data to export');
         return;
@@ -261,7 +280,25 @@
     // Export to PDF function
     function exportToPDF() {
       try {
-        const data = getData();
+        // Get filtered data from the currently visible table rows
+        const visibleRows = document.querySelectorAll('#taskBody tr:not([style*="display: none"])');
+        const data = [];
+        
+        visibleRows.forEach((row, index) => {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 9) {
+            data.push({
+              desc: cells[1].textContent,
+              cat: cells[2].textContent,
+              tag: cells[3].textContent,
+              status: cells[4].textContent,
+              assignee: cells[5].textContent,
+              priority: cells[6].textContent,
+              due: cells[7].textContent,
+              completed: cells[8].textContent
+            });
+          }
+        });
         
         // Check if jsPDF is loaded
         if (!window.jspdf) {
