@@ -1,3 +1,6 @@
+// Test if JavaScript is loading
+alert('Task Manager JavaScript is loading...');
+
 document.addEventListener("DOMContentLoaded",()=>{
  const table=document.getElementById('taskTable');
  const tbody=document.getElementById('taskBody');
@@ -303,11 +306,48 @@ themeSwitch.addEventListener('change', () => {
   document.body.classList.toggle('dark');
   localStorage.setItem('theme', themeSwitch.checked ? 'dark' : 'light');
 });
-
-// Global function to load sample data
-window.loadSampleData = function() {
-  localStorage.setItem('task_records', JSON.stringify(sample));
-  renderTable(getData());
-  alert('Sample data loaded! You should see 20 tasks now.');
-};
 });
+
+// Global function to load sample data (outside DOMContentLoaded)
+window.loadSampleData = function() {
+  const sample = [
+    {desc:'Complete Project Documentation',cat:'Development',tag:'PROJ-001',assignee:'John Doe',priority:'High',due:'2025-02-15',completed:'',status:'In Progress'},
+    {desc:'Review Code Changes',cat:'Development',tag:'CODE-002',assignee:'Jane Smith',priority:'Medium',due:'2025-02-10',completed:'2025-02-08',status:'Completed'},
+    {desc:'Update User Manual',cat:'Documentation',tag:'DOC-003',assignee:'Mike Johnson',priority:'Low',due:'2025-02-20',completed:'',status:'Pending'},
+    {desc:'Fix Critical Bug in Login System',cat:'Development',tag:'BUG-004',assignee:'Sarah Wilson',priority:'Critical',due:'2025-02-05',completed:'2025-02-03',status:'Completed'},
+    {desc:'Design New Dashboard UI',cat:'Design',tag:'UI-005',assignee:'Alex Chen',priority:'High',due:'2025-02-18',completed:'',status:'In Progress'},
+    {desc:'Write Unit Tests for API',cat:'Testing',tag:'TEST-006',assignee:'David Brown',priority:'Medium',due:'2025-02-25',completed:'',status:'Pending'},
+    {desc:'Deploy Application to Production',cat:'DevOps',tag:'DEPLOY-007',assignee:'Lisa Garcia',priority:'High',due:'2025-02-12',completed:'',status:'Pending'},
+    {desc:'Create Database Schema',cat:'Database',tag:'DB-008',assignee:'Robert Taylor',priority:'Medium',due:'2025-02-08',completed:'2025-02-06',status:'Completed'},
+    {desc:'Setup CI/CD Pipeline',cat:'DevOps',tag:'CI-009',assignee:'Lisa Garcia',priority:'High',due:'2025-02-14',completed:'',status:'In Progress'},
+    {desc:'Conduct Security Audit',cat:'Security',tag:'SEC-010',assignee:'Emma Davis',priority:'Critical',due:'2025-02-22',completed:'',status:'Pending'},
+    {desc:'Optimize Database Performance',cat:'Database',tag:'DB-011',assignee:'Robert Taylor',priority:'Medium',due:'2025-02-28',completed:'',status:'Pending'},
+    {desc:'Create User Training Materials',cat:'Documentation',tag:'TRAIN-012',assignee:'Mike Johnson',priority:'Low',due:'2025-03-05',completed:'',status:'Pending'},
+    {desc:'Implement Payment Gateway',cat:'Development',tag:'PAY-013',assignee:'John Doe',priority:'High',due:'2025-02-16',completed:'',status:'In Progress'},
+    {desc:'Setup Monitoring Dashboard',cat:'DevOps',tag:'MON-014',assignee:'Lisa Garcia',priority:'Medium',due:'2025-02-19',completed:'',status:'Pending'},
+    {desc:'Refactor Legacy Code',cat:'Development',tag:'REF-015',assignee:'Jane Smith',priority:'Low',due:'2025-03-01',completed:'',status:'Cancelled'},
+    {desc:'Create API Documentation',cat:'Documentation',tag:'API-016',assignee:'Mike Johnson',priority:'Medium',due:'2025-02-21',completed:'2025-02-19',status:'Completed'},
+    {desc:'Implement Two-Factor Authentication',cat:'Security',tag:'2FA-017',assignee:'Emma Davis',priority:'High',due:'2025-02-17',completed:'',status:'In Progress'},
+    {desc:'Setup Automated Testing',cat:'Testing',tag:'AUTO-018',assignee:'David Brown',priority:'Medium',due:'2025-02-26',completed:'',status:'Pending'},
+    {desc:'Create Backup Strategy',cat:'DevOps',tag:'BACKUP-019',assignee:'Lisa Garcia',priority:'High',due:'2025-02-13',completed:'2025-02-11',status:'Completed'},
+    {desc:'Design Mobile App Interface',cat:'Design',tag:'MOBILE-020',assignee:'Alex Chen',priority:'Medium',due:'2025-02-24',completed:'',status:'Pending'}
+  ];
+  
+  localStorage.setItem('task_records', JSON.stringify(sample));
+  
+  // Get the tbody element and render the data
+  const tbody = document.getElementById('taskBody');
+  if (tbody) {
+    tbody.innerHTML = '';
+    sample.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${i+1}</td><td>${r.desc}</td><td>${r.cat}</td><td>${r.tag}</td>
+      <td>${r.status}</td><td>${r.assignee}</td><td>${r.priority}</td><td>${r.due}</td><td>${r.completed}</td>
+      <td><span class='del' title='Delete'>🗑️</span></td>`;
+      tbody.appendChild(tr);
+    });
+    alert('Sample data loaded! You should see 20 tasks now.');
+  } else {
+    alert('Error: Could not find table body element');
+  }
+};
