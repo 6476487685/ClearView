@@ -428,9 +428,8 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     else if(t==='accounts'){
       window.location.href='Manage_Accounts_Module/Manage_Accounts_FileManager.html';
     }
-    else if(['masters','tasks','investments','analytics','backup'].includes(t)){
-      document.getElementById('genericTitle').textContent=link.textContent;
-      openModal('modal-generic');
+    else if(t==='investments'){
+      window.location.href='4_Investment_Index.html';
     }
   });
 });
