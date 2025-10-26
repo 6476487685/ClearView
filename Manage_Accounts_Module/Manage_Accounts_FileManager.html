@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real File Manager - Updated</title>
-    <link rel="stylesheet" href="../assets/font-awesome.min.css">
+    <link rel="stylesheet" href="../assets/font-awesome.min.css?v=2">
     <style>
         :root {
             --header-bg: linear-gradient(135deg, #343a40 0%, #495057 100%);
@@ -236,27 +236,24 @@
         }
 
         .btn-small {
-            padding: 8px 10px;
-            font-size: 12px;
+            padding: 6px 8px;
+            font-size: 16px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 600;
-            min-width: 32px;
-            height: 32px;
+            min-width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
+            line-height: 1;
         }
 
         .btn-small:hover {
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .btn-small i {
-            font-size: 14px;
         }
 
         .btn-success {
@@ -531,9 +528,9 @@
                         <td>${file.name}</td>
                         <td>${file.type}</td>
                     <td><div class="file-actions">
-                        <button class="btn-small btn-success" onclick="previewFile('${file.name}', '${file.type}', '${file.category}')" title="Preview"><i class="fas fa-eye"></i></button>
-                        <button class="btn-small btn-warning" onclick="renameFile('${file.name}', '${file.category}')" title="Rename"><i class="fas fa-edit"></i></button>
-                        <button class="btn-small btn-danger" onclick="deleteFile('${file.name}', '${file.category}')" title="Delete"><i class="fas fa-trash"></i></button>
+                        <button class="btn-small btn-success" onclick="previewFile('${file.name}', '${file.type}', '${file.category}')" title="Preview">👁️</button>
+                        <button class="btn-small btn-warning" onclick="renameFile('${file.name}', '${file.category}')" title="Rename">✏️</button>
+                        <button class="btn-small btn-danger" onclick="deleteFile('${file.name}', '${file.category}')" title="Delete">🗑️</button>
                     </div></td>
                 </tr>`;
             });
