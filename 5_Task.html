@@ -310,67 +310,117 @@
         doc.setFont('helvetica', 'bold');
         doc.text('Task Filtered Report', pageWidth / 2, 20, { align: 'center' });
         
-        // Filter Criteria - Font Size 12
+        // Filter Criteria - Font Size 12, centered
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
-        doc.text('Filter Criteria:', 20, 30);
-        doc.text(getFilterCriteria(), 20, 36);
+        const criteriaText = getFilterCriteria();
+        doc.text(criteriaText, pageWidth / 2, 35, { align: 'center' });
         
-        // Table Headers
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
+        // Compact table layout for 20+ records per page
         const headers = ['#', 'Task Description', 'Category', 'Tag', 'Status', 'Assignee', 'Priority', 'Due Date', 'Completed'];
-        let xPos = 20;
-        const yPos = 45;
-        const colWidths = [8, 50, 20, 20, 20, 20, 20, 20, 20];
+        const colWidths = [10, 50, 25, 25, 20, 25, 20, 25, 25];
+        const rowHeight = 5; // Compact row height
+        const startY = 45;
+        let currentY = startY;
+        let currentPage = 1;
+        const totalPages = Math.ceil(data.length / 22); // ~22 records per page with compact layout
         
-        headers.forEach((header, index) => {
-          doc.text(header, xPos, yPos);
-          xPos += colWidths[index];
-        });
+        // Calculate total table width and center it
+        const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+        const tableStartX = (pageWidth - totalTableWidth) / 2; // Center the table
         
-        // Table Data
-        let yPosData = 52;
-        let rowHeight = 8;
+        // Helper function to add footer
+        function addFooter() {
+          const pageY = doc.internal.pageSize.height - 10;
+          doc.setFontSize(8);
+          doc.text(`Page ${currentPage}/${totalPages}`, 20, pageY);
+          doc.text(`Total Records: ${data.length}`, pageWidth / 2, pageY, { align: 'center' });
+          doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth - 20, pageY, { align: 'right' });
+        }
         
+        // Helper function to add new page
+        function addNewPage() {
+          doc.addPage();
+          currentPage++;
+          currentY = startY;
+          addFooter();
+          // Redraw headers on new page
+          drawHeaders();
+          currentY += 4;
+          doc.setFont('helvetica', 'normal');
+        }
+        
+        // Helper function to draw table headers
+        function drawHeaders() {
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'bold');
+          let x = tableStartX;
+          headers.forEach((header, i) => {
+            doc.text(header, x, currentY);
+            x += colWidths[i];
+          });
+          
+          // Header line
+          currentY += 1;
+          doc.line(tableStartX, currentY, x, currentY);
+          currentY += 2;
+        }
+        
+        // Draw initial headers
+        drawHeaders();
+        
+        // Add data rows
         data.forEach((row, index) => {
-          if (yPosData > 180) { // New page if needed
-            doc.addPage();
-            yPosData = 20;
+          // Check if we need a new page
+          if (currentY > doc.internal.pageSize.height - 25) {
+            addNewPage();
           }
           
+          doc.setFontSize(7);
           doc.setFont('helvetica', 'normal');
-          doc.setFontSize(8);
           
-          xPos = 20;
-          doc.text(String(index + 1), xPos, yPosData);
-          xPos += colWidths[0];
+          let x = tableStartX;
           
-          doc.text(row.desc.substring(0, 30), xPos, yPosData);
-          xPos += colWidths[1];
+          // Row number
+          doc.text(String(index + 1), x, currentY);
+          x += colWidths[0];
           
-          doc.text(row.cat, xPos, yPosData);
-          xPos += colWidths[2];
+          // Task Description (truncate if too long)
+          doc.text(row.desc.substring(0, 35), x, currentY);
+          x += colWidths[1];
           
-          doc.text(row.tag, xPos, yPosData);
-          xPos += colWidths[3];
+          // Category
+          doc.text(row.cat, x, currentY);
+          x += colWidths[2];
           
-          doc.text(row.status, xPos, yPosData);
-          xPos += colWidths[4];
+          // Tag
+          doc.text(row.tag, x, currentY);
+          x += colWidths[3];
           
-          doc.text(row.assignee.substring(0, 15), xPos, yPosData);
-          xPos += colWidths[5];
+          // Status
+          doc.text(row.status, x, currentY);
+          x += colWidths[4];
           
-          doc.text(row.priority, xPos, yPosData);
-          xPos += colWidths[6];
+          // Assignee (truncate if too long)
+          doc.text(row.assignee.substring(0, 15), x, currentY);
+          x += colWidths[5];
           
-          doc.text(formatDate(row.due), xPos, yPosData);
-          xPos += colWidths[7];
+          // Priority
+          doc.text(row.priority, x, currentY);
+          x += colWidths[6];
           
-          doc.text(formatDate(row.completed), xPos, yPosData);
+          // Due Date
+          doc.text(formatDate(row.due), x, currentY);
+          x += colWidths[7];
           
-          yPosData += rowHeight;
+          // Completed Date
+          doc.text(formatDate(row.completed), x, currentY);
+          
+          currentY += rowHeight;
         });
+        
+        // Add footer to last page
+        addFooter();
         
         // Save the PDF
         doc.save(generateFilename('pdf'));
