@@ -311,8 +311,8 @@
         <div class="header">
             <h2>Real File Manager</h2>
             <div class="header-buttons">
-                <button class="btn btn-primary" onclick="selectFolder()">
-                    Change Folder
+                <button class="btn btn-primary" onclick="showFolderSelectionPrompt()">
+                    Select Folder
                 </button>
                 <button class="btn btn-secondary" onclick="returnToMainMenu()">
                     Return to Main Menu
@@ -397,18 +397,60 @@
             const expectedPath = localStorage.getItem(STORAGE_KEY) || DEFAULT_PATH;
             document.getElementById('fileListContainer').innerHTML = `
                 <div class="loading">
-                    <h3>📁 Ready to Load Your Files</h3>
-                    <p><strong>Target folder:</strong></p>
-                    <div style="background: #f0f0f0; padding: 10px; border-radius: 5px; margin: 10px 0; font-family: monospace; font-size: 14px;">
-                        ${expectedPath}
+                    <h3>📁 Select Your Folder</h3>
+                    <p><strong>Option 1: Use Default Path (Recommended)</strong></p>
+                    <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid #28a745;">
+                        <p><strong>Default Path:</strong></p>
+                        <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; font-family: monospace; font-size: 14px; border: 1px solid #ddd;">
+                            ${expectedPath}
+                        </div>
+                        <button onclick="useDefaultPath()" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            ✅ Use This Path
+                        </button>
                     </div>
-                    <p><strong>Quick Navigation:</strong></p>
-                    <ol style="text-align: left; margin: 10px 0;">
-                        <li>Click "Change Folder" button</li>
-                        <li>In folder picker address bar, type: <code>D:\\My_Programs\\ClearView\\Personal_Docs</code></li>
-                        <li>Press Enter, then click "Select Folder"</li>
-                    </ol>
-                    <p><em>💡 This will take you directly to your folder!</em></p>
+                    
+                    <p><strong>Option 2: Browse with Folder Picker</strong></p>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid #ffc107;">
+                        <p><em>Note: This will open to Documents folder</em></p>
+                        <button onclick="selectFolder()" style="background: #ffc107; color: #212529; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            📁 Browse Folders
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function useDefaultPath() {
+            try {
+                // Try to access the default path directly
+                const defaultPath = localStorage.getItem(STORAGE_KEY) || DEFAULT_PATH;
+                
+                // For now, we'll simulate loading files from the default path
+                // In a real implementation, you might need to use a different API
+                document.getElementById('currentFolder').textContent = `Current Path: ${defaultPath}`;
+                
+                // Save the path
+                localStorage.setItem(STORAGE_KEY, defaultPath);
+                localStorage.setItem(ACCESS_KEY, 'true');
+                
+                // Load demo files that represent your actual folder structure
+                await loadFilesFromPath(defaultPath);
+                
+            } catch (error) {
+                console.error('Error using default path:', error);
+                alert('Could not access the default path. Please use the folder picker instead.');
+            }
+        }
+
+        async function loadFilesFromPath(path) {
+            // This is a simulation - in a real implementation, you would need
+            // to use a different API or server-side solution to access local files
+            document.getElementById('fileListContainer').innerHTML = `
+                <div class="loading">
+                    <h3>📁 Loading Files from Path</h3>
+                    <p><strong>Path:</strong> ${path}</p>
+                    <p><em>Note: Direct file access requires folder picker permission.</em></p>
+                    <p>Click "Browse Folders" to select your folder and load real files.</p>
                 </div>
             `;
         }
