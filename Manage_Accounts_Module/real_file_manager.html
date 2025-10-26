@@ -311,8 +311,8 @@
         <div class="header">
             <h2>Real File Manager</h2>
             <div class="header-buttons">
-                <button class="btn btn-primary" onclick="showFolderSelectionPrompt()">
-                    Select Folder
+                <button class="btn btn-primary" onclick="selectFolder()">
+                    Change Folder
                 </button>
                 <button class="btn btn-secondary" onclick="returnToMainMenu()">
                     Return to Main Menu
@@ -369,183 +369,33 @@
         };
 
         async function loadDefaultFolder() {
-            // Check if we have previously granted access
-            const hasAccess = localStorage.getItem(ACCESS_KEY) === 'true';
-            const savedPath = localStorage.getItem(STORAGE_KEY);
+            document.getElementById('currentFolder').textContent = `Current Path: ${DEFAULT_PATH}`;
             
-            if (hasAccess && savedPath) {
-                // User has previously granted access, show the saved path
-                document.getElementById('currentFolder').textContent = `Current Path: ${savedPath}`;
-                
-                // Show a message that access will be restored
-                document.getElementById('fileListContainer').innerHTML = `
-                    <div class="loading">
-                        <p>Restoring access to: <strong>${savedPath}</strong></p>
-                        <p>Click "Change Folder" to reload files from this location</p>
-                        <p><em>Note: Browser security requires folder selection each time</em></p>
-                    </div>
-                `;
-            } else {
-                // First time - show prompt to select folder
-                document.getElementById('currentFolder').textContent = `Current Path: ${DEFAULT_PATH}`;
-                showFolderSelectionPrompt();
-            }
-        }
-
-
-        function showFolderSelectionPrompt() {
-            const expectedPath = localStorage.getItem(STORAGE_KEY) || DEFAULT_PATH;
+            // Show simple message to select folder
             document.getElementById('fileListContainer').innerHTML = `
                 <div class="loading">
-                    <h3>📁 Select Your Folder</h3>
-                    <p><strong>Option 1: Use Default Path (Recommended)</strong></p>
-                    <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid #28a745;">
-                        <p><strong>Target folder:</strong></p>
-                        <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; font-family: monospace; font-size: 14px; border: 1px solid #ddd;">
-                            ${expectedPath}
-                        </div>
-                        <p style="margin: 10px 0; color: #666; font-size: 13px;">
-                            <em>⚠️ Note: Folder picker will open to Documents, but you'll get exact instructions to navigate to your folder quickly.</em>
-                        </p>
-                        <button onclick="useDefaultPath()" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-                            ✅ Use This Path
-                        </button>
-                    </div>
-                    
-                    <p><strong>Option 2: Browse with Folder Picker</strong></p>
-                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid #ffc107;">
-                        <p><em>Opens to Documents folder - you'll need to navigate manually</em></p>
-                        <button onclick="selectFolder()" style="background: #ffc107; color: #212529; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-                            📁 Browse Folders
-                        </button>
-                    </div>
+                    <h3>📁 Ready to Load Your Files</h3>
+                    <p><strong>Target folder:</strong> ${DEFAULT_PATH}</p>
+                    <p>Click "Change Folder" to select your folder and load files</p>
                 </div>
             `;
         }
 
-        async function useDefaultPath() {
-            try {
-                // Get the default path
-                const defaultPath = localStorage.getItem(STORAGE_KEY) || DEFAULT_PATH;
-                
-                // Update the current folder display
-                document.getElementById('currentFolder').textContent = `Current Path: ${defaultPath}`;
-                
-                // Show instructions for quick navigation
-                const instructions = `🚀 Quick Access Instructions:\n\n` +
-                    `Target folder: ${defaultPath}\n\n` +
-                    `FASTEST METHOD:\n` +
-                    `1. Click OK to open folder picker\n` +
-                    `2. Click in the address bar (top of folder picker)\n` +
-                    `3. Press Ctrl+A to select all\n` +
-                    `4. Type: ${defaultPath}\n` +
-                    `5. Press Enter\n` +
-                    `6. Click "Select Folder"\n\n` +
-                    `This takes you directly to your folder!`;
-                
-                if (confirm(instructions)) {
-                    try {
-                        directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-                        
-                        const folderPath = directoryHandle.name;
-                        document.getElementById('currentFolder').textContent = `Current Path: ${folderPath}`;
-                        
-                        // Save the folder access for persistence
-                        localStorage.setItem(STORAGE_KEY, folderPath);
-                        localStorage.setItem(ACCESS_KEY, 'true');
-                        
-                        // Load REAL files from the selected folder
-                        await loadRealFiles();
-                        
-                    } catch (error) {
-                        if (error.name === 'AbortError') {
-                            // User cancelled, show demo files as fallback
-                            await loadDemoFilesForPath(defaultPath);
-                        } else {
-                            throw error;
-                        }
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Error using default path:', error);
-                alert('Could not access the default path. Please use the folder picker instead.');
-            }
-        }
 
-        async function loadDemoFilesForPath(path) {
-            // Load demo files that represent your actual folder structure
-            allFiles = [
-                { name: 'Test O9DKPM.pdf', type: 'PDF', category: 'Work' },
-                { name: 'TicketConfirmation.pdf', type: 'PDF', category: 'Work' },
-                { name: 'DL.pdf', type: 'PDF', category: 'Personal' },
-                { name: 'OCI.pdf', type: 'PDF', category: 'Personal' },
-                { name: 'Passport.pdf', type: 'PDF', category: 'Personal' },
-                { name: 'Electricity.pdf', type: 'PDF', category: 'Utilities' },
-                { name: 'Internet.pdf', type: 'PDF', category: 'Utilities' },
-                { name: 'Water.pdf', type: 'PDF', category: 'Utilities' },
-                { name: 'Health_Cards.docx', type: 'DOCX', category: 'Training' },
-                { name: 'Converted_Data.xlsx', type: 'XLSX', category: 'Training' },
-                { name: 'Img1.jpg', type: 'JPG', category: 'Misc' },
-                { name: 'img3.gif', type: 'GIF', category: 'Misc' },
-                { name: 'Order Details _ Banana Republic.pdf', type: 'PDF', category: 'Misc' },
-                { name: 'Order Details _ Michael Kors.pdf', type: 'PDF', category: 'Misc' },
-                { name: 'Order details _ Simons.pdf', type: 'PDF', category: 'Misc' },
-                { name: 'Task-Manager-Documentation.md', type: 'MD', category: 'Misc' },
-                { name: 'Temp.txt', type: 'TXT', category: 'Misc' }
-            ];
-
-            const categories = ['Misc', 'Personal', 'Training', 'Utilities', 'Work'];
-            const folderArray = categories.map(cat => ({
-                name: cat,
-                fileCount: allFiles.filter(f => f.category === cat).length
-            }));
-
-            loadCategories(folderArray);
-            loadFilesForCategory('All');
-            
-            // Auto-preview the first file
-            setTimeout(() => {
-                if (allFiles.length > 0) {
-                    previewFile(allFiles[0].name, allFiles[0].type, allFiles[0].category);
-                }
-            }, 100);
-        }
 
         async function selectFolder() {
             try {
                 if ('showDirectoryPicker' in window) {
-                    // Get the expected path
-                    const expectedPath = localStorage.getItem(STORAGE_KEY) || DEFAULT_PATH;
+                    directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
                     
-                    // Show detailed navigation instructions
-                    const instructions = `📁 Navigation Instructions:\n\n` +
-                        `Target folder: ${expectedPath}\n\n` +
-                        `Quick Navigation Steps:\n` +
-                        `1. Click OK to open folder picker\n` +
-                        `2. In the address bar, type: D:\\My_Programs\\ClearView\\Personal_Docs\n` +
-                        `3. Press Enter\n` +
-                        `4. Click "Select Folder"\n\n` +
-                        `OR navigate manually:\n` +
-                        `• Click "This PC" in sidebar\n` +
-                        `• Double-click "D:" drive\n` +
-                        `• Navigate to: My_Programs > ClearView > Personal_Docs\n\n` +
-                        `Click OK to start`;
+                    const folderPath = directoryHandle.name;
+                    document.getElementById('currentFolder').textContent = `Current Path: ${folderPath}`;
                     
-                    if (confirm(instructions)) {
-                    directoryHandle = await window.showDirectoryPicker({
-                        mode: 'readwrite'
-                    });
+                    // Save the folder access for persistence
+                    localStorage.setItem(STORAGE_KEY, folderPath);
+                    localStorage.setItem(ACCESS_KEY, 'true');
                     
-                        const folderPath = directoryHandle.name;
-                        document.getElementById('currentFolder').textContent = `Current Path: ${folderPath}`;
-                    
-                        // Save the folder access for persistence
-                        localStorage.setItem(STORAGE_KEY, folderPath);
-                        localStorage.setItem(ACCESS_KEY, 'true');
-                    
-                        await loadRealFiles();
-                    }
+                    await loadRealFiles();
                 } else {
                     alert('Folder picker not supported in this browser.');
                 }
