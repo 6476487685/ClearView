@@ -205,7 +205,7 @@
         }
 
         .file-table td:nth-child(1) {
-            width: 60%;
+            width: 50%;
             max-width: 0;
         }
 
@@ -215,7 +215,7 @@
         }
 
         .file-table td:nth-child(3) {
-            width: 25%;
+            width: 35%;
         }
 
         .file-table tr:hover {
@@ -236,12 +236,14 @@
         }
 
         .btn-small {
-            padding: 5px 10px;
+            padding: 6px 12px;
             font-size: 11px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 600;
+            min-width: 60px;
+            white-space: nowrap;
         }
 
         .btn-success {
@@ -365,7 +367,31 @@
 
         async function loadDefaultFolder() {
             document.getElementById('currentFolder').textContent = `Current Path: ${DEFAULT_PATH}`;
-            loadDemoFiles();
+            
+            // Try to load real files first
+            try {
+                if ('showDirectoryPicker' in window) {
+                    // For now, show a message to select folder
+                    document.getElementById('fileListContainer').innerHTML = `
+                        <div class="loading">
+                            <p>Click "Change Folder" to select your folder and load real files</p>
+                            <p>No sample files will be shown</p>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('fileListContainer').innerHTML = `
+                        <div class="loading">
+                            <p>Folder picker not supported in this browser</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('fileListContainer').innerHTML = `
+                    <div class="loading">
+                        <p>Error loading files. Click "Change Folder" to try again.</p>
+                    </div>
+                `;
+            }
         }
 
         async function selectFolder() {
@@ -378,13 +404,12 @@
                     
                     await loadRealFiles();
                 } else {
-                    alert('Folder picker not supported. Using demo files.');
-                    loadDemoFiles();
+                    alert('Folder picker not supported in this browser.');
                 }
             } catch (error) {
                 if (error.name !== 'AbortError') {
                     console.error('Error:', error);
-                    loadDemoFiles();
+                    alert('Error accessing folder: ' + error.message);
                 }
             }
         }
@@ -443,48 +468,13 @@
                 }, 100);
             } catch (error) {
                 console.error('Error loading files:', error);
-                loadDemoFiles();
+                document.getElementById('fileListContainer').innerHTML = `
+                    <div class="loading">
+                        <p>Error loading files: ${error.message}</p>
+                        <p>Click "Change Folder" to try again</p>
+                    </div>
+                `;
             }
-        }
-
-        function loadDemoFiles() {
-            allFiles = [
-                { name: 'DL.pdf', type: 'PDF', category: 'Personal' },
-                { name: 'OCI.pdf', type: 'PDF', category: 'Personal' },
-                { name: 'Passport.pdf', type: 'PDF', category: 'Personal' },
-                { name: 'Electricity.pdf', type: 'PDF', category: 'Utilities' },
-                { name: 'Internet.pdf', type: 'PDF', category: 'Utilities' },
-                { name: 'Water.pdf', type: 'PDF', category: 'Utilities' },
-                { name: 'Health_Cards.docx', type: 'DOCX', category: 'Training' },
-                { name: 'Converted_Data.xlsx', type: 'XLSX', category: 'Training' },
-                { name: 'Img1.jpg', type: 'JPG', category: 'Misc' },
-                { name: 'img3.gif', type: 'GIF', category: 'Misc' },
-                { name: 'Order Details _ Banana Republic.pdf', type: 'PDF', category: 'Misc' },
-                { name: 'Order Details _ Michael Kors.pdf', type: 'PDF', category: 'Misc' },
-                { name: 'Order details _ Simons.pdf', type: 'PDF', category: 'Misc' },
-                { name: 'Task-Manager-Documentation.md', type: 'MD', category: 'Misc' },
-                { name: 'Temp.txt', type: 'TXT', category: 'Misc' },
-                { name: 'Test O9DKPM.pdf', type: 'PDF', category: 'Work' },
-                { name: 'TicketConfirmation.pdf', type: 'PDF', category: 'Work' },
-                { name: 'Very_Long_File_Name_That_Should_Wrap_To_Multiple_Lines_And_Not_Break_The_Layout.pdf', type: 'PDF', category: 'Work' },
-                { name: 'Another_Very_Long_File_Name_For_Testing_Purposes_To_Ensure_Proper_Text_Wrapping_And_Layout_Stability.docx', type: 'DOCX', category: 'Work' }
-            ];
-
-            const categories = ['Misc', 'Personal', 'Training', 'Utilities', 'Work'];
-            const folderArray = categories.map(cat => ({
-                name: cat,
-                fileCount: allFiles.filter(f => f.category === cat).length
-            }));
-
-            loadCategories(folderArray);
-            loadFilesForCategory('All');
-            
-            // Auto-preview the first file
-            setTimeout(() => {
-                if (allFiles.length > 0) {
-                    previewFile(allFiles[0].name, allFiles[0].type, allFiles[0].category);
-                }
-            }, 100);
         }
 
         function loadCategories(folders) {
