@@ -177,7 +177,130 @@
     document.addEventListener('DOMContentLoaded', function() {
       alert('DOM loaded, auto-loading data...');
       setTimeout(loadSampleData, 1000);
+      setTimeout(populateFilters, 1500);
+      setTimeout(setupFilterEvents, 2000);
     });
+    
+    // Populate filter dropdowns with sample data
+    function populateFilters() {
+      alert('Populating filter dropdowns...');
+      
+      // Category filter
+      const catFilter = document.getElementById('fCategory');
+      if (catFilter) {
+        const categories = ['Development', 'Design', 'Testing', 'DevOps', 'Database', 'Security', 'Documentation'];
+        catFilter.innerHTML = '<option value="">All Categories</option>';
+        categories.forEach(cat => {
+          catFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+      }
+      
+      // Task Tag filter
+      const tagFilter = document.getElementById('fTag');
+      if (tagFilter) {
+        const tags = ['PROJ-001', 'CODE-002', 'DOC-003', 'BUG-004', 'UI-005', 'TEST-006', 'DEPLOY-007', 'DB-008', 'CI-009', 'SEC-010', 'DB-011', 'TRAIN-012', 'PAY-013', 'MON-014', 'REF-015', 'API-016', '2FA-017', 'AUTO-018', 'BACKUP-019', 'MOBILE-020'];
+        tagFilter.innerHTML = '<option value="">All Tags</option>';
+        tags.forEach(tag => {
+          tagFilter.innerHTML += `<option value="${tag}">${tag}</option>`;
+        });
+      }
+      
+      // Assignee filter
+      const assigneeFilter = document.getElementById('fAssignee');
+      if (assigneeFilter) {
+        const assignees = ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson', 'Alex Chen', 'David Brown', 'Lisa Garcia', 'Robert Taylor', 'Emma Davis'];
+        assigneeFilter.innerHTML = '<option value="">All Assignees</option>';
+        assignees.forEach(assignee => {
+          assigneeFilter.innerHTML += `<option value="${assignee}">${assignee}</option>`;
+        });
+      }
+      
+      // Status filter
+      const statusFilter = document.getElementById('fStatus');
+      if (statusFilter) {
+        const statuses = ['Pending', 'In Progress', 'Completed', 'Cancelled'];
+        statusFilter.innerHTML = '<option value="">All Statuses</option>';
+        statuses.forEach(status => {
+          statusFilter.innerHTML += `<option value="${status}">${status}</option>`;
+        });
+      }
+      
+      // Priority filter
+      const priorityFilter = document.getElementById('fPriority');
+      if (priorityFilter) {
+        const priorities = ['Low', 'Medium', 'High', 'Critical'];
+        priorityFilter.innerHTML = '<option value="">All Priorities</option>';
+        priorities.forEach(priority => {
+          priorityFilter.innerHTML += `<option value="${priority}">${priority}</option>`;
+        });
+      }
+      
+      alert('Filter dropdowns populated successfully!');
+    }
+    
+    // Filter functionality
+    function applyFilters() {
+      const category = document.getElementById('fCategory').value.toLowerCase();
+      const tag = document.getElementById('fTag').value.toLowerCase();
+      const assignee = document.getElementById('fAssignee').value.toLowerCase();
+      const status = document.getElementById('fStatus').value.toLowerCase();
+      const priority = document.getElementById('fPriority').value.toLowerCase();
+      const fromDate = document.getElementById('fFrom').value;
+      const toDate = document.getElementById('fTo').value;
+      const search = document.getElementById('globalSearch').value.toLowerCase();
+      
+      const rows = document.querySelectorAll('#taskBody tr');
+      let visibleCount = 0;
+      
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 9) {
+          const taskDesc = cells[1].textContent.toLowerCase();
+          const taskCat = cells[2].textContent.toLowerCase();
+          const taskTag = cells[3].textContent.toLowerCase();
+          const taskStatus = cells[4].textContent.toLowerCase();
+          const taskAssignee = cells[5].textContent.toLowerCase();
+          const taskPriority = cells[6].textContent.toLowerCase();
+          const taskDue = cells[7].textContent;
+          const taskCompleted = cells[8].textContent;
+          
+          let show = true;
+          
+          // Apply filters
+          if (category && !taskCat.includes(category)) show = false;
+          if (tag && !taskTag.includes(tag)) show = false;
+          if (assignee && !taskAssignee.includes(assignee)) show = false;
+          if (status && !taskStatus.includes(status)) show = false;
+          if (priority && !taskPriority.includes(priority)) show = false;
+          if (search && !taskDesc.includes(search) && !taskTag.includes(search) && !taskAssignee.includes(search)) show = false;
+          
+          // Date filters
+          if (fromDate && taskDue && taskDue < fromDate) show = false;
+          if (toDate && taskDue && taskDue > toDate) show = false;
+          
+          row.style.display = show ? '' : 'none';
+          if (show) visibleCount++;
+        }
+      });
+      
+      // Update record count
+      const recordCount = document.querySelector('.record-count');
+      if (recordCount) {
+        recordCount.textContent = `${visibleCount} records`;
+      }
+    }
+    
+    // Add event listeners to filters
+    function setupFilterEvents() {
+      const filters = ['fCategory', 'fTag', 'fAssignee', 'fStatus', 'fPriority', 'fFrom', 'fTo', 'globalSearch'];
+      filters.forEach(filterId => {
+        const element = document.getElementById(filterId);
+        if (element) {
+          element.addEventListener('input', applyFilters);
+          element.addEventListener('change', applyFilters);
+        }
+      });
+    }
     
     // Theme functionality
     document.addEventListener('DOMContentLoaded', function() {
