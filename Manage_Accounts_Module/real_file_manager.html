@@ -355,6 +355,9 @@
 
     <script>
         const DEFAULT_PATH = 'D:\\My_Programs\\ClearView\\Personal_Docs';
+        const STORAGE_KEY = 'selectedFolderPath';
+        const ACCESS_KEY = 'hasFolderAccess';
+        
         let directoryHandle = null;
         let allFiles = [];
         let currentFiles = [];
@@ -366,32 +369,37 @@
         };
 
         async function loadDefaultFolder() {
-            document.getElementById('currentFolder').textContent = `Current Path: ${DEFAULT_PATH}`;
+            // Check if we have previously granted access
+            const hasAccess = localStorage.getItem(ACCESS_KEY) === 'true';
+            const savedPath = localStorage.getItem(STORAGE_KEY);
             
-            // Try to load real files first
-            try {
-                if ('showDirectoryPicker' in window) {
-                    // For now, show a message to select folder
-                    document.getElementById('fileListContainer').innerHTML = `
-                        <div class="loading">
-                            <p>Click "Change Folder" to select your folder and load real files</p>
-                            <p>No sample files will be shown</p>
-                        </div>
-                    `;
-                } else {
-                    document.getElementById('fileListContainer').innerHTML = `
-                        <div class="loading">
-                            <p>Folder picker not supported in this browser</p>
-                        </div>
-                    `;
-                }
-            } catch (error) {
+            if (hasAccess && savedPath) {
+                // User has previously granted access, show the saved path
+                document.getElementById('currentFolder').textContent = `Current Path: ${savedPath}`;
+                
+                // Show a message that access will be restored
                 document.getElementById('fileListContainer').innerHTML = `
                     <div class="loading">
-                        <p>Error loading files. Click "Change Folder" to try again.</p>
+                        <p>Restoring access to: <strong>${savedPath}</strong></p>
+                        <p>Click "Change Folder" to reload files from this location</p>
+                        <p><em>Note: Browser security requires folder selection each time</em></p>
                     </div>
                 `;
+            } else {
+                // First time - show prompt to select folder
+                document.getElementById('currentFolder').textContent = `Current Path: ${DEFAULT_PATH}`;
+                showFolderSelectionPrompt();
             }
+        }
+
+
+        function showFolderSelectionPrompt() {
+            document.getElementById('fileListContainer').innerHTML = `
+                <div class="loading">
+                    <p>Click "Change Folder" to select your folder: <strong>${DEFAULT_PATH}</strong></p>
+                    <p>Once selected, files will load automatically on future visits</p>
+                </div>
+            `;
         }
 
         async function selectFolder() {
@@ -401,6 +409,10 @@
                     
                     const folderPath = directoryHandle.name;
                     document.getElementById('currentFolder').textContent = `Current Path: ${folderPath}`;
+                    
+                    // Save the folder access for persistence
+                    localStorage.setItem(STORAGE_KEY, folderPath);
+                    localStorage.setItem(ACCESS_KEY, 'true');
                     
                     await loadRealFiles();
                 } else {
