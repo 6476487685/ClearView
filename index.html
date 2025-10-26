@@ -74,8 +74,8 @@ input:checked + .slider:before{transform:translateX(22px);}
  width:80%;max-width:600px;border-radius:12px;animation:fadein .25s;box-shadow:var(--shadow);
 }
 @keyframes fadein{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
-.close{float:right;font-size:20px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;width:24px;height:24px;}
-.close img{width:16px;height:16px;opacity:0.7;transition:opacity 0.2s ease;}
+.close{float:right;font-size:20px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;width:32px;height:32px;}
+.close img{width:24px;height:24px;opacity:0.7;transition:opacity 0.2s ease;}
 .close:hover img{opacity:1;}
 .table thead{background:var(--accent-blue);color:#fff;}
 .table td,.table th{padding:6px 10px;border-bottom:1px solid var(--divider);}
@@ -206,7 +206,7 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 <div id="modal-docs" class="modal">
   <div class="modal-content docs-modal">
     <div class="modal-header">
-      <h4 style="font-size: 32px; font-family: Arial, sans-serif;"><img src="assets/icons/documents-manager.png?v=1" alt="Document Manager" style="width: 16px; height: 16px; margin-right: 8px;"> Document Manager</h4>
+      <h4 style="font-size: 32px; font-family: Arial, sans-serif;"><img src="assets/icons/documents-manager.png?v=1" alt="Document Manager" style="width: 24px; height: 24px; margin-right: 8px;"> Document Manager</h4>
       <div style="display:flex;gap:10px;align-items:center;">
         <button id="downloadAllBtn" style="
           background:#1E3A8A;color:#FCD34D;border:none;padding:8px 12px;
@@ -224,7 +224,7 @@ body.dark .modal-header h4 i{color:var(--text-body);}
           <img src="assets/icons/change-folder.png?v=1" alt="Change Folder" style="width: 14px; height: 14px;">
           <span>Change Folder</span>
         </button>
-        <span class="close" data-close="modal-docs"><img src="assets/icons/close-interface.png?v=1" alt="Close" style="width: 16px; height: 16px;"></span>
+        <span class="close" data-close="modal-docs"><img src="assets/icons/close-interface.png?v=1" alt="Close" style="width: 24px; height: 24px;"></span>
       </div>
     </div>
     
