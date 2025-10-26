@@ -130,6 +130,7 @@
 
   <script>
     // Embedded JavaScript - Task Manager
+    let editIndex = null;
     
     function loadSampleData() {
       const sample = [
@@ -155,27 +156,52 @@
         {desc:'Design Mobile App Interface',cat:'Design',tag:'MOBILE-020',assignee:'Alex Chen',priority:'Medium',due:'2025-02-24',completed:'',status:'Pending'}
       ];
       
+      localStorage.setItem('task_records', JSON.stringify(sample));
+      renderTable(sample);
+    }
+    
+    // Get and save data functions
+    function getData() {
+      return JSON.parse(localStorage.getItem('task_records')) || [];
+    }
+    
+    function saveData(data) {
+      localStorage.setItem('task_records', JSON.stringify(data));
+    }
+    
+    // Render table function
+    function renderTable(data) {
       const tbody = document.getElementById('taskBody');
       if (tbody) {
         tbody.innerHTML = '';
-        sample.forEach((r, i) => {
+        data.forEach((r, i) => {
           const tr = document.createElement('tr');
           tr.innerHTML = `<td>${i+1}</td><td>${r.desc}</td><td>${r.cat}</td><td>${r.tag}</td>
           <td>${r.status}</td><td>${r.assignee}</td><td>${r.priority}</td><td>${r.due}</td><td>${r.completed}</td>
           <td><span class='del' title='Delete'>🗑️</span></td>`;
           tbody.appendChild(tr);
         });
-      } else {
-        console.error('Error: Could not find table body element');
       }
     }
     
-    // Auto-load data when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(loadSampleData, 1000);
-      setTimeout(populateFilters, 1500);
-      setTimeout(setupFilterEvents, 2000);
-    });
+    // Auto-populate filters when page loads (moved to modal functionality section)
+    
+    // Export functions (will use jsPDF and xlsx libraries)
+    function exportToPDF() {
+      alert('PDF export - Use jsPDF to export task data');
+    }
+    
+    function exportToExcel() {
+      const data = getData();
+      if (data.length === 0) {
+        alert('No data to export');
+        return;
+      }
+      alert('Excel export - Use xlsx library to export task data');
+    }
+    
+    // Make loadSampleData globally accessible
+    window.loadSampleData = loadSampleData;
     
     // Populate filter dropdowns with sample data
     function populateFilters() {
@@ -326,8 +352,120 @@
       }
     }
     
-    // Theme functionality
+    // Modal functionality
     document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('taskModal');
+      const form = document.getElementById('taskForm');
+      const addBtn = document.getElementById('btnAdd');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const title = document.getElementById('modalTitle');
+      const tbody = document.getElementById('taskBody');
+      
+      // Load existing data or initialize
+      const existingData = getData();
+      if (existingData.length === 0) {
+        loadSampleData();
+      } else {
+        renderTable(existingData);
+      }
+      
+      // Setup filters
+      setTimeout(populateFilters, 500);
+      setTimeout(setupFilterEvents, 1000);
+      
+      // Export buttons
+      document.getElementById('btnPDF').onclick = () => {
+        exportToPDF();
+      };
+      document.getElementById('btnExcel').onclick = () => {
+        exportToExcel();
+      };
+      
+      // Add button click
+      addBtn.onclick = () => {
+        editIndex = null;
+        form.reset();
+        title.textContent = 'Add Task';
+        modal.style.display = 'flex';
+      };
+      
+      // Cancel button
+      cancelBtn.onclick = () => {
+        modal.style.display = 'none';
+      };
+      
+      // Close modal when clicking outside
+      window.onclick = (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      };
+      
+      // Event delegation for delete (click) and edit (double-click)
+      tbody.addEventListener('click', (e) => {
+        if (e.target.classList.contains('del')) {
+          const row = e.target.closest('tr');
+          if (row) {
+            const i = [...tbody.children].indexOf(row);
+            if (confirm('Delete this task?')) {
+              const data = getData();
+              data.splice(i, 1);
+              saveData(data);
+              renderTable(data);
+            }
+          }
+        }
+      });
+      
+      // Double-click to edit
+      tbody.addEventListener('dblclick', (e) => {
+        const row = e.target.closest('tr');
+        if (row) {
+          editIndex = [...tbody.children].indexOf(row);
+          const data = getData()[editIndex];
+          
+          // Populate form
+          form.desc.value = data.desc || '';
+          form.cat.value = data.cat || '';
+          form.tag.value = data.tag || '';
+          form.assignee.value = data.assignee || '';
+          form.priority.value = data.priority || '';
+          form.due.value = data.due || '';
+          form.completed.value = data.completed || '';
+          form.status.value = data.status || '';
+          
+          title.textContent = 'Edit Task';
+          modal.style.display = 'flex';
+        }
+      });
+      
+      // Form submit
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        const rec = {
+          desc: form.desc.value,
+          cat: form.cat.value,
+          tag: form.tag.value,
+          assignee: form.assignee.value,
+          priority: form.priority.value,
+          due: form.due.value,
+          completed: form.completed.value,
+          status: form.status.value
+        };
+        
+        const data = getData();
+        if (editIndex !== null) {
+          data[editIndex] = rec;
+        } else {
+          data.push(rec);
+        }
+        
+        saveData(data);
+        renderTable(data);
+        modal.style.display = 'none';
+      };
+      
+      // Theme functionality
       const themeSwitch = document.getElementById('themeSwitch');
       if (themeSwitch) {
         const savedTheme = localStorage.getItem('theme') || 'light';
