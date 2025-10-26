@@ -394,10 +394,13 @@
 
 
         function showFolderSelectionPrompt() {
+            const expectedPath = localStorage.getItem(STORAGE_KEY) || DEFAULT_PATH;
             document.getElementById('fileListContainer').innerHTML = `
                 <div class="loading">
-                    <p>Click "Change Folder" to select your folder: <strong>${DEFAULT_PATH}</strong></p>
-                    <p>Once selected, files will load automatically on future visits</p>
+                    <h3>📁 Ready to Load Your Files</h3>
+                    <p><strong>Expected folder:</strong> ${expectedPath}</p>
+                    <p>Click "Change Folder" below to select your folder</p>
+                    <p><em>💡 Tip: The folder picker will show the exact path to navigate to</em></p>
                 </div>
             `;
         }
@@ -405,16 +408,31 @@
         async function selectFolder() {
             try {
                 if ('showDirectoryPicker' in window) {
-                    directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                    // Get the expected path
+                    const expectedPath = localStorage.getItem(STORAGE_KEY) || DEFAULT_PATH;
                     
-                    const folderPath = directoryHandle.name;
-                    document.getElementById('currentFolder').textContent = `Current Path: ${folderPath}`;
+                    // Show helpful instructions
+                    const instructions = `📁 Folder Selection Instructions:\n\n` +
+                        `Expected folder: ${expectedPath}\n\n` +
+                        `1. The folder picker will open\n` +
+                        `2. Navigate to: ${expectedPath}\n` +
+                        `3. Select the folder\n\n` +
+                        `Click OK to open folder picker`;
                     
-                    // Save the folder access for persistence
-                    localStorage.setItem(STORAGE_KEY, folderPath);
-                    localStorage.setItem(ACCESS_KEY, 'true');
-                    
-                    await loadRealFiles();
+                    if (confirm(instructions)) {
+                        directoryHandle = await window.showDirectoryPicker({ 
+                            mode: 'readwrite'
+                        });
+                        
+                        const folderPath = directoryHandle.name;
+                        document.getElementById('currentFolder').textContent = `Current Path: ${folderPath}`;
+                        
+                        // Save the folder access for persistence
+                        localStorage.setItem(STORAGE_KEY, folderPath);
+                        localStorage.setItem(ACCESS_KEY, 'true');
+                        
+                        await loadRealFiles();
+                    }
                 } else {
                     alert('Folder picker not supported in this browser.');
                 }
