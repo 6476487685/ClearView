@@ -8,3 +8,4 @@ echo Press Ctrl+C to stop the server when you're done.
 echo.
 python file_server.py
 pause
+

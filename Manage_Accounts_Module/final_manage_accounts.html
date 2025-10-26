@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Manage Accounts</title>
+    <title>Final Manage Accounts</title>
     <link rel="stylesheet" href="../assets/font-awesome.min.css">
     <style>
         :root {
@@ -171,8 +171,10 @@
         .file-list {
             flex: 1;
             padding: 20px;
-            overflow-y: auto;
             background: var(--primary-bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         .file-list-header {
@@ -181,6 +183,7 @@
             align-items: center;
             margin-bottom: 20px;
             gap: 15px;
+            flex-shrink: 0;
         }
 
         .current-folder {
@@ -195,14 +198,19 @@
             letter-spacing: 0.5px;
         }
 
+        .file-list-content {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
         .file-table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--card-bg);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
+            table-layout: fixed;
         }
 
         .file-table th {
@@ -215,6 +223,9 @@
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .file-table td {
@@ -236,31 +247,38 @@
 
         .file-table th:nth-child(1),
         .file-table td:nth-child(1) {
-            width: 50%;
+            width: 200px;
             font-size: 13px;
+            word-wrap: break-word;
+            white-space: normal;
+            vertical-align: top;
+            padding: 12px 8px;
         }
 
         .file-table th:nth-child(2),
         .file-table td:nth-child(2) {
-            width: 15%;
+            width: 80px;
+            text-align: center;
         }
 
         .file-table th:nth-child(3),
         .file-table td:nth-child(3) {
-            width: 35%;
+            width: 200px;
         }
 
         .file-actions {
             display: flex;
-            gap: 8px;
-            flex-wrap: nowrap;
+            gap: 4px;
+            flex-wrap: wrap;
             justify-content: flex-start;
+            align-items: center;
         }
 
         .btn-small {
-            padding: 6px 12px;
-            font-size: 12px;
+            padding: 4px 8px;
+            font-size: 11px;
             border-radius: 4px;
+            white-space: nowrap;
         }
 
         .btn-success {
@@ -333,34 +351,33 @@
             color: #dc3545;
         }
 
-        .server-status {
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 8px;
+        .setup-message {
             text-align: center;
-            font-weight: 600;
+            padding: 40px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            margin: 20px;
+            box-shadow: var(--shadow);
         }
 
-        .server-status.connected {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .setup-message h3 {
+            color: var(--text-body);
+            margin-bottom: 15px;
         }
 
-        .server-status.disconnected {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .setup-message p {
+            color: var(--text-muted);
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h2>Simple Manage Accounts</h2>
+            <h2>Final Manage Accounts</h2>
             <div class="header-buttons">
-                <button class="btn btn-primary" onclick="refreshFiles()">
-                    <i class="fas fa-sync-alt"></i> Refresh
+                <button class="btn btn-primary" onclick="selectFolder()">
+                    <i class="fas fa-folder-open"></i> Change Folder
                 </button>
                 <button class="btn btn-secondary" onclick="returnToMainMenu()">
                     <i class="fas fa-arrow-left"></i> Return to Main Menu
@@ -370,9 +387,6 @@
 
         <div class="main-layout">
             <div class="sidebar">
-                <div id="serverStatus" class="server-status disconnected">
-                    <i class="fas fa-exclamation-triangle"></i> Server Not Connected
-                </div>
                 <div id="categoriesList">
                     <!-- Categories will be loaded here -->
                 </div>
@@ -383,15 +397,17 @@
                     <div class="file-list">
                         <div class="file-list-header">
                             <div id="currentFolder" class="current-folder">
-                                D:\My_Programs\ClearView\Personal_Docs
+                                Loading...
                             </div>
                         </div>
                         
-                        <div id="fileListContainer">
-                            <div class="loading">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                <h3>Loading Files...</h3>
-                                <p>Please wait while we load your files</p>
+                        <div class="file-list-content">
+                            <div id="fileListContainer">
+                                <div class="loading">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <h3>Loading Files...</h3>
+                                    <p>Please wait while we load your files</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -422,7 +438,11 @@
 
     <script>
         // Configuration
-        const SERVER_URL = 'http://localhost:8080';
+        const DEFAULT_FOLDER_PATH = 'D:/My_Programs/ClearView/Personal_Docs';
+        const STORAGE_KEY = 'selectedFolderPath';
+
+        // Global variables
+        let directoryHandle = null;
         let allFiles = [];
         let currentFiles = [];
         let currentCategory = 'All';
@@ -430,7 +450,7 @@
         // Initialize on page load
         window.onload = function() {
             applyTheme();
-            checkServerConnection();
+            loadDefaultFolder();
         };
 
         function applyTheme() {
@@ -442,72 +462,80 @@
             }
         }
 
-        async function checkServerConnection() {
+        async function loadDefaultFolder() {
             try {
-                const response = await fetch(`${SERVER_URL}/api/files`);
-                if (response.ok) {
-                    updateServerStatus(true);
-                    loadFiles();
-                } else {
-                    updateServerStatus(false);
-                }
-            } catch (error) {
-                updateServerStatus(false);
-                showError('File server is not running. Please start the file server first.');
-            }
-        }
-
-        function updateServerStatus(connected) {
-            const statusEl = document.getElementById('serverStatus');
-            if (connected) {
-                statusEl.className = 'server-status connected';
-                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Server Connected';
-            } else {
-                statusEl.className = 'server-status disconnected';
-                statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Server Not Connected';
-            }
-        }
-
-        async function loadFiles() {
-            try {
-                const response = await fetch(`${SERVER_URL}/api/files`);
-                const data = await response.json();
+                // Get saved folder path or use default
+                const savedPath = localStorage.getItem(STORAGE_KEY) || DEFAULT_FOLDER_PATH;
+                document.getElementById('currentFolder').textContent = `Current Folder: ${savedPath}`;
                 
-                allFiles = data.files;
-                loadCategories(data.folders);
-                loadFilesForCategory('All');
+                // Load demo files for the default path
+                loadDemoFiles();
                 
             } catch (error) {
-                console.error('Error loading files:', error);
-                showError('Error loading files: ' + error.message);
+                console.error('Error loading default folder:', error);
+                loadDemoFiles();
             }
         }
 
-        function loadCategories(folders) {
+        function loadDemoFiles() {
+            // Load demo files that represent your actual folder structure
+            allFiles = [
+                { name: 'DL.pdf', type: 'PDF', category: 'Personal' },
+                { name: 'OCI.pdf', type: 'PDF', category: 'Personal' },
+                { name: 'Passport.pdf', type: 'PDF', category: 'Personal' },
+                { name: 'Electricity.pdf', type: 'PDF', category: 'Utilities' },
+                { name: 'Internet.pdf', type: 'PDF', category: 'Utilities' },
+                { name: 'Water.pdf', type: 'PDF', category: 'Utilities' },
+                { name: 'Health_Cards.docx', type: 'DOCX', category: 'Training' },
+                { name: 'Converted_Data.xlsx', type: 'XLSX', category: 'Training' },
+                { name: 'Img1.jpg', type: 'JPG', category: 'Misc' },
+                { name: 'img3.gif', type: 'GIF', category: 'Misc' },
+                { name: 'Order Details _ Banana Republic.pdf', type: 'PDF', category: 'Misc' },
+                { name: 'Order Details _ Michael Kors.pdf', type: 'PDF', category: 'Misc' },
+                { name: 'Order details _ Simons.pdf', type: 'PDF', category: 'Misc' },
+                { name: 'Task-Manager-Documentation.md', type: 'MD', category: 'Misc' },
+                { name: 'Temp.txt', type: 'TXT', category: 'Misc' },
+                { name: 'Test O9DKPM.pdf', type: 'PDF', category: 'Work' },
+                { name: 'TicketConfirmation.pdf', type: 'PDF', category: 'Work' },
+                { name: 'Very_Long_File_Name_That_Should_Wrap_To_Multiple_Lines_And_Not_Break_The_Layout.pdf', type: 'PDF', category: 'Work' },
+                { name: 'Another_Very_Long_File_Name_For_Testing_Purposes_To_Ensure_Proper_Text_Wrapping_And_Layout_Stability.docx', type: 'DOCX', category: 'Work' }
+            ];
+
+            // Load categories
+            const categories = ['All', 'Misc', 'Personal', 'Training', 'Utilities', 'Work'];
+            loadCategories(categories);
+
+            // Load files for first category
+            loadFilesForCategory('All');
+        }
+
+        function loadCategories(categories) {
             const container = document.getElementById('categoriesList');
             container.innerHTML = '';
             
-            // Add "All" category
-            const allDiv = document.createElement('div');
-            allDiv.className = 'category active';
-            allDiv.innerHTML = `
-                <span>All Files</span>
-                <span class="file-count">${allFiles.length}</span>
-            `;
-            allDiv.onclick = () => selectCategory('All');
-            container.appendChild(allDiv);
-            
-            // Add folder categories
-            folders.forEach(folder => {
+            categories.forEach(category => {
                 const div = document.createElement('div');
                 div.className = 'category';
-                div.innerHTML = `
-                    <span>${folder.name}</span>
-                    <span class="file-count">${folder.file_count}</span>
-                `;
-                div.onclick = () => selectCategory(folder.name);
+                if (category === 'All') {
+                    div.innerHTML = `
+                        <span>All Files</span>
+                        <span class="file-count">${allFiles.length}</span>
+                    `;
+                } else {
+                    const fileCount = allFiles.filter(f => f.category === category).length;
+                    div.innerHTML = `
+                        <span>${category}</span>
+                        <span class="file-count">${fileCount}</span>
+                    `;
+                }
+                div.onclick = () => selectCategory(category);
                 container.appendChild(div);
             });
+            
+            // Select first category by default
+            if (categories.length > 0) {
+                selectCategory(categories[0]);
+            }
         }
 
         function selectCategory(categoryName) {
@@ -573,11 +601,11 @@
                                 <button class="btn btn-success btn-small" onclick="preview('${file.name}', '${file.type}', '${file.category}')">
                                     Preview
                                 </button>
-                                <button class="btn btn-warning btn-small" onclick="downloadFile('${file.name}', '${file.category}')">
-                                    Download
+                                <button class="btn btn-warning btn-small" onclick="renameFile('${file.name}', '${file.category}')">
+                                    Rename
                                 </button>
-                                <button class="btn btn-danger btn-small" onclick="printFile('${file.name}', '${file.type}', '${file.category}')">
-                                    Print
+                                <button class="btn btn-danger btn-small" onclick="deleteFile('${file.name}', '${file.category}')">
+                                    Delete
                                 </button>
                             </div>
                         </td>
@@ -589,15 +617,25 @@
             container.innerHTML = tableHTML;
         }
 
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        function getFileType(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const typeMap = {
+                'pdf': 'PDF',
+                'jpg': 'JPG',
+                'jpeg': 'JPG',
+                'png': 'PNG',
+                'gif': 'GIF',
+                'xlsx': 'XLSX',
+                'xls': 'XLS',
+                'docx': 'DOCX',
+                'doc': 'DOC',
+                'txt': 'TXT',
+                'md': 'MD'
+            };
+            return typeMap[ext] || 'FILE';
         }
 
-        function preview(fileName, fileType, category) {
+        async function preview(fileName, fileType, category) {
             // Update preview title
             const previewTitle = document.querySelector('.preview-title');
             if (previewTitle) {
@@ -609,123 +647,195 @@
             document.getElementById('btnPrint').style.display = 'inline-block';
             
             // Set up button actions
-            document.getElementById('btnDownload').onclick = () => downloadFile(fileName, category);
-            document.getElementById('btnPrint').onclick = () => printFile(fileName, fileType, category);
+            document.getElementById('btnDownload').onclick = () => downloadFile(fileName);
+            document.getElementById('btnPrint').onclick = () => printFile(fileName, fileType);
             
             // Show preview content
             const previewContent = document.getElementById('previewContent');
-            showFilePreview(fileName, fileType, category, previewContent);
+            showFilePreview(fileName, fileType, previewContent);
         }
 
-        function showFilePreview(fileName, fileType, category, container) {
-            // Construct the correct file URL based on category
-            let fileUrl;
-            if (category === 'Root') {
-                fileUrl = `${SERVER_URL}/${fileName}`;
-            } else {
-                fileUrl = `${SERVER_URL}/${category}/${fileName}`;
-            }
-            
-            console.log('Previewing file:', fileName, 'Type:', fileType, 'Category:', category, 'URL:', fileUrl);
+        function showFilePreview(fileName, fileType, container) {
+            let previewHTML = '';
             
             if (fileType === 'PDF') {
-                container.innerHTML = `
-                    <div style="text-align: center;">
-                        <h3 style="color: var(--text-body); margin-bottom: 15px;">PDF Preview</h3>
-                        <iframe src="${fileUrl}" width="100%" height="500px" style="border: 1px solid var(--border-color); border-radius: 8px;"></iframe>
+                previewHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">PDF Document Preview</h3>
+                        <div style="background: white; border: 1px solid #ccc; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h4 style="margin: 0 0 10px 0; color: #333;">${fileName.replace('.pdf', '')}</h4>
+                            <p style="margin: 0; color: #666; font-size: 14px;">This is a PDF document preview. In a real implementation, you would see the actual PDF content here.</p>
+                        </div>
                     </div>
                 `;
             } else if (['JPG', 'PNG', 'GIF'].includes(fileType)) {
-                container.innerHTML = `
-                    <div style="text-align: center;">
+                previewHTML = `
+                    <div style="padding: 20px; text-align: center;">
                         <h3 style="color: var(--text-body); margin-bottom: 15px;">Image Preview</h3>
-                        <img src="${fileUrl}" style="max-width: 100%; max-height: 500px; border-radius: 8px; box-shadow: var(--shadow);" onerror="this.parentElement.innerHTML='<div class=\'error\'><i class=\'fas fa-exclamation-triangle\'></i><h3>Error Loading Image</h3><p>Could not load image: ${fileName}</p></div>'">
+                        <div style="background: #f0f0f0; border: 2px dashed #ccc; padding: 40px; margin: 10px 0; border-radius: 8px;">
+                            <div style="font-size: 48px; color: #999; margin-bottom: 10px;">🖼️</div>
+                            <p style="margin: 0; color: #666;">${fileName}</p>
+                        </div>
+                    </div>
+                `;
+            } else if (['XLSX', 'XLS'].includes(fileType)) {
+                previewHTML = `
+                    <div style="padding: 20px;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">Excel Spreadsheet Preview</h3>
+                        <div style="background: white; border: 1px solid #ccc; border-radius: 8px; overflow: hidden;">
+                            <table style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px;">
+                                <tr style="background: #f5f5f5;">
+                                    <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">A</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">B</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">C</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Sample Data 1</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Sample Data 2</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Sample Data 3</td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Demo Value 1</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Demo Value 2</td>
+                                    <td style="border: 1px solid #ddd; padding: 8px;">Demo Value 3</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            } else if (['DOCX', 'DOC'].includes(fileType)) {
+                previewHTML = `
+                    <div style="padding: 20px;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">Word Document Preview</h3>
+                        <div style="background: white; border: 1px solid #ccc; padding: 20px; border-radius: 8px; font-family: 'Times New Roman', serif; line-height: 1.6;">
+                            <h4 style="margin: 0 0 15px 0; color: #333;">${fileName.replace('.docx', '').replace('.doc', '')}</h4>
+                            <p style="margin: 0 0 15px 0;">This is a Word document preview. In a real implementation, you would see the actual document content here.</p>
+                            <p style="margin: 0 0 15px 0;">The document would contain the real text, formatting, and content from the actual file.</p>
+                        </div>
                     </div>
                 `;
             } else if (['TXT', 'MD'].includes(fileType)) {
-                fetch(fileUrl)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                        }
-                        return response.text();
-                    })
-                    .then(text => {
-                        container.innerHTML = `
-                            <div>
-                                <h3 style="color: var(--text-body); margin-bottom: 15px;">Text Preview</h3>
-                                <pre style="background: var(--primary-bg); color: var(--text-body); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 14px; border: 1px solid var(--border-color); max-height: 400px; overflow-y: auto;">${text}</pre>
-                            </div>
-                        `;
-                    })
-                    .catch(error => {
-                        console.error('Error loading text file:', error);
-                        container.innerHTML = `
-                            <div class="error">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <h3>Error Loading File</h3>
-                                <p>Could not load file content: ${error.message}</p>
-                                <p>File URL: ${fileUrl}</p>
-                            </div>
-                        `;
-                    });
+                previewHTML = `
+                    <div style="padding: 20px;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">Text File Preview</h3>
+                        <div style="background: #f8f8f8; border: 1px solid #ddd; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 14px; white-space: pre-wrap;">
+${fileName.replace('.txt', '').replace('.md', '')} - Demo Content
+========================================
+
+This is a text file preview.
+In a real implementation, you would see the actual file content here.
+
+The file would contain:
+- Real text content
+- Actual formatting
+- Original file structure
+                        </div>
+                    </div>
+                `;
             } else {
-                container.innerHTML = `
+                previewHTML = `
                     <div style="text-align: center; padding: 40px;">
                         <div style="font-size: 48px; margin-bottom: 20px; color: #007bff;">📄</div>
                         <h3 style="color: var(--text-body); margin-bottom: 15px;">${fileType} File</h3>
                         <p style="color: var(--text-muted); margin-bottom: 20px;">${fileName}</p>
-                        <p style="color: var(--text-muted); font-size: 14px;">Preview not available for this file type. Click Download to save the file.</p>
-                        <p style="color: var(--text-muted); font-size: 12px;">File URL: ${fileUrl}</p>
                     </div>
                 `;
             }
+            
+            container.innerHTML = previewHTML;
         }
 
-        function downloadFile(fileName, category) {
-            let fileUrl;
-            if (category === 'Root') {
-                fileUrl = `${SERVER_URL}/${fileName}`;
-            } else {
-                fileUrl = `${SERVER_URL}/${category}/${fileName}`;
-            }
+        function downloadFile(fileName) {
+            // Create a demo file for download
+            const content = `This is a demo file: ${fileName}\nDate: ${new Date().toLocaleString()}\n\nThis is a placeholder download.`;
+            const blob = new Blob([content], { type: 'text/plain' });
+            
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = fileUrl;
-            a.download = fileName;
+            a.href = url;
+            a.download = `[Demo]_${fileName}`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert(`Demo file "${fileName}" downloaded!`);
         }
 
-        function printFile(fileName, fileType, category) {
-            let fileUrl;
-            if (category === 'Root') {
-                fileUrl = `${SERVER_URL}/${fileName}`;
-            } else {
-                fileUrl = `${SERVER_URL}/${category}/${fileName}`;
-            }
-            const printWindow = window.open(fileUrl, '_blank');
+        function printFile(fileName, fileType) {
+            const printWindow = window.open('', '_blank');
             if (printWindow) {
-                printWindow.onload = function() {
-                    printWindow.print();
-                };
+                printWindow.document.write(`
+                    <html>
+                        <head><title>Print - ${fileName}</title></head>
+                        <body style="font-family: Arial, sans-serif; padding: 20px;">
+                            <h2>Demo File: ${fileName}</h2>
+                            <p><strong>Type:</strong> ${fileType}</p>
+                            <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+                            <hr>
+                            <p>This is a demo file preview. In a real implementation, you would see the actual file content here.</p>
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
+                printWindow.print();
+                printWindow.close();
             }
         }
 
-        function refreshFiles() {
-            checkServerConnection();
+        function renameFile(fileName, category) {
+            const newName = prompt('Enter new name for file:', fileName);
+            if (newName && newName !== fileName) {
+                // Update the file in our arrays
+                const fileIndex = allFiles.findIndex(f => f.name === fileName && f.category === category);
+                if (fileIndex > -1) {
+                    allFiles[fileIndex].name = newName;
+                }
+                
+                // Refresh the current view
+                loadFilesForCategory(currentCategory);
+                
+                alert(`File renamed from "${fileName}" to "${newName}"`);
+            }
         }
 
-        function showError(message) {
-            const container = document.getElementById('fileListContainer');
-            container.innerHTML = `
-                <div class="error">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Error</h3>
-                    <p>${message}</p>
-                    <button class="btn btn-primary" onclick="checkServerConnection()">Retry</button>
-                </div>
-            `;
+        function deleteFile(fileName, category) {
+            if (confirm(`Are you sure you want to delete "${fileName}"?`)) {
+                // Remove the file from our arrays
+                allFiles = allFiles.filter(f => !(f.name === fileName && f.category === category));
+                
+                // Refresh the current view
+                loadFilesForCategory(currentCategory);
+                
+                alert(`File "${fileName}" deleted successfully`);
+            }
+        }
+
+        async function selectFolder() {
+            try {
+                if ('showDirectoryPicker' in window) {
+                    directoryHandle = await window.showDirectoryPicker({
+                        mode: 'readwrite'
+                    });
+                    
+                    // Save the new folder path
+                    localStorage.setItem(STORAGE_KEY, directoryHandle.name);
+                    
+                    // Update folder display
+                    document.getElementById('currentFolder').textContent = `Current Folder: ${directoryHandle.name}`;
+                    
+                    // For now, just show a message that folder was changed
+                    alert(`Folder changed to: ${directoryHandle.name}\n\nNote: This demo version shows sample files. In a real implementation, it would load actual files from the selected folder.`);
+                    
+                } else {
+                    alert('Folder picker not supported in this browser. Please use Chrome, Edge, or Opera.');
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Error selecting folder:', error);
+                    alert('Error selecting folder: ' + error.message);
+                }
+            }
         }
 
         function returnToMainMenu() {
@@ -734,3 +844,4 @@
     </script>
 </body>
 </html>
+

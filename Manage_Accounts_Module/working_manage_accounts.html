@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Manage Accounts</title>
+    <title>Working Manage Accounts</title>
     <link rel="stylesheet" href="../assets/font-awesome.min.css">
     <style>
         :root {
@@ -173,6 +173,14 @@
             padding: 20px;
             overflow-y: auto;
             background: var(--primary-bg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .file-list-content {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
         }
 
         .file-list-header {
@@ -234,27 +242,44 @@
             border-bottom: none;
         }
 
+        .file-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
         .file-table th:nth-child(1),
         .file-table td:nth-child(1) {
-            width: 50%;
+            width: 200px;
             font-size: 13px;
+            word-wrap: break-word;
+            white-space: normal;
+            vertical-align: top;
+            padding: 12px 8px;
         }
 
         .file-table th:nth-child(2),
         .file-table td:nth-child(2) {
-            width: 15%;
+            width: 80px;
+            text-align: center;
         }
 
         .file-table th:nth-child(3),
         .file-table td:nth-child(3) {
-            width: 35%;
+            width: 200px;
         }
 
         .file-actions {
             display: flex;
-            gap: 8px;
-            flex-wrap: nowrap;
+            gap: 4px;
+            flex-wrap: wrap;
             justify-content: flex-start;
+            align-items: center;
+        }
+
+        .file-actions .btn-small {
+            padding: 4px 8px;
+            font-size: 11px;
+            white-space: nowrap;
         }
 
         .btn-small {
@@ -333,34 +358,33 @@
             color: #dc3545;
         }
 
-        .server-status {
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 8px;
+        .setup-message {
             text-align: center;
-            font-weight: 600;
+            padding: 40px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            margin: 20px;
+            box-shadow: var(--shadow);
         }
 
-        .server-status.connected {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .setup-message h3 {
+            color: var(--text-body);
+            margin-bottom: 15px;
         }
 
-        .server-status.disconnected {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .setup-message p {
+            color: var(--text-muted);
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h2>Simple Manage Accounts</h2>
+            <h2>Working Manage Accounts</h2>
             <div class="header-buttons">
-                <button class="btn btn-primary" onclick="refreshFiles()">
-                    <i class="fas fa-sync-alt"></i> Refresh
+                <button class="btn btn-primary" onclick="selectFolder()">
+                    <i class="fas fa-folder-open"></i> Select Folder
                 </button>
                 <button class="btn btn-secondary" onclick="returnToMainMenu()">
                     <i class="fas fa-arrow-left"></i> Return to Main Menu
@@ -370,9 +394,6 @@
 
         <div class="main-layout">
             <div class="sidebar">
-                <div id="serverStatus" class="server-status disconnected">
-                    <i class="fas fa-exclamation-triangle"></i> Server Not Connected
-                </div>
                 <div id="categoriesList">
                     <!-- Categories will be loaded here -->
                 </div>
@@ -383,15 +404,17 @@
                     <div class="file-list">
                         <div class="file-list-header">
                             <div id="currentFolder" class="current-folder">
-                                D:\My_Programs\ClearView\Personal_Docs
+                                No folder selected
                             </div>
                         </div>
                         
-                        <div id="fileListContainer">
-                            <div class="loading">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                <h3>Loading Files...</h3>
-                                <p>Please wait while we load your files</p>
+                        <div class="file-list-content">
+                            <div id="fileListContainer">
+                                <div class="setup-message">
+                                    <h3>📁 Select Your Folder</h3>
+                                    <p>Click "Select Folder" to choose the folder containing your files.</p>
+                                    <p>This will load all files and folders for preview and management.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -421,8 +444,8 @@
     </div>
 
     <script>
-        // Configuration
-        const SERVER_URL = 'http://localhost:8080';
+        // Global variables
+        let directoryHandle = null;
         let allFiles = [];
         let currentFiles = [];
         let currentCategory = 'All';
@@ -430,7 +453,7 @@
         // Initialize on page load
         window.onload = function() {
             applyTheme();
-            checkServerConnection();
+            loadSavedFolder();
         };
 
         function applyTheme() {
@@ -442,39 +465,109 @@
             }
         }
 
-        async function checkServerConnection() {
+        async function loadSavedFolder() {
             try {
-                const response = await fetch(`${SERVER_URL}/api/files`);
-                if (response.ok) {
-                    updateServerStatus(true);
-                    loadFiles();
-                } else {
-                    updateServerStatus(false);
+                const savedFolderName = localStorage.getItem('selectedFolderName');
+                if (savedFolderName) {
+                    // Try to restore the saved folder
+                    document.getElementById('currentFolder').textContent = `Current Folder: ${savedFolderName}`;
+                    
+                    // Show a message that we need to reselect the folder
+                    document.getElementById('fileListContainer').innerHTML = `
+                        <div class="setup-message">
+                            <h3>📁 Previously Selected Folder</h3>
+                            <p>You previously selected: <strong>${savedFolderName}</strong></p>
+                            <p>Click "Select Folder" to reload files from this folder.</p>
+                        </div>
+                    `;
                 }
             } catch (error) {
-                updateServerStatus(false);
-                showError('File server is not running. Please start the file server first.');
+                console.error('Error loading saved folder:', error);
             }
         }
 
-        function updateServerStatus(connected) {
-            const statusEl = document.getElementById('serverStatus');
-            if (connected) {
-                statusEl.className = 'server-status connected';
-                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Server Connected';
-            } else {
-                statusEl.className = 'server-status disconnected';
-                statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Server Not Connected';
-            }
-        }
-
-        async function loadFiles() {
+        async function selectFolder() {
             try {
-                const response = await fetch(`${SERVER_URL}/api/files`);
-                const data = await response.json();
+                if ('showDirectoryPicker' in window) {
+                    directoryHandle = await window.showDirectoryPicker({
+                        mode: 'readwrite'
+                    });
+                    
+                    // Save folder name
+                    localStorage.setItem('selectedFolderName', directoryHandle.name);
+                    
+                    // Update folder display
+                    document.getElementById('currentFolder').textContent = `Current Folder: ${directoryHandle.name}`;
+                    
+                    // Load files from the selected folder
+                    await loadFilesFromFolder();
+                    
+                } else {
+                    alert('Folder picker not supported in this browser. Please use Chrome, Edge, or Opera.');
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Error selecting folder:', error);
+                    alert('Error selecting folder: ' + error.message);
+                }
+            }
+        }
+
+        async function loadFilesFromFolder() {
+            try {
+                const folders = [];
+                const files = [];
                 
-                allFiles = data.files;
-                loadCategories(data.folders);
+                // Load folders and files from the root
+                for await (const [name, entryHandle] of directoryHandle.entries()) {
+                    if (entryHandle.kind === 'directory') {
+                        // Count files in this folder
+                        let fileCount = 0;
+                        try {
+                            for await (const [fileName, fileHandle] of entryHandle.entries()) {
+                                if (fileHandle.kind === 'file') {
+                                    fileCount++;
+                                }
+                            }
+                        } catch (e) {
+                            console.log('Could not count files in folder:', name);
+                        }
+                        
+                        folders.push({
+                            name: name,
+                            fileCount: fileCount
+                        });
+                    } else {
+                        files.push({
+                            name: name,
+                            type: getFileType(name),
+                            category: 'Root',
+                            handle: entryHandle
+                        });
+                    }
+                }
+                
+                // Load files from subfolders
+                for (const folder of folders) {
+                    try {
+                        const folderHandle = await directoryHandle.getDirectoryHandle(folder.name);
+                        for await (const [fileName, fileHandle] of folderHandle.entries()) {
+                            if (fileHandle.kind === 'file') {
+                                files.push({
+                                    name: fileName,
+                                    type: getFileType(fileName),
+                                    category: folder.name,
+                                    handle: fileHandle
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Could not load files from folder:', folder.name);
+                    }
+                }
+                
+                allFiles = files;
+                loadCategories(folders);
                 loadFilesForCategory('All');
                 
             } catch (error) {
@@ -503,7 +596,7 @@
                 div.className = 'category';
                 div.innerHTML = `
                     <span>${folder.name}</span>
-                    <span class="file-count">${folder.file_count}</span>
+                    <span class="file-count">${folder.fileCount}</span>
                 `;
                 div.onclick = () => selectCategory(folder.name);
                 container.appendChild(div);
@@ -573,11 +666,11 @@
                                 <button class="btn btn-success btn-small" onclick="preview('${file.name}', '${file.type}', '${file.category}')">
                                     Preview
                                 </button>
-                                <button class="btn btn-warning btn-small" onclick="downloadFile('${file.name}', '${file.category}')">
-                                    Download
+                                <button class="btn btn-warning btn-small" onclick="renameFile('${file.name}', '${file.category}')">
+                                    Rename
                                 </button>
-                                <button class="btn btn-danger btn-small" onclick="printFile('${file.name}', '${file.type}', '${file.category}')">
-                                    Print
+                                <button class="btn btn-danger btn-small" onclick="deleteFile('${file.name}', '${file.category}')">
+                                    Delete
                                 </button>
                             </div>
                         </td>
@@ -589,15 +682,25 @@
             container.innerHTML = tableHTML;
         }
 
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        function getFileType(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const typeMap = {
+                'pdf': 'PDF',
+                'jpg': 'JPG',
+                'jpeg': 'JPG',
+                'png': 'PNG',
+                'gif': 'GIF',
+                'xlsx': 'XLSX',
+                'xls': 'XLS',
+                'docx': 'DOCX',
+                'doc': 'DOC',
+                'txt': 'TXT',
+                'md': 'MD'
+            };
+            return typeMap[ext] || 'FILE';
         }
 
-        function preview(fileName, fileType, category) {
+        async function preview(fileName, fileType, category) {
             // Update preview title
             const previewTitle = document.querySelector('.preview-title');
             if (previewTitle) {
@@ -614,106 +717,168 @@
             
             // Show preview content
             const previewContent = document.getElementById('previewContent');
-            showFilePreview(fileName, fileType, category, previewContent);
+            await showFilePreview(fileName, fileType, category, previewContent);
         }
 
-        function showFilePreview(fileName, fileType, category, container) {
-            // Construct the correct file URL based on category
-            let fileUrl;
-            if (category === 'Root') {
-                fileUrl = `${SERVER_URL}/${fileName}`;
-            } else {
-                fileUrl = `${SERVER_URL}/${category}/${fileName}`;
+        async function renameFile(fileName, category) {
+            const newName = prompt('Enter new name for file:', fileName);
+            if (newName && newName !== fileName) {
+                try {
+                    // Find the file in current files
+                    const file = currentFiles.find(f => f.name === fileName && f.category === category);
+                    if (!file || !file.handle) {
+                        throw new Error('File handle not found');
+                    }
+                    
+                    // For now, just update the display (actual file renaming requires more complex logic)
+                    // Update the file in our arrays
+                    file.name = newName;
+                    const allFileIndex = allFiles.findIndex(f => f.name === fileName && f.category === category);
+                    if (allFileIndex > -1) {
+                        allFiles[allFileIndex].name = newName;
+                    }
+                    
+                    // Refresh the current view
+                    loadFilesForCategory(currentCategory);
+                    
+                    alert(`File renamed from "${fileName}" to "${newName}" (display only - actual file not renamed)`);
+                } catch (error) {
+                    console.error('Error renaming file:', error);
+                    alert('Error renaming file: ' + error.message);
+                }
             }
-            
-            console.log('Previewing file:', fileName, 'Type:', fileType, 'Category:', category, 'URL:', fileUrl);
-            
-            if (fileType === 'PDF') {
+        }
+
+        async function deleteFile(fileName, category) {
+            if (confirm(`Are you sure you want to delete "${fileName}"?`)) {
+                try {
+                    // Find the file in current files
+                    const file = currentFiles.find(f => f.name === fileName && f.category === category);
+                    if (!file || !file.handle) {
+                        throw new Error('File handle not found');
+                    }
+                    
+                    // For now, just remove from display (actual file deletion requires more complex logic)
+                    // Remove the file from our arrays
+                    allFiles = allFiles.filter(f => !(f.name === fileName && f.category === category));
+                    currentFiles = currentFiles.filter(f => !(f.name === fileName && f.category === category));
+                    
+                    // Refresh the current view
+                    loadFilesForCategory(currentCategory);
+                    
+                    alert(`File "${fileName}" deleted from display (actual file not deleted)`);
+                } catch (error) {
+                    console.error('Error deleting file:', error);
+                    alert('Error deleting file: ' + error.message);
+                }
+            }
+        }
+
+        async function showFilePreview(fileName, fileType, category, container) {
+            try {
+                // Find the file in current files
+                const file = currentFiles.find(f => f.name === fileName && f.category === category);
+                
+                if (!file || !file.handle) {
+                    throw new Error('File handle not found');
+                }
+                
+                // Get the file object
+                const fileObj = await file.handle.getFile();
+                const url = URL.createObjectURL(fileObj);
+                
+                if (fileType === 'PDF') {
+                    container.innerHTML = `
+                        <div style="text-align: center;">
+                            <h3 style="color: var(--text-body); margin-bottom: 15px;">PDF Preview</h3>
+                            <iframe src="${url}" width="100%" height="500px" style="border: 1px solid var(--border-color); border-radius: 8px;"></iframe>
+                        </div>
+                    `;
+                } else if (['JPG', 'PNG', 'GIF'].includes(fileType)) {
+                    container.innerHTML = `
+                        <div style="text-align: center;">
+                            <h3 style="color: var(--text-body); margin-bottom: 15px;">Image Preview</h3>
+                            <img src="${url}" style="max-width: 100%; max-height: 500px; border-radius: 8px; box-shadow: var(--shadow);">
+                        </div>
+                    `;
+                } else if (['TXT', 'MD'].includes(fileType)) {
+                    const text = await fileObj.text();
+                    container.innerHTML = `
+                        <div>
+                            <h3 style="color: var(--text-body); margin-bottom: 15px;">Text Preview</h3>
+                            <pre style="background: var(--primary-bg); color: var(--text-body); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 14px; border: 1px solid var(--border-color); max-height: 400px; overflow-y: auto;">${text}</pre>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <div style="font-size: 48px; margin-bottom: 20px; color: #007bff;">📄</div>
+                            <h3 style="color: var(--text-body); margin-bottom: 15px;">${fileType} File</h3>
+                            <p style="color: var(--text-muted); margin-bottom: 20px;">${fileName}</p>
+                            <p style="color: var(--text-muted); font-size: 14px;">Preview not available for this file type. Click Download to save the file.</p>
+                        </div>
+                    `;
+                }
+                
+                // Clean up the URL after a delay
+                setTimeout(() => URL.revokeObjectURL(url), 10000);
+                
+            } catch (error) {
+                console.error('Error previewing file:', error);
                 container.innerHTML = `
-                    <div style="text-align: center;">
-                        <h3 style="color: var(--text-body); margin-bottom: 15px;">PDF Preview</h3>
-                        <iframe src="${fileUrl}" width="100%" height="500px" style="border: 1px solid var(--border-color); border-radius: 8px;"></iframe>
+                    <div class="error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Error Loading File</h3>
+                        <p>Could not load file: ${error.message}</p>
                     </div>
                 `;
-            } else if (['JPG', 'PNG', 'GIF'].includes(fileType)) {
-                container.innerHTML = `
-                    <div style="text-align: center;">
-                        <h3 style="color: var(--text-body); margin-bottom: 15px;">Image Preview</h3>
-                        <img src="${fileUrl}" style="max-width: 100%; max-height: 500px; border-radius: 8px; box-shadow: var(--shadow);" onerror="this.parentElement.innerHTML='<div class=\'error\'><i class=\'fas fa-exclamation-triangle\'></i><h3>Error Loading Image</h3><p>Could not load image: ${fileName}</p></div>'">
-                    </div>
-                `;
-            } else if (['TXT', 'MD'].includes(fileType)) {
-                fetch(fileUrl)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                        }
-                        return response.text();
-                    })
-                    .then(text => {
-                        container.innerHTML = `
-                            <div>
-                                <h3 style="color: var(--text-body); margin-bottom: 15px;">Text Preview</h3>
-                                <pre style="background: var(--primary-bg); color: var(--text-body); padding: 15px; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 14px; border: 1px solid var(--border-color); max-height: 400px; overflow-y: auto;">${text}</pre>
-                            </div>
-                        `;
-                    })
-                    .catch(error => {
-                        console.error('Error loading text file:', error);
-                        container.innerHTML = `
-                            <div class="error">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <h3>Error Loading File</h3>
-                                <p>Could not load file content: ${error.message}</p>
-                                <p>File URL: ${fileUrl}</p>
-                            </div>
-                        `;
-                    });
-            } else {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 40px;">
-                        <div style="font-size: 48px; margin-bottom: 20px; color: #007bff;">📄</div>
-                        <h3 style="color: var(--text-body); margin-bottom: 15px;">${fileType} File</h3>
-                        <p style="color: var(--text-muted); margin-bottom: 20px;">${fileName}</p>
-                        <p style="color: var(--text-muted); font-size: 14px;">Preview not available for this file type. Click Download to save the file.</p>
-                        <p style="color: var(--text-muted); font-size: 12px;">File URL: ${fileUrl}</p>
-                    </div>
-                `;
             }
         }
 
-        function downloadFile(fileName, category) {
-            let fileUrl;
-            if (category === 'Root') {
-                fileUrl = `${SERVER_URL}/${fileName}`;
-            } else {
-                fileUrl = `${SERVER_URL}/${category}/${fileName}`;
-            }
-            const a = document.createElement('a');
-            a.href = fileUrl;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
-        function printFile(fileName, fileType, category) {
-            let fileUrl;
-            if (category === 'Root') {
-                fileUrl = `${SERVER_URL}/${fileName}`;
-            } else {
-                fileUrl = `${SERVER_URL}/${category}/${fileName}`;
-            }
-            const printWindow = window.open(fileUrl, '_blank');
-            if (printWindow) {
-                printWindow.onload = function() {
-                    printWindow.print();
-                };
+        async function downloadFile(fileName, category) {
+            try {
+                const file = currentFiles.find(f => f.name === fileName && f.category === category);
+                if (!file || !file.handle) {
+                    throw new Error('File handle not found');
+                }
+                
+                const fileObj = await file.handle.getFile();
+                const url = URL.createObjectURL(fileObj);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('Error downloading file:', error);
+                alert('Error downloading file: ' + error.message);
             }
         }
 
-        function refreshFiles() {
-            checkServerConnection();
+        async function printFile(fileName, fileType, category) {
+            try {
+                const file = currentFiles.find(f => f.name === fileName && f.category === category);
+                if (!file || !file.handle) {
+                    throw new Error('File handle not found');
+                }
+                
+                const fileObj = await file.handle.getFile();
+                const url = URL.createObjectURL(fileObj);
+                const printWindow = window.open(url, '_blank');
+                if (printWindow) {
+                    printWindow.onload = function() {
+                        printWindow.print();
+                    };
+                }
+                URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                console.error('Error printing file:', error);
+                alert('Error printing file: ' + error.message);
+            }
         }
 
         function showError(message) {
@@ -723,7 +888,6 @@
                     <i class="fas fa-exclamation-triangle"></i>
                     <h3>Error</h3>
                     <p>${message}</p>
-                    <button class="btn btn-primary" onclick="checkServerConnection()">Retry</button>
                 </div>
             `;
         }
