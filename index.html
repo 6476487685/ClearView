@@ -82,8 +82,8 @@ input:checked + .slider:before{transform:translateX(22px);}
 
 /* Enhanced Documents Modal Styles */
 .docs-modal{max-width:933px;width:78%;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;position:fixed;top:calc(60px + (100vh - 60px) / 2 - 192px);left:calc(260px + (100vw - 260px) / 2);transform:translate(-50%, -50%);z-index:1001;}
-.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--divider);flex-shrink:0;}
-.modal-header h4{margin:0;color:var(--text-body);font-size:16px;font-weight:600;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:15px 20px;background:linear-gradient(135deg, #2c3e50 0%, #34495e 100%);border-bottom:2px solid #27ae60;flex-shrink:0;border-radius:8px 8px 0 0;}
+.modal-header h4{margin:0;color:#ffffff;font-size:24px;font-weight:700;text-shadow:0 2px 4px rgba(0,0,0,0.3);}
 
 .upload-section{margin-bottom:12px;flex-shrink:0;}
 .upload-area{border:2px dashed var(--accent-blue);border-radius:8px;padding:20px;text-align:center;background:linear-gradient(135deg, rgba(66,133,244,0.05) 0%, rgba(66,133,244,0.02) 100%);transition:all 0.3s ease;cursor:pointer;position:relative;height:80px;display:flex;align-items:center;justify-content:center;}
@@ -206,20 +206,20 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 <div id="modal-docs" class="modal">
   <div class="modal-content docs-modal">
     <div class="modal-header">
-      <h4 style="font-size: 32px; font-family: Arial, sans-serif;"><img src="assets/icons/documents-manager.png?v=1" alt="Document Manager" style="width: 36px; height: 36px; margin-right: 4px;"> Document Manager</h4>
+      <h4 style="font-size: 28px; font-family: Arial, sans-serif; color: #ffffff; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);"><img src="assets/icons/documents-manager.png?v=1" alt="Document Manager" style="width: 36px; height: 36px; margin-right: 8px;"> Document Manager</h4>
       <div style="display:flex;gap:10px;align-items:center;">
         <button id="downloadAllBtn" style="
-          background:#1E3A8A;color:#FCD34D;border:none;padding:8px 12px;
-          border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
-          display:flex;align-items:center;gap:6px;font-weight:500;
+          background:linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%);color:#fff;border:none;padding:10px 16px;
+          border-radius:8px;font-size:14px;cursor:pointer;transition:all 0.3s ease;
+          display:flex;align-items:center;gap:8px;font-weight:600;box-shadow:0 4px 8px rgba(0,0,0,0.2);
         " title="Download all documents to Backup folder">
           <img src="assets/icons/download-all.png?v=1" alt="Download All" style="width: 24px; height: 24px;">
           <span>Download All</span>
         </button>
         <button id="changeDocsFolderBtn" style="
-          background:#8B5CF6;color:#fff;border:none;padding:8px 12px;
-          border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
-          display:flex;align-items:center;gap:6px;font-weight:500;
+          background:linear-gradient(135deg, #6B46C1 0%, #8B5CF6 100%);color:#fff;border:none;padding:10px 16px;
+          border-radius:8px;font-size:14px;cursor:pointer;transition:all 0.3s ease;
+          display:flex;align-items:center;gap:8px;font-weight:600;box-shadow:0 4px 8px rgba(0,0,0,0.2);
         " title="Change Documents folder">
           <img src="assets/icons/change-folder.png?v=1" alt="Change Folder" style="width: 24px; height: 24px;">
           <span>Change Folder</span>
