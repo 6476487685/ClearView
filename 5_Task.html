@@ -17,6 +17,9 @@
     <div class="title">Task Manager — Task Dashboard</div>
     <div class="right">
       <label class="theme-switch"><input type="checkbox" id="themeSwitch"><span class="slider"></span></label>
+      <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
+      <button class="excel" id="btnImportExcel" onclick="document.getElementById('excelFileInput').click();">📥 Load From Excel</button>
+      <button class="danger" id="btnClearData" style="background:#ea4335;color:white;">🗑️ Clear Data</button>
       <button class="pdf" id="btnPDF">📘 Export PDF</button>
       <button class="excel" id="btnExcel">📗 Export Excel</button>
       <button class="primary" id="btnAdd">➕ Add Task</button>
@@ -68,11 +71,11 @@
           <tr>
             <th class="resizable">#</th>
             <th class="resizable">Task Description</th>
-            <th class="resizable">Category Task</th>
-            <th class="resizable">Task Tag</th>
-            <th class="resizable">Task Status</th>
-            <th class="resizable">Task Assignee</th>
-            <th class="resizable">Task Priority</th>
+            <th class="resizable">Task Category</th>
+            <th class="resizable">Tag</th>
+            <th class="resizable">Status</th>
+            <th class="resizable">Assignee</th>
+            <th class="resizable">Priority</th>
             <th class="resizable">Due Date</th>
             <th class="resizable">Completed On</th>
             <th>Actions</th>
@@ -88,10 +91,22 @@
     <div class="modal-content">
       <h3 id="modalTitle">Add Task</h3>
       <form id="taskForm">
-        <div class="row-full">
-          <label>Task Description</label>
-          <input type="text" id="desc" required>
+        <div class="row-snippets">
+          <div class="desc-section">
+            <label>Task Description</label>
+            <input type="text" id="desc" placeholder="Describe the task" required>
+          </div>
+          <div class="snippets-section">
+            <label>&nbsp;</label>
+            <div class="snippets-controls">
+              <select id="snippetsDropdown">
+                <option value="">Snippets</option>
+              </select>
+              <button type="button" id="saveSnippetBtn" class="btn-save-snippet">Save to Snippets</button>
+            </div>
+          </div>
         </div>
+        <div class="tip-text" style="margin-top: -10px; margin-bottom: 10px;">Tip: click a snippet to insert at the cursor.</div>
 
         <!-- Line 1: Category, Task Tag, Assignee, Priority -->
         <div class="row4">
@@ -131,28 +146,167 @@
     // Embedded JavaScript - Task Manager
     let editIndex = null;
     
+    // Global function to handle Excel file change
+    window.handleExcelFileChange = function(e) {
+      console.log('=== EXCEL FILE CHANGE EVENT TRIGGERED ===');
+      console.log('Event:', e);
+      console.log('Target:', e.target);
+      console.log('Files:', e.target.files);
+      
+      const file = e.target.files[0];
+      console.log('File selected:', file ? file.name : 'No file');
+      
+      if (!file) {
+        console.log('No file selected - exiting');
+        return;
+      }
+      
+      console.log('File found:', file.name, 'Size:', file.size, 'bytes');
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          console.log('File loaded, reading Excel...');
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          console.log('Excel workbook loaded successfully');
+          
+          const sheetNames = workbook.SheetNames;
+          console.log('Available sheets:', sheetNames);
+          
+          // Load master data sheets
+          const masterData = {};
+          const masterSheetNames = ['Category_Task', 'Task_Tag', 'Task_Status', 'Task_Assignee', 'Task_Priority', 'Task_Adhoc'];
+          
+          masterSheetNames.forEach(sheetName => {
+            if (sheetNames.includes(sheetName)) {
+              const sheet = workbook.Sheets[sheetName];
+              const jsonData = XLSX.utils.sheet_to_json(sheet);
+              
+              // Get values from the sheet - handle different possible structures
+              let values = [];
+              if (jsonData.length > 0) {
+                const firstRow = jsonData[0];
+                
+                // For Task_Adhoc specifically, debug the structure
+                if (sheetName === 'Task_Adhoc') {
+                  console.log('Task_Adhoc sheet first row:', firstRow);
+                  console.log('Task_Adhoc keys in first row:', Object.keys(firstRow));
+                }
+                
+                // Try to get values from column with same name as sheet
+                values = jsonData.map(row => row[sheetName]).filter(val => val !== undefined && val !== null && val !== '');
+                
+                // If no values found, try getting from first column
+                if (values.length === 0) {
+                  const firstColKey = Object.keys(firstRow)[0];
+                  console.log(`No values found for ${sheetName}, using first column:`, firstColKey);
+                  values = jsonData.map(row => row[firstColKey]).filter(val => val !== undefined && val !== null && val !== '');
+                }
+              }
+              
+              masterData[sheetName] = values;
+              console.log(`Loaded ${masterData[sheetName].length} values from ${sheetName}:`, masterData[sheetName]);
+            } else {
+              console.log(`Sheet ${sheetName} not found in workbook`);
+            }
+          });
+          
+          // Load transaction data from Txn_Task sheet
+          let txnTaskSheet = workbook.Sheets['Txn_Task'] || workbook.Sheets['txn_task'];
+          
+          if (!txnTaskSheet) {
+            alert('Txn_Task sheet not found in the Excel file.');
+            return;
+          }
+          
+          // Convert to JSON
+          const jsonData = XLSX.utils.sheet_to_json(txnTaskSheet);
+          
+          if (jsonData.length === 0) {
+            alert('No data rows found in Txn_Task sheet.');
+            return;
+          }
+          
+          console.log('Raw data from Txn_Task - first row:', jsonData[0]);
+          console.log('Available columns:', Object.keys(jsonData[0]));
+          
+          // Map Excel data to Task structure - try multiple possible column name variations
+          const tasks = jsonData.map(row => {
+            // Helper function to get value from multiple possible column names
+            const getValue = (...possibleNames) => {
+              for (let name of possibleNames) {
+                if (row[name] !== undefined && row[name] !== null && row[name] !== '') {
+                  return row[name];
+                }
+              }
+              return '';
+            };
+            
+            return {
+              Task_Description: getValue('Task_Description', 'Task Description', 'TaskDescription', 'Description'),
+              Category_Task: getValue('Category_Task', 'Category Task', 'CategoryTask', 'Category'),
+              Task_Tag: getValue('Task_Tag', 'Task Tag', 'TaskTag', 'Tag', 'Tags'),
+              Task_Status: getValue('Task_Status', 'Task Status', 'TaskStatus', 'Status'),
+              Task_Assignee: getValue('Task_Assignee', 'Task Assignee', 'TaskAssignee', 'Assignee'),
+              Task_Priority: getValue('Task_Priority', 'Task Priority', 'TaskPriority', 'Priority'),
+              Due_Date: getValue('Due_Date', 'Due-Date', 'Due Date', 'DueDate', 'Due'),
+              Completed_On: getValue('Completed_On', 'Completed-On', 'Completed On', 'CompletedOn', 'Completed'),
+              Task_Adhoc: getValue('Task_Adhoc', 'Task Adhoc', 'TaskAdhoc', 'Adhoc', 'Snippet')
+            };
+          });
+          
+          console.log('First imported task after mapping:', tasks[0]);
+          
+          // Save to localStorage
+          localStorage.setItem('task_records', JSON.stringify(tasks));
+          localStorage.setItem('task_master_data', JSON.stringify(masterData));
+          
+          console.log(`Saved ${tasks.length} tasks to localStorage`);
+          console.log('Saved master data:', masterData);
+          console.log('Task_Adhoc data:', masterData.Task_Adhoc);
+          
+          // Extract Task_Adhoc values from loaded tasks for snippets
+          const adhocValues = [...new Set(tasks.map(t => t.Task_Adhoc).filter(v => v && v !== 'No' && v.trim() !== ''))];
+          console.log('Task_Adhoc values from loaded tasks:', adhocValues);
+          
+          // Reload the page to refresh everything
+          alert(`Successfully loaded ${tasks.length} tasks from Excel file! Reloading page...`);
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+          
+        } catch (error) {
+          console.error('Error reading Excel file:', error);
+          alert('Error reading Excel file: ' + error.message);
+        }
+      };
+      
+      reader.readAsArrayBuffer(file);
+    };
+    
     function loadSampleData() {
       const sample = [
-        {desc:'Complete Project Documentation',cat:'Development',tag:'PROJ-001',assignee:'John Doe',priority:'High',due:'2025-02-15',completed:'',status:'In Progress'},
-        {desc:'Review Code Changes',cat:'Development',tag:'CODE-002',assignee:'Jane Smith',priority:'Medium',due:'2025-02-10',completed:'2025-02-08',status:'Completed'},
-        {desc:'Update User Manual',cat:'Documentation',tag:'DOC-003',assignee:'Mike Johnson',priority:'Low',due:'2025-02-20',completed:'',status:'Pending'},
-        {desc:'Fix Critical Bug in Login System',cat:'Development',tag:'BUG-004',assignee:'Sarah Wilson',priority:'Critical',due:'2025-02-05',completed:'2025-02-03',status:'Completed'},
-        {desc:'Design New Dashboard UI',cat:'Design',tag:'UI-005',assignee:'Alex Chen',priority:'High',due:'2025-02-18',completed:'',status:'In Progress'},
-        {desc:'Write Unit Tests for API',cat:'Testing',tag:'TEST-006',assignee:'David Brown',priority:'Medium',due:'2025-02-25',completed:'',status:'Pending'},
-        {desc:'Deploy Application to Production',cat:'DevOps',tag:'DEPLOY-007',assignee:'Lisa Garcia',priority:'High',due:'2025-02-12',completed:'',status:'Pending'},
-        {desc:'Create Database Schema',cat:'Database',tag:'DB-008',assignee:'Robert Taylor',priority:'Medium',due:'2025-02-08',completed:'2025-02-06',status:'Completed'},
-        {desc:'Setup CI/CD Pipeline',cat:'DevOps',tag:'CI-009',assignee:'Lisa Garcia',priority:'High',due:'2025-02-14',completed:'',status:'In Progress'},
-        {desc:'Conduct Security Audit',cat:'Security',tag:'SEC-010',assignee:'Emma Davis',priority:'Critical',due:'2025-02-22',completed:'',status:'Pending'},
-        {desc:'Optimize Database Performance',cat:'Database',tag:'DB-011',assignee:'Robert Taylor',priority:'Medium',due:'2025-02-28',completed:'',status:'Pending'},
-        {desc:'Create User Training Materials',cat:'Documentation',tag:'TRAIN-012',assignee:'Mike Johnson',priority:'Low',due:'2025-03-05',completed:'',status:'Pending'},
-        {desc:'Implement Payment Gateway',cat:'Development',tag:'PAY-013',assignee:'John Doe',priority:'High',due:'2025-02-16',completed:'',status:'In Progress'},
-        {desc:'Setup Monitoring Dashboard',cat:'DevOps',tag:'MON-014',assignee:'Lisa Garcia',priority:'Medium',due:'2025-02-19',completed:'',status:'Pending'},
-        {desc:'Refactor Legacy Code',cat:'Development',tag:'REF-015',assignee:'Jane Smith',priority:'Low',due:'2025-03-01',completed:'',status:'Cancelled'},
-        {desc:'Create API Documentation',cat:'Documentation',tag:'API-016',assignee:'Mike Johnson',priority:'Medium',due:'2025-02-21',completed:'2025-02-19',status:'Completed'},
-        {desc:'Implement Two-Factor Authentication',cat:'Security',tag:'2FA-017',assignee:'Emma Davis',priority:'High',due:'2025-02-17',completed:'',status:'In Progress'},
-        {desc:'Setup Automated Testing',cat:'Testing',tag:'AUTO-018',assignee:'David Brown',priority:'Medium',due:'2025-02-26',completed:'',status:'Pending'},
-        {desc:'Create Backup Strategy',cat:'DevOps',tag:'BACKUP-019',assignee:'Lisa Garcia',priority:'High',due:'2025-02-13',completed:'2025-02-11',status:'Completed'},
-        {desc:'Design Mobile App Interface',cat:'Design',tag:'MOBILE-020',assignee:'Alex Chen',priority:'Medium',due:'2025-02-24',completed:'',status:'Pending'}
+        {Task_Description:'Complete Project Documentation',Category_Task:'Development',Task_Tag:'PROJ-001',Task_Assignee:'John Doe',Task_Priority:'High',Due_Date:'2025-02-15',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
+        {Task_Description:'Review Code Changes',Category_Task:'Development',Task_Tag:'CODE-002',Task_Assignee:'Jane Smith',Task_Priority:'Medium',Due_Date:'2025-02-10',Completed_On:'2025-02-08',Task_Status:'Completed',Task_Adhoc:'No'},
+        {Task_Description:'Update User Manual',Category_Task:'Documentation',Task_Tag:'DOC-003',Task_Assignee:'Mike Johnson',Task_Priority:'Low',Due_Date:'2025-02-20',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Fix Critical Bug in Login System',Category_Task:'Development',Task_Tag:'BUG-004',Task_Assignee:'Sarah Wilson',Task_Priority:'Critical',Due_Date:'2025-02-05',Completed_On:'2025-02-03',Task_Status:'Completed',Task_Adhoc:'No'},
+        {Task_Description:'Design New Dashboard UI',Category_Task:'Design',Task_Tag:'UI-005',Task_Assignee:'Alex Chen',Task_Priority:'High',Due_Date:'2025-02-18',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
+        {Task_Description:'Write Unit Tests for API',Category_Task:'Testing',Task_Tag:'TEST-006',Task_Assignee:'David Brown',Task_Priority:'Medium',Due_Date:'2025-02-25',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Deploy Application to Production',Category_Task:'DevOps',Task_Tag:'DEPLOY-007',Task_Assignee:'Lisa Garcia',Task_Priority:'High',Due_Date:'2025-02-12',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Create Database Schema',Category_Task:'Database',Task_Tag:'DB-008',Task_Assignee:'Robert Taylor',Task_Priority:'Medium',Due_Date:'2025-02-08',Completed_On:'2025-02-06',Task_Status:'Completed',Task_Adhoc:'No'},
+        {Task_Description:'Setup CI/CD Pipeline',Category_Task:'DevOps',Task_Tag:'CI-009',Task_Assignee:'Lisa Garcia',Task_Priority:'High',Due_Date:'2025-02-14',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
+        {Task_Description:'Conduct Security Audit',Category_Task:'Security',Task_Tag:'SEC-010',Task_Assignee:'Emma Davis',Task_Priority:'Critical',Due_Date:'2025-02-22',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Optimize Database Performance',Category_Task:'Database',Task_Tag:'DB-011',Task_Assignee:'Robert Taylor',Task_Priority:'Medium',Due_Date:'2025-02-28',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Create User Training Materials',Category_Task:'Documentation',Task_Tag:'TRAIN-012',Task_Assignee:'Mike Johnson',Task_Priority:'Low',Due_Date:'2025-03-05',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Implement Payment Gateway',Category_Task:'Development',Task_Tag:'PAY-013',Task_Assignee:'John Doe',Task_Priority:'High',Due_Date:'2025-02-16',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
+        {Task_Description:'Setup Monitoring Dashboard',Category_Task:'DevOps',Task_Tag:'MON-014',Task_Assignee:'Lisa Garcia',Task_Priority:'Medium',Due_Date:'2025-02-19',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Refactor Legacy Code',Category_Task:'Development',Task_Tag:'REF-015',Task_Assignee:'Jane Smith',Task_Priority:'Low',Due_Date:'2025-03-01',Completed_On:'',Task_Status:'Cancelled',Task_Adhoc:'No'},
+        {Task_Description:'Create API Documentation',Category_Task:'Documentation',Task_Tag:'API-016',Task_Assignee:'Mike Johnson',Task_Priority:'Medium',Due_Date:'2025-02-21',Completed_On:'2025-02-19',Task_Status:'Completed',Task_Adhoc:'No'},
+        {Task_Description:'Implement Two-Factor Authentication',Category_Task:'Security',Task_Tag:'2FA-017',Task_Assignee:'Emma Davis',Task_Priority:'High',Due_Date:'2025-02-17',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
+        {Task_Description:'Setup Automated Testing',Category_Task:'Testing',Task_Tag:'AUTO-018',Task_Assignee:'David Brown',Task_Priority:'Medium',Due_Date:'2025-02-26',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Create Backup Strategy',Category_Task:'DevOps',Task_Tag:'BACKUP-019',Task_Assignee:'Lisa Garcia',Task_Priority:'High',Due_Date:'2025-02-13',Completed_On:'2025-02-11',Task_Status:'Completed',Task_Adhoc:'No'},
+        {Task_Description:'Design Mobile App Interface',Category_Task:'Design',Task_Tag:'MOBILE-020',Task_Assignee:'Alex Chen',Task_Priority:'Medium',Due_Date:'2025-02-24',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'}
       ];
       
       localStorage.setItem('task_records', JSON.stringify(sample));
@@ -169,14 +323,33 @@
     }
     
     // Render table function
+    // Migration function to convert old field names to new ones
+    function migrateData(data){
+      if(!data||data.length===0)return[];
+      // Check if data needs migration
+      const needsMigration=data.some(r=>r.desc!==undefined);
+      if(!needsMigration)return data;
+      return data.map(r=>({
+        Task_Description:r.desc||r.Task_Description||'',
+        Category_Task:r.cat||r.Category_Task||'',
+        Task_Tag:r.tag||r.Task_Tag||'',
+        Task_Assignee:r.assignee||r.Task_Assignee||'',
+        Task_Priority:r.priority||r.Task_Priority||'',
+        Due_Date:r.due||r.Due_Date||'',
+        Completed_On:r.completed||r.Completed_On||'',
+        Task_Status:r.status||r.Task_Status||'',
+        Task_Adhoc:r.Task_Adhoc||'No'
+      }));
+    }
+    
     function renderTable(data) {
       const tbody = document.getElementById('taskBody');
       if (tbody) {
         tbody.innerHTML = '';
         data.forEach((r, i) => {
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${i+1}</td><td>${r.desc}</td><td>${r.cat}</td><td>${r.tag}</td>
-          <td>${r.status}</td><td>${r.assignee}</td><td>${r.priority}</td><td>${r.due}</td><td>${r.completed}</td>
+          tr.innerHTML = `<td>${i+1}</td><td>${r.Task_Description}</td><td>${r.Category_Task}</td><td>${r.Task_Tag}</td>
+          <td>${r.Task_Status}</td><td>${r.Task_Assignee}</td><td>${r.Task_Priority}</td><td>${r.Due_Date}</td><td>${r.Completed_On}</td>
           <td><span class='del' title='Delete'>🗑️</span></td>`;
           tbody.appendChild(tr);
         });
@@ -200,20 +373,20 @@
     // Helper function to create Excel file using SheetJS
     function createExcelFile(data) {
       // Prepare worksheet data
-      const headers = ['#', 'Task Description', 'Category Task', 'Task Tag', 'Task Status', 'Task Assignee', 'Task Priority', 'Due Date', 'Completed On'];
+      const headers = ['#', 'Task Description', 'Task Category', 'Tag', 'Status', 'Assignee', 'Priority', 'Due Date', 'Completed On'];
       const worksheetData = [headers];
       
       data.forEach((row, index) => {
         const rowData = [
           index + 1,
-          row.desc,
-          row.cat,
-          row.tag,
-          row.status,
-          row.assignee,
-          row.priority,
-          row.due,
-          row.completed
+          row.Task_Description,
+          row.Category_Task,
+          row.Task_Tag,
+          row.Task_Status,
+          row.Task_Assignee,
+          row.Task_Priority,
+          row.Due_Date,
+          row.Completed_On
         ];
         worksheetData.push(rowData);
       });
@@ -235,7 +408,38 @@
         { wch: 12 }   // Completed On
       ];
       
-      XLSX.utils.book_append_sheet(wb, ws, "Task Report");
+      XLSX.utils.book_append_sheet(wb, ws, "Txn_Task");
+      
+      // Add master data sheets if they exist
+      const savedMasterData = localStorage.getItem('task_master_data');
+      if (savedMasterData) {
+        try {
+          const masterData = JSON.parse(savedMasterData);
+          console.log('Adding master data sheets to export');
+          
+          // Add each master sheet
+          const masterSheetNames = ['Category_Task', 'Task_Tag', 'Task_Status', 'Task_Assignee', 'Task_Priority', 'Task_Adhoc'];
+          
+          masterSheetNames.forEach(sheetName => {
+            if (masterData[sheetName] && Array.isArray(masterData[sheetName]) && masterData[sheetName].length > 0) {
+              // Create data for this master sheet
+              const sheetData = []; // First row is the header with sheet name as column name
+              sheetData.push([sheetName]); // Header row
+              
+              // Add each value as a row
+              masterData[sheetName].forEach(value => {
+                sheetData.push([value]);
+              });
+              
+              const masterWs = XLSX.utils.aoa_to_sheet(sheetData);
+              XLSX.utils.book_append_sheet(wb, masterWs, sheetName);
+              console.log(`Added ${sheetName} sheet with ${masterData[sheetName].length} items`);
+            }
+          });
+        } catch (e) {
+          console.error('Error adding master data to export:', e);
+        }
+      }
       
       // Generate Excel file
       const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
@@ -248,21 +452,21 @@
       const visibleRows = document.querySelectorAll('#taskBody tr:not([style*="display: none"])');
       const data = [];
       
-      visibleRows.forEach((row, index) => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 9) {
-          data.push({
-            desc: cells[1].textContent,
-            cat: cells[2].textContent,
-            tag: cells[3].textContent,
-            status: cells[4].textContent,
-            assignee: cells[5].textContent,
-            priority: cells[6].textContent,
-            due: cells[7].textContent,
-            completed: cells[8].textContent
-          });
-        }
-      });
+        visibleRows.forEach((row, index) => {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 9) {
+            data.push({
+              Task_Description: cells[1].textContent,
+              Category_Task: cells[2].textContent,
+              Task_Tag: cells[3].textContent,
+              Task_Status: cells[4].textContent,
+              Task_Assignee: cells[5].textContent,
+              Task_Priority: cells[6].textContent,
+              Due_Date: cells[7].textContent,
+              Completed_On: cells[8].textContent
+            });
+          }
+        });
       
       if (data.length === 0) {
         alert('No task data to export');
@@ -288,14 +492,14 @@
           const cells = row.querySelectorAll('td');
           if (cells.length >= 9) {
             data.push({
-              desc: cells[1].textContent,
-              cat: cells[2].textContent,
-              tag: cells[3].textContent,
-              status: cells[4].textContent,
-              assignee: cells[5].textContent,
-              priority: cells[6].textContent,
-              due: cells[7].textContent,
-              completed: cells[8].textContent
+              Task_Description: cells[1].textContent,
+              Category_Task: cells[2].textContent,
+              Task_Tag: cells[3].textContent,
+              Task_Status: cells[4].textContent,
+              Task_Assignee: cells[5].textContent,
+              Task_Priority: cells[6].textContent,
+              Due_Date: cells[7].textContent,
+              Completed_On: cells[8].textContent
             });
           }
         });
@@ -329,13 +533,13 @@
           const fFrom = document.getElementById('fFrom');
           const fTo = document.getElementById('fTo');
           
-          if (fCategory.value) criteria.push(`Category = ${fCategory.value}`);
-          if (fTag.value) criteria.push(`Task Tag = ${fTag.value}`);
-          if (fAssignee.value) criteria.push(`Assignee = ${fAssignee.value}`);
-          if (fStatus.value) criteria.push(`Status = ${fStatus.value}`);
-          if (fPriority.value) criteria.push(`Priority = ${fPriority.value}`);
-          if (fFrom.value) criteria.push(`Date From: ${formatDate(fFrom.value)}`);
-          if (fTo.value) criteria.push(`Date To: ${formatDate(fTo.value)}`);
+          if (fCategory && fCategory.value) criteria.push(`Category = ${fCategory.value}`);
+          if (fTag && fTag.value) criteria.push(`Task Tag = ${fTag.value}`);
+          if (fAssignee && fAssignee.value) criteria.push(`Assignee = ${fAssignee.value}`);
+          if (fStatus && fStatus.value) criteria.push(`Status = ${fStatus.value}`);
+          if (fPriority && fPriority.value) criteria.push(`Priority = ${fPriority.value}`);
+          if (fFrom && fFrom.value) criteria.push(`Date From: ${formatDate(fFrom.value)}`);
+          if (fTo && fTo.value) criteria.push(`Date To: ${formatDate(fTo.value)}`);
           return criteria.length > 0 ? criteria.join(', ') : 'No filters applied';
         }
         
@@ -423,35 +627,35 @@
           x += colWidths[0];
           
           // Task Description (truncate if too long)
-          doc.text(row.desc.substring(0, 35), x, currentY);
+          doc.text(row.Task_Description.substring(0, 35), x, currentY);
           x += colWidths[1];
           
           // Category
-          doc.text(row.cat, x, currentY);
+          doc.text(row.Category_Task, x, currentY);
           x += colWidths[2];
           
           // Tag
-          doc.text(row.tag, x, currentY);
+          doc.text(row.Task_Tag, x, currentY);
           x += colWidths[3];
           
           // Status
-          doc.text(row.status, x, currentY);
+          doc.text(row.Task_Status, x, currentY);
           x += colWidths[4];
           
           // Assignee (truncate if too long)
-          doc.text(row.assignee.substring(0, 15), x, currentY);
+          doc.text(row.Task_Assignee.substring(0, 15), x, currentY);
           x += colWidths[5];
           
           // Priority
-          doc.text(row.priority, x, currentY);
+          doc.text(row.Task_Priority, x, currentY);
           x += colWidths[6];
           
           // Due Date
-          doc.text(formatDate(row.due), x, currentY);
+          doc.text(formatDate(row.Due_Date), x, currentY);
           x += colWidths[7];
           
           // Completed Date
-          doc.text(formatDate(row.completed), x, currentY);
+          doc.text(formatDate(row.Completed_On), x, currentY);
           
           currentY += rowHeight;
         });
@@ -473,99 +677,96 @@
     window.exportToPDF = exportToPDF;
     window.exportToExcel = exportToExcel;
     
-    // Populate modal form dropdowns
+    // Populate modal form dropdowns from actual data
     function populateModalDropdowns() {
       const modalCat = document.getElementById('cat');
       const modalTag = document.getElementById('tag');
       const modalAssignee = document.getElementById('assignee');
       const modalPriority = document.getElementById('priority');
       
-      // Category dropdown
+      // Get unique values from actual task records
+      const data = getData();
+      const uniqueCategories = [...new Set(data.map(t => t.Category_Task).filter(v => v))];
+      const uniqueTags = [...new Set(data.map(t => t.Task_Tag).filter(v => v))];
+      const uniqueAssignees = [...new Set(data.map(t => t.Task_Assignee).filter(v => v))];
+      const uniquePriorities = [...new Set(data.map(t => t.Task_Priority).filter(v => v))];
+      
       if (modalCat) {
-        const categories = ['Development', 'Design', 'Testing', 'DevOps', 'Database', 'Security', 'Documentation'];
         modalCat.innerHTML = '<option value="">Select Category</option>';
-        categories.forEach(cat => {
+        uniqueCategories.forEach(cat => {
           modalCat.innerHTML += `<option value="${cat}">${cat}</option>`;
         });
       }
       
-      // Task Tag dropdown
       if (modalTag) {
-        const tags = ['PROJ-001', 'CODE-002', 'DOC-003', 'BUG-004', 'UI-005', 'TEST-006', 'DEPLOY-007', 'DB-008', 'CI-009', 'SEC-010', 'DB-011', 'TRAIN-012', 'PAY-013', 'MON-014', 'REF-015', 'API-016', '2FA-017', 'AUTO-018', 'BACKUP-019', 'MOBILE-020'];
         modalTag.innerHTML = '<option value="">Select Tag</option>';
-        tags.forEach(tag => {
+        uniqueTags.forEach(tag => {
           modalTag.innerHTML += `<option value="${tag}">${tag}</option>`;
         });
       }
       
-      // Assignee dropdown
       if (modalAssignee) {
-        const assignees = ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson', 'Alex Chen', 'David Brown', 'Lisa Garcia', 'Robert Taylor', 'Emma Davis'];
         modalAssignee.innerHTML = '<option value="">Select Assignee</option>';
-        assignees.forEach(assignee => {
+        uniqueAssignees.forEach(assignee => {
           modalAssignee.innerHTML += `<option value="${assignee}">${assignee}</option>`;
         });
       }
       
-      // Priority dropdown
       if (modalPriority) {
-        const priorities = ['Low', 'Medium', 'High', 'Critical'];
         modalPriority.innerHTML = '<option value="">Select Priority</option>';
-        priorities.forEach(priority => {
+        uniquePriorities.forEach(priority => {
           modalPriority.innerHTML += `<option value="${priority}">${priority}</option>`;
         });
       }
     }
     
-    // Populate filter dropdowns with sample data
+    // Populate filter dropdowns from actual data
     function populateFilters() {
-      
-      // Category filter
       const catFilter = document.getElementById('fCategory');
+      const tagFilter = document.getElementById('fTag');
+      const assigneeFilter = document.getElementById('fAssignee');
+      const statusFilter = document.getElementById('fStatus');
+      const priorityFilter = document.getElementById('fPriority');
+      
+      // Get unique values from actual task records
+      const data = getData();
+      const uniqueCategories = [...new Set(data.map(t => t.Category_Task).filter(v => v))];
+      const uniqueTags = [...new Set(data.map(t => t.Task_Tag).filter(v => v))];
+      const uniqueAssignees = [...new Set(data.map(t => t.Task_Assignee).filter(v => v))];
+      const uniqueStatuses = [...new Set(data.map(t => t.Task_Status).filter(v => v))];
+      const uniquePriorities = [...new Set(data.map(t => t.Task_Priority).filter(v => v))];
+      
       if (catFilter) {
-        const categories = ['Development', 'Design', 'Testing', 'DevOps', 'Database', 'Security', 'Documentation'];
         catFilter.innerHTML = '<option value="">All Categories</option>';
-        categories.forEach(cat => {
+        uniqueCategories.forEach(cat => {
           catFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
         });
       }
       
-      // Task Tag filter
-      const tagFilter = document.getElementById('fTag');
       if (tagFilter) {
-        const tags = ['PROJ-001', 'CODE-002', 'DOC-003', 'BUG-004', 'UI-005', 'TEST-006', 'DEPLOY-007', 'DB-008', 'CI-009', 'SEC-010', 'DB-011', 'TRAIN-012', 'PAY-013', 'MON-014', 'REF-015', 'API-016', '2FA-017', 'AUTO-018', 'BACKUP-019', 'MOBILE-020'];
         tagFilter.innerHTML = '<option value="">All Tags</option>';
-        tags.forEach(tag => {
+        uniqueTags.forEach(tag => {
           tagFilter.innerHTML += `<option value="${tag}">${tag}</option>`;
         });
       }
       
-      // Assignee filter
-      const assigneeFilter = document.getElementById('fAssignee');
       if (assigneeFilter) {
-        const assignees = ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson', 'Alex Chen', 'David Brown', 'Lisa Garcia', 'Robert Taylor', 'Emma Davis'];
         assigneeFilter.innerHTML = '<option value="">All Assignees</option>';
-        assignees.forEach(assignee => {
+        uniqueAssignees.forEach(assignee => {
           assigneeFilter.innerHTML += `<option value="${assignee}">${assignee}</option>`;
         });
       }
       
-      // Status filter
-      const statusFilter = document.getElementById('fStatus');
       if (statusFilter) {
-        const statuses = ['Pending', 'In Progress', 'Completed', 'Cancelled'];
         statusFilter.innerHTML = '<option value="">All Statuses</option>';
-        statuses.forEach(status => {
+        uniqueStatuses.forEach(status => {
           statusFilter.innerHTML += `<option value="${status}">${status}</option>`;
         });
       }
       
-      // Priority filter
-      const priorityFilter = document.getElementById('fPriority');
       if (priorityFilter) {
-        const priorities = ['Low', 'Medium', 'High', 'Critical'];
         priorityFilter.innerHTML = '<option value="">All Priorities</option>';
-        priorities.forEach(priority => {
+        uniquePriorities.forEach(priority => {
           priorityFilter.innerHTML += `<option value="${priority}">${priority}</option>`;
         });
       }
@@ -605,7 +806,9 @@
           if (assignee && !taskAssignee.includes(assignee)) show = false;
           if (status && !taskStatus.includes(status)) show = false;
           if (priority && !taskPriority.includes(priority)) show = false;
-          if (search && !taskDesc.includes(search) && !taskTag.includes(search) && !taskAssignee.includes(search)) show = false;
+          // Global search - search across all text fields
+          if (search && !taskDesc.includes(search) && !taskCat.includes(search) && !taskTag.includes(search) && 
+              !taskStatus.includes(search) && !taskAssignee.includes(search) && !taskPriority.includes(search)) show = false;
           
           // Date filters (based on Completed On date)
           if (fromDate && taskCompleted && taskCompleted < fromDate) show = false;
@@ -676,17 +879,240 @@
       const tbody = document.getElementById('taskBody');
       
       // Load existing data or initialize
-      const existingData = getData();
-      if (existingData.length === 0) {
+      const rawData = getData();
+      const migratedData = migrateData(rawData);
+      if (migratedData !== rawData) {
+        saveData(migratedData);
+      }
+      if (migratedData.length === 0) {
         loadSampleData();
       } else {
-        renderTable(existingData);
+        renderTable(migratedData);
       }
       
-      // Setup filters
-      populateModalDropdowns(); // Populate modal dropdowns immediately
-      setTimeout(populateFilters, 500);
+      // Setup filters - check if we have master data saved
+      const savedMasterData = localStorage.getItem('task_master_data');
+      if (savedMasterData) {
+        try {
+          const masterData = JSON.parse(savedMasterData);
+          console.log('Loading saved master data:', masterData);
+          
+          // Populate filters from saved master data
+          if (typeof populateFiltersFromMaster === 'function') {
+            populateFiltersFromMaster(masterData);
+          }
+          
+          // Populate modal dropdowns from actual task records
+          populateModalDropdowns();
+          
+          // Populate snippets from Task_Adhoc field in task records
+          populateSnippets();
+        } catch (e) {
+          console.error('Error loading saved master data:', e);
+          // Fall back to regular population
+          populateModalDropdowns();
+          setTimeout(populateFilters, 500);
+        }
+      } else {
+        // No saved master data, use regular population
+        populateModalDropdowns();
+        setTimeout(populateFilters, 500);
+      }
+      
       setTimeout(setupFilterEvents, 1000);
+      
+      // Snippets functionality
+      const descInput = document.getElementById('desc');
+      const snippetsDropdown = document.getElementById('snippetsDropdown');
+      const saveSnippetBtn = document.getElementById('saveSnippetBtn');
+      
+      // Function to populate snippets from Task_Adhoc master data sheet (from Excel, not task records)
+      function populateSnippets() {
+        if (!snippetsDropdown) return;
+        
+        snippetsDropdown.innerHTML = '<option value="">Snippets</option>';
+        
+        // First, try to get snippets from the saved master data (Task_Adhoc sheet from Excel)
+        const savedMasterData = localStorage.getItem('task_master_data');
+        if (savedMasterData) {
+          try {
+            const masterData = JSON.parse(savedMasterData);
+            console.log('Loading snippets from master data Task_Adhoc sheet:', masterData.Task_Adhoc);
+            
+            if (masterData.Task_Adhoc && Array.isArray(masterData.Task_Adhoc) && masterData.Task_Adhoc.length > 0) {
+              // Use data from Task_Adhoc master sheet
+              const uniqueSnippets = [...new Set(masterData.Task_Adhoc)].filter(v => v && v.trim() !== '');
+              console.log('Snippets from master sheet:', uniqueSnippets.length, uniqueSnippets);
+              
+              const sortedSnippets = uniqueSnippets.sort();
+              sortedSnippets.forEach(snippet => {
+                const option = document.createElement('option');
+                option.value = snippet;
+                option.textContent = snippet;
+                snippetsDropdown.appendChild(option);
+              });
+              
+              console.log('Populated snippets dropdown from master sheet with', sortedSnippets.length, 'items');
+              return;
+            } else {
+              console.log('Task_Adhoc master data is empty or invalid');
+            }
+          } catch (e) {
+            console.error('Error parsing master data for snippets:', e);
+          }
+        } else {
+          console.log('No master data found in localStorage for snippets');
+        }
+        
+        // Fallback: Get snippets from Task_Adhoc field in task records (for backwards compatibility)
+        console.log('Fallback: Getting snippets from task records');
+        const snippets = new Set();
+        const data = getData();
+        
+        data.forEach(task => {
+          if (task.Task_Adhoc && task.Task_Adhoc !== 'No' && task.Task_Adhoc.trim() !== '' && task.Task_Adhoc !== '') {
+            snippets.add(task.Task_Adhoc);
+          }
+        });
+        
+        console.log('Unique snippets from task records:', snippets.size, Array.from(snippets));
+        
+        const sortedSnippets = Array.from(snippets).sort();
+        sortedSnippets.forEach(snippet => {
+          const option = document.createElement('option');
+          option.value = snippet;
+          option.textContent = snippet;
+          snippetsDropdown.appendChild(option);
+        });
+        
+        console.log('Populated snippets dropdown from task records with', sortedSnippets.length, 'items');
+      }
+      
+      // Insert snippet at cursor position
+      snippetsDropdown.addEventListener('change', function() {
+        if (this.value && descInput) {
+          const cursorPos = descInput.selectionStart || 0;
+          const textBefore = descInput.value.substring(0, cursorPos);
+          const textAfter = descInput.value.substring(descInput.selectionEnd || 0);
+          descInput.value = textBefore + this.value + textAfter;
+          
+          // Set cursor position after inserted text
+          const newPos = cursorPos + this.value.length;
+          descInput.setSelectionRange(newPos, newPos);
+          descInput.focus();
+          
+          // Reset dropdown
+          this.selectedIndex = 0;
+        }
+      });
+      
+      // Save current description as snippet
+      saveSnippetBtn.addEventListener('click', function() {
+        const desc = descInput.value.trim();
+        if (!desc) {
+          alert('Please enter a task description first.');
+          return;
+        }
+        
+        // Check if snippet already exists
+        const snippets = Array.from(snippetsDropdown.options).map(opt => opt.value);
+        if (snippets.includes(desc)) {
+          alert('This snippet already exists.');
+          return;
+        }
+        
+        // Add to dropdown
+        const option = document.createElement('option');
+        option.value = desc;
+        option.textContent = desc;
+        snippetsDropdown.appendChild(option);
+        
+        // Save to Task_Adhoc master data in localStorage
+        const savedMasterData = localStorage.getItem('task_master_data');
+        if (savedMasterData) {
+          try {
+            const masterData = JSON.parse(savedMasterData);
+            if (!masterData.Task_Adhoc) {
+              masterData.Task_Adhoc = [];
+            }
+            if (!masterData.Task_Adhoc.includes(desc)) {
+              masterData.Task_Adhoc.push(desc);
+              localStorage.setItem('task_master_data', JSON.stringify(masterData));
+              console.log('Saved snippet to Task_Adhoc master data:', desc);
+            }
+          } catch (e) {
+            console.error('Error saving snippet to master data:', e);
+          }
+        } else {
+          // Create new master data with this snippet
+          const newMasterData = { Task_Adhoc: [desc] };
+          localStorage.setItem('task_master_data', JSON.stringify(newMasterData));
+          console.log('Created new master data with snippet:', desc);
+        }
+        
+        alert('Snippet saved successfully!');
+      });
+      
+      // Snippets will populate from actual task records in the table
+      // Load snippets on page load - populate from task records only
+      populateSnippets();
+      
+      // Clear Data functionality
+      const btnClearData = document.getElementById('btnClearData');
+      if (btnClearData) {
+        btnClearData.addEventListener('click', function() {
+          if (confirm('Are you sure you want to clear all task data? This action cannot be undone.')) {
+            localStorage.removeItem('task_records');
+            localStorage.removeItem('task_snippets'); // Clear snippets too
+            localStorage.removeItem('task_master_data'); // Clear master data
+            
+            // Clear table
+            const tbody = document.getElementById('taskBody');
+            if (tbody) {
+              tbody.innerHTML = '';
+            }
+            
+            // Clear filter dropdowns
+            const fCategory = document.getElementById('fCategory');
+            const fTag = document.getElementById('fTag');
+            const fAssignee = document.getElementById('fAssignee');
+            const fStatus = document.getElementById('fStatus');
+            const fPriority = document.getElementById('fPriority');
+            
+            if (fCategory) fCategory.innerHTML = '<option value="">All Categories</option>';
+            if (fTag) fTag.innerHTML = '<option value="">All Tags</option>';
+            if (fAssignee) fAssignee.innerHTML = '<option value="">All Assignees</option>';
+            if (fStatus) fStatus.innerHTML = '<option value="">All Statuses</option>';
+            if (fPriority) fPriority.innerHTML = '<option value="">All Priorities</option>';
+            
+            // Clear snippets dropdown
+            const snippetsDropdown = document.getElementById('snippetsDropdown');
+            if (snippetsDropdown) {
+              snippetsDropdown.innerHTML = '<option value="">Snippets</option>';
+            }
+            
+            // Clear modal dropdowns
+            const modalCat = document.getElementById('cat');
+            const modalTag = document.getElementById('tag');
+            const modalAssignee = document.getElementById('assignee');
+            const modalPriority = document.getElementById('priority');
+            
+            if (modalCat) modalCat.innerHTML = '<option value="">Select Category</option>';
+            if (modalTag) modalTag.innerHTML = '<option value="">Select Tag</option>';
+            if (modalAssignee) modalAssignee.innerHTML = '<option value="">Select Assignee</option>';
+            if (modalPriority) modalPriority.innerHTML = '<option value="">Select Priority</option>';
+            
+            alert('All task data has been cleared.');
+          }
+        });
+      }
+      
+      // Setup Excel file input change handler
+      const excelFileInput = document.getElementById('excelFileInput');
+      if (excelFileInput) {
+        excelFileInput.addEventListener('change', handleExcelFileChange);
+        console.log('Excel file input change handler attached');
+      }
       
       // Export buttons
       const btnPDF = document.getElementById('btnPDF');
@@ -716,6 +1142,7 @@
       addBtn.onclick = () => {
         editIndex = null;
         form.reset();
+        populateSnippets(); // Reload snippets when opening modal
         title.textContent = 'Add Task';
         modal.style.display = 'flex';
       };
@@ -753,18 +1180,30 @@
         const row = e.target.closest('tr');
         if (row) {
           editIndex = [...tbody.children].indexOf(row);
-          const data = getData()[editIndex];
+          const allData = getData();
+          const data = allData[editIndex];
+          
+          console.log('Edit clicked, index:', editIndex);
+          console.log('Row data:', data);
           
           // Populate form
-          form.desc.value = data.desc || '';
-          form.cat.value = data.cat || '';
-          form.tag.value = data.tag || '';
-          form.assignee.value = data.assignee || '';
-          form.priority.value = data.priority || '';
-          form.due.value = data.due || '';
-          form.completed.value = data.completed || '';
-          form.status.value = data.status || '';
+          if (form.desc) form.desc.value = data.Task_Description || '';
+          if (form.cat) form.cat.value = data.Category_Task || '';
+          if (form.tag) form.tag.value = data.Task_Tag || '';
+          if (form.assignee) form.assignee.value = data.Task_Assignee || '';
+          if (form.priority) form.priority.value = data.Task_Priority || '';
+          if (form.due) form.due.value = data.Due_Date || '';
+          if (form.completed) form.completed.value = data.Completed_On || '';
+          if (form.status) form.status.value = data.Task_Status || '';
           
+          console.log('Form populated:', {
+            desc: form.desc?.value,
+            cat: form.cat?.value,
+            tag: form.tag?.value,
+            status: form.status?.value
+          });
+          
+          populateSnippets(); // Reload snippets when editing
           title.textContent = 'Edit Task';
           modal.style.display = 'flex';
         }
@@ -774,14 +1213,15 @@
       form.onsubmit = (e) => {
         e.preventDefault();
         const rec = {
-          desc: form.desc.value,
-          cat: form.cat.value,
-          tag: form.tag.value,
-          assignee: form.assignee.value,
-          priority: form.priority.value,
-          due: form.due.value,
-          completed: form.completed.value,
-          status: form.status.value
+          Task_Description: form.desc.value,
+          Category_Task: form.cat.value,
+          Task_Tag: form.tag.value,
+          Task_Assignee: form.assignee.value,
+          Task_Priority: form.priority.value,
+          Due_Date: form.due.value,
+          Completed_On: form.completed.value,
+          Task_Status: form.status.value,
+          Task_Adhoc: form.adhoc && form.adhoc.value || 'No'
         };
         
         const data = getData();
@@ -793,8 +1233,75 @@
         
         saveData(data);
         renderTable(data);
+        populateSnippets(); // Reload snippets after saving
         modal.style.display = 'none';
       };
+      
+      // Column resize functionality
+      const taskTable = document.getElementById('taskTable');
+      let startX, startW, th;
+      const STORAGE_KEY = 'task_column_widths';
+      
+      // Load saved column widths
+      function loadColumnWidths() {
+        const savedWidths = localStorage.getItem(STORAGE_KEY);
+        if (savedWidths && taskTable) {
+          try {
+            const widths = JSON.parse(savedWidths);
+            taskTable.querySelectorAll('th.resizable').forEach((h, index) => {
+              if (widths[index]) {
+                h.style.width = widths[index];
+              }
+            });
+          } catch (e) {
+            console.log('Error loading column widths:', e);
+          }
+        }
+      }
+      
+      // Save column widths
+      function saveColumnWidths() {
+        if (taskTable) {
+          const widths = [];
+          taskTable.querySelectorAll('th.resizable').forEach(h => {
+            widths.push(h.style.width || h.offsetWidth + 'px');
+          });
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(widths));
+        }
+      }
+      
+      // Initialize column widths
+      loadColumnWidths();
+      
+      // Set up resize handlers
+      if (taskTable) {
+        taskTable.querySelectorAll('th.resizable').forEach(h => {
+          h.addEventListener('mousedown', e => {
+            if (e.offsetX > h.offsetWidth - 6) {
+              startX = e.pageX;
+              startW = h.offsetWidth;
+              th = h;
+              document.body.style.userSelect = 'none';
+              document.addEventListener('mousemove', resize);
+              document.addEventListener('mouseup', stop);
+            }
+          });
+        });
+      }
+      
+      function resize(e) {
+        if (!th) return;
+        const diff = e.pageX - startX;
+        th.style.width = (startW + diff) + 'px';
+      }
+      
+      function stop() {
+        document.removeEventListener('mousemove', resize);
+        document.removeEventListener('mouseup', stop);
+        document.body.style.userSelect = 'auto';
+        saveColumnWidths();
+        th = null;
+      }
       
       // Theme functionality
       const themeSwitch = document.getElementById('themeSwitch');

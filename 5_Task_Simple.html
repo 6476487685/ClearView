@@ -135,11 +135,11 @@
       alert('Load Sample Data function called!');
       
       const sample = [
-        {desc:'Complete Project Documentation',cat:'Development',tag:'PROJ-001',assignee:'John Doe',priority:'High',due:'2025-02-15',completed:'',status:'In Progress'},
-        {desc:'Review Code Changes',cat:'Development',tag:'CODE-002',assignee:'Jane Smith',priority:'Medium',due:'2025-02-10',completed:'2025-02-08',status:'Completed'},
-        {desc:'Update User Manual',cat:'Documentation',tag:'DOC-003',assignee:'Mike Johnson',priority:'Low',due:'2025-02-20',completed:'',status:'Pending'},
-        {desc:'Fix Critical Bug in Login System',cat:'Development',tag:'BUG-004',assignee:'Sarah Wilson',priority:'Critical',due:'2025-02-05',completed:'2025-02-03',status:'Completed'},
-        {desc:'Design New Dashboard UI',cat:'Design',tag:'UI-005',assignee:'Alex Chen',priority:'High',due:'2025-02-18',completed:'',status:'In Progress'}
+        {Task_Description:'Complete Project Documentation',Category_Task:'Development',Task_Tag:'PROJ-001',Task_Assignee:'John Doe',Task_Priority:'High',Due_Date:'2025-02-15',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
+        {Task_Description:'Review Code Changes',Category_Task:'Development',Task_Tag:'CODE-002',Task_Assignee:'Jane Smith',Task_Priority:'Medium',Due_Date:'2025-02-10',Completed_On:'2025-02-08',Task_Status:'Completed',Task_Adhoc:'No'},
+        {Task_Description:'Update User Manual',Category_Task:'Documentation',Task_Tag:'DOC-003',Task_Assignee:'Mike Johnson',Task_Priority:'Low',Due_Date:'2025-02-20',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
+        {Task_Description:'Fix Critical Bug in Login System',Category_Task:'Development',Task_Tag:'BUG-004',Task_Assignee:'Sarah Wilson',Task_Priority:'Critical',Due_Date:'2025-02-05',Completed_On:'2025-02-03',Task_Status:'Completed',Task_Adhoc:'No'},
+        {Task_Description:'Design New Dashboard UI',Category_Task:'Design',Task_Tag:'UI-005',Task_Assignee:'Alex Chen',Task_Priority:'High',Due_Date:'2025-02-18',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'}
       ];
       
       const tbody = document.getElementById('taskBody');
@@ -147,8 +147,8 @@
         tbody.innerHTML = '';
         sample.forEach((r, i) => {
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${i+1}</td><td>${r.desc}</td><td>${r.cat}</td><td>${r.tag}</td>
-          <td>${r.status}</td><td>${r.assignee}</td><td>${r.priority}</td><td>${r.due}</td><td>${r.completed}</td>
+          tr.innerHTML = `<td>${i+1}</td><td>${r.Task_Description}</td><td>${r.Category_Task}</td><td>${r.Task_Tag}</td>
+          <td>${r.Task_Status}</td><td>${r.Task_Assignee}</td><td>${r.Task_Priority}</td><td>${r.Due_Date}</td><td>${r.Completed_On}</td>
           <td><span class='del' title='Delete'>🗑️</span></td>`;
           tbody.appendChild(tr);
         });
@@ -166,4 +166,5 @@
   </script>
 </body>
 </html>
+
 
