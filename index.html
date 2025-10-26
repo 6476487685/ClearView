@@ -123,24 +123,21 @@ input:checked + .slider:before{transform:translateX(22px);}
 .doc-btn:disabled{opacity:0.5;cursor:not-allowed;background:#f8f9fa;border-color:#dee2e6;}
 .doc-btn:disabled:hover{background:#f8f9fa;border-color:#dee2e6;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
 
-/* Font Awesome Icon Styling - Simple Black & White */
-.doc-btn i{color:#000;font-size:16px;transition:all 0.2s ease;}
-.doc-btn .icon-download{color:#000;}
-.doc-btn .icon-move-up,.doc-btn .icon-move-down{color:#000;}
-.doc-btn .icon-delete{color:#000;}
+/* PNG Icon Styling - Simple Black & White */
+.doc-btn img{width:16px;height:16px;transition:all 0.2s ease;opacity:0.8;}
 
-/* Hover effects for Font Awesome icons */
-.doc-btn.download:hover i{color:#333;transform:scale(1.1);}
-.doc-btn.move-up:hover i{color:#333;transform:scale(1.1);}
-.doc-btn.move-down:hover i{color:#333;transform:scale(1.1);}
-.doc-btn.delete:hover i{color:#333;transform:scale(1.1);}
+/* Hover effects for PNG icons */
+.doc-btn.download:hover img{opacity:1;transform:scale(1.1);}
+.doc-btn.move-up:hover img{opacity:1;transform:scale(1.1);}
+.doc-btn.move-down:hover img{opacity:1;transform:scale(1.1);}
+.doc-btn.delete:hover img{opacity:1;transform:scale(1.1);}
 
-/* Dark mode Font Awesome icon colors */
-body.dark .doc-btn i{color:#fff;}
-body.dark .doc-btn.download:hover i,
-body.dark .doc-btn.move-up:hover i,
-body.dark .doc-btn.move-down:hover i,
-body.dark .doc-btn.delete:hover i{color:#ccc;}
+/* Dark mode PNG icon colors */
+body.dark .doc-btn img{filter:brightness(0) invert(1);}
+body.dark .doc-btn.download:hover img,
+body.dark .doc-btn.move-up:hover img,
+body.dark .doc-btn.move-down:hover img,
+body.dark .doc-btn.delete:hover img{opacity:1;}
 
 /* File type icons styling */
 .file-icon{color:#000;font-size:14px;margin-right:6px;}
@@ -150,8 +147,8 @@ body.dark .file-icon{color:#fff;}
 .docs-table th i{color:#fff;font-size:12px;margin-right:6px;}
 
 /* Upload area icon */
-.upload-icon i{color:var(--accent-blue);font-size:24px;opacity:0.7;transition:all 0.3s ease;}
-.upload-area:hover .upload-icon i{opacity:1;transform:scale(1.1);}
+.upload-icon img{color:var(--accent-blue);width:24px;height:24px;opacity:0.7;transition:all 0.3s ease;}
+.upload-area:hover .upload-icon img{opacity:1;transform:scale(1.1);}
 
 /* Empty state icon */
 .empty-icon i{color:var(--text-secondary);font-size:32px;opacity:0.5;}
@@ -207,30 +204,22 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 <div id="modal-docs" class="modal">
   <div class="modal-content docs-modal">
     <div class="modal-header">
-      <h4><i class="fas fa-folder-open"></i> Document Manager</h4>
+      <h4><img src="assets/icons/documents-manager.png?v=1" alt="Document Manager" style="width: 16px; height: 16px; margin-right: 8px;"> Document Manager</h4>
       <div style="display:flex;gap:10px;align-items:center;">
         <button id="downloadAllBtn" style="
           background:var(--accent-gold);color:#fff;border:none;padding:8px 12px;
           border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
           display:flex;align-items:center;gap:6px;font-weight:500;
         " title="Download all documents to Backup folder">
-          <i class="fas fa-download"></i>
+          <img src="assets/icons/download-all.png?v=1" alt="Download All" style="width: 14px; height: 14px;">
           <span>Download All</span>
-        </button>
-        <button id="quickChangeDocsBtn" style="
-          background:var(--accent-gold);color:#fff;border:none;padding:8px 12px;
-          border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
-          display:flex;align-items:center;gap:6px;font-weight:500;
-        " title="Quick change Documents folder">
-          <i class="fas fa-sync-alt"></i>
-          <span>Quick Change</span>
         </button>
         <button id="changeDocsFolderBtn" style="
           background:var(--accent-blue);color:#fff;border:none;padding:8px 12px;
           border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
           display:flex;align-items:center;gap:6px;font-weight:500;
         " title="Change Documents folder">
-          <i class="fas fa-folder-plus"></i>
+          <img src="assets/icons/change-folder.png?v=1" alt="Change Folder" style="width: 14px; height: 14px;">
           <span>Change Folder</span>
         </button>
         <span class="close" data-close="modal-docs">&times;</span>
@@ -239,7 +228,7 @@ body.dark .modal-header h4 i{color:var(--text-body);}
     
     <div class="upload-section">
       <div class="upload-area" id="uploadArea">
-        <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+        <div class="upload-icon"><img src="assets/icons/Drag-and-Drop.png?v=1" alt="Drag and Drop" style="width: 24px; height: 24px;"></div>
         <p class="upload-text">Drag & drop files here or click to browse</p>
         <p class="upload-subtext">Supports: PDF, DOC, DOCX, XLS, XLSX, TXT, Images</p>
         <button class="upload-btn" id="uploadBtn">Choose Files</button>
@@ -435,7 +424,7 @@ document.querySelectorAll('.nav-link').forEach(link=>{
       window.location.href='3_Income_Index.html';
     }
     else if(t==='accounts'){
-      window.location.href='Manage_Accounts_Module/real_file_manager.html';
+      window.location.href='Manage_Accounts_Module/manage_accounts_browser.html';
     }
     else if(['masters','tasks','investments','analytics','backup'].includes(t)){
       document.getElementById('genericTitle').textContent=link.textContent;
@@ -926,8 +915,14 @@ function showFolderPicker(){
       if('showDirectoryPicker' in window){
         console.log('Using File System Access API');
         
-        // Call showDirectoryPicker directly without confirm dialog
-        // The user gesture from the click event is preserved
+        // Show instruction to user
+        const proceed = confirm('📁 FOLDER PICKER INSTRUCTIONS\n\n1. Click "Allow" in the browser permission dialog\n2. Browse and select your desired folder\n3. The folder name will be saved as your backup location\n\nClick OK to proceed with folder selection.');
+        
+        if(!proceed){
+          console.log('User cancelled folder selection');
+          return;
+        }
+        
         const directoryHandle = await window.showDirectoryPicker({
           mode: 'readwrite',
           startIn: 'documents'
@@ -1437,19 +1432,7 @@ updateStats();
 // Change Documents folder button and Download All button
 document.addEventListener('DOMContentLoaded', function() {
   const changeDocsFolderBtn = document.getElementById('changeDocsFolderBtn');
-  const quickChangeDocsBtn = document.getElementById('quickChangeDocsBtn');
   const downloadAllBtn = document.getElementById('downloadAllBtn');
-  
-  if(quickChangeDocsBtn) {
-    quickChangeDocsBtn.addEventListener('click', async function() {
-      const docsFolderPath = localStorage.getItem('docsFolderPath');
-      if(docsFolderPath) {
-        await showFolderChoiceDialog(docsFolderPath, 'Documents');
-      } else {
-        showToast(`<i class="fas fa-exclamation-triangle"></i> No Documents folder set. Please set up Documents folder first.`);
-      }
-    });
-  }
   
   if(changeDocsFolderBtn) {
     changeDocsFolderBtn.addEventListener('click', function() {
@@ -1458,12 +1441,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   if(downloadAllBtn) {
-    downloadAllBtn.addEventListener('click', async function(e) {
-      // Call showDirectoryPicker immediately to preserve user gesture
-      e.preventDefault();
-      e.stopPropagation();
-      
-      await downloadAllDocuments();
+    downloadAllBtn.addEventListener('click', function() {
+      downloadAllDocuments();
     });
   }
 });
@@ -1658,16 +1637,16 @@ function renderDocs(){
     <td>
       <div class="doc-actions">
         <button class="doc-btn download" data-i="${i}" title="Download">
-          <i class="fas fa-download icon-download"></i>
+          <img src="assets/icons/downlaod.png?v=1" alt="Download" style="width: 16px; height: 16px;">
         </button>
         <button class="doc-btn move-up" data-i="${i}" title="Move Up" ${i === 0 ? 'disabled' : ''}>
-          <i class="fas fa-arrow-up icon-move-up"></i>
+          <img src="assets/icons/move-up.png?v=1" alt="Move Up" style="width: 16px; height: 16px;">
         </button>
         <button class="doc-btn move-down" data-i="${i}" title="Move Down" ${i === docs.length - 1 ? 'disabled' : ''}>
-          <i class="fas fa-arrow-down icon-move-down"></i>
+          <img src="assets/icons/move-down.png?v=1" alt="Move Down" style="width: 16px; height: 16px;">
         </button>
         <button class="doc-btn delete" data-i="${i}" title="Delete">
-          <i class="fas fa-trash icon-delete"></i>
+          <img src="assets/icons/delete.png?v=1" alt="Delete" style="width: 16px; height: 16px;">
         </button>
       </div>
     </td>`;
@@ -1815,22 +1794,26 @@ function downloadToDefaultLocation(blob, fileName, docsFolderPath) {
 
 
 async function downloadAllDocuments() {
+  const docsFolderPath = localStorage.getItem('docsFolderPath');
+  
   if(docs.length === 0) {
     showToast(`<i class="fas fa-exclamation-triangle"></i> No documents to download`);
     return;
   }
   
-  // Show folder picker immediately to preserve user gesture
-  // No confirm dialogs or other user interactions before this call
+  if(!docsFolderPath) {
+    showToast(`<i class="fas fa-exclamation-triangle"></i> Please set a Documents folder first`);
+    return;
+  }
+  
+  showToast(`<i class="fas fa-download"></i> Downloading ${docs.length} documents to Documents folder: ${docsFolderPath}`);
+  
   try {
-    await downloadAllToDocsFolderWithPicker();
+    // Download all documents with Documents folder path in filename
+    downloadAllToDocsFolderSilent(docsFolderPath);
   } catch (error) {
-    console.error('Error in download all:', error);
-    if(error.name === 'AbortError') {
-      showToast(`<i class="fas fa-times-circle"></i> Download cancelled`);
-    } else {
-      showToast(`<i class="fas fa-exclamation-triangle"></i> Download failed: ${error.message}`);
-    }
+    console.error('Error downloading all documents:', error);
+    showToast(`<i class="fas fa-exclamation-triangle"></i> Download failed: ${error.message}`);
   }
 }
 
@@ -1984,26 +1967,23 @@ async function downloadAllToDocsFolderWithPicker(docsFolderPath) {
       startIn: 'documents'
     });
     
-    // Get the selected folder name
-    const folderName = directoryHandle.name;
-    
     // Store the directory handle for future use
     // Note: In a real implementation, you'd need to serialize the handle properly
     localStorage.setItem('docsFolderHandle', 'stored');
-    localStorage.setItem('docsFolderPath', folderName);
-    localStorage.setItem('lastDocsFolder', folderName);
+    localStorage.setItem('docsFolderPath', directoryHandle.name);
+    localStorage.setItem('lastDocsFolder', directoryHandle.name);
     
     let successCount = 0;
     let errorCount = 0;
     
-    showToast(`<i class="fas fa-download"></i> Saving ${docs.length} documents to "${folderName}" folder...`);
+    showToast(`<i class="fas fa-download"></i> Saving ${docs.length} documents to Documents folder...`);
     
     // Download each document directly to the selected folder
     for (let i = 0; i < docs.length; i++) {
       const doc = docs[i];
       try {
         // Create file content
-        const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${doc.folderPath || 'Documents'}\nDocuments Folder: ${folderName}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
+        const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${doc.folderPath || 'Documents'}\nDocuments Folder: ${docsFolderPath}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
         const blob = new Blob([content], { type: 'text/plain' });
         
         // Create file in the selected directory
@@ -2016,7 +1996,7 @@ async function downloadAllToDocsFolderWithPicker(docsFolderPath) {
         
         // Update progress
         if(i % 3 === 0 || i === docs.length - 1) {
-          showToast(`<i class="fas fa-download"></i> Saved ${i + 1}/${docs.length} documents to "${folderName}" folder...`);
+          showToast(`<i class="fas fa-download"></i> Saved ${i + 1}/${docs.length} documents to Documents folder...`);
         }
         
       } catch (error) {
@@ -2027,9 +2007,9 @@ async function downloadAllToDocsFolderWithPicker(docsFolderPath) {
     
     // Show final result
     if(errorCount === 0) {
-      showToast(`<i class="fas fa-check-circle"></i> Successfully saved all ${successCount} documents to "${folderName}" folder!`);
+      showToast(`<i class="fas fa-check-circle"></i> Successfully saved all ${successCount} documents to Documents folder!`);
     } else {
-      showToast(`<i class="fas fa-exclamation-triangle"></i> Saved ${successCount} documents, ${errorCount} failed to "${folderName}" folder`);
+      showToast(`<i class="fas fa-exclamation-triangle"></i> Saved ${successCount} documents, ${errorCount} failed to Documents folder`);
     }
     
   } catch (error) {
@@ -2040,9 +2020,8 @@ async function downloadAllToDocsFolderWithPicker(docsFolderPath) {
     }
     
     console.error('Error accessing Documents folder:', error);
-    // Fallback to default download with folder name
-    const folderName = docsFolderPath || 'Documents';
-    downloadAllToDefaultLocation(folderName);
+    // Fallback to default download
+    downloadAllToDefaultLocation(docsFolderPath);
   }
 }
 
