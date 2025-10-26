@@ -83,7 +83,7 @@
         }
 
         .sidebar {
-            width: 192px;
+            width: 240px;
             background: var(--sidebar-bg);
             border-right: 1px solid var(--border-color);
             padding: 20px;
@@ -213,7 +213,7 @@
 
         #fileListContainer {
             flex: 1;
-            overflow-y: auto;
+            overflow-y: scroll;
             overflow-x: hidden;
             padding: 20px;
         }
@@ -221,8 +221,7 @@
         .file-table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
-            min-width: 100%;
+            table-layout: auto;
         }
 
         .file-table th {
@@ -259,7 +258,8 @@
 
         .file-table th:nth-child(1),
         .file-table td:nth-child(1) {
-            width: 35%;
+            width: 350px;
+            max-width: 350px;
             font-size: 13px;
             word-wrap: break-word;
             white-space: normal;
@@ -269,13 +269,14 @@
 
         .file-table th:nth-child(2),
         .file-table td:nth-child(2) {
-            width: 10%;
+            width: 80px;
             text-align: center;
         }
 
         .file-table th:nth-child(3),
         .file-table td:nth-child(3) {
-            width: 55%;
+            width: 250px;
+            max-width: 250px;
         }
 
         .file-actions {
