@@ -35,6 +35,7 @@
         <div>From</div>
         <div>To</div>
         <div>Search</div>
+        <div>Action</div>
       </div>
 
       <div class="filter-grid">
@@ -266,9 +267,9 @@
           if (priority && !taskPriority.includes(priority)) show = false;
           if (search && !taskDesc.includes(search) && !taskTag.includes(search) && !taskAssignee.includes(search)) show = false;
           
-          // Date filters
-          if (fromDate && taskDue && taskDue < fromDate) show = false;
-          if (toDate && taskDue && taskDue > toDate) show = false;
+          // Date filters (based on Completed On date)
+          if (fromDate && taskCompleted && taskCompleted < fromDate) show = false;
+          if (toDate && taskCompleted && taskCompleted > toDate) show = false;
           
           row.style.display = show ? '' : 'none';
           if (show) visibleCount++;
