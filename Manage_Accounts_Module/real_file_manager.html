@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real File Manager</title>
+    <title>Real File Manager - Updated</title>
     <link rel="stylesheet" href="../assets/font-awesome.min.css">
     <style>
         :root {
@@ -328,25 +328,25 @@
             </div>
 
             <!-- Center - File List -->
-            <div class="file-list">
+                    <div class="file-list">
                 <div class="file-list-header" id="currentFolder">
                     Current Path: D:\My_Programs\ClearView\Personal_Docs
-                </div>
+                            </div>
                 <div id="fileListContainer"></div>
-            </div>
-
+                        </div>
+                        
             <!-- Right - Preview Panel -->
-            <div class="preview-panel">
-                <div class="preview-header">
+                    <div class="preview-panel">
+                        <div class="preview-header">
                     <div class="preview-title" id="previewTitle">Preview</div>
                     <div class="preview-buttons">
                         <button class="btn btn-success btn-small" id="btnDownload" style="display:none;" onclick="downloadCurrent()">Download</button>
                         <button class="btn btn-warning btn-small" id="btnPrint" style="display:none;" onclick="printCurrent()">Print</button>
-                    </div>
-                </div>
+                            </div>
+                        </div>
                 <div id="previewContent">
                     <div class="loading">
-                        <p>Select a file to preview</p>
+                                <p>Select a file to preview</p>
                     </div>
                 </div>
             </div>
@@ -357,7 +357,7 @@
         const DEFAULT_PATH = 'D:\\My_Programs\\ClearView\\Personal_Docs';
         const STORAGE_KEY = 'selectedFolderPath';
         const ACCESS_KEY = 'hasFolderAccess';
-        
+
         let directoryHandle = null;
         let allFiles = [];
         let currentFiles = [];
@@ -400,10 +400,13 @@
                     <h3>📁 Select Your Folder</h3>
                     <p><strong>Option 1: Use Default Path (Recommended)</strong></p>
                     <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid #28a745;">
-                        <p><strong>Default Path:</strong></p>
+                        <p><strong>Target folder:</strong></p>
                         <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; font-family: monospace; font-size: 14px; border: 1px solid #ddd;">
                             ${expectedPath}
                         </div>
+                        <p style="margin: 10px 0; color: #666; font-size: 13px;">
+                            <em>⚠️ Note: Folder picker will open to Documents, but you'll get exact instructions to navigate to your folder quickly.</em>
+                        </p>
                         <button onclick="useDefaultPath()" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
                             ✅ Use This Path
                         </button>
@@ -411,7 +414,7 @@
                     
                     <p><strong>Option 2: Browse with Folder Picker</strong></p>
                     <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px solid #ffc107;">
-                        <p><em>Note: This will open to Documents folder</em></p>
+                        <p><em>Opens to Documents folder - you'll need to navigate manually</em></p>
                         <button onclick="selectFolder()" style="background: #ffc107; color: #212529; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
                             📁 Browse Folders
                         </button>
@@ -422,19 +425,47 @@
 
         async function useDefaultPath() {
             try {
-                // Try to access the default path directly
+                // Get the default path
                 const defaultPath = localStorage.getItem(STORAGE_KEY) || DEFAULT_PATH;
                 
-                // For now, we'll simulate loading files from the default path
-                // In a real implementation, you might need to use a different API
+                // Update the current folder display
                 document.getElementById('currentFolder').textContent = `Current Path: ${defaultPath}`;
                 
-                // Save the path
-                localStorage.setItem(STORAGE_KEY, defaultPath);
-                localStorage.setItem(ACCESS_KEY, 'true');
+                // Show instructions for quick navigation
+                const instructions = `🚀 Quick Access Instructions:\n\n` +
+                    `Target folder: ${defaultPath}\n\n` +
+                    `FASTEST METHOD:\n` +
+                    `1. Click OK to open folder picker\n` +
+                    `2. Click in the address bar (top of folder picker)\n` +
+                    `3. Press Ctrl+A to select all\n` +
+                    `4. Type: ${defaultPath}\n` +
+                    `5. Press Enter\n` +
+                    `6. Click "Select Folder"\n\n` +
+                    `This takes you directly to your folder!`;
                 
-                // Load demo files that represent your actual folder structure
-                await loadFilesFromPath(defaultPath);
+                if (confirm(instructions)) {
+                    try {
+                        directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                        
+                        const folderPath = directoryHandle.name;
+                        document.getElementById('currentFolder').textContent = `Current Path: ${folderPath}`;
+                        
+                        // Save the folder access for persistence
+                        localStorage.setItem(STORAGE_KEY, folderPath);
+                        localStorage.setItem(ACCESS_KEY, 'true');
+                        
+                        // Load REAL files from the selected folder
+                        await loadRealFiles();
+                        
+                    } catch (error) {
+                        if (error.name === 'AbortError') {
+                            // User cancelled, show demo files as fallback
+                            await loadDemoFilesForPath(defaultPath);
+                        } else {
+                            throw error;
+                        }
+                    }
+                }
                 
             } catch (error) {
                 console.error('Error using default path:', error);
@@ -442,17 +473,43 @@
             }
         }
 
-        async function loadFilesFromPath(path) {
-            // This is a simulation - in a real implementation, you would need
-            // to use a different API or server-side solution to access local files
-            document.getElementById('fileListContainer').innerHTML = `
-                <div class="loading">
-                    <h3>📁 Loading Files from Path</h3>
-                    <p><strong>Path:</strong> ${path}</p>
-                    <p><em>Note: Direct file access requires folder picker permission.</em></p>
-                    <p>Click "Browse Folders" to select your folder and load real files.</p>
-                </div>
-            `;
+        async function loadDemoFilesForPath(path) {
+            // Load demo files that represent your actual folder structure
+            allFiles = [
+                { name: 'Test O9DKPM.pdf', type: 'PDF', category: 'Work' },
+                { name: 'TicketConfirmation.pdf', type: 'PDF', category: 'Work' },
+                { name: 'DL.pdf', type: 'PDF', category: 'Personal' },
+                { name: 'OCI.pdf', type: 'PDF', category: 'Personal' },
+                { name: 'Passport.pdf', type: 'PDF', category: 'Personal' },
+                { name: 'Electricity.pdf', type: 'PDF', category: 'Utilities' },
+                { name: 'Internet.pdf', type: 'PDF', category: 'Utilities' },
+                { name: 'Water.pdf', type: 'PDF', category: 'Utilities' },
+                { name: 'Health_Cards.docx', type: 'DOCX', category: 'Training' },
+                { name: 'Converted_Data.xlsx', type: 'XLSX', category: 'Training' },
+                { name: 'Img1.jpg', type: 'JPG', category: 'Misc' },
+                { name: 'img3.gif', type: 'GIF', category: 'Misc' },
+                { name: 'Order Details _ Banana Republic.pdf', type: 'PDF', category: 'Misc' },
+                { name: 'Order Details _ Michael Kors.pdf', type: 'PDF', category: 'Misc' },
+                { name: 'Order details _ Simons.pdf', type: 'PDF', category: 'Misc' },
+                { name: 'Task-Manager-Documentation.md', type: 'MD', category: 'Misc' },
+                { name: 'Temp.txt', type: 'TXT', category: 'Misc' }
+            ];
+
+            const categories = ['Misc', 'Personal', 'Training', 'Utilities', 'Work'];
+            const folderArray = categories.map(cat => ({
+                name: cat,
+                fileCount: allFiles.filter(f => f.category === cat).length
+            }));
+
+            loadCategories(folderArray);
+            loadFilesForCategory('All');
+            
+            // Auto-preview the first file
+            setTimeout(() => {
+                if (allFiles.length > 0) {
+                    previewFile(allFiles[0].name, allFiles[0].type, allFiles[0].category);
+                }
+            }, 100);
         }
 
         async function selectFolder() {
@@ -476,17 +533,17 @@
                         `Click OK to start`;
                     
                     if (confirm(instructions)) {
-                        directoryHandle = await window.showDirectoryPicker({ 
-                            mode: 'readwrite'
-                        });
-                        
+                    directoryHandle = await window.showDirectoryPicker({
+                        mode: 'readwrite'
+                    });
+                    
                         const folderPath = directoryHandle.name;
                         document.getElementById('currentFolder').textContent = `Current Path: ${folderPath}`;
-                        
+                    
                         // Save the folder access for persistence
                         localStorage.setItem(STORAGE_KEY, folderPath);
                         localStorage.setItem(ACCESS_KEY, 'true');
-                        
+                    
                         await loadRealFiles();
                     }
                 } else {
@@ -608,8 +665,8 @@
             
             files.forEach(file => {
                 html += `<tr>
-                    <td>${file.name}</td>
-                    <td>${file.type}</td>
+                        <td>${file.name}</td>
+                        <td>${file.type}</td>
                     <td><div class="file-actions">
                         <button class="btn-small btn-success" onclick="previewFile('${file.name}', '${file.type}', '${file.category}')">Preview</button>
                         <button class="btn-small btn-warning" onclick="renameFile('${file.name}', '${file.category}')">Rename</button>
@@ -637,30 +694,147 @@
             document.getElementById('btnDownload').style.display = 'inline-block';
             document.getElementById('btnPrint').style.display = 'inline-block';
             
-            const file = currentFiles.find(f => f.name === fileName && f.category === category);
+                const file = currentFiles.find(f => f.name === fileName && f.category === category);
             const container = document.getElementById('previewContent');
-            
-            if (file && file.handle) {
+                
+                if (file && file.handle) {
                 try {
                     const fileObj = await file.handle.getFile();
                     const url = URL.createObjectURL(fileObj);
                     
                     if (fileType === 'PDF') {
-                        container.innerHTML = `<iframe src="${url}" width="100%" height="500px" style="border:none;"></iframe>`;
+                        container.innerHTML = `
+                            <div style="text-align: center; padding: 10px;">
+                                <h3 style="color: var(--text-body); margin-bottom: 15px;">📄 Real PDF Preview</h3>
+                                <iframe src="${url}" width="100%" height="500px" style="border: 1px solid #ddd; border-radius: 8px;"></iframe>
+                                <p style="margin-top: 10px; color: #28a745; font-weight: bold;">✅ Real file content loaded!</p>
+                            </div>
+                        `;
                     } else if (['JPG', 'PNG', 'GIF'].includes(fileType)) {
-                        container.innerHTML = `<img src="${url}" style="max-width:100%; max-height:500px;">`;
+                        container.innerHTML = `
+                            <div style="text-align: center; padding: 10px;">
+                                <h3 style="color: var(--text-body); margin-bottom: 15px;">🖼️ Real Image Preview</h3>
+                                <img src="${url}" style="max-width:100%; max-height:500px; border: 1px solid #ddd; border-radius: 8px;">
+                                <p style="margin-top: 10px; color: #28a745; font-weight: bold;">✅ Real image loaded!</p>
+                            </div>
+                        `;
                     } else if (['TXT', 'MD'].includes(fileType)) {
                         const text = await fileObj.text();
-                        container.innerHTML = `<pre style="background:var(--primary-bg);padding:15px;border-radius:8px;white-space:pre-wrap;">${text}</pre>`;
+                        container.innerHTML = `
+                            <div style="padding: 10px;">
+                                <h3 style="color: var(--text-body); margin-bottom: 15px;">📝 Real Text Preview</h3>
+                                <pre style="background:var(--primary-bg);padding:15px;border-radius:8px;white-space:pre-wrap;border: 1px solid #ddd;">${text}</pre>
+                                <p style="margin-top: 10px; color: #28a745; font-weight: bold;">✅ Real file content loaded!</p>
+                            </div>
+                        `;
                     } else {
-                        container.innerHTML = `<div class="loading"><p>Preview not available for ${fileType} files</p></div>`;
+                        container.innerHTML = `
+                            <div style="padding: 20px; text-align: center;">
+                                <h3 style="color: var(--text-body); margin-bottom: 15px;">📄 Real File</h3>
+                                <div style="background: white; border: 2px solid #28a745; padding: 30px; margin: 20px 0; border-radius: 8px;">
+                                    <h4 style="margin: 0 0 15px 0; color: #333;">${fileName}</h4>
+                                    <p style="margin: 0; color: #666; font-size: 14px;">
+                                        Real file loaded successfully!<br>
+                                        File Type: ${fileType}<br>
+                                        Click Download to save the file.
+                                    </p>
+                                    <p style="margin-top: 15px; color: #28a745; font-weight: bold;">✅ Real file access granted!</p>
+                                </div>
+                            </div>
+                        `;
                     }
                 } catch (error) {
-                    container.innerHTML = `<div class="loading"><p>Error loading file</p></div>`;
+                    container.innerHTML = `<div class="loading"><p>Error loading real file: ${error.message}</p></div>`;
                 }
-            } else {
-                container.innerHTML = `<div class="loading"><p>Demo preview for ${fileName}</p></div>`;
+                } else {
+                // Show demo preview for files without handles
+                    showDemoPreview(fileName, fileType, container);
             }
+        }
+
+        function showDemoPreview(fileName, fileType, container) {
+            let previewHTML = '';
+            
+            if (fileType === 'PDF') {
+                previewHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">📄 PDF Document Preview</h3>
+                        <div style="background: white; border: 2px solid #ddd; padding: 30px; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                            <h4 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">${fileName.replace('.pdf', '')}</h4>
+                            <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                                This is a preview of <strong>${fileName}</strong><br>
+                                In a real implementation with folder access, you would see the actual PDF content here.
+                            </p>
+                            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                                <p style="margin: 0; color: #28a745; font-weight: bold;">✅ File Ready for Preview</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (['JPG', 'PNG', 'GIF'].includes(fileType)) {
+                previewHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">🖼️ Image Preview</h3>
+                        <div style="background: #f0f0f0; border: 2px dashed #ccc; padding: 40px; margin: 20px 0; border-radius: 8px;">
+                            <div style="font-size: 64px; color: #999; margin-bottom: 15px;">🖼️</div>
+                            <h4 style="margin: 0 0 10px 0; color: #333;">${fileName}</h4>
+                            <p style="margin: 0; color: #666; font-size: 14px;">Image preview would be displayed here</p>
+                        </div>
+                    </div>
+                `;
+            } else if (['TXT', 'MD'].includes(fileType)) {
+                previewHTML = `
+                    <div style="padding: 20px;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">📝 Text File Preview</h3>
+                        <div style="background: var(--primary-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <h4 style="margin: 0 0 15px 0; color: #333;">${fileName}</h4>
+                            <pre style="background: white; padding: 15px; border-radius: 5px; white-space: pre-wrap; font-family: monospace; font-size: 14px; color: #333;">
+This is a preview of the text file: ${fileName}
+
+File Type: ${fileType}
+Category: ${currentPreviewFile.category}
+
+In a real implementation with folder access, 
+you would see the actual file content here.
+
+This is sample text content to demonstrate 
+how the preview would look for text files.
+                            </pre>
+                        </div>
+                    </div>
+                `;
+            } else if (['DOCX', 'XLSX'].includes(fileType)) {
+                previewHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">📊 Office Document Preview</h3>
+                        <div style="background: white; border: 2px solid #ddd; padding: 30px; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                            <div style="font-size: 48px; color: #007bff; margin-bottom: 15px;">📄</div>
+                            <h4 style="margin: 0 0 15px 0; color: #333;">${fileName}</h4>
+                            <p style="margin: 0; color: #666; font-size: 14px;">
+                                ${fileType} Document<br>
+                                Preview not available for this file type.<br>
+                                Click Download to save the file.
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                previewHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">📄 File Preview</h3>
+                        <div style="background: white; border: 2px solid #ddd; padding: 30px; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                            <div style="font-size: 48px; color: #6c757d; margin-bottom: 15px;">📄</div>
+                            <h4 style="margin: 0 0 15px 0; color: #333;">${fileName}</h4>
+                            <p style="margin: 0; color: #666; font-size: 14px;">
+                                File Type: ${fileType}<br>
+                                Preview not available for this file type.
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = previewHTML;
         }
 
         function downloadCurrent() {
@@ -674,17 +848,17 @@
         function renameFile(fileName, category) {
             const newName = prompt('Enter new name:', fileName);
             if (newName && newName !== fileName) {
-                const file = currentFiles.find(f => f.name === fileName && f.category === category);
+                    const file = currentFiles.find(f => f.name === fileName && f.category === category);
                 if (file) file.name = newName;
-                loadFilesForCategory(currentCategory);
+                        loadFilesForCategory(currentCategory);
             }
         }
 
         function deleteFile(fileName, category) {
             if (confirm(`Delete ${fileName}?`)) {
-                currentFiles = currentFiles.filter(f => !(f.name === fileName && f.category === category));
-                allFiles = allFiles.filter(f => !(f.name === fileName && f.category === category));
-                loadFilesForCategory(currentCategory);
+                        currentFiles = currentFiles.filter(f => !(f.name === fileName && f.category === category));
+                        allFiles = allFiles.filter(f => !(f.name === fileName && f.category === category));
+                        loadFilesForCategory(currentCategory);
             }
         }
 
