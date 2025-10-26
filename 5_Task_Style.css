@@ -80,3 +80,4 @@ input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 
 #saveBtn:hover{background:var(--accent-hover);box-shadow:var(--shadow-xs);}
 #cancelBtn{background:var(--surface);color:var(--text-secondary);padding:8px 16px;border-radius:var(--radius);font-weight:500;font-size:13px;border:1px solid var(--border);cursor:pointer;transition:all 0.1s ease;min-width:80px;height:32px;}
 #cancelBtn:hover{background:var(--bg);border-color:var(--text-muted);color:var(--text-primary);}
+

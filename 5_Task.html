@@ -129,11 +129,8 @@
 
   <script>
     // Embedded JavaScript - Task Manager
-    alert('Task Manager JavaScript is loading...');
     
     function loadSampleData() {
-      alert('Load Sample Data function called!');
-      
       const sample = [
         {desc:'Complete Project Documentation',cat:'Development',tag:'PROJ-001',assignee:'John Doe',priority:'High',due:'2025-02-15',completed:'',status:'In Progress'},
         {desc:'Review Code Changes',cat:'Development',tag:'CODE-002',assignee:'Jane Smith',priority:'Medium',due:'2025-02-10',completed:'2025-02-08',status:'Completed'},
@@ -167,15 +164,13 @@
           <td><span class='del' title='Delete'>🗑️</span></td>`;
           tbody.appendChild(tr);
         });
-        alert('Sample data loaded! You should see 20 tasks now.');
       } else {
-        alert('Error: Could not find table body element');
+        console.error('Error: Could not find table body element');
       }
     }
     
     // Auto-load data when page loads
     document.addEventListener('DOMContentLoaded', function() {
-      alert('DOM loaded, auto-loading data...');
       setTimeout(loadSampleData, 1000);
       setTimeout(populateFilters, 1500);
       setTimeout(setupFilterEvents, 2000);
@@ -183,7 +178,6 @@
     
     // Populate filter dropdowns with sample data
     function populateFilters() {
-      alert('Populating filter dropdowns...');
       
       // Category filter
       const catFilter = document.getElementById('fCategory');
@@ -234,8 +228,6 @@
           priorityFilter.innerHTML += `<option value="${priority}">${priority}</option>`;
         });
       }
-      
-      alert('Filter dropdowns populated successfully!');
     }
     
     // Filter functionality
@@ -300,6 +292,37 @@
           element.addEventListener('change', applyFilters);
         }
       });
+      
+      // Add event listener to Clear All button
+      const clearBtn = document.getElementById('btnClear');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', clearAllFilters);
+      }
+    }
+    
+    // Clear all filters function
+    function clearAllFilters() {
+      // Reset all filter inputs
+      document.getElementById('fCategory').value = '';
+      document.getElementById('fTag').value = '';
+      document.getElementById('fAssignee').value = '';
+      document.getElementById('fStatus').value = '';
+      document.getElementById('fPriority').value = '';
+      document.getElementById('fFrom').value = '';
+      document.getElementById('fTo').value = '';
+      document.getElementById('globalSearch').value = '';
+      
+      // Show all rows
+      const rows = document.querySelectorAll('#taskBody tr');
+      rows.forEach(row => {
+        row.style.display = '';
+      });
+      
+      // Update record count
+      const recordCount = document.querySelector('.record-count');
+      if (recordCount) {
+        recordCount.textContent = `${rows.length} records`;
+      }
     }
     
     // Theme functionality
