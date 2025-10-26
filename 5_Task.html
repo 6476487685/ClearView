@@ -203,6 +203,50 @@
     // Make loadSampleData globally accessible
     window.loadSampleData = loadSampleData;
     
+    // Populate modal form dropdowns
+    function populateModalDropdowns() {
+      const modalCat = document.getElementById('cat');
+      const modalTag = document.getElementById('tag');
+      const modalAssignee = document.getElementById('assignee');
+      const modalPriority = document.getElementById('priority');
+      
+      // Category dropdown
+      if (modalCat) {
+        const categories = ['Development', 'Design', 'Testing', 'DevOps', 'Database', 'Security', 'Documentation'];
+        modalCat.innerHTML = '<option value="">Select Category</option>';
+        categories.forEach(cat => {
+          modalCat.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+      }
+      
+      // Task Tag dropdown
+      if (modalTag) {
+        const tags = ['PROJ-001', 'CODE-002', 'DOC-003', 'BUG-004', 'UI-005', 'TEST-006', 'DEPLOY-007', 'DB-008', 'CI-009', 'SEC-010', 'DB-011', 'TRAIN-012', 'PAY-013', 'MON-014', 'REF-015', 'API-016', '2FA-017', 'AUTO-018', 'BACKUP-019', 'MOBILE-020'];
+        modalTag.innerHTML = '<option value="">Select Tag</option>';
+        tags.forEach(tag => {
+          modalTag.innerHTML += `<option value="${tag}">${tag}</option>`;
+        });
+      }
+      
+      // Assignee dropdown
+      if (modalAssignee) {
+        const assignees = ['John Doe', 'Jane Smith', 'Mike Johnson', 'Sarah Wilson', 'Alex Chen', 'David Brown', 'Lisa Garcia', 'Robert Taylor', 'Emma Davis'];
+        modalAssignee.innerHTML = '<option value="">Select Assignee</option>';
+        assignees.forEach(assignee => {
+          modalAssignee.innerHTML += `<option value="${assignee}">${assignee}</option>`;
+        });
+      }
+      
+      // Priority dropdown
+      if (modalPriority) {
+        const priorities = ['Low', 'Medium', 'High', 'Critical'];
+        modalPriority.innerHTML = '<option value="">Select Priority</option>';
+        priorities.forEach(priority => {
+          modalPriority.innerHTML += `<option value="${priority}">${priority}</option>`;
+        });
+      }
+    }
+    
     // Populate filter dropdowns with sample data
     function populateFilters() {
       
@@ -370,6 +414,7 @@
       }
       
       // Setup filters
+      populateModalDropdowns(); // Populate modal dropdowns immediately
       setTimeout(populateFilters, 500);
       setTimeout(setupFilterEvents, 1000);
       
