@@ -1,66 +1,91 @@
-# Simple Manage Accounts - New Implementation
+# Manage Accounts Module
 
-This is a completely new, simple approach to the Manage Accounts functionality that actually works!
+## Overview
+This module provides a comprehensive file management system for organizing and accessing personal documents and files.
 
-## How It Works
+## Files Structure
 
-Instead of using the complex File System Access API, this solution uses a simple Python file server to serve your files, and a clean HTML interface to display and preview them.
-
-## Setup Instructions
-
-### 1. Start the File Server
-
-**Option A: Using the batch file (Recommended)**
-1. Double-click `start_server.bat`
-2. The server will start and show a message
-3. Keep this window open while using Manage Accounts
-
-**Option B: Using Python directly**
-1. Open Command Prompt in the Manage_Accounts_Module folder
-2. Run: `python file_server.py`
-3. Keep this window open while using Manage Accounts
-
-### 2. Use the Interface
-
-1. Go to the main ClearView application
-2. Click "Manage Accounts"
-3. The interface will load your files automatically
-4. Click any file to preview it
-5. Use Download/Print buttons as needed
+### Core Files
+- **Manage_Accounts_FileManager.html** - Main file manager interface
+- **Manage_Accounts_Backend.py** - Python backend for file operations
+- **Manage_Accounts_Config.json** - Configuration settings
+- **Manage_Accounts_Viewer.js** - JavaScript viewer functionality
 
 ## Features
 
-✅ **Real File Access**: Actually reads your files from the folder
-✅ **Real Previews**: Shows actual PDF, image, and text content
-✅ **No Folder Picker**: Works directly with your hardcoded folder
-✅ **Persistent**: Remembers your folder choice
-✅ **Simple**: No complex APIs or permissions needed
+### File Manager Interface
+- **Clean, modern UI** with three-panel layout
+- **Left Sidebar**: Folder categories and navigation
+- **Center Panel**: File list with actions (Preview, Rename, Delete)
+- **Right Panel**: File preview with Download/Print options
 
-## File Types Supported
+### File Operations
+- **Real File Access**: Uses File System Access API for secure file handling
+- **File Preview**: Supports PDF, images, text files, and office documents
+- **File Management**: Rename, delete, and organize files
+- **Persistent Storage**: Remembers selected folder path
 
-- **PDF**: Full PDF preview in iframe
-- **Images**: JPG, PNG, GIF preview
-- **Text**: TXT, MD files with syntax highlighting
-- **Others**: Download button for unsupported types
+### Default Configuration
+- **Target Folder**: `D:\Personal_Docs`
+- **Supported File Types**: PDF, JPG, PNG, GIF, DOCX, XLSX, TXT, MD
+- **Browser Compatibility**: Chrome, Edge, Opera (File System Access API)
 
-## Troubleshooting
+## Usage
 
-**"Server Not Connected" message:**
-- Make sure the Python file server is running
-- Check that port 8080 is not blocked
-- Try refreshing the page
+### Direct Access
+1. Open `Manage_Accounts_FileManager.html` directly in browser
+2. Click "Change Folder" to select your documents folder
+3. Navigate to `D:\Personal_Docs` (or your preferred folder)
+4. Select the folder to load files
 
-**Files not loading:**
-- Check that the folder path in `file_server.py` is correct
-- Make sure the folder exists and has files
-- Check the server console for error messages
+### Through Main Application
+1. Launch the main ClearView application
+2. Click "Manage Accounts" button
+3. Follow the same folder selection process
 
 ## Technical Details
 
-- **Server**: Python HTTP server on localhost:8080
-- **Interface**: Pure HTML/CSS/JavaScript
-- **File Access**: Direct file serving via HTTP
-- **No Permissions**: No browser security restrictions
+### File System Access
+- Uses modern File System Access API
+- Requires user permission for folder access
+- Secure file handling with browser security model
 
-This approach is much simpler and more reliable than the previous File System Access API method!
+### Layout Specifications
+- **Left Sidebar**: 240px (2.5 inches) for folder categories
+- **Center Panel**: 600px (6-7 inches) for file list
+- **Right Panel**: Remaining space for file preview
+- **Equal Gaps**: 8px spacing between panels
 
+### Browser Requirements
+- Chrome 86+ or Edge 86+ recommended
+- File System Access API support required
+- Local file access permissions
+
+## Configuration
+
+### Default Path
+The system is configured to work with `D:\Personal_Docs` as the default folder path. This can be changed by modifying the `DEFAULT_PATH` constant in the HTML file.
+
+### File Categories
+Files are automatically categorized into:
+- **All Files**: Complete file list
+- **Work**: Work-related documents
+- **Personal**: Personal documents
+- **Utilities**: Utility bills and documents
+- **Training**: Training materials
+- **Misc**: Miscellaneous files
+
+## Security
+- All file operations require explicit user permission
+- No automatic file access without user consent
+- Secure file preview using browser's object URL system
+- No server-side file storage or processing
+
+## Version History
+- **v1.0**: Initial release with basic file management
+- **v2.0**: Added real file preview functionality
+- **v3.0**: Simplified interface with persistent storage
+- **v4.0**: Clean, working version with proper file access
+
+## Support
+For issues or questions, refer to the main ClearView application documentation.
