@@ -39,7 +39,7 @@ input[type="search"]:focus,input[type="date"]:focus,select:focus{outline:none;bo
 .table-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-xs);}
 table{width:100%;border-collapse:collapse;table-layout:fixed;}
 th,td{padding:8px 12px;border-bottom:1px solid var(--border-light);font-size:12px;color:var(--text-primary);}
-th{background:var(--bg);font-weight:500;font-size:11px;position:relative;user-select:none;text-align:center;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em;}
+th{background:var(--bg);font-weight:500;font-size:11px;position:relative;user-select:none;text-align:center;color:var(--text-secondary);text-transform:capitalize;letter-spacing:0.08em;}
 /* Column-specific alignments */
 th:nth-child(1),td:nth-child(1){text-align:center;min-width:40px;} /* # column - center aligned */
 th:nth-child(2),td:nth-child(2){text-align:center;} /* Investment Description - center header, left data */
@@ -48,8 +48,8 @@ th:nth-child(3),td:nth-child(3){text-align:center;} /* Category Equity - center 
 td:nth-child(3){text-align:left;} /* Category Equity data - left aligned */
 th:nth-child(4),td:nth-child(4){text-align:center;} /* Account Tag Equity - center header, left data */
 td:nth-child(4){text-align:left;} /* Account Tag Equity data - left aligned */
-th:nth-child(5),td:nth-child(5){text-align:center;} /* Currency - center header, left data */
-td:nth-child(5){text-align:left;} /* Currency data - left aligned */
+th:nth-child(5),td:nth-child(5){text-align:center;} /* Currency - center header, right data */
+td:nth-child(5){text-align:right;} /* Currency data - right aligned */
 th:nth-child(6),td:nth-child(6){text-align:center;} /* Amount - center header, right data */
 td:nth-child(6){text-align:right;font-variant-numeric:tabular-nums;} /* Amount data - right aligned */
 th:nth-child(7),td:nth-child(7){text-align:center;} /* Mode - center header, left data */
