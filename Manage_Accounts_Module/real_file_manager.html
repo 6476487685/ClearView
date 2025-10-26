@@ -83,11 +83,12 @@
         }
 
         .sidebar {
-            width: 250px;
+            width: 192px;
             background: var(--sidebar-bg);
             border-right: 1px solid var(--border-color);
             padding: 20px;
             overflow-y: auto;
+            flex-shrink: 0;
         }
 
         .category {
@@ -221,6 +222,7 @@
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
+            min-width: 100%;
         }
 
         .file-table th {
@@ -257,7 +259,7 @@
 
         .file-table th:nth-child(1),
         .file-table td:nth-child(1) {
-            width: 350px;
+            width: 35%;
             font-size: 13px;
             word-wrap: break-word;
             white-space: normal;
@@ -267,13 +269,13 @@
 
         .file-table th:nth-child(2),
         .file-table td:nth-child(2) {
-            width: 80px;
+            width: 10%;
             text-align: center;
         }
 
         .file-table th:nth-child(3),
         .file-table td:nth-child(3) {
-            width: 280px;
+            width: 55%;
         }
 
         .file-actions {
@@ -759,8 +761,12 @@
             document.getElementById('btnPrint').style.display = 'inline-block';
             
             // Set up button actions
-            document.getElementById('btnDownload').onclick = () => downloadFile(fileName, category);
-            document.getElementById('btnPrint').onclick = () => printFile(fileName, fileType, category);
+            document.getElementById('btnDownload').onclick = () => {
+                downloadFile(fileName, category);
+            };
+            document.getElementById('btnPrint').onclick = () => {
+                printFile(fileName, fileType, category);
+            };
             
             // Show preview content
             const previewContent = document.getElementById('previewContent');
