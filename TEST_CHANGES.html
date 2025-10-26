@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearView - Changes Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .section h2 {
+            color: #4285f4;
+            margin-top: 0;
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .test-button {
+            background: #4285f4;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .test-button:hover {
+            background: #3367d6;
+        }
+        .new-button {
+            background: #34a853;
+        }
+        .new-button:hover {
+            background: #2e7d32;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .file-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .file-list li {
+            margin: 5px 0;
+        }
+        .new-file {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .modified-file {
+            color: #ffc107;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 ClearView Project - Changes Test Page</h1>
+        
+        <div class="section">
+            <h2>📊 Project Status</h2>
+            <div class="status success">
+                ✅ All changes have been successfully implemented!
+            </div>
+            <div class="status info">
+                📅 Last Updated: October 26, 2025
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🆕 New Features Added</h2>
+            <ul>
+                <li><strong>Task Management Interface</strong> - Complete CRUD operations with 20 sample tasks</li>
+                <li><strong>Persistent Column Resizing</strong> - All dashboards remember column widths</li>
+                <li><strong>Theme Switching</strong> - Dark/Light mode for all interfaces</li>
+                <li><strong>Title Case Headers</strong> - Professional table header formatting</li>
+                <li><strong>Enhanced Export</strong> - PDF and Excel export functionality</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test All Interfaces</h2>
+            <div class="button-grid">
+                <a href="index.html" class="test-button">🏠 Main Dashboard</a>
+                <a href="2_Expanse_Index.html" class="test-button">💰 Expense Dashboard</a>
+                <a href="3_Income_Index.html" class="test-button">💵 Income Dashboard</a>
+                <a href="4_Investment_Index.html" class="test-button">📈 Investment Dashboard</a>
+                <a href="5_Task.html" class="test-button new-button">✅ Task Dashboard (NEW!)</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📁 Files Modified/Created</h2>
+            <div class="file-list">
+                <h3>New Files:</h3>
+                <ul>
+                    <li class="new-file">5_Task.html</li>
+                    <li class="new-file">5_Task_Style.css</li>
+                    <li class="new-file">5_Task_Main.js</li>
+                    <li class="new-file">CHANGES_SUMMARY.md</li>
+                </ul>
+                
+                <h3>Modified Files:</h3>
+                <ul>
+                    <li class="modified-file">index.html</li>
+                    <li class="modified-file">2_Expanse_Index.html</li>
+                    <li class="modified-file">2_Expanse_Style.css</li>
+                    <li class="modified-file">2_Expanse_Main.js</li>
+                    <li class="modified-file">3_Income_Index.html</li>
+                    <li class="modified-file">3_Income_Style.css</li>
+                    <li class="modified-file">3_Income_Main.js</li>
+                    <li class="modified-file">4_Investment_Index.html</li>
+                    <li class="modified-file">4_Investment_Style.css</li>
+                    <li class="modified-file">4_Investment_Main.js</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 GitHub Desktop Troubleshooting</h2>
+            <p>If GitHub Desktop isn't showing changes, try these steps:</p>
+            <ol>
+                <li><strong>Refresh Repository</strong>: Click "Fetch origin" in GitHub Desktop</li>
+                <li><strong>Check Repository Path</strong>: Make sure GitHub Desktop is pointing to <code>D:\My_Programs\ClearView</code></li>
+                <li><strong>Force Refresh</strong>: Close and reopen GitHub Desktop</li>
+                <li><strong>Check Git Status</strong>: Open terminal in project folder and run <code>git status</code></li>
+                <li><strong>Manual Add</strong>: If needed, manually add files using <code>git add .</code></li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>📋 Quick Test Checklist</h2>
+            <ul>
+                <li>✅ Main Dashboard loads with all menu items</li>
+                <li>✅ Task Dashboard shows 20 sample tasks</li>
+                <li>✅ All dashboards have theme switching</li>
+                <li>✅ Column resizing works and persists</li>
+                <li>✅ Table headers use title case</li>
+                <li>✅ Export functions work (PDF/Excel)</li>
+                <li>✅ Filtering and search work</li>
+                <li>✅ Add/Edit/Delete operations work</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>💡 Next Steps</h2>
+            <p>Once you can see the changes in GitHub Desktop:</p>
+            <ol>
+                <li>Review all modified files</li>
+                <li>Add a commit message: "Add Task Management Interface and enhance all dashboards"</li>
+                <li>Commit the changes</li>
+                <li>Push to origin</li>
+            </ol>
+        </div>
+    </div>
+</body>
+</html>

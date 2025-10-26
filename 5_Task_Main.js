@@ -1,6 +1,4 @@
 document.addEventListener("DOMContentLoaded",()=>{
- console.log('DOM Content Loaded - Task Manager');
- 
  const table=document.getElementById('taskTable');
  const tbody=document.getElementById('taskBody');
  const form=document.getElementById('taskForm');
@@ -13,14 +11,6 @@ document.addEventListener("DOMContentLoaded",()=>{
  const filters=document.querySelectorAll('#fCategory,#fTag,#fAssignee,#fStatus,#fPriority,#fFrom,#fTo,#globalSearch');
  const clearBtn=document.getElementById('btnClear');
  let editIndex=null;
- 
- console.log('DOM Elements found:', {
-   table: !!table,
-   tbody: !!tbody,
-   form: !!form,
-   modal: !!modal,
-   addBtn: !!addBtn
- });
 
  const sample=[
   {desc:'Complete Project Documentation',cat:'Development',tag:'PROJ-001',assignee:'John Doe',priority:'High',due:'2025-02-15',completed:'',status:'In Progress'},
@@ -45,17 +35,13 @@ document.addEventListener("DOMContentLoaded",()=>{
   {desc:'Design Mobile App Interface',cat:'Design',tag:'MOBILE-020',assignee:'Alex Chen',priority:'Medium',due:'2025-02-24',completed:'',status:'Pending'}
  ];
  
- // Clear existing data and set fresh sample data
- localStorage.removeItem('task_records');
+ // Set sample data
  localStorage.setItem('task_records', JSON.stringify(sample));
  
  const getData=()=>JSON.parse(localStorage.getItem('task_records'))||[];
  const saveData=d=>localStorage.setItem('task_records',JSON.stringify(d));
 
  function renderTable(d){
-  console.log('Rendering table with data:', d);
-  console.log('Data length:', d.length);
-  
   if (!tbody) {
     console.error('tbody element not found!');
     return;
@@ -69,12 +55,17 @@ document.addEventListener("DOMContentLoaded",()=>{
    <td><span class='del' title='Delete'>🗑️</span></td>`;
    tbody.appendChild(tr);
   });
-  
-  console.log('Table rendered successfully');
  }
  
- console.log('About to render table with data:', getData());
  renderTable(getData());
+ 
+ // Debug: Check if data is loaded
+ const data = getData();
+ if (data.length === 0) {
+   alert('No data found! Check console for errors.');
+ } else {
+   console.log('Data loaded successfully:', data.length, 'tasks');
+ }
 
  // Event delegation
  tbody.addEventListener('click',e=>{
@@ -312,4 +303,11 @@ themeSwitch.addEventListener('change', () => {
   document.body.classList.toggle('dark');
   localStorage.setItem('theme', themeSwitch.checked ? 'dark' : 'light');
 });
+
+// Global function to load sample data
+window.loadSampleData = function() {
+  localStorage.setItem('task_records', JSON.stringify(sample));
+  renderTable(getData());
+  alert('Sample data loaded! You should see 20 tasks now.');
+};
 });
