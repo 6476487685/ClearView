@@ -200,12 +200,21 @@
 
         .file-list-content {
             flex: 1;
-            overflow-y: auto;
+            overflow: hidden;
             background: var(--card-bg);
             border-radius: 12px;
             box-shadow: var(--shadow);
             border: 1px solid var(--border-color);
             min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #fileListContainer {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px;
         }
 
         .file-table {
@@ -248,7 +257,7 @@
 
         .file-table th:nth-child(1),
         .file-table td:nth-child(1) {
-            width: 200px;
+            width: 350px;
             font-size: 13px;
             word-wrap: break-word;
             white-space: normal;
@@ -264,13 +273,13 @@
 
         .file-table th:nth-child(3),
         .file-table td:nth-child(3) {
-            width: 200px;
+            width: 280px;
         }
 
         .file-actions {
             display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
+            gap: 3px;
+            flex-wrap: nowrap;
             justify-content: flex-start;
             align-items: center;
         }
@@ -298,7 +307,7 @@
         }
 
         .preview-panel {
-            width: 400px;
+            width: 350px;
             background: var(--primary-bg);
             border-left: 1px solid var(--border-color);
             padding: 20px;
@@ -564,7 +573,12 @@
                 }
                 
                 allFiles = files;
-                loadCategories(folders);
+                // Create folder array with name and fileCount for display
+                const folderArray = folders.map(folder => ({
+                    name: folder.name,
+                    fileCount: allFiles.filter(f => f.category === folder.name).length
+                }));
+                loadCategories(folderArray);
                 loadFilesForCategory('All');
                 
             } catch (error) {
@@ -597,9 +611,13 @@
                 { name: 'Another_Very_Long_File_Name_For_Testing_Purposes_To_Ensure_Proper_Text_Wrapping_And_Layout_Stability.docx', type: 'DOCX', category: 'Work' }
             ];
 
-            // Load categories
-            const categories = ['All', 'Misc', 'Personal', 'Training', 'Utilities', 'Work'];
-            loadCategories(categories);
+            // Load categories - create folder objects with name and fileCount
+            const categories = ['Misc', 'Personal', 'Training', 'Utilities', 'Work'];
+            const folderArray = categories.map(cat => ({
+                name: cat,
+                fileCount: allFiles.filter(f => f.category === cat).length
+            }));
+            loadCategories(folderArray);
 
             // Load files for first category
             loadFilesForCategory('All');
