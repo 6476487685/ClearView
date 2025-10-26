@@ -127,21 +127,14 @@ body.dark .doc-btn:hover{background:#404040;border-color:#5a5a5a;}
 .doc-btn:disabled{opacity:0.5;cursor:not-allowed;background:#f8f9fa;border-color:#dee2e6;}
 .doc-btn:disabled:hover{background:#f8f9fa;border-color:#dee2e6;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
 
-/* PNG Icon Styling - Simple Black & White */
-.doc-btn img{width:20px;height:20px;transition:all 0.2s ease;opacity:0.8;}
+/* Emoji Icon Styling - Works in both themes */
+.doc-btn span{font-size:16px;transition:all 0.2s ease;opacity:0.8;}
 
-/* Hover effects for PNG icons */
-.doc-btn.download:hover img{opacity:1;transform:scale(1.1);}
-.doc-btn.move-up:hover img{opacity:1;transform:scale(1.1);}
-.doc-btn.move-down:hover img{opacity:1;transform:scale(1.1);}
-.doc-btn.delete:hover img{opacity:1;transform:scale(1.1);}
-
-/* Dark mode PNG icon colors - Enhanced visibility */
-body.dark .doc-btn img{filter:brightness(0) invert(1);opacity:0.9;background:none;}
-body.dark .doc-btn.download:hover img,
-body.dark .doc-btn.move-up:hover img,
-body.dark .doc-btn.move-down:hover img,
-body.dark .doc-btn.delete:hover img{opacity:1;transform:scale(1.1);filter:brightness(0) invert(1);}
+/* Hover effects for emoji icons */
+.doc-btn.download:hover span{opacity:1;transform:scale(1.1);}
+.doc-btn.move-up:hover span{opacity:1;transform:scale(1.1);}
+.doc-btn.move-down:hover span{opacity:1;transform:scale(1.1);}
+.doc-btn.delete:hover span{opacity:1;transform:scale(1.1);}
 
 /* File type icons styling */
 .file-icon{color:#000;font-size:14px;margin-right:6px;}
@@ -1640,16 +1633,16 @@ function renderDocs(){
     <td>
       <div class="doc-actions">
         <button class="doc-btn download" data-i="${i}" title="Download">
-          <img src="assets/icons/downlaod.png?v=1" alt="Download" style="width: 20px; height: 20px;">
+          <span style="font-size: 16px;">⬇️</span>
         </button>
         <button class="doc-btn move-up" data-i="${i}" title="Move Up" ${i === 0 ? 'disabled' : ''}>
-          <img src="assets/icons/move-up.png?v=1" alt="Move Up" style="width: 20px; height: 20px;">
+          <span style="font-size: 16px;">⬆️</span>
         </button>
         <button class="doc-btn move-down" data-i="${i}" title="Move Down" ${i === docs.length - 1 ? 'disabled' : ''}>
-          <img src="assets/icons/move-down.png?v=1" alt="Move Down" style="width: 20px; height: 20px;">
+          <span style="font-size: 16px;">⬇️</span>
         </button>
         <button class="doc-btn delete" data-i="${i}" title="Delete">
-          <img src="assets/icons/delete.png?v=1" alt="Delete" style="width: 20px; height: 20px;">
+          <span style="font-size: 16px;">🗑️</span>
         </button>
       </div>
     </td>`;
