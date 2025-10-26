@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Excel File Analysis</title>
+    <script src="assets/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .sheet { margin: 20px 0; border: 1px solid #ccc; padding: 15px; }
+        .sheet-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .mismatch { color: red; }
+        .match { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Excel File Structure Analysis</h1>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" />
+    <div id="output"></div>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    let output = '<h2>Found Sheets: ' + workbook.SheetNames.length + '</h2>';
+                    
+                    workbook.SheetNames.forEach(sheetName => {
+                        const sheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(sheet);
+                        
+                        output += `<div class="sheet">`;
+                        output += `<div class="sheet-title">Sheet: ${sheetName}</div>`;
+                        output += `<p>Rows: ${jsonData.length}</p>`;
+                        
+                        if (jsonData.length > 0) {
+                            output += '<table>';
+                            // Headers
+                            output += '<tr>';
+                            Object.keys(jsonData[0]).forEach(key => {
+                                output += `<th>${key}</th>`;
+                            });
+                            output += '</tr>';
+                            
+                            // First 5 rows
+                            jsonData.slice(0, 5).forEach(row => {
+                                output += '<tr>';
+                                Object.values(row).forEach(val => {
+                                    output += `<td>${val}</td>`;
+                                });
+                                output += '</tr>';
+                            });
+                            output += '</table>';
+                        }
+                        
+                        output += '</div>';
+                    });
+                    
+                    document.getElementById('output').innerHTML = output;
+                } catch (error) {
+                    console.error('Error:', error);
+                    document.getElementById('output').innerHTML = '<p>Error reading file: ' + error.message + '</p>';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    </script>
+</body>
+</html>
+
