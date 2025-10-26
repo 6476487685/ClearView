@@ -644,12 +644,7 @@
             // This is used for changing folder - opens folder picker
             try {
                 if ('showDirectoryPicker' in window) {
-                    // Show instruction before opening folder picker
-                    const proceed = confirm(`CHANGE FOLDER:\n\n1. Click OK to open folder picker\n2. Navigate to your desired folder\n3. Select the folder you want to use\n4. Click "Select Folder"\n\nThis will change the folder and load files from the new location.`);
-                    if (!proceed) {
-                        return;
-                    }
-                    
+                    // Call showDirectoryPicker directly to preserve user gesture
                     directoryHandle = await window.showDirectoryPicker({
                         mode: 'readwrite'
                     });

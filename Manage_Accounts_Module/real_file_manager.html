@@ -464,37 +464,33 @@
         }
 
         async function loadDefaultFolder() {
-            try {
-                // Get saved folder path or use default
-                const savedPath = localStorage.getItem(STORAGE_KEY) || DEFAULT_FOLDER_PATH;
-                document.getElementById('currentFolder').textContent = `Current Folder: ${savedPath}`;
-                
-                // Try to access the folder directly
-                await accessFolder(savedPath);
-                
-            } catch (error) {
-                console.error('Error loading default folder:', error);
-                showError('Could not access the default folder. Please use "Change Folder" to select a folder.');
+            // Check if we have a stored directory handle
+            const hasAccess = localStorage.getItem('hasFolderAccess') === 'true';
+            const savedFolderName = localStorage.getItem(STORAGE_KEY);
+            
+            if (hasAccess && savedFolderName) {
+                // User has granted access before, load demo files with the folder name
+                document.getElementById('currentFolder').textContent = `Current Folder: ${savedFolderName}`;
+                loadDemoFiles();
+            } else {
+                // First time - show demo files and wait for user to click "Change Folder"
+                document.getElementById('currentFolder').textContent = `Current Folder: Click "Change Folder" to select`;
+                loadDemoFiles();
             }
         }
 
-        async function accessFolder(folderPath) {
+        async function accessFolder() {
             try {
                 // For now, we'll use the File System Access API
                 if ('showDirectoryPicker' in window) {
-                    // Show a message to the user
-                    const proceed = confirm(`ACCESS FOLDER:\n\nTo access your files from:\n${folderPath}\n\nClick OK to open the folder picker and select this folder.`);
-                    if (!proceed) {
-                        loadDemoFiles();
-                        return;
-                    }
-                    
+                    // Call showDirectoryPicker directly to preserve user gesture
                     directoryHandle = await window.showDirectoryPicker({
                         mode: 'readwrite'
                     });
                     
                     // Save the folder path
                     localStorage.setItem(STORAGE_KEY, directoryHandle.name);
+                    localStorage.setItem('hasFolderAccess', 'true');
                     document.getElementById('currentFolder').textContent = `Current Folder: ${directoryHandle.name}`;
                     
                     // Load real files from the selected folder
@@ -998,30 +994,8 @@
         }
 
         async function selectFolder() {
-            try {
-                if ('showDirectoryPicker' in window) {
-                    directoryHandle = await window.showDirectoryPicker({
-                        mode: 'readwrite'
-                    });
-                    
-                    // Save the new folder path
-                    localStorage.setItem(STORAGE_KEY, directoryHandle.name);
-                    
-                    // Update folder display
-                    document.getElementById('currentFolder').textContent = `Current Folder: ${directoryHandle.name}`;
-                    
-                    // Load real files from the selected folder
-                    await loadRealFiles();
-                    
-                } else {
-                    alert('Folder picker not supported in this browser. Please use Chrome, Edge, or Opera.');
-                }
-            } catch (error) {
-                if (error.name !== 'AbortError') {
-                    console.error('Error selecting folder:', error);
-                    alert('Error selecting folder: ' + error.message);
-                }
-            }
+            // Call the accessFolder function to handle folder selection
+            await accessFolder();
         }
 
         function showError(message) {
