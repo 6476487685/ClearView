@@ -185,22 +185,206 @@
     
     // Auto-populate filters when page loads (moved to modal functionality section)
     
-    // Export functions (will use jsPDF and xlsx libraries)
-    function exportToPDF() {
-      alert('PDF export - Use jsPDF to export task data');
+    // Helper function to generate filename
+    function generateFilename(extension) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      return `Task_Filter_Report_${year}-${month}-${day}_${hours}-${minutes}-${seconds}.${extension}`;
     }
     
+    // Helper function to create Excel file using SheetJS
+    function createExcelFile(data) {
+      // Prepare worksheet data
+      const headers = ['#', 'Task Description', 'Category Task', 'Task Tag', 'Task Status', 'Task Assignee', 'Task Priority', 'Due Date', 'Completed On'];
+      const worksheetData = [headers];
+      
+      data.forEach((row, index) => {
+        const rowData = [
+          index + 1,
+          row.desc,
+          row.cat,
+          row.tag,
+          row.status,
+          row.assignee,
+          row.priority,
+          row.due,
+          row.completed
+        ];
+        worksheetData.push(rowData);
+      });
+      
+      // Create workbook and worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+      
+      // Set column widths for better readability
+      ws['!cols'] = [
+        { wch: 5 },   // #
+        { wch: 30 },  // Task Description
+        { wch: 15 },  // Category Task
+        { wch: 15 },  // Task Tag
+        { wch: 15 },  // Task Status
+        { wch: 15 },  // Task Assignee
+        { wch: 12 },  // Task Priority
+        { wch: 12 },  // Due Date
+        { wch: 12 }   // Completed On
+      ];
+      
+      XLSX.utils.book_append_sheet(wb, ws, "Task Report");
+      
+      // Generate Excel file
+      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    }
+    
+    // Export to Excel function
     function exportToExcel() {
       const data = getData();
       if (data.length === 0) {
-        alert('No data to export');
+        alert('No task data to export');
         return;
       }
-      alert('Excel export - Use xlsx library to export task data');
+      
+      const blob = createExcelFile(data);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = generateFilename('xlsx');
+      a.click();
+      URL.revokeObjectURL(a.href);
     }
     
-    // Make loadSampleData globally accessible
+    // Export to PDF function
+    function exportToPDF() {
+      try {
+        const data = getData();
+        
+        // Check if jsPDF is loaded
+        if (!window.jspdf) {
+          alert('PDF library not loaded. Please refresh the page and try again.');
+          return;
+        }
+        
+        // Create PDF using jsPDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'mm', 'a4'); // landscape, millimeters, A4
+        const pageWidth = doc.internal.pageSize.width;
+        
+        // Helper function to format dates to YYYY/MM/DD
+        function formatDate(dateStr) {
+          if (!dateStr) return '';
+          const date = new Date(dateStr);
+          return date.toISOString().split('T')[0].replace(/-/g, '/');
+        }
+        
+        // Helper function to get current filter criteria
+        function getFilterCriteria() {
+          const criteria = [];
+          const fCategory = document.getElementById('fCategory');
+          const fTag = document.getElementById('fTag');
+          const fAssignee = document.getElementById('fAssignee');
+          const fStatus = document.getElementById('fStatus');
+          const fPriority = document.getElementById('fPriority');
+          const fFrom = document.getElementById('fFrom');
+          const fTo = document.getElementById('fTo');
+          
+          if (fCategory.value) criteria.push(`Category = ${fCategory.value}`);
+          if (fTag.value) criteria.push(`Task Tag = ${fTag.value}`);
+          if (fAssignee.value) criteria.push(`Assignee = ${fAssignee.value}`);
+          if (fStatus.value) criteria.push(`Status = ${fStatus.value}`);
+          if (fPriority.value) criteria.push(`Priority = ${fPriority.value}`);
+          if (fFrom.value) criteria.push(`Date From: ${formatDate(fFrom.value)}`);
+          if (fTo.value) criteria.push(`Date To: ${formatDate(fTo.value)}`);
+          return criteria.length > 0 ? criteria.join(', ') : 'No filters applied';
+        }
+        
+        // Set font
+        doc.setFont('helvetica');
+        
+        // Title - Font Size 16, bold
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Task Filtered Report', pageWidth / 2, 20, { align: 'center' });
+        
+        // Filter Criteria - Font Size 12
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Filter Criteria:', 20, 30);
+        doc.text(getFilterCriteria(), 20, 36);
+        
+        // Table Headers
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        const headers = ['#', 'Task Description', 'Category', 'Tag', 'Status', 'Assignee', 'Priority', 'Due Date', 'Completed'];
+        let xPos = 20;
+        const yPos = 45;
+        const colWidths = [8, 50, 20, 20, 20, 20, 20, 20, 20];
+        
+        headers.forEach((header, index) => {
+          doc.text(header, xPos, yPos);
+          xPos += colWidths[index];
+        });
+        
+        // Table Data
+        let yPosData = 52;
+        let rowHeight = 8;
+        
+        data.forEach((row, index) => {
+          if (yPosData > 180) { // New page if needed
+            doc.addPage();
+            yPosData = 20;
+          }
+          
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8);
+          
+          xPos = 20;
+          doc.text(String(index + 1), xPos, yPosData);
+          xPos += colWidths[0];
+          
+          doc.text(row.desc.substring(0, 30), xPos, yPosData);
+          xPos += colWidths[1];
+          
+          doc.text(row.cat, xPos, yPosData);
+          xPos += colWidths[2];
+          
+          doc.text(row.tag, xPos, yPosData);
+          xPos += colWidths[3];
+          
+          doc.text(row.status, xPos, yPosData);
+          xPos += colWidths[4];
+          
+          doc.text(row.assignee.substring(0, 15), xPos, yPosData);
+          xPos += colWidths[5];
+          
+          doc.text(row.priority, xPos, yPosData);
+          xPos += colWidths[6];
+          
+          doc.text(formatDate(row.due), xPos, yPosData);
+          xPos += colWidths[7];
+          
+          doc.text(formatDate(row.completed), xPos, yPosData);
+          
+          yPosData += rowHeight;
+        });
+        
+        // Save the PDF
+        doc.save(generateFilename('pdf'));
+        
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Error generating PDF. Please try again.');
+      }
+    }
+    
+    // Make functions globally accessible
     window.loadSampleData = loadSampleData;
+    window.exportToPDF = exportToPDF;
+    window.exportToExcel = exportToExcel;
     
     // Populate modal form dropdowns
     function populateModalDropdowns() {
@@ -418,12 +602,28 @@
       setTimeout(setupFilterEvents, 1000);
       
       // Export buttons
-      document.getElementById('btnPDF').onclick = () => {
-        exportToPDF();
-      };
-      document.getElementById('btnExcel').onclick = () => {
-        exportToExcel();
-      };
+      const btnPDF = document.getElementById('btnPDF');
+      const btnExcel = document.getElementById('btnExcel');
+      
+      if (btnPDF) {
+        btnPDF.onclick = () => {
+          if (typeof exportToPDF === 'function') {
+            exportToPDF();
+          } else {
+            alert('PDF export function not available. Please refresh the page.');
+          }
+        };
+      }
+      
+      if (btnExcel) {
+        btnExcel.onclick = () => {
+          if (typeof exportToExcel === 'function') {
+            exportToExcel();
+          } else {
+            alert('Excel export function not available. Please refresh the page.');
+          }
+        };
+      }
       
       // Add button click
       addBtn.onclick = () => {
