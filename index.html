@@ -119,14 +119,14 @@ input:checked + .slider:before{transform:translateX(22px);}
 .empty-message p{margin:0;font-size:12px;}
 
 .doc-actions{display:flex;gap:4px;flex-wrap:nowrap;justify-content:flex-start;align-items:center;}
-.doc-btn{background:#f8f9fa;color:#495057;border:2px solid #dee2e6;padding:8px;border-radius:6px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:36px;height:36px;min-width:36px;transition:none;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.doc-btn{background:#f8f9fa;color:#495057;border:2px solid #dee2e6;padding:8px;border-radius:6px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:44px;height:44px;min-width:44px;transition:none;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
 .doc-btn:hover{background:#e9ecef;border-color:#adb5bd;box-shadow:0 3px 6px rgba(0,0,0,0.15);transform:none;}
 .doc-btn:active{background:#dee2e6;transform:none;}
 .doc-btn:disabled{opacity:0.5;cursor:not-allowed;background:#f8f9fa;border-color:#dee2e6;}
 .doc-btn:disabled:hover{background:#f8f9fa;border-color:#dee2e6;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
 
 /* PNG Icon Styling - Simple Black & White */
-.doc-btn img{width:16px;height:16px;transition:all 0.2s ease;opacity:0.8;}
+.doc-btn img{width:24px;height:24px;transition:all 0.2s ease;opacity:0.8;}
 
 /* Hover effects for PNG icons */
 .doc-btn.download:hover img{opacity:1;transform:scale(1.1);}
@@ -149,7 +149,7 @@ body.dark .file-icon{color:#fff;}
 .docs-table th i{color:#fff;font-size:12px;margin-right:6px;}
 
 /* Upload area icon */
-.upload-icon img{color:var(--accent-blue);width:24px;height:24px;opacity:0.7;transition:all 0.3s ease;}
+.upload-icon img{color:var(--accent-blue);width:36px;height:36px;opacity:0.7;transition:all 0.3s ease;}
 .upload-area:hover .upload-icon img{opacity:1;transform:scale(1.1);}
 
 /* Empty state icon */
@@ -213,7 +213,7 @@ body.dark .modal-header h4 i{color:var(--text-body);}
           border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
           display:flex;align-items:center;gap:6px;font-weight:500;
         " title="Download all documents to Backup folder">
-          <img src="assets/icons/download-all.png?v=1" alt="Download All" style="width: 14px; height: 14px;">
+          <img src="assets/icons/download-all.png?v=1" alt="Download All" style="width: 24px; height: 24px;">
           <span>Download All</span>
         </button>
         <button id="changeDocsFolderBtn" style="
@@ -221,7 +221,7 @@ body.dark .modal-header h4 i{color:var(--text-body);}
           border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
           display:flex;align-items:center;gap:6px;font-weight:500;
         " title="Change Documents folder">
-          <img src="assets/icons/change-folder.png?v=1" alt="Change Folder" style="width: 14px; height: 14px;">
+          <img src="assets/icons/change-folder.png?v=1" alt="Change Folder" style="width: 24px; height: 24px;">
           <span>Change Folder</span>
         </button>
         <span class="close" data-close="modal-docs"><img src="assets/icons/close-interface.png?v=1" alt="Close" style="width: 24px; height: 24px;"></span>
@@ -230,7 +230,7 @@ body.dark .modal-header h4 i{color:var(--text-body);}
     
     <div class="upload-section">
       <div class="upload-area" id="uploadArea">
-        <div class="upload-icon"><img src="assets/icons/Drag-and-Drop.png?v=1" alt="Drag and Drop" style="width: 24px; height: 24px;"></div>
+        <div class="upload-icon"><img src="assets/icons/Drag-and-Drop.png?v=1" alt="Drag and Drop" style="width: 36px; height: 36px;"></div>
         <p class="upload-text">Drag & drop files here or click to browse</p>
         <p class="upload-subtext">Supports: PDF, DOC, DOCX, XLS, XLSX, TXT, Images</p>
         <button class="upload-btn" id="uploadBtn">Choose Files</button>
@@ -1639,16 +1639,16 @@ function renderDocs(){
     <td>
       <div class="doc-actions">
         <button class="doc-btn download" data-i="${i}" title="Download">
-          <img src="assets/icons/downlaod.png?v=1" alt="Download" style="width: 16px; height: 16px;">
+          <img src="assets/icons/downlaod.png?v=1" alt="Download" style="width: 24px; height: 24px;">
         </button>
         <button class="doc-btn move-up" data-i="${i}" title="Move Up" ${i === 0 ? 'disabled' : ''}>
-          <img src="assets/icons/move-up.png?v=1" alt="Move Up" style="width: 16px; height: 16px;">
+          <img src="assets/icons/move-up.png?v=1" alt="Move Up" style="width: 24px; height: 24px;">
         </button>
         <button class="doc-btn move-down" data-i="${i}" title="Move Down" ${i === docs.length - 1 ? 'disabled' : ''}>
-          <img src="assets/icons/move-down.png?v=1" alt="Move Down" style="width: 16px; height: 16px;">
+          <img src="assets/icons/move-down.png?v=1" alt="Move Down" style="width: 24px; height: 24px;">
         </button>
         <button class="doc-btn delete" data-i="${i}" title="Delete">
-          <img src="assets/icons/delete.png?v=1" alt="Delete" style="width: 16px; height: 16px;">
+          <img src="assets/icons/delete.png?v=1" alt="Delete" style="width: 24px; height: 24px;">
         </button>
       </div>
     </td>`;
