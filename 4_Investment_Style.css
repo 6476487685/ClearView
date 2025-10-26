@@ -39,10 +39,32 @@ input[type="search"]:focus,input[type="date"]:focus,select:focus{outline:none;bo
 .table-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-xs);}
 table{width:100%;border-collapse:collapse;table-layout:fixed;}
 th,td{padding:8px 12px;border-bottom:1px solid var(--border-light);font-size:12px;color:var(--text-primary);}
-th{background:var(--bg);font-weight:500;font-size:11px;position:relative;user-select:none;text-align:left;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em;}
-th:nth-child(1),td:nth-child(1){text-align:left;min-width:40px;}
-td:nth-child(6){text-align:right;font-variant-numeric:tabular-nums;}
-td:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(3)):not(:nth-child(4)):not(:nth-child(6)){text-align:center;}
+th{background:var(--bg);font-weight:500;font-size:11px;position:relative;user-select:none;text-align:center;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em;}
+/* Column-specific alignments */
+th:nth-child(1),td:nth-child(1){text-align:center;min-width:40px;} /* # column - center aligned */
+th:nth-child(2),td:nth-child(2){text-align:center;} /* Investment Description - center header, left data */
+td:nth-child(2){text-align:left;} /* Investment Description data - left aligned */
+th:nth-child(3),td:nth-child(3){text-align:center;} /* Category Equity - center header, left data */
+td:nth-child(3){text-align:left;} /* Category Equity data - left aligned */
+th:nth-child(4),td:nth-child(4){text-align:center;} /* Account Tag Equity - center header, left data */
+td:nth-child(4){text-align:left;} /* Account Tag Equity data - left aligned */
+th:nth-child(5),td:nth-child(5){text-align:center;} /* Currency - center header, left data */
+td:nth-child(5){text-align:left;} /* Currency data - left aligned */
+th:nth-child(6),td:nth-child(6){text-align:center;} /* Amount - center header, right data */
+td:nth-child(6){text-align:right;font-variant-numeric:tabular-nums;} /* Amount data - right aligned */
+th:nth-child(7),td:nth-child(7){text-align:center;} /* Mode - center header, left data */
+td:nth-child(7){text-align:left;} /* Mode data - left aligned */
+th:nth-child(8),td:nth-child(8){text-align:center;} /* Holder - center header, left data */
+td:nth-child(8){text-align:left;} /* Holder data - left aligned */
+th:nth-child(9),td:nth-child(9){text-align:center;} /* Invest Date - center aligned */
+th:nth-child(10),td:nth-child(10){text-align:center;} /* Maturity Date - center aligned */
+th:nth-child(11),td:nth-child(11){text-align:center;} /* Frequency - center header, left data */
+td:nth-child(11){text-align:left;} /* Frequency data - left aligned */
+th:nth-child(12),td:nth-child(12){text-align:center;} /* Ac Status - center header, left data */
+td:nth-child(12){text-align:left;} /* Ac Status data - left aligned */
+th:nth-child(13),td:nth-child(13){text-align:center;} /* Txn Status - center header, left data */
+td:nth-child(13){text-align:left;} /* Txn Status data - left aligned */
+th:nth-child(14),td:nth-child(14){text-align:center;} /* Actions - center aligned */
 tr:hover{background:var(--bg);}
 th.resizable::after{content:"";position:absolute;right:0;top:0;width:4px;height:100%;background:var(--border);cursor:col-resize;opacity:0.3;}
 th.resizable:hover::after{opacity:1;background:var(--text-muted);}
