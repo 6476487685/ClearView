@@ -293,20 +293,36 @@
                 // Generate Excel file
                 const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
                 
-                // Create download
-                const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                // Create download with correct MIME type
+                const blob = new Blob([excelBuffer], { 
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
+                
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
                 
-                // Change filename to indicate it's updated
-                const newFileName = fileName.replace('.xlsx', '_Updated.xlsx').replace('.xls', '_Updated.xlsx');
-                a.download = newFileName;
+                // Ensure filename has .xlsx extension
+                let newFileName = fileName;
+                // Remove any existing extension
+                newFileName = newFileName.replace(/\.(xlsx|xls)$/i, '');
+                // Add _Updated and ensure .xlsx extension
+                newFileName = newFileName + '_Updated.xlsx';
                 
+                a.download = newFileName;
+                a.setAttribute('download', newFileName);
+                
+                // Trigger download
+                document.body.appendChild(a);
                 a.click();
+                
+                // Clean up
+                document.body.removeChild(a);
                 URL.revokeObjectURL(a.href);
                 
-                alert('✓ File downloaded as: ' + newFileName);
+                log('✓ Downloaded file as: ' + newFileName);
+                alert('✓ File downloaded successfully as: ' + newFileName);
             } catch (error) {
+                log('✗ Error downloading file: ' + error.message);
                 alert('Error downloading file: ' + error.message);
             }
         }
