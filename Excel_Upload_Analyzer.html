@@ -189,18 +189,31 @@
 
         function handleFile(file) {
             resultsDiv.style.display = 'none';
+            resultsDiv.innerHTML = '<div class="success">Processing file: ' + file.name + '...</div>';
+            resultsDiv.style.display = 'block';
             
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
+                    console.log('File loaded, size:', data.length, 'bytes');
+                    
+                    // Read with better error handling
+                    const workbook = XLSX.read(data, { 
+                        type: 'array',
+                        cellDates: true,
+                        cellStyles: false,
+                        sheetStubs: false
+                    });
+                    
+                    console.log('Workbook loaded, sheets:', workbook.SheetNames);
                     
                     const analysis = analyzeWorkbook(workbook);
                     displayResults(analysis);
                     
                 } catch (error) {
-                    resultsDiv.innerHTML = '<div class="error"><h3>❌ Error</h3><p>' + error.message + '</p></div>';
+                    console.error('Error:', error);
+                    resultsDiv.innerHTML = '<div style="background:#ffebee;padding:20px;border-radius:8px;border-left:5px solid #c62828;"><h3>❌ Error Reading File</h3><p>' + error.message + '</p><p>Please ensure the file is a valid Excel (.xlsx or .xls) file.</p></div>';
                     resultsDiv.style.display = 'block';
                 }
             };
@@ -215,33 +228,61 @@
                     txnIncome: [],
                     txnInvestment: [],
                     txnTask: []
-                }
+                },
+                allSheets: []
             };
 
             workbook.SheetNames.forEach(sheetName => {
                 const sheet = workbook.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(sheet);
+                console.log('Processing sheet:', sheetName);
+                
+                let jsonData = [];
+                try {
+                    // Try to convert to JSON
+                    jsonData = XLSX.utils.sheet_to_json(sheet, { 
+                        defval: '',  // Use empty string for missing values
+                        raw: false   // Return formatted values
+                    });
+                    console.log('Sheet ' + sheetName + ' converted to JSON, rows:', jsonData.length);
+                } catch (err) {
+                    console.error('Error converting sheet ' + sheetName + ':', err);
+                    jsonData = [];
+                }
+                
+                const columns = jsonData.length > 0 ? Object.keys(jsonData[0]) : [];
+                console.log('Sheet ' + sheetName + ' columns:', columns);
                 
                 const sheetInfo = {
                     name: sheetName,
-                    columnCount: jsonData.length > 0 ? Object.keys(jsonData[0]).length : 0,
+                    columnCount: columns.length,
                     rowCount: jsonData.length,
-                    columns: jsonData.length > 0 ? Object.keys(jsonData[0]) : [],
-                    data: jsonData.slice(0, 3) // First 3 rows for preview
+                    columns: columns,
+                    data: jsonData.slice(0, 5), // First 5 rows for preview
+                    rawSheet: sheet  // Keep reference to raw sheet
                 };
                 
                 analysis.sheets.push(sheetInfo);
+                analysis.allSheets.push({
+                    name: sheetName,
+                    columns: columns,
+                    rowCount: jsonData.length
+                });
                 
-                // Categorize by sheet name
-                const sheetLower = sheetName.toLowerCase();
-                if (sheetLower.includes('txn_expanse') || sheetLower.includes('txn_expanse')) {
-                    analysis.fieldStructure.txnExpanse = sheetInfo.columns;
-                } else if (sheetLower.includes('txn_income')) {
-                    analysis.fieldStructure.txnIncome = sheetInfo.columns;
-                } else if (sheetLower.includes('txn_investment') || sheetLower.includes('txn_invest')) {
-                    analysis.fieldStructure.txnInvestment = sheetInfo.columns;
-                } else if (sheetLower.includes('txn_task')) {
-                    analysis.fieldStructure.txnTask = sheetInfo.columns;
+                // Categorize by sheet name (more flexible matching)
+                const sheetLower = sheetName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                
+                if (sheetLower.includes('txnexpanse') || sheetLower.includes('expanse') || 
+                    sheetLower.includes('expense') || sheetLower === 'txnexpanse') {
+                    analysis.fieldStructure.txnExpanse = columns;
+                } else if (sheetLower.includes('txnincome') || sheetLower.includes('income') || 
+                           sheetLower === 'txnincome') {
+                    analysis.fieldStructure.txnIncome = columns;
+                } else if (sheetLower.includes('txninvestment') || sheetLower.includes('investment') || 
+                          sheetLower.includes('invest') || sheetLower === 'txninvestment' || 
+                          sheetLower === 'txninvest') {
+                    analysis.fieldStructure.txnInvestment = columns;
+                } else if (sheetLower.includes('txntask') || sheetLower.includes('task')) {
+                    analysis.fieldStructure.txnTask = columns;
                 }
             });
 
@@ -250,6 +291,16 @@
 
         function displayResults(analysis) {
             let html = '<div class="success"><h2>✅ Analysis Complete!</h2><p>Found ' + analysis.sheets.length + ' sheets</p></div>';
+            
+            // Show all sheets first
+            html += '<div class="summary-box">';
+            html += '<h2>📄 All Sheets Found in Your Excel File</h2>';
+            html += '<div class="code-block">';
+            analysis.allSheets.forEach(sheet => {
+                html += sheet.name + ' (' + sheet.rowCount + ' rows, ' + sheet.columns.length + ' columns)<br>';
+            });
+            html += '</div>';
+            html += '</div>';
             
             // Summary
             html += '<div class="summary-box">';
@@ -274,6 +325,22 @@
                 html += '<h3>📝 Txn_Task Fields (' + analysis.fieldStructure.txnTask.length + ' columns):</h3>';
                 html += '<div class="code-block">' + analysis.fieldStructure.txnTask.join(' | ') + '</div>';
             }
+            
+            // Show sheets that weren't categorized
+            const categorizedSheets = ['txnExpanse', 'txnIncome', 'txnInvestment', 'txnTask'];
+            analysis.allSheets.forEach(sheet => {
+                let isCategorized = false;
+                categorizedSheets.forEach(cat => {
+                    if (analysis.fieldStructure[cat].length > 0 && 
+                        JSON.stringify(sheet.columns) === JSON.stringify(analysis.fieldStructure[cat])) {
+                        isCategorized = true;
+                    }
+                });
+                if (!isCategorized) {
+                    html += '<h3>❓ Other Sheet: ' + sheet.name + ' (' + sheet.columns.length + ' columns):</h3>';
+                    html += '<div class="code-block">' + sheet.columns.join(' | ') + '</div>';
+                }
+            });
             
             html += '</div>';
             
