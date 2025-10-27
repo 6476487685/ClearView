@@ -26,7 +26,8 @@
         <p>This tool will update field names to match standardized data structure:</p>
         <ul style="text-align:left;display:inline-block;">
             <li><strong>Task Module:</strong> Category_Task → Task_Category</li>
-            <li><strong>Expense Module:</strong> Expance_Description, Category_Expanse, etc. → Expense_Description, Expense_Category, etc.</li>
+            <li><strong>Expense Module:</strong> Updates field names to match your Excel structure</li>
+            <li><strong>Shared Fields:</strong> Txn_Mode, Frequency, Ac_Status, Txn_Status, Ac_Holder, Txn_Tag (NO module prefix)</li>
         </ul>
         
         <div class="section">
@@ -190,30 +191,35 @@
                     
                     // Check for Expense fields (actual Excel field names from user's file)
                     const expenseFieldMappings = {
-                        'Expance_Description': 'Expense_Description',
-                        'Category_Expanse': 'Expense_Category',
-                        'Ac_Tag_Expance': 'Expense_Tag',
-                        'Payment_Mode': 'Expense_Mode',
-                        'Ac_Holder': 'Expense_Holder',
-                        'Frequency': 'Expense_Frequency',
-                        'Amount': 'Expense_Amount',
-                        'Due_Date': 'Expense_Due_Date',
-                        'Paid_Date': 'Expense_Paid_Date',
-                        'Ac_Status': 'Expense_Account_Status',
-                        'Txn_Status': 'Expense_Txn_Status',
-                        // Also handle old abbreviated names
-                        'desc': 'Expense_Description',
-                        'cat': 'Expense_Category',
-                        'tag': 'Expense_Tag',
-                        'cur': 'Expense_Currency',
-                        'amt': 'Expense_Amount',
-                        'mode': 'Expense_Mode',
-                        'holder': 'Expense_Holder',
-                        'due': 'Expense_Due_Date',
-                        'paid': 'Expense_Paid_Date',
-                        'freq': 'Expense_Frequency',
-                        'acstatus': 'Expense_Account_Status',
-                        'txnstatus': 'Expense_Txn_Status'
+                        // Expense-specific fields (WITH module prefix)
+                        'Expance_Description': 'Expanse_Description',
+                        'Category_Expanse': 'Expanse_Category',
+                        'Ac_Tag_Expance': 'Expanse_Ac_Tag',
+                        // Date fields
+                        'Due_Date': 'Due_Date',  // Keep as is (no prefix)
+                        'Paid_Date': 'Paid_Date',  // Keep as is (no prefix)
+                        'Paid_From': 'Paid_From',  // Keep as is (no prefix)
+                        // SHARED fields (NO module prefix - keep as is or update names)
+                        'Payment_Mode': 'Txn_Mode',  // User wants Txn_Mode instead of Payment_Mode
+                        'Ac_Holder': 'Ac_Holder',  // NO prefix
+                        'Frequency': 'Frequency',  // NO prefix
+                        'Amount': 'Amount',  // NO prefix
+                        'Ac_Status': 'Ac_Status',  // NO prefix
+                        'Txn_Status': 'Txn_Status',  // NO prefix
+                        'Txn_Tag': 'Txn_Tag',  // NO prefix
+                        // Also handle old abbreviated names - map to new standardized names
+                        'desc': 'Expanse_Description',
+                        'cat': 'Expanse_Category',
+                        'tag': 'Expanse_Ac_Tag',
+                        'cur': 'Currency',  // If currency needs handling
+                        'amt': 'Amount',  // Keep as shared field
+                        'mode': 'Txn_Mode',  // Map to shared field (Txn_Mode, not Payment_Mode)
+                        'holder': 'Ac_Holder',  // Map to shared field
+                        'due': 'Due_Date',
+                        'paid': 'Paid_Date',
+                        'freq': 'Frequency',  // Map to shared field
+                        'acstatus': 'Ac_Status',  // Map to shared field
+                        'txnstatus': 'Txn_Status'  // Map to shared field
                     };
                     
                     const hasExpenseFields = Object.keys(expenseFieldMappings).some(field => headers.includes(field));
