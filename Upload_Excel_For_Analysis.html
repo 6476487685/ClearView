@@ -335,7 +335,7 @@
                 
                 analysis.sheets.push(sheetInfo);
                 
-                // Categorize fields
+                // Categorize fields based on sheet type AND column name
                 columns.forEach(col => {
                     const colLower = col.toLowerCase();
                     let categorized = false;
@@ -368,6 +368,25 @@
                         categorized = true;
                     }
                     
+                    // Check for date fields in expense sheets
+                    if (!categorized && sheetType === 'Expense') {
+                        const expenseDateFields = ['due_date', 'due-date', 'duedate', 'paid_date', 'paid-date', 'paiddate'];
+                        if (expenseDateFields.some(field => colLower.includes(field))) {
+                            if (!analysis.fieldSummary.expenseFields.includes(col)) {
+                                analysis.fieldSummary.expenseFields.push(col);
+                            }
+                            categorized = true;
+                        }
+                        
+                        // Check for Paid_From or Income_Ac_Tag in expense
+                        if (colLower.includes('paid_from') || colLower.includes('income_ac_tag')) {
+                            if (!analysis.fieldSummary.expenseFields.includes(col)) {
+                                analysis.fieldSummary.expenseFields.push(col);
+                            }
+                            categorized = true;
+                        }
+                    }
+                    
                     // Categorize module-specific fields
                     if (!categorized) {
                         if (col.includes('Task_')) {
@@ -394,6 +413,21 @@
                         } else if (col.includes('Investment_') || colLower.includes('investment_')) {
                             if (!analysis.fieldSummary.investmentFields.includes(col)) {
                                 analysis.fieldSummary.investmentFields.push(col);
+                            }
+                        } else if (!categorized && sheetType !== 'Other') {
+                            // If it's in a known module sheet but not categorized yet, add it
+                            if (sheetType === 'Expense' && !analysis.fieldSummary.expenseFields.includes(col)) {
+                                analysis.fieldSummary.expenseFields.push(col);
+                            } else if (sheetType === 'Income' && !analysis.fieldSummary.incomeFields.includes(col)) {
+                                analysis.fieldSummary.incomeFields.push(col);
+                            } else if (sheetType === 'Investment' && !analysis.fieldSummary.investmentFields.includes(col)) {
+                                analysis.fieldSummary.investmentFields.push(col);
+                            } else if (sheetType === 'Task' && !analysis.fieldSummary.taskFields.includes(col)) {
+                                analysis.fieldSummary.taskFields.push(col);
+                            } else {
+                                if (!analysis.fieldSummary.otherFields.includes(col)) {
+                                    analysis.fieldSummary.otherFields.push(col);
+                                }
                             }
                         } else {
                             if (!analysis.fieldSummary.otherFields.includes(col)) {
