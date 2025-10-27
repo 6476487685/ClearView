@@ -1,0 +1,278 @@
+================================================================================
+CORRECTED FIELD NAMES - DATA STRUCTURE MAPPING
+ClearView Dashboard - Clear Understanding of Field Naming
+================================================================================
+
+CRITICAL FIELD NAMING RULE:
+────────────────────────────
+Certain fields are COMMON across Expense, Income, and Investment modules.
+These fields should NOT have module prefixes/suffixes:
+
+COMMON FIELDS (No prefix/suffix):
+- Payment_Mode     (NOT Expense_Mode, Income_Mode, Investment_Mode)
+- Txn_Tag          (NOT Expense_Txn_Tag, Income_Txn_Tag)
+- Ac_Status        (NOT Expense_Account_Status, Income_Account_Status)
+- Txn_Status       (NOT Expense_Txn_Status, Income_Txn_Status)
+- Frequency        (NOT Expense_Frequency, Income_Frequency)
+
+MODULE-SPECIFIC FIELDS (Should have module prefix):
+- Expense_Description, Expense_Category, Expense_Tag, Expense_Currency, Expense_Amount
+- Income_Description, Income_Category, Income_Tag, Income_Currency, Income_Amount
+- Investment_Description, Investment_Category, Investment_Tag, Investment_Currency, Investment_Amount
+
+================================================================================
+TASK MODULE
+================================================================================
+
+DATABASE FIELD NAMES:
+─────────────────────
+Task_Description    - Task description text
+Task_Category       - Task category
+Task_Tag            - Task tag/identifier
+Task_Status         - Task status
+Task_Assignee       - Person assigned
+Task_Priority       - Priority level
+Due_Date            - Due date
+Completed_On        - Completion date
+Task_Adhoc          - Snippets (hidden field)
+
+Note: Task uses its own field naming pattern.
+
+================================================================================
+EXPENSE MODULE
+================================================================================
+
+DATABASE FIELD NAMES (Current Implementation):
+──────────────────────────────────────────────
+✅ Expense_Description    - Expense description
+✅ Expense_Category       - Expense category
+✅ Expense_Tag            - Expense account tag
+✅ Expense_Currency       - Currency code (CAD, USD, INR)
+✅ Expense_Amount         - Amount value
+✅ Expense_Mode           - Payment mode (actually should be Payment_Mode)
+✅ Expense_Holder         - Holder/Payer name
+✅ Expense_Due_Date        - Due date
+✅ Expense_Paid_Date       - Paid date
+✅ Expense_Frequency       - Frequency (actually should be Frequency)
+✅ Expense_Account_Status - Account status (actually should be Ac_Status)
+✅ Expense_Txn_Status     - Transaction status (actually should be Txn_Status)
+
+CURRENT STATUS IN CODE:
+───────────────────────
+- The 2_Expanse_Main.js file ALREADY uses full descriptive names
+- Uses backward compatibility (supports both old 'desc' and new 'Expense_Description')
+- Migration function exists to convert old data to new format
+
+ISSUE TO CORRECT:
+─────────────────
+❌ Expense_Mode should be: Payment_Mode
+❌ Expense_Frequency should be: Frequency
+❌ Expense_Account_Status should be: Ac_Status
+❌ Expense_Txn_Status should be: Txn_Status
+
+Recommended correction in code:
+{Expense_Description, Expense_Category, Expense_Tag, Expense_Currency, 
+ Expense_Amount, Payment_Mode, Expense_Holder, Expense_Due_Date, 
+ Expense_Paid_Date, Frequency, Ac_Status, Txn_Status}
+
+================================================================================
+INCOME MODULE
+================================================================================
+
+DATABASE FIELD NAMES (Current Implementation):
+──────────────────────────────────────────────
+⚠️ desc          - Description (SHOULD BE: Income_Description)
+⚠️ cat           - Category (SHOULD BE: Income_Category)
+⚠️ tag           - Account Tag (SHOULD BE: Income_Tag)
+⚠️ cur           - Currency (SHOULD BE: Income_Currency)
+⚠️ amt           - Amount (SHOULD BE: Income_Amount)
+⚠️ mode          - Payment Mode (SHOULD BE: Payment_Mode)
+⚠️ holder        - Holder (SHOULD BE: Income_Holder)
+⚠️ paid          - Income Date (SHOULD BE: Income_Date)
+⚠️ freq          - Frequency (SHOULD BE: Frequency)
+⚠️ acstatus      - Account Status (SHOULD BE: Ac_Status)
+⚠️ txnstatus     - Transaction Status (SHOULD BE: Txn_Status)
+
+RECOMMENDED CORRECTION:
+───────────────────────
+{Income_Description, Income_Category, Income_Tag, Income_Currency,
+ Income_Amount, Payment_Mode, Income_Holder, Income_Date,
+ Frequency, Ac_Status, Txn_Status}
+
+================================================================================
+INVESTMENT MODULE
+================================================================================
+
+DATABASE FIELD NAMES (Current Implementation):
+──────────────────────────────────────────────
+⚠️ desc          - Description (SHOULD BE: Investment_Description)
+⚠️ cat           - Category (SHOULD BE: Investment_Category)
+⚠️ tag           - Account Tag (SHOULD BE: Investment_Tag)
+⚠️ cur           - Currency (SHOULD BE: Investment_Currency)
+⚠️ amt           - Amount (SHOULD BE: Investment_Amount)
+⚠️ mode          - Payment Mode (SHOULD BE: Payment_Mode)
+⚠️ holder        - Holder (SHOULD BE: Investment_Holder)
+⚠️ investdate    - Invest Date (SHOULD BE: Investment_Invest_Date)
+⚠️ maturitydate  - Maturity Date (SHOULD BE: Investment_Maturity_Date)
+⚠️ freq          - Frequency (SHOULD BE: Frequency)
+⚠️ acstatus      - Account Status (SHOULD BE: Ac_Status)
+⚠️ txnstatus     - Transaction Status (SHOULD BE: Txn_Status)
+
+RECOMMENDED CORRECTION:
+───────────────────────
+{Investment_Description, Investment_Category, Investment_Tag, Investment_Currency,
+ Investment_Amount, Payment_Mode, Investment_Holder, Investment_Invest_Date,
+ Investment_Maturity_Date, Frequency, Ac_Status, Txn_Status}
+
+================================================================================
+STANDARDIZED FIELD STRUCTURE FOR ALL MODULES
+================================================================================
+
+EXPENSE MODULE:
+───────────────
+✅ Expense_Description
+✅ Expense_Category
+✅ Expense_Tag
+✅ Expense_Currency
+✅ Expense_Amount
+⚠️ Payment_Mode (NOT Expense_Mode)
+✅ Expense_Holder
+✅ Expense_Due_Date
+✅ Expense_Paid_Date
+⚠️ Frequency (NOT Expense_Frequency)
+⚠️ Ac_Status (NOT Expense_Account_Status)
+⚠️ Txn_Status (NOT Expense_Txn_Status)
+
+INCOME MODULE:
+──────────────
+✅ Income_Description
+✅ Income_Category
+✅ Income_Tag
+✅ Income_Currency
+✅ Income_Amount
+⚠️ Payment_Mode (NOT Income_Mode)
+✅ Income_Holder
+✅ Income_Date
+⚠️ Frequency (NOT Income_Frequency)
+⚠️ Ac_Status (NOT Income_Account_Status)
+⚠️ Txn_Status (NOT Income_Txn_Status)
+
+INVESTMENT MODULE:
+──────────────────
+✅ Investment_Description
+✅ Investment_Category
+✅ Investment_Tag
+✅ Investment_Currency
+✅ Investment_Amount
+⚠️ Payment_Mode (NOT Investment_Mode)
+✅ Investment_Holder
+✅ Investment_Invest_Date
+✅ Investment_Maturity_Date
+⚠️ Frequency (NOT Investment_Frequency)
+⚠️ Ac_Status (NOT Investment_Account_Status)
+⚠️ Txn_Status (NOT Investment_Txn_Status)
+
+================================================================================
+MASTER DATA SHEETS FOR EXCEL FILE
+================================================================================
+
+TASK MODULE MASTER DATA:
+────────────────────────
+- Task_Category
+- Task_Tag
+- Task_Status
+- Task_Assignee
+- Task_Priority
+- Task_Adhoc
+
+EXPENSE/INCOME/INVESTMENT SHARED MASTER DATA:
+───────────────────────────────────────────────
+- Payment_Mode (shared across all three)
+- Frequency (shared across all three)
+- Ac_Status (shared across all three)
+- Txn_Status (shared across all three)
+
+EXPENSE MODULE MASTER DATA:
+───────────────────────────
+- Expense_Category
+- Expense_Tag
+- Expense_Currency
+- Expense_Holder
+
+INCOME MODULE MASTER DATA:
+──────────────────────────
+- Income_Category
+- Income_Tag
+- Income_Currency
+- Income_Holder
+
+INVESTMENT MODULE MASTER DATA:
+──────────────────────────────
+- Investment_Category
+- Investment_Tag
+- Investment_Currency
+- Investment_Holder
+
+================================================================================
+EXCEL FILE COLUMN STRUCTURE (CORRECTED)
+================================================================================
+
+Txn_Expense Sheet Columns:
+───────────────────────────
+- Expense_Description
+- Expense_Category
+- Expense_Tag
+- Expense_Currency
+- Expense_Amount
+- Payment_Mode           ← NO PREFIX (shared field)
+- Expense_Holder
+- Expense_Due_Date
+- Expense_Paid_Date
+- Frequency               ← NO PREFIX (shared field)
+- Ac_Status               ← NO PREFIX (shared field)
+- Txn_Status              ← NO PREFIX (shared field)
+
+Txn_Income Sheet Columns:
+──────────────────────────
+- Income_Description
+- Income_Category
+- Income_Tag
+- Income_Currency
+- Income_Amount
+- Payment_Mode            ← NO PREFIX (shared field)
+- Income_Holder
+- Income_Date
+- Frequency               ← NO PREFIX (shared field)
+- Ac_Status               ← NO PREFIX (shared field)
+- Txn_Status              ← NO PREFIX (shared field)
+
+Txn_Investment Sheet Columns:
+─────────────────────────────
+- Investment_Description
+- Investment_Category
+- Investment_Tag
+- Investment_Currency
+- Investment_Amount
+- Payment_Mode            ← NO PREFIX (shared field)
+- Investment_Holder
+- Investment_Invest_Date
+- Investment_Maturity_Date
+- Frequency               ← NO PREFIX (shared field)
+- Ac_Status               ← NO PREFIX (shared field)
+- Txn_Status              ← NO PREFIX (shared field)
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. Verify Excel file structure matches corrected field names
+2. Update Income module (3_Income_Main.js) to use corrected field names
+3. Update Investment module (4_Investment_Main.js) to use corrected field names
+4. Update Expense module (2_Expanse_Main.js) to remove prefix from common fields
+5. Update documentation files
+6. Create migration functions for existing data
+
+================================================================================
+END OF CORRECTED FIELD MAPPING
+================================================================================
+

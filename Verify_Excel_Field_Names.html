@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Field Name Verification</title>
+    <script src="assets/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #333; }
+        .file-upload { margin: 20px 0; padding: 20px; background: white; border-radius: 8px; }
+        input[type="file"] { padding: 10px; }
+        .sheet { margin: 20px 0; padding: 20px; background: white; border-radius: 8px; border: 1px solid #ddd; }
+        .sheet-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #2c3e50; }
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #34495e; color: white; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .common-field { background-color: #e8f5e9 !important; color: #2e7d32; font-weight: bold; }
+        .module-field { background-color: #fff3e0 !important; color: #e65100; }
+        .analysis { margin: 20px 0; padding: 15px; background: #e3f2fd; border-left: 4px solid #2196f3; }
+        .analysis h3 { margin-top: 0; color: #1976d2; }
+        .summary { background: #fff; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .summary h2 { color: #333; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .field-list { list-style: none; padding: 0; }
+        .field-list li { padding: 5px; margin: 5px 0; background: #f9f9f9; border-left: 3px solid #3498db; }
+        .highlight { background: yellow; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Excel Field Name Verification Tool</h1>
+        <p>This tool will analyze your Excel file and show the actual field names used in each sheet.</p>
+        
+        <div class="file-upload">
+            <h2>Step 1: Select Your Excel File</h2>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" />
+        </div>
+        
+        <div id="output"></div>
+        
+        <div class="summary" id="summary" style="display:none;">
+            <h2>📋 Field Name Analysis Summary</h2>
+            <div id="summaryContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Shared/common fields that should NOT have module prefixes
+        const commonFields = {
+            'Payment_Mode': 'mode',
+            'Txn_Tag': 'txn_tag',
+            'Ac_Status': 'acstatus',
+            'Txn_Status': 'txnstatus',
+            'Frequency': 'freq'
+        };
+
+        // Module-specific field prefixes
+        const modulePatterns = {
+            'Task': ['Task_'],
+            'Expense': ['Expense_', 'Expance_'],
+            'Income': ['Income_'],
+            'Investment': ['Investment_']
+        };
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    let output = '<h2>📂 Found ' + workbook.SheetNames.length + ' Sheets</h2>';
+                    
+                    const sheetAnalysis = {};
+                    const fieldSummary = {
+                        commonFields: [],
+                        taskFields: [],
+                        expenseFields: [],
+                        incomeFields: [],
+                        investmentFields: [],
+                        unknownFields: []
+                    };
+
+                    workbook.SheetNames.forEach(sheetName => {
+                        const sheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(sheet);
+                        
+                        let sheetType = 'Unknown';
+                        const sheetLower = sheetName.toLowerCase();
+                        
+                        if (sheetLower.includes('task')) sheetType = 'Task';
+                        else if (sheetLower.includes('expense') || sheetLower.includes('expanse')) sheetType = 'Expense';
+                        else if (sheetLower.includes('income')) sheetType = 'Income';
+                        else if (sheetLower.includes('investment')) sheetType = 'Investment';
+                        
+                        sheetAnalysis[sheetName] = {
+                            type: sheetType,
+                            columns: Object.keys(jsonData[0] || {}),
+                            rowCount: jsonData.length
+                        };
+                        
+                        // Analyze columns
+                        if (jsonData.length > 0) {
+                            const columns = Object.keys(jsonData[0]);
+                            columns.forEach(col => {
+                                const colLower = col.toLowerCase();
+                                let categorized = false;
+                                
+                                // Check if it's a common field
+                                Object.keys(commonFields).forEach(commonKey => {
+                                    if (colLower.includes(commonFields[commonKey].toLowerCase()) && 
+                                        !colLower.includes('expense') && 
+                                        !colLower.includes('income') && 
+                                        !colLower.includes('investment')) {
+                                        if (!fieldSummary.commonFields.includes(col)) {
+                                            fieldSummary.commonFields.push(col);
+                                        }
+                                        categorized = true;
+                                    }
+                                });
+                                
+                                // Categorize by module
+                                if (!categorized) {
+                                    if (col.includes('Task_')) {
+                                        if (!fieldSummary.taskFields.includes(col)) fieldSummary.taskFields.push(col);
+                                    } else if (col.includes('Expense_') || col.includes('Expance_')) {
+                                        if (!fieldSummary.expenseFields.includes(col)) fieldSummary.expenseFields.push(col);
+                                    } else if (col.includes('Income_')) {
+                                        if (!fieldSummary.incomeFields.includes(col)) fieldSummary.incomeFields.push(col);
+                                    } else if (col.includes('Investment_')) {
+                                        if (!fieldSummary.investmentFields.includes(col)) fieldSummary.investmentFields.push(col);
+                                    } else {
+                                        if (!fieldSummary.unknownFields.includes(col)) fieldSummary.unknownFields.push(col);
+                                    }
+                                }
+                            });
+                        }
+                        
+                        output += `<div class="sheet">`;
+                        output += `<div class="sheet-title">📄 Sheet: ${sheetName} (${sheetType} - ${jsonData.length} rows)</div>`;
+                        
+                        if (jsonData.length > 0) {
+                            output += '<p><strong>Columns Found:</strong></p>';
+                            output += '<table>';
+                            output += '<tr>';
+                            Object.keys(jsonData[0]).forEach(key => {
+                                let className = '';
+                                const keyLower = key.toLowerCase();
+                                
+                                // Highlight common fields
+                                Object.keys(commonFields).forEach(commonKey => {
+                                    if (keyLower.includes(commonFields[commonKey].toLowerCase()) && 
+                                        !keyLower.includes('expense') && 
+                                        !keyLower.includes('income') && 
+                                        !keyLower.includes('investment')) {
+                                        className = 'common-field';
+                                    }
+                                });
+                                
+                                output += `<th class="${className}">${key}</th>`;
+                            });
+                            output += '</tr>';
+                            
+                            // Show first 3 rows
+                            jsonData.slice(0, 3).forEach(row => {
+                                output += '<tr>';
+                                Object.values(row).forEach(val => {
+                                    output += `<td>${val || '-'}</td>`;
+                                });
+                                output += '</tr>';
+                            });
+                            output += '</table>';
+                        }
+                        
+                        output += '</div>';
+                    });
+                    
+                    // Generate summary
+                    document.getElementById('summary').style.display = 'block';
+                    let summaryHTML = '<h3>Common Fields (No Prefix):</h3><ul class="field-list">';
+                    fieldSummary.commonFields.forEach(f => {
+                        summaryHTML += `<li>✅ ${f}</li>`;
+                    });
+                    summaryHTML += '</ul>';
+                    
+                    summaryHTML += '<h3>Task Module Fields:</h3><ul class="field-list">';
+                    fieldSummary.taskFields.forEach(f => {
+                        summaryHTML += `<li>📋 ${f}</li>`;
+                    });
+                    summaryHTML += '</ul>';
+                    
+                    summaryHTML += '<h3>Expense Module Fields:</h3><ul class="field-list">';
+                    fieldSummary.expenseFields.forEach(f => {
+                        summaryHTML += `<li>💰 ${f}</li>`;
+                    });
+                    summaryHTML += '</ul>';
+                    
+                    summaryHTML += '<h3>Income Module Fields:</h3><ul class="field-list">';
+                    fieldSummary.incomeFields.forEach(f => {
+                        summaryHTML += `<li>💵 ${f}</li>`;
+                    });
+                    summaryHTML += '</ul>';
+                    
+                    summaryHTML += '<h3>Investment Module Fields:</h3><ul class="field-list">';
+                    fieldSummary.investmentFields.forEach(f => {
+                        summaryHTML += `<li>📈 ${f}</li>`;
+                    });
+                    summaryHTML += '</ul>';
+                    
+                    if (fieldSummary.unknownFields.length > 0) {
+                        summaryHTML += '<h3>Other Fields:</h3><ul class="field-list">';
+                        fieldSummary.unknownFields.forEach(f => {
+                            summaryHTML += `<li>❓ ${f}</li>`;
+                        });
+                        summaryHTML += '</ul>';
+                    }
+                    
+                    document.getElementById('summaryContent').innerHTML = summaryHTML;
+                    document.getElementById('output').innerHTML = output;
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    document.getElementById('output').innerHTML = '<p style="color:red;">Error reading file: ' + error.message + '</p>';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    </script>
+</body>
+</html>
+

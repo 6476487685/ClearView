@@ -9,7 +9,7 @@ TASK MODULE
 DATABASE FIELD NAMES (Internal):
 ─────────────────────────────────
 Task_Description      - Task description text
-Category_Task         - Task category
+Task_Category         - Task category
 Task_Tag              - Task tag/identifier
 Task_Status           - Task status (Pending, In Progress, Completed, Cancelled)
 Task_Assignee         - Person assigned to task
@@ -21,7 +21,7 @@ Task_Adhoc            - Snippets/reusable descriptions (hidden field)
 FILTER PANE HEADERS:
 ────────────────────
 #      - Serial number (auto)
-Category - Maps to: Category_Task
+Category - Maps to: Task_Category
 Task Tag - Maps to: Task_Tag
 Assignee - Maps to: Task_Assignee
 Status   - Maps to: Task_Status
@@ -34,7 +34,7 @@ DATA PANE COLUMNS (Table Headers):
 ───────────────────────────────────
 #              - Serial number
 Task Description - Maps to: Task_Description
-Task Category    - Maps to: Category_Task
+Task Category    - Maps to: Task_Category
 Tag              - Maps to: Task_Tag
 Status           - Maps to: Task_Status
 Assignee         - Maps to: Task_Assignee
@@ -191,7 +191,7 @@ RECOMMENDED MASTER SHEETS FOR EXCEL FILE:
 ──────────────────────────────────────────
 
 TASK MODULE MASTER DATA:
-Category_Task     - List of task categories
+Task_Category     - List of task categories
 Task_Tag          - List of task tags
 Task_Status       - Pending, In Progress, Completed, Cancelled
 Task_Assignee     - List of assignee names
@@ -241,7 +241,7 @@ TRANSACTIONAL SHEETS IN EXCEL FILE:
 Txn_Task Sheet:
 Columns must match database field names:
 - Task_Description
-- Category_Task
+- Task_Category
 - Task_Tag
 - Task_Status
 - Task_Assignee
@@ -353,7 +353,7 @@ investment_master_data - Object with master data for Investment module
 STRUCTURE OF MASTER_DATA OBJECTS:
 ─────────────────────────────────
 {
-  "Category_Task": ["Development", "Design", ...],
+  "Task_Category": ["Development", "Design", ...],
   "Task_Tag": ["PROJ-001", "CODE-002", ...],
   "Task_Status": ["Pending", "In Progress", "Completed", "Cancelled"],
   "Task_Assignee": ["John Doe", "Jane Smith", ...],
@@ -369,11 +369,11 @@ NOTE ON INCONSISTENCIES
 CURRENT IMPLEMENTATION ISSUES TO BE ADDRESSED:
 
 1. FIELD NAMING INCONSISTENCY:
-   - Task module uses descriptive names: Task_Description, Category_Task
+   - Task module uses descriptive names: Task_Description, Task_Category
    - Expense/Income/Investment use abbreviated names: desc, cat, tag, amt
    
    RECOMMENDATION: Standardize all field names to use descriptive format:
-   - Task: Task_Description, Category_Task, Task_Tag, Task_Status, Task_Assignee, Task_Priority, Due_Date, Completed_On
+   - Task: Task_Description, Task_Category, Task_Tag, Task_Status, Task_Assignee, Task_Priority, Due_Date, Completed_On
    - Expense: Expense_Description, Expense_Category, Expense_Tag, etc.
    - Income: Income_Description, Income_Category, Income_Tag, etc.
    - Investment: Investment_Description, Investment_Category, Investment_Tag, etc.
@@ -391,4 +391,5 @@ CURRENT IMPLEMENTATION ISSUES TO BE ADDRESSED:
 ================================================================================
 END OF FIELD MAPPING DOCUMENT
 ================================================================================
+
 
