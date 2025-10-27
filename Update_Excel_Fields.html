@@ -74,7 +74,14 @@
             reader.onload = function(e) {
                 try {
                     const data = new Uint8Array(e.target.result);
-                    workbook = XLSX.read(data, { type: 'array' });
+                    // Read with options for better compatibility
+                    const readOptions = {
+                        type: 'array',
+                        cellDates: true,
+                        cellStyles: false,
+                        sheetStubs: false
+                    };
+                    workbook = XLSX.read(data, readOptions);
                     log('✓ Excel file parsed successfully');
                     log('Found ' + workbook.SheetNames.length + ' sheets');
                     processFile();
@@ -290,8 +297,42 @@
             }
 
             try {
-                // Generate Excel file
-                const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+                log('Preparing file for download...');
+                
+                // Add workbook properties for better compatibility
+                if (!workbook.Props) {
+                    workbook.Props = {};
+                }
+                workbook.Props.Title = "ClearView Dashboard Data";
+                workbook.Props.Subject = "Updated Excel File";
+                workbook.Props.Author = "ClearView Dashboard";
+                workbook.Props.CreatedDate = new Date();
+                
+                // Set default column widths for better display
+                workbook.SheetNames.forEach(sheetName => {
+                    const sheet = workbook.Sheets[sheetName];
+                    if (sheet && sheet['!ref']) {
+                        const range = XLSX.utils.decode_range(sheet['!ref']);
+                        sheet['!cols'] = [];
+                        for (let i = 0; i <= range.e.c; i++) {
+                            sheet['!cols'].push({ wch: 15 }); // Set default column width
+                        }
+                    }
+                });
+                
+                // Generate Excel file with compatibility options for MS Office 2016
+                const wopts = {
+                    bookType: 'xlsx',
+                    bookSST: false,
+                    type: 'array',
+                    cellStyles: false,
+                    cellDates: true
+                };
+                
+                log('Writing workbook with compatibility options...');
+                const excelBuffer = XLSX.write(workbook, wopts);
+                
+                log('File generated successfully. Size: ' + excelBuffer.length + ' bytes');
                 
                 // Create download with correct MIME type
                 const blob = new Blob([excelBuffer], { 
