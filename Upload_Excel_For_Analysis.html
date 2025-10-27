@@ -266,8 +266,8 @@
             }
         });
 
-        // Common fields (NO module prefix)
-        const commonFields = ['Payment_Mode', 'Txn_Tag', 'Ac_Status', 'Txn_Status', 'Frequency'];
+        // Common fields (NO module prefix) - These should NOT have module prefixes
+        const commonFields = ['Payment_Mode', 'Txn_Tag', 'Ac_Status', 'Txn_Status', 'Frequency', 'Ac_Holder'];
 
         function handleFile(file) {
             errorContainer.innerHTML = '';
@@ -338,43 +338,67 @@
                 // Categorize fields
                 columns.forEach(col => {
                     const colLower = col.toLowerCase();
+                    let categorized = false;
                     
-                    // Check for common fields
-                    if (colLower.includes('payment_mode') || colLower.includes('mode')) {
+                    // Check for common fields (NO module prefix) - These are shared across modules
+                    // Only categorize if they don't have a module prefix
+                    const commonFieldPatterns = [
+                        /^payment[_\-]mode$/i,
+                        /^frequency$/i,
+                        /^freq$/i,
+                        /^ac[_\-]status$/i,
+                        /^acstatus$/i,
+                        /^txn[_\-]status$/i,
+                        /^txnstatus$/i,
+                        /^ac[_\-]holder$/i,
+                        /^acholder$/i,
+                        /^txn[_\-]tag$/i,
+                        /^txntag$/i
+                    ];
+                    
+                    if (commonFieldPatterns.some(pattern => pattern.test(col)) && 
+                        !colLower.includes('expense_') && 
+                        !colLower.includes('expance_') && 
+                        !colLower.includes('income_') && 
+                        !colLower.includes('investment_') &&
+                        !colLower.includes('task_')) {
                         if (!analysis.fieldSummary.commonFields.includes(col)) {
                             analysis.fieldSummary.commonFields.push(col);
                         }
-                    } else if (colLower.includes('frequency') || colLower.includes('freq')) {
-                        if (!analysis.fieldSummary.commonFields.includes(col)) {
-                            analysis.fieldSummary.commonFields.push(col);
-                        }
-                    } else if (colLower.includes('ac_status') || colLower.includes('acstatus')) {
-                        if (!analysis.fieldSummary.commonFields.includes(col)) {
-                            analysis.fieldSummary.commonFields.push(col);
-                        }
-                    } else if (colLower.includes('txn_status') || colLower.includes('txnstatus')) {
-                        if (!analysis.fieldSummary.commonFields.includes(col)) {
-                            analysis.fieldSummary.commonFields.push(col);
-                        }
-                    } else if (col.includes('Task_')) {
-                        if (!analysis.fieldSummary.taskFields.includes(col)) {
-                            analysis.fieldSummary.taskFields.push(col);
-                        }
-                    } else if (col.includes('Expense_') || col.includes('Expance_')) {
-                        if (!analysis.fieldSummary.expenseFields.includes(col)) {
-                            analysis.fieldSummary.expenseFields.push(col);
-                        }
-                    } else if (col.includes('Income_')) {
-                        if (!analysis.fieldSummary.incomeFields.includes(col)) {
-                            analysis.fieldSummary.incomeFields.push(col);
-                        }
-                    } else if (col.includes('Investment_')) {
-                        if (!analysis.fieldSummary.investmentFields.includes(col)) {
-                            analysis.fieldSummary.investmentFields.push(col);
-                        }
-                    } else {
-                        if (!analysis.fieldSummary.otherFields.includes(col)) {
-                            analysis.fieldSummary.otherFields.push(col);
+                        categorized = true;
+                    }
+                    
+                    // Categorize module-specific fields
+                    if (!categorized) {
+                        if (col.includes('Task_')) {
+                            if (!analysis.fieldSummary.taskFields.includes(col)) {
+                                analysis.fieldSummary.taskFields.push(col);
+                            }
+                        } else if (col.includes('Expense_') || col.includes('Expance_') || 
+                                   colLower.includes('expense_') || colLower.includes('expanse_')) {
+                            // Check if it's not "Income_Ac_Tag" or similar mixed field
+                            if (!colLower.includes('income_') && 
+                                !colLower.includes('payment_mode') && 
+                                !colLower.includes('frequency') && 
+                                !colLower.includes('ac_status') && 
+                                !colLower.includes('txn_status') &&
+                                !colLower.includes('ac_holder')) {
+                                if (!analysis.fieldSummary.expenseFields.includes(col)) {
+                                    analysis.fieldSummary.expenseFields.push(col);
+                                }
+                            }
+                        } else if (col.includes('Income_') || colLower.includes('income_')) {
+                            if (!analysis.fieldSummary.incomeFields.includes(col)) {
+                                analysis.fieldSummary.incomeFields.push(col);
+                            }
+                        } else if (col.includes('Investment_') || colLower.includes('investment_')) {
+                            if (!analysis.fieldSummary.investmentFields.includes(col)) {
+                                analysis.fieldSummary.investmentFields.push(col);
+                            }
+                        } else {
+                            if (!analysis.fieldSummary.otherFields.includes(col)) {
+                                analysis.fieldSummary.otherFields.push(col);
+                            }
                         }
                     }
                 });
