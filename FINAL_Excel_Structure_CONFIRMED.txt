@@ -1,0 +1,218 @@
+================================================================================
+FINAL EXCEL STRUCTURE - CONFIRMED
+ClearView Dashboard - Complete Field Mapping
+================================================================================
+
+EXCEL FILE STRUCTURE (From User's Upload):
+───────────────────────────────────────────
+
+MASTER DATA SHEETS (Lookup Values - Single Column Each):
+──────────────────────────────────────────────────────────
+✅ Ac_Holder           - 11 values
+✅ Income_Category     - 11 values
+✅ Investment_Category - 14 values  
+✅ Expanse_Category    - 38 values
+✅ Income_Ac_Tag       - 87 values
+✅ Expanse_Ac_Tag      - 115 values
+✅ Investment_Ac_Tag   - 6 values
+✅ Txn_Mode            - 12 values ✓ CORRECTLY NAMED (was Payment_Mode)
+✅ Currency            - 6 values
+✅ Ac_Status           - 14 values
+✅ Txn_Status          - 27 values
+✅ Frequency           - 11 values
+✅ Task_Category       - 34 values
+✅ Task_Tag            - 4 values
+✅ Task_Status         - 6 values
+✅ Task_Assignee       - 5 values
+✅ Task_Priority       - 4 values
+✅ Task_Adhoc          - 10 values
+
+
+TRANSACTIONAL DATA SHEETS:
+──────────────────────────
+✅ Txn_Expense    - 200 rows, 12 columns
+✅ Txn_Income     - 99 rows,  11 columns
+✅ Txn_Investment - 39 rows,  11 columns
+✅ Txn_Task       - 100 rows, 8 columns
+
+
+TXn_Expense Field Structure (12 columns):
+───────────────────────────────────────────
+1.  Expanse_Description     ✓ Module-specific
+2.  Expanse_Category        ✓ Module-specific
+3.  Expanse_Ac_Tag          ✓ Module-specific
+4.  Currency                 ⚠️ Should be: Expanse_Currency
+5.  Paid_From                ✓ Cross-reference field
+6.  Txn_Mode                 ✓ Shared field (NO MODULE PREFIX) ✓
+7.  Expense_Holder           ⚠️ Should be: Ac_Holder
+8.  Frequency                ✓ Shared field (NO MODULE PREFIX) ✓
+9.  Due_Date                 ✓ Date field
+10. Paid_Date                ✓ Date field
+11. Ac_Status                ✓ Shared field (NO MODULE PREFIX) ✓
+12. Txn_Status               ✓ Shared field (NO MODULE PREFIX) ✓
+
+
+TXn_Income Field Structure (11 columns):
+──────────────────────────────────────────
+1.  Income_Description       ✓ Module-specific
+2.  Income_Category          ✓ Module-specific
+3.  Income_Ac_Tag            ✓ Module-specific
+4.  Currency                  ⚠️ Should be: Income_Currency
+5.  Income_Date              ✓ Date field
+6.  Txn_Mode                 ✓ Shared field (NO MODULE PREFIX) ✓
+7.  Ac_Holder                ✓ Shared field (NO MODULE PREFIX) ✓ CORRECT!
+8.  Frequency                ✓ Shared field (NO MODULE PREFIX) ✓
+9.  Ac_Status                ✓ Shared field (NO MODULE PREFIX) ✓
+10. Txn_Status               ✓ Shared field (NO MODULE PREFIX) ✓
+11. Amount                   ✓ Shared field (NO MODULE PREFIX) ✓
+
+
+TXn_Investment Field Structure (11 columns):
+─────────────────────────────────────────────
+1.  Investment_Description   ✓ Module-specific
+2.  Investment_Category      ✓ Module-specific
+3.  Currency                  ⚠️ Should be: Investment_Currency
+4.  Invest_Date               ✓ Date field
+5.  Paid_From                 ✓ Cross-reference field
+6.  Txn_Mode                  ✓ Shared field (NO MODULE PREFIX) ✓
+7.  Ac_Holder                 ✓ Shared field (NO MODULE PREFIX) ✓ CORRECT!
+8.  Frequency                 ✓ Shared field (NO MODULE PREFIX) ✓
+9.  Due_Date                  ✓ Date field
+10. Ac_Status                 ✓ Shared field (NO MODULE PREFIX) ✓
+11. Txn_Status                ✓ Shared field (NO MODULE PREFIX) ✓
+
+
+TXn_Task Field Structure (8 columns):
+──────────────────────────────────────
+1.  Task_Description          ✓ (from previous analysis)
+2.  Task_Category             ✓
+3.  Task_Tag                  ✓
+4.  Task_Status               ✓
+5.  Task_Assignee             ✓
+6.  Task_Priority             ✓
+7.  Due_Date                  ✓
+8.  Completed_On              ✓
+
+
+================================================================================
+FIELD NAMING RULES - CONFIRMED
+================================================================================
+
+✅ SHARED FIELDS (NO MODULE PREFIX - Used across Expense, Income, Investment):
+──────────────────────────────────────────────────────────────────────────────
+1.  Txn_Mode         ✓ CORRECTLY NAMED (was Payment_Mode)
+2.  Ac_Holder        ✓ CORRECTLY NAMED
+3.  Frequency        ✓ CORRECTLY NAMED
+4.  Ac_Status        ✓ CORRECTLY NAMED
+5.  Txn_Status       ✓ CORRECTLY NAMED
+6.  Amount           ✓ CORRECTLY NAMED (in Income)
+7.  Currency         ⚠️ Used in all 3 but should be module-specific for clarity
+
+✅ MODULE-SPECIFIC FIELDS (WITH MODULE PREFIX):
+────────────────────────────────────────────────
+EXpense Module:
+- Expanse_Description ✓
+- Expanse_Category    ✓
+- Expanse_Ac_Tag      ✓
+- Expanse_Currency    ⚠️ Currently just "Currency"
+
+Income Module:
+- Income_Description ✓
+- Income_Category    ✓
+- Income_Ac_Tag      ✓
+- Income_Currency    ⚠️ Currently just "Currency"
+- Income_Date        ✓
+
+Investment Module:
+- Investment_Description ✓
+- Investment_Category    ✓
+- Investment_Ac_Tag      ✓ (exists in master data)
+- Investment_Currency    ⚠️ Currently just "Currency"
+- Invest_Date            ✓
+
+Task Module:
+- Task_Description
+- Task_Category
+- Task_Tag
+- Task_Status
+- Task_Assignee
+- Task_Priority
+- Due_Date
+- Completed_On
+
+================================================================================
+MINOR ISSUES TO FIX IN EXCEL
+================================================================================
+
+ISSUE 1: Expense_Holder vs Ac_Holder
+──────────────────────────────────────
+Location: Txn_Expense sheet
+Current:  Expense_Holder
+Should be: Ac_Holder
+
+Reason: This is a SHARED field used across all modules, should NOT have module prefix.
+
+
+ISSUE 2: Currency Should Be Module-Specific
+─────────────────────────────────────────────
+Location: Txn_Expense, Txn_Income, Txn_Investment sheets
+Current:  Currency (same name in all sheets)
+Should be: Expanse_Currency, Income_Currency, Investment_Currency
+
+Reason: While technically fine, it would be clearer if currency is module-specific.
+
+
+ISSUE 3: Missing Amount Field in Some Modules
+───────────────────────────────────────────────
+Missing: Amount field in Txn_Investment and Txn_Expense
+
+Current: Only present in Txn_Income
+Should be: Add Amount to all 3 modules for consistency
+
+================================================================================
+CODE IMPLEMENTATION STATUS
+================================================================================
+
+✅ READY FOR IMPLEMENTATION:
+─────────────────────────────
+
+The dashboard code should:
+
+1. INCOME MODULE (3_Income_Main.js):
+   Current uses: desc, cat, tag, cur, amt, mode, holder, paid, freq, acstatus, txnstatus
+   Should use: Income_Description, Income_Category, Income_Ac_Tag, Income_Currency,
+                Amount, Txn_Mode, Ac_Holder, Income_Date, Frequency, Ac_Status, Txn_Status
+
+2. INVESTMENT MODULE (4_Investment_Main.js):
+   Current uses: desc, cat, tag, cur, amt, mode, holder, investdate, maturitydate, freq, acstatus, txnstatus
+   Should use: Investment_Description, Investment_Category, Investment_Ac_Tag, Investment_Currency,
+                Amount, Txn_Mode, Ac_Holder, Invest_Date, Due_Date, Paid_From, 
+                Frequency, Ac_Status, Txn_Status
+
+3. EXPENSE MODULE (2_Expanse_Main.js):
+   Already uses correct structure mostly
+   Just needs: Expense_Holder → Ac_Holder mapping
+               Currency → Expanse_Currency (or keep as Currency if preferred)
+
+================================================================================
+RECOMMENDATION
+================================================================================
+
+DECISION POINT:
+───────────────
+1. Keep "Currency" as-is across all modules (simple, works fine)
+2. OR rename to module-specific: Expanse_Currency, Income_Currency, Investment_Currency
+
+Recommendation: Keep it as "Currency" for simplicity. It's clear from context which module it belongs to.
+
+FIXES NEEDED IN CODE:
+─────────────────────
+1. Update Income module to use full field names (not abbreviated)
+2. Update Investment module to use full field names (not abbreviated)
+3. Update Expense module: Expense_Holder → Ac_Holder mapping
+4. Load master data from Excel sheets for dropdown population
+
+================================================================================
+END OF CONFIRMED STRUCTURE
+================================================================================
+

@@ -1,0 +1,156 @@
+================================================================================
+ACTUAL EXCEL FIELD STRUCTURE - FROM USER'S UPLOADED FILE
+ClearView Dashboard - Field Mapping Implementation
+================================================================================
+
+USER'S ACTUAL EXCEL STRUCTURE (Uploaded via Excel_Upload_Analyzer.html):
+─────────────────────────────────────────────────────────────────────────────
+
+TXn_Expanse (12 columns):
+─────────────────────────
+1.  Expanse_Description     ✓ Module-specific (with Expanse prefix)
+2.  Expanse_Category        ✓ Module-specific (with Expanse prefix)
+3.  Expanse_Ac_Tag          ✓ Module-specific (with Expanse prefix)
+4.  Currency                ⚠️ Should be: Expanse_Currency (for consistency)
+5.  Paid_From               ✓ Cross-reference field (no prefix)
+6.  Txn_Mode                ✓ Shared field (no prefix) ✓ CORRECTLY NAMED!
+7.  Expense_Holder          ⚠️ Should be: Ac_Holder (shared field, no prefix)
+8.  Frequency               ✓ Shared field (no prefix)
+9.  Due_Date                ✓ Date field (no prefix)
+10. Paid_Date               ✓ Date field (no prefix)
+11. Ac_Status               ✓ Shared field (no prefix)
+12. Txn_Status              ✓ Shared field (no prefix)
+
+TXn_Income (11 columns):
+─────────────────────────
+1.  Income_Description      ✓ Module-specific (with Income prefix)
+2.  Income_Category         ✓ Module-specific (with Income prefix)
+3.  Income_Ac_Tag           ✓ Module-specific (with Income prefix)
+4.  Currency                ⚠️ Should be: Income_Currency (for consistency)
+5.  Income_Date             ✓ Module-specific date field
+6.  Txn_Mode                ✓ Shared field (no prefix) ✓ CORRECTLY NAMED!
+7.  Ac_Holder               ✓ Shared field (no prefix) ✓ CORRECT!
+8.  Frequency               ✓ Shared field (no prefix)
+9.  Ac_Status               ✓ Shared field (no prefix)
+10. Txn_Status              ✓ Shared field (no prefix)
+11. Amount                  ✓ Shared field (no prefix)
+
+
+TXn_Investment (11 columns):
+──────────────────────────────
+1.  Investment_Description  ✓ Module-specific (with Investment prefix)
+2.  Investment_Category    ✓ Module-specific (with Investment prefix)
+3.  Currency                ⚠️ Should be: Investment_Currency (for consistency)
+4.  Invest_Date             ✓ Module-specific date field
+5.  Paid_From               ✓ Cross-reference field (no prefix)
+6.  Txn_Mode                ✓ Shared field (no prefix) ✓ CORRECTLY NAMED!
+7.  Ac_Holder               ✓ Shared field (no prefix) ✓ CORRECT!
+8.  Frequency               ✓ Shared field (no prefix)
+9.  Due_Date                ✓ Date field (no prefix)
+10. Ac_Status               ✓ Shared field (no prefix)
+11. Txn_Status              ✓ Shared field (no prefix)
+
+================================================================================
+FIELD NAMING ANALYSIS
+================================================================================
+
+✅ CORRECT FIELDS:
+─────────────────
+1. Txn_Mode (used across all modules) - ✓ CORRECTLY NAMED (was Payment_Mode)
+2. Ac_Holder, Frequency, Ac_Status, Txn_Status (shared fields) - ✓ CORRECT
+3. Module-specific fields with correct prefixes - ✓ MOSTLY CORRECT
+
+⚠️ INCONSISTENCIES FOUND:
+─────────────────────────
+1. "Expense_Holder" in Txn_Expanse → Should be "Ac_Holder" (shared field)
+2. "Currency" in all modules → Should be module-specific (Expanse_Currency, Income_Currency, Investment_Currency)
+3. Missing "Amount" field in Txn_Investment
+4. Missing "Investment_Ac_Tag" in Txn_Investment
+
+================================================================================
+RECOMMENDED CORRECTIONS TO EXCEL FILE
+================================================================================
+
+FOR TXN_EXPANSE:
+────────────────
+REPLACE: Expense_Holder
+WITH:    Ac_Holder
+
+RENAME: Currency
+TO:      Expanse_Currency
+
+ADD:     Amount (if missing)
+FIELD:   Amount
+
+
+FOR TXN_INCOME:
+───────────────
+RENAME: Currency
+TO:      Income_Currency
+
+
+FOR TXN_INVESTMENT:
+───────────────────
+ADD:     Investment_Ac_Tag
+ADD:     Amount (if missing)
+RENAME: Currency
+TO:      Investment_Currency
+
+================================================================================
+SHARED FIELDS (NO MODULE PREFIX) - CONFIRMED
+================================================================================
+
+These fields should remain WITHOUT module prefix across ALL modules:
+──────────────────────────────────────────────────────────────────
+✅ Txn_Mode      - Transaction mode (was Payment_Mode)
+✅ Ac_Holder     - Account holder name
+✅ Frequency     - Transaction frequency
+✅ Ac_Status     - Account status
+✅ Txn_Status    - Transaction status
+✅ Amount        - Transaction amount
+✅ Currency      - ⚠️ NOTE: Actually should be module-specific or made consistent
+
+DATE FIELDS (NO MODULE PREFIX):
+───────────────────────────────
+✅ Due_Date      - Used in Expanse and Investment
+✅ Paid_Date     - Used in Expanse
+✅ Income_Date   - Used in Income (module-specific name)
+✅ Invest_Date   - Used in Investment (module-specific name)
+
+CROSS-REFERENCE FIELDS:
+───────────────────────
+✅ Paid_From     - Cross-reference to Income_Ac_Tag
+
+================================================================================
+IMPLEMENTATION STATUS
+================================================================================
+
+✅ READY TO IMPLEMENT:
+──────────────────────
+- Income module (3_Income_Main.js) needs update to use correct field names
+- Investment module (4_Investment_Main.js) needs update to use correct field names
+- Expense module (2_Expanse_Main.js) - mostly correct, needs minor fixes
+
+✅ FIELD MAPPING FOR CODE:
+──────────────────────────
+Based on your actual Excel structure, the dashboards should use:
+- Txn_Mode (NOT Payment_Mode) across all modules
+- Ac_Holder (NOT Expense_Holder) as shared field
+- Keep Currency, Due_Date, Paid_Date, Invest_Date, Income_Date, Amount as-is
+- Use module prefixes for Description, Category, Ac_Tag fields
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. ✅ User confirms this field structure
+2. Update Income module (3_Income_Main.js)
+3. Update Investment module (4_Investment_Main.js)
+4. Verify Expense module (2_Expanse_Main.js)
+5. Test all modules with actual Excel file
+6. Finalize documentation
+
+================================================================================
+END OF STRUCTURE ANALYSIS
+================================================================================
+
