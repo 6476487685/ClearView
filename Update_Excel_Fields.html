@@ -254,7 +254,16 @@
                             return newRow;
                         });
                         
-                        const newSheet = XLSX.utils.json_to_sheet(updatedData);
+                        // Recreate sheet with proper options to preserve structure
+                        const newSheet = XLSX.utils.json_to_sheet(updatedData, {
+                            header: Object.keys(updatedData[0] || {}),
+                            skipHeader: false
+                        });
+                        
+                        // Preserve sheet properties
+                        if (sheet['!rows']) newSheet['!rows'] = sheet['!rows'];
+                        if (sheet['!merges']) newSheet['!merges'] = sheet['!merges'];
+                        
                         workbook.Sheets[sheetName] = newSheet;
                         
                         if (!sheetUpdated) {
@@ -326,7 +335,8 @@
                     bookSST: false,
                     type: 'array',
                     cellStyles: false,
-                    cellDates: true
+                    cellDates: true,
+                    compression: true
                 };
                 
                 log('Writing workbook with compatibility options...');
