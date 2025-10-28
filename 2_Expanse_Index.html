@@ -65,9 +65,10 @@
             <th class="resizable">Category</th>
             <th class="resizable">Account Tag</th>
             <th class="resizable">Currency</th>
-            <th class="resizable">Amount</th>
-            <th class="resizable">Paid From</th>
+            <th class="resizable">Amount Due</th>
             <th class="resizable">Due Date</th>
+            <th class="resizable">Paid From</th>
+            <th class="resizable">Amount Paid</th>
             <th class="resizable">Paid Date</th>
             <th class="resizable">Mode</th>
             <th class="resizable">Txn Status</th>
@@ -92,26 +93,27 @@
           <input type="text" id="Expense_Description" required>
         </div>
 
-        <!-- Line 1: Category, Amount, Tag, Holder -->
+        <!-- Line 1: Category, Currency, Account Tag, Holder -->
         <div class="row4">
           <div><label>Category</label><select id="Expense_Category"></select></div>
-          <div><label>Amount</label><input type="text" id="Expense_Amount" placeholder="0.00" pattern="[0-9]+(\.[0-9]{1,2})?" title="Enter amount with up to 2 decimal places"></div>
+          <div><label>Currency</label><select id="Expense_Currency"></select></div>
           <div><label>Account Tag</label><select id="Expense_Tag"></select></div>
           <div><label>Holder</label><select id="Expense_Holder"></select></div>
         </div>
 
-        <!-- Line 2: Due Date, Currency, Mode, Paid From -->
+        <!-- Line 2: Amount Due, Due Date, Paid From, Amount Paid -->
         <div class="row4">
+          <div><label>Amount Due</label><input type="text" id="Expense_Amount_Due" placeholder="0.00" pattern="[0-9]+(\.[0-9]{1,2})?" title="Enter amount due"></div>
           <div><label>Due Date</label><input type="date" id="Expense_Due_Date"></div>
-          <div><label>Currency</label><select id="Expense_Currency"></select></div>
-          <div><label>Mode</label><select id="Expense_Mode"></select></div>
           <div><label>Paid From</label><select id="Expense_Paid_From"></select></div>
+          <div><label>Amount Paid</label><input type="text" id="Expense_Amount_Paid" placeholder="0.00" pattern="[0-9]+(\.[0-9]{1,2})?" title="Enter amount paid"></div>
         </div>
 
-        <!-- Line 2b: Paid Date -->
-        <div class="row-full">
-          <label>Paid Date</label>
-          <input type="date" id="Expense_Paid_Date">
+        <!-- Line 2b: Paid Date and Mode -->
+        <div class="row3">
+          <div><label>Paid Date</label><input type="date" id="Expense_Paid_Date"></div>
+          <div><label>Mode</label><select id="Expense_Mode"></select></div>
+          <div></div>
         </div>
 
         <!-- Line 3: Frequency, Account Status, Transaction Status -->

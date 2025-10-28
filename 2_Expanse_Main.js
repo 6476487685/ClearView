@@ -36,8 +36,9 @@ document.addEventListener("DOMContentLoaded",()=>{
   d.forEach((r,i)=>{
    const tr=document.createElement('tr');
    tr.innerHTML=`<td>${i+1}</td><td>${r.Expense_Description||r.desc||''}</td><td>${r.Expense_Category||r.cat||''}</td><td>${r.Expense_Tag||r.tag||''}</td>
-   <td>${r.Expense_Currency||r.cur||''}</td><td>${Number(r.Expense_Amount||r.amt||0).toFixed(2)}</td><td>${r.Expense_Paid_From||''}</td><td>${r.Expense_Due_Date||r.due||''}</td><td>${r.Expense_Paid_Date||r.paid||''}</td>
-   <td>${r.Expense_Mode||r.mode||''}</td><td>${r.Expense_Txn_Status||r.txnstatus||''}</td><td>${r.Expense_Holder||r.holder||''}</td><td>${r.Expense_Frequency||r.freq||''}</td><td>${r.Expense_Account_Status||r.acstatus||''}</td>
+   <td>${r.Expense_Currency||r.cur||''}</td><td>${Number(r.Expense_Amount_Due||r.Expense_Amount||r.amt||0).toFixed(2)}</td><td>${r.Expense_Due_Date||r.due||''}</td><td>${r.Expense_Paid_From||''}</td>
+   <td>${Number(r.Expense_Amount_Paid||0).toFixed(2)}</td><td>${r.Expense_Paid_Date||r.paid||''}</td><td>${r.Expense_Mode||r.mode||''}</td><td>${r.Expense_Txn_Status||r.txnstatus||''}</td>
+   <td>${r.Expense_Holder||r.holder||''}</td><td>${r.Expense_Frequency||r.freq||''}</td><td>${r.Expense_Account_Status||r.acstatus||''}</td>
    <td><span class='del' title='Delete'>🗑️</span></td>`;
    tbody.appendChild(tr);
   });
@@ -107,7 +108,8 @@ document.addEventListener("DOMContentLoaded",()=>{
    Expense_Category:form['Expense_Category'].value,
    Expense_Tag:form['Expense_Tag'].value,
    Expense_Currency:form['Expense_Currency'].value,
-   Expense_Amount:parseFloat(form['Expense_Amount'].value||0).toFixed(2),
+   Expense_Amount_Due:parseFloat(form['Expense_Amount_Due'].value||0).toFixed(2),
+   Expense_Amount_Paid:parseFloat(form['Expense_Amount_Paid'].value||0).toFixed(2),
    Expense_Mode:form['Expense_Mode'].value,
    Expense_Holder:form['Expense_Holder'].value,
    Expense_Paid_From:form['Expense_Paid_From'].value,
