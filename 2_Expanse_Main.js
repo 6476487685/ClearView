@@ -34,6 +34,9 @@ document.addEventListener("DOMContentLoaded",()=>{
 
  function renderTable(d){
   tbody.innerHTML='';
+  // Update record count
+  const recordCountEl=document.getElementById('recordCount');
+  if(recordCountEl)recordCountEl.textContent=d.length;
   d.forEach((r,i)=>{
    const tr=document.createElement('tr');
    tr.innerHTML=`<td>${i+1}</td><td>${r.Expense_Description||r.desc||''}</td><td>${r.Expense_Category||r.cat||''}</td><td>${r.Expense_Tag||r.tag||''}</td>
