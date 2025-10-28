@@ -27,7 +27,8 @@ document.addEventListener("DOMContentLoaded",()=>{
   {Expense_Description:'Team Lunch',Expense_Category:'Meals',Expense_Tag:'INR-Personal',Expense_Currency:'INR',Expense_Amount:2000,Expense_Mode:'Cash',Expense_Holder:'Rashmi',Expense_Due_Date:'2025-05-05',Expense_Paid_Date:'',Expense_Frequency:'One-Time',Expense_Account_Status:'Active',Expense_Txn_Status:'Unpaid'},
   {Expense_Description:'Software Subscription',Expense_Category:'Software',Expense_Tag:'USD-Business',Expense_Currency:'USD',Expense_Amount:49,Expense_Mode:'Credit Card',Expense_Holder:'Amit',Expense_Due_Date:'2025-01-10',Expense_Paid_Date:'2025-01-09',Expense_Frequency:'Yearly',Expense_Account_Status:'Active',Expense_Txn_Status:'Paid'}
  ];
- if(!localStorage.getItem('expense_records')) localStorage.setItem('expense_records',JSON.stringify(sample));
+ // Don't load dummy data - start with empty array
+ // User will load their own data via Excel import
  const getData=()=>JSON.parse(localStorage.getItem('expense_records'))||[];
  const saveData=d=>localStorage.setItem('expense_records',JSON.stringify(d));
 
@@ -563,7 +564,9 @@ if (excelFileInput) {
               Expense_Category: getValue('Expanse_Category', 'Expense_Category', 'Category'),
               Expense_Tag: getValue('Expanse_Ac_Tag', 'Expense_Tag', 'Tag'),
               Expense_Currency: getValue('Currency', 'Expense_Currency'),
+              Expense_Amount_Due: getValue('Amount', 'Expense_Amount_Due', 'Amount_Due'),
               Expense_Paid_From: getValue('Paid_From', 'Expense_Paid_From', ''),
+              Expense_Amount_Paid: getValue('Amount_Paid', 'Amount-Paid', '0'),
               Expense_Mode: getValue('Txn_Mode', 'Expense_Mode', 'Payment_Mode', 'Mode'),
               Expense_Holder: getValue('Ac_Holder', 'Expense_Holder', 'Holder'),
               Expense_Due_Date: getValue('Due_Date', 'Expense_Due_Date'),
