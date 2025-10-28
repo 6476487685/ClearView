@@ -473,18 +473,18 @@ if (excelFileInput) {
             };
 
             return {
-              Expense_Description: getValue('Expense_Description', 'Expance_Description', 'Expanse_Description', 'Description'),
-              Expense_Category: getValue('Expense_Category', 'Category_Expanse', 'Expanse_Category', 'Category'),
-              Expense_Tag: getValue('Expense_Tag', 'Ac_Tag_Expance', 'Expanse_Ac_Tag', 'Tag'),
-              Expense_Currency: getValue('Expense_Currency', 'Currency', ''),
-              Expense_Amount: getValue('Expense_Amount', 'Amount'),
-              Expense_Mode: getValue('Expense_Mode', 'Payment_Mode', 'Txn_Mode', 'Mode'),
-              Expense_Holder: getValue('Expense_Holder', 'Ac_Holder', 'Holder'),
-              Expense_Due_Date: getValue('Expense_Due_Date', 'Due_Date', 'Due Date'),
-              Expense_Paid_Date: getValue('Expense_Paid_Date', 'Paid_Date', 'Paid Date'),
-              Expense_Frequency: getValue('Expense_Frequency', 'Frequency'),
-              Expense_Account_Status: getValue('Expense_Account_Status', 'Ac_Status', 'Account Status'),
-              Expense_Txn_Status: getValue('Expense_Txn_Status', 'Txn_Status', 'Transaction Status')
+              Expense_Description: getValue('Expanse_Description', 'Expense_Description', 'Expance_Description', 'Description'),
+              Expense_Category: getValue('Expanse_Category', 'Expense_Category', 'Category_Expanse', 'Category'),
+              Expense_Tag: getValue('Expanse_Ac_Tag', 'Expense_Tag', 'Ac_Tag_Expance', 'Tag'),
+              Expense_Currency: getValue('Currency', 'Expense_Currency', ''),
+              Expense_Amount: getValue('Amount', 'Expense_Amount'),
+              Expense_Mode: getValue('Txn_Mode', 'Expense_Mode', 'Payment_Mode', 'Mode'),
+              Expense_Holder: getValue('Ac_Holder', 'Expense_Holder', 'Holder'),
+              Expense_Due_Date: getValue('Due_Date', 'Expense_Due_Date', 'Due Date'),
+              Expense_Paid_Date: getValue('Paid_Date', 'Expense_Paid_Date', 'Paid Date'),
+              Expense_Frequency: getValue('Frequency', 'Expense_Frequency'),
+              Expense_Account_Status: getValue('Ac_Status', 'Expense_Account_Status', 'Account Status'),
+              Expense_Txn_Status: getValue('Txn_Status', 'Expense_Txn_Status', 'Transaction Status')
             };
           });
 
