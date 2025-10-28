@@ -88,36 +88,36 @@
       <form id="expenseForm">
         <div class="row-full">
           <label>Description</label>
-          <input type="text" id="Expense_Description" required>
+          <input type="text" id="desc" required>
         </div>
 
         <!-- Line 1: Category, Amount, Tag, Holder -->
         <div class="row4">
-          <div><label>Category</label><select id="Expense_Category"></select></div>
-          <div><label>Amount</label><input type="text" id="Expense_Amount" placeholder="0.00" pattern="[0-9]+(\.[0-9]{1,2})?" title="Enter amount with up to 2 decimal places"></div>
-          <div><label>Account Tag</label><select id="Expense_Tag"></select></div>
-          <div><label>Holder</label><select id="Expense_Holder"></select></div>
+          <div><label>Category</label><select id="cat"></select></div>
+          <div><label>Amount</label><input type="text" id="amt" placeholder="0.00" pattern="[0-9]+(\.[0-9]{1,2})?" title="Enter amount with up to 2 decimal places"></div>
+          <div><label>Account Tag</label><select id="tag"></select></div>
+          <div><label>Holder</label><select id="holder"></select></div>
         </div>
 
         <!-- Line 2: Due Date, Currency, Mode, Paid Date -->
         <div class="row4">
-          <div><label>Due Date</label><input type="date" id="Expense_Due_Date"></div>
-          <div><label>Currency</label><select id="Expense_Currency"></select></div>
-          <div><label>Mode</label><select id="Expense_Mode"></select></div>
-          <div><label>Paid Date</label><input type="date" id="Expense_Paid_Date"></div>
+          <div><label>Due Date</label><input type="date" id="due"></div>
+          <div><label>Currency</label><select id="cur"></select></div>
+          <div><label>Mode</label><select id="mode"></select></div>
+          <div><label>Paid Date</label><input type="date" id="paid"></div>
         </div>
 
         <!-- Line 3: Frequency, Account Status, Transaction Status -->
         <div class="row3">
-          <div><label>Frequency</label><select id="Expense_Frequency"></select></div>
+          <div><label>Frequency</label><select id="freq"></select></div>
           <div><label>Account Status</label>
-            <select id="Expense_Account_Status">
+            <select id="acstatus">
               <option>Active</option>
               <option>Inactive</option>
             </select>
           </div>
           <div><label>Transaction Status</label>
-            <select id="Expense_Txn_Status">
+            <select id="txnstatus">
               <option>Paid</option>
               <option>Unpaid</option>
               <option>Pending</option>

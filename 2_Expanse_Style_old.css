@@ -72,7 +72,7 @@ th.resizable:hover::after{opacity:1;background:var(--text-muted);}
 label{font-size:12px;font-weight:500;margin-bottom:4px;display:block;color:var(--text-primary);letter-spacing:0;}
 input,select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;background:var(--surface);transition:all 0.1s ease;box-sizing:border-box;height:36px;font-family:inherit;color:var(--text-primary);}
 input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(66,133,244,0.1);}
-input[type="text"]#Expense_Amount{text-align:right;font-variant-numeric:tabular-nums;}
+input[type="text"]#amt{text-align:right;font-variant-numeric:tabular-nums;}
 .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:24px;padding-top:16px;border-top:1px solid var(--border-light);}
 #saveBtn{background:var(--accent);color:var(--surface);padding:8px 16px;border-radius:var(--radius);font-weight:500;font-size:13px;border:none;cursor:pointer;transition:all 0.1s ease;min-width:80px;height:32px;}
 #saveBtn:hover{background:var(--accent-hover);box-shadow:var(--shadow-xs);}

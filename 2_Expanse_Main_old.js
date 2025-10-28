@@ -21,15 +21,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   {Expense_Description:'Software Subscription',Expense_Category:'Software',Expense_Tag:'USD-Business',Expense_Currency:'USD',Expense_Amount:49,Expense_Mode:'Credit Card',Expense_Holder:'Amit',Expense_Due_Date:'2025-01-10',Expense_Paid_Date:'2025-01-09',Expense_Frequency:'Yearly',Expense_Account_Status:'Active',Expense_Txn_Status:'Paid'}
  ];
  if(!localStorage.getItem('expense_records')) localStorage.setItem('expense_records',JSON.stringify(sample));
- const getData=()=>{
-  const data=JSON.parse(localStorage.getItem('expense_records'))||[];
-  const migrated=migrateData(data);
-  if(migrated!==data){
-   // Persist migrated data so rest of app uses standardized fields
-   localStorage.setItem('expense_records',JSON.stringify(migrated));
-  }
-  return migrated;
- };
+ const getData=()=>JSON.parse(localStorage.getItem('expense_records'))||[];
  const saveData=d=>localStorage.setItem('expense_records',JSON.stringify(d));
 
  function renderTable(d){
@@ -67,7 +59,7 @@ document.addEventListener("DOMContentLoaded",()=>{
  window.onclick=e=>{if(e.target===modal)modal.style.display='none';};
 
  // Migrate old data to new field names
-function migrateData(data){
+ function migrateData(data){
   if(!data || data.length===0)return data;
   // Check if data uses old field names
   const needsMigration=data.some(r=>r.desc!==undefined);
@@ -93,18 +85,18 @@ function migrateData(data){
  form.onsubmit=e=>{
   e.preventDefault();
   const rec={
-  Expense_Description:form['Expense_Description'].value,
-  Expense_Category:form['Expense_Category'].value,
-  Expense_Tag:form['Expense_Tag'].value,
-  Expense_Currency:form['Expense_Currency'].value,
-  Expense_Amount:parseFloat(form['Expense_Amount'].value||0).toFixed(2),
-  Expense_Mode:form['Expense_Mode'].value,
-  Expense_Holder:form['Expense_Holder'].value,
-  Expense_Due_Date:form['Expense_Due_Date'].value,
-  Expense_Paid_Date:form['Expense_Paid_Date'].value,
-  Expense_Frequency:form['Expense_Frequency'].value,
-  Expense_Account_Status:form['Expense_Account_Status'].value,
-  Expense_Txn_Status:form['Expense_Txn_Status'].value
+   Expense_Description:form.desc.value,
+   Expense_Category:form.cat.value,
+   Expense_Tag:form.tag.value,
+   Expense_Currency:form.cur.value,
+   Expense_Amount:parseFloat(form.amt.value||0).toFixed(2),
+   Expense_Mode:form.mode.value,
+   Expense_Holder:form.holder.value,
+   Expense_Due_Date:form.due.value,
+   Expense_Paid_Date:form.paid.value,
+   Expense_Frequency:form.freq.value,
+   Expense_Account_Status:form.acstatus.value,
+   Expense_Txn_Status:form.txnstatus.value
   };
   const d=getData();
   if(editIndex!==null)d[editIndex]=rec;else d.push(rec);
@@ -149,18 +141,8 @@ function migrateData(data){
  uniq('cat').forEach(v=>fCategory.innerHTML+=`<option>${v}</option>`);
  uniq('tag').forEach(v=>fTag.innerHTML+=`<option>${v}</option>`);
  uniq('holder').forEach(v=>fHolder.innerHTML+=`<option>${v}</option>`);
- // Populate standardized form field selects
- const mapOldToNew={
-  cat:'Expense_Category',
-  tag:'Expense_Tag',
-  cur:'Expense_Currency',
-  mode:'Expense_Mode',
-  holder:'Expense_Holder',
-  freq:'Expense_Frequency'
- };
- Object.entries(mapOldToNew).forEach(([oldKey,newId])=>{
-  const s=form[newId];
-  if(s)uniq(oldKey).forEach(v=>s.innerHTML+=`<option>${v}</option>`);
+ ['cat','tag','cur','mode','holder','freq'].forEach(k=>{
+  const s=form[k];if(s)uniq(k).forEach(v=>s.innerHTML+=`<option>${v}</option>`);
  });
 
  // Column resize with persistent storage
@@ -234,18 +216,18 @@ function createExcelFile(data) {
   data.forEach((row, index) => {
     const rowData = [
       index + 1,
-      row.Expense_Description || row.desc || '',
-      row.Expense_Category || row.cat || '',
-      row.Expense_Tag || row.tag || '',
-      row.Expense_Currency || row.cur || '',
-      Number(row.Expense_Amount ?? row.amt ?? 0).toFixed(2),
-      row.Expense_Mode || row.mode || '',
-      row.Expense_Holder || row.holder || '',
-      row.Expense_Due_Date || row.due || '',
-      row.Expense_Paid_Date || row.paid || '',
-      row.Expense_Frequency || row.freq || '',
-      row.Expense_Account_Status || row.acstatus || '',
-      row.Expense_Txn_Status || row.txnstatus || ''
+      row.desc,
+      row.cat,
+      row.tag,
+      row.cur,
+      Number(row.amt).toFixed(2),
+      row.mode,
+      row.holder,
+      row.due,
+      row.paid,
+      row.freq,
+      row.acstatus,
+      row.txnstatus
     ];
     worksheetData.push(rowData);
   });
@@ -402,18 +384,18 @@ function createExcelFile(data) {
    
    const rowData = [
      (index + 1).toString(),
-    (row.Expense_Description || row.desc || ''),
-    (row.Expense_Category || row.cat || ''),
-    (row.Expense_Tag || row.tag || ''),
-    (row.Expense_Currency || row.cur || ''),
-    Number(row.Expense_Amount ?? row.amt ?? 0).toFixed(2),
-    (row.Expense_Mode || row.mode || ''),
-    (row.Expense_Holder || row.holder || ''),
-    formatDate(row.Expense_Due_Date || row.due || ''),
-    formatDate(row.Expense_Paid_Date || row.paid || ''),
-    (row.Expense_Frequency || row.freq || ''),
-    (row.Expense_Account_Status || row.acstatus || ''),
-    (row.Expense_Txn_Status || row.txnstatus || '')
+     row.desc,
+     row.cat,
+     row.tag,
+     row.cur,
+     Number(row.amt).toFixed(2),
+     row.mode,
+     row.holder,
+     formatDate(row.due),
+     formatDate(row.paid),
+     row.freq,
+     row.acstatus,
+     row.txnstatus
    ];
    
    let x = tableStartX;
