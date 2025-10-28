@@ -36,8 +36,8 @@ document.addEventListener("DOMContentLoaded",()=>{
   d.forEach((r,i)=>{
    const tr=document.createElement('tr');
    tr.innerHTML=`<td>${i+1}</td><td>${r.Expense_Description||r.desc||''}</td><td>${r.Expense_Category||r.cat||''}</td><td>${r.Expense_Tag||r.tag||''}</td>
-   <td>${r.Expense_Currency||r.cur||''}</td><td>${Number(r.Expense_Amount||r.amt||0).toFixed(2)}</td><td>${r.Expense_Mode||r.mode||''}</td><td>${r.Expense_Holder||r.holder||''}</td>
-   <td>${r.Expense_Paid_From||''}</td><td>${r.Expense_Due_Date||r.due||''}</td><td>${r.Expense_Paid_Date||r.paid||''}</td><td>${r.Expense_Frequency||r.freq||''}</td><td>${r.Expense_Account_Status||r.acstatus||''}</td><td>${r.Expense_Txn_Status||r.txnstatus||''}</td>
+   <td>${r.Expense_Currency||r.cur||''}</td><td>${Number(r.Expense_Amount||r.amt||0).toFixed(2)}</td><td>${r.Expense_Paid_From||''}</td><td>${r.Expense_Due_Date||r.due||''}</td><td>${r.Expense_Paid_Date||r.paid||''}</td>
+   <td>${r.Expense_Mode||r.mode||''}</td><td>${r.Expense_Txn_Status||r.txnstatus||''}</td><td>${r.Expense_Holder||r.holder||''}</td><td>${r.Expense_Frequency||r.freq||''}</td><td>${r.Expense_Account_Status||r.acstatus||''}</td>
    <td><span class='del' title='Delete'>🗑️</span></td>`;
    tbody.appendChild(tr);
   });
@@ -61,7 +61,18 @@ document.addEventListener("DOMContentLoaded",()=>{
  });
 
  // Add
- addBtn.onclick=()=>{editIndex=null;form.reset();title.textContent="Add Expense";modal.style.display='flex';};
+ addBtn.onclick=()=>{
+  editIndex=null;
+  form.reset();
+  // Set default values
+  form['Expense_Mode'].value='Bill-Payment-Bank';
+  form['Expense_Txn_Status'].value='Unpaid';
+  form['Expense_Holder'].value='Amit';
+  form['Expense_Frequency'].value='Monthly';
+  form['Expense_Account_Status'].value='Active';
+  title.textContent="Add Expense";
+  modal.style.display='flex';
+ };
  cancelBtn.onclick=()=>modal.style.display='none';
  window.onclick=e=>{if(e.target===modal)modal.style.display='none';};
 
