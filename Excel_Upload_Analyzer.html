@@ -189,7 +189,8 @@
 
         function handleFile(file) {
             resultsDiv.style.display = 'none';
-            resultsDiv.innerHTML = '<div class="success">Processing file: ' + file.name + '...</div>';
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML = '<div class="success">🔄 Processing file: <strong>' + file.name + '</strong> at ' + timestamp + '<br>File size: ' + (file.size/1024).toFixed(2) + ' KB</div>';
             resultsDiv.style.display = 'block';
             
             const reader = new FileReader();
@@ -197,6 +198,8 @@
                 try {
                     const data = new Uint8Array(e.target.result);
                     console.log('File loaded, size:', data.length, 'bytes');
+                    console.log('File name:', file.name);
+                    console.log('File last modified:', new Date(file.lastModified).toLocaleString());
                     
                     // Read with better error handling
                     const workbook = XLSX.read(data, { 

@@ -460,13 +460,31 @@ if (excelFileInput) {
           // Log actual Excel column names for debugging
           console.log('Excel column names:', Object.keys(jsonData[0] || {}));
           console.log('First row data:', jsonData[0]);
+          // Specifically check Currency column
+          if (jsonData[0]) {
+            console.log('Currency value in Excel:', jsonData[0]['Currency']);
+            console.log('Currency value in Excel (with space):', jsonData[0]['Currency ']);
+            // Log all keys that might be related to Currency
+            Object.keys(jsonData[0]).forEach(key => {
+              if (key.toLowerCase().includes('currency') || key.toLowerCase().includes('cur')) {
+                console.log(`Found currency-related key: "${key}" = "${jsonData[0][key]}"`);
+              }
+            });
+          }
 
           // Map Excel columns to Expense structure - handle actual Excel column names
           const expenses = jsonData.map(row => {
             const getValue = (...possibleNames) => {
               for (let name of possibleNames) {
-                if (row[name] !== undefined && row[name] !== null && row[name] !== '') {
-                  return row[name];
+                const val = row[name];
+                // Check for the value itself
+                if (val !== undefined && val !== null && val !== '') {
+                  return val;
+                }
+                // Try with trimmed key (in case of whitespace in column name)
+                const trimmedKey = name.trim();
+                if (trimmedKey !== name && row[trimmedKey] !== undefined && row[trimmedKey] !== null && row[trimmedKey] !== '') {
+                  return row[trimmedKey];
                 }
               }
               return '';
@@ -476,7 +494,7 @@ if (excelFileInput) {
               Expense_Description: getValue('Expanse_Description', 'Expense_Description', 'Expance_Description', 'Description'),
               Expense_Category: getValue('Expanse_Category', 'Expense_Category', 'Category_Expanse', 'Category'),
               Expense_Tag: getValue('Expanse_Ac_Tag', 'Expense_Tag', 'Ac_Tag_Expance', 'Tag'),
-              Expense_Currency: getValue('Currency', 'Expense_Currency', ''),
+              Expense_Currency: getValue('Currency', 'Expense_Currency', 'Currency '),
               Expense_Amount: getValue('Amount', 'Expense_Amount'),
               Expense_Mode: getValue('Txn_Mode', 'Expense_Mode', 'Payment_Mode', 'Mode'),
               Expense_Holder: getValue('Ac_Holder', 'Expense_Holder', 'Holder'),
