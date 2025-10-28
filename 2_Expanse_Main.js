@@ -56,7 +56,28 @@ document.addEventListener("DOMContentLoaded",()=>{
   const row=e.target.closest('tr');if(!row)return;
   editIndex=[...tbody.children].indexOf(row);
   const d=getData()[editIndex];
-  Object.keys(d).forEach(k=>{if(form[k])form[k].value=d[k];});
+  // Map data fields to form fields
+  const fieldMapping={
+   Expense_Description:'Expense_Description',
+   Expense_Category:'Expense_Category',
+   Expense_Tag:'Expense_Tag',
+   Expense_Currency:'Expense_Currency',
+   Expense_Amount_Due:'Expense_Amount_Due',
+   Expense_Amount_Paid:'Expense_Amount_Paid',
+   Expense_Mode:'Expense_Mode',
+   Expense_Holder:'Expense_Holder',
+   Expense_Paid_From:'Expense_Paid_From',
+   Expense_Due_Date:'Expense_Due_Date',
+   Expense_Paid_Date:'Expense_Paid_Date',
+   Expense_Frequency:'Expense_Frequency',
+   Expense_Account_Status:'Expense_Account_Status',
+   Expense_Txn_Status:'Expense_Txn_Status'
+  };
+  Object.entries(fieldMapping).forEach(([dataKey,formKey])=>{
+   if(form[formKey] && d[dataKey]!==undefined && d[dataKey]!==null){
+    form[formKey].value=d[dataKey];
+   }
+  });
   title.textContent="Edit Expense";
   modal.style.display='flex';
  });
