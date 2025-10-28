@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded",()=>{
    const tr=document.createElement('tr');
    tr.innerHTML=`<td>${i+1}</td><td>${r.Expense_Description||r.desc||''}</td><td>${r.Expense_Category||r.cat||''}</td><td>${r.Expense_Tag||r.tag||''}</td>
    <td>${r.Expense_Currency||r.cur||''}</td><td>${Number(r.Expense_Amount||r.amt||0).toFixed(2)}</td><td>${r.Expense_Mode||r.mode||''}</td><td>${r.Expense_Holder||r.holder||''}</td>
-   <td>${r.Expense_Due_Date||r.due||''}</td><td>${r.Expense_Paid_Date||r.paid||''}</td><td>${r.Expense_Frequency||r.freq||''}</td><td>${r.Expense_Account_Status||r.acstatus||''}</td><td>${r.Expense_Txn_Status||r.txnstatus||''}</td>
+   <td>${r.Expense_Paid_From||''}</td><td>${r.Expense_Due_Date||r.due||''}</td><td>${r.Expense_Paid_Date||r.paid||''}</td><td>${r.Expense_Frequency||r.freq||''}</td><td>${r.Expense_Account_Status||r.acstatus||''}</td><td>${r.Expense_Txn_Status||r.txnstatus||''}</td>
    <td><span class='del' title='Delete'>🗑️</span></td>`;
    tbody.appendChild(tr);
   });
@@ -92,18 +92,19 @@ document.addEventListener("DOMContentLoaded",()=>{
  form.onsubmit=e=>{
   e.preventDefault();
   const rec={
-   Expense_Description:form.desc.value,
-   Expense_Category:form.cat.value,
-   Expense_Tag:form.tag.value,
-   Expense_Currency:form.cur.value,
-   Expense_Amount:parseFloat(form.amt.value||0).toFixed(2),
-   Expense_Mode:form.mode.value,
-   Expense_Holder:form.holder.value,
-   Expense_Due_Date:form.due.value,
-   Expense_Paid_Date:form.paid.value,
-   Expense_Frequency:form.freq.value,
-   Expense_Account_Status:form.acstatus.value,
-   Expense_Txn_Status:form.txnstatus.value
+   Expense_Description:form['Expense_Description'].value,
+   Expense_Category:form['Expense_Category'].value,
+   Expense_Tag:form['Expense_Tag'].value,
+   Expense_Currency:form['Expense_Currency'].value,
+   Expense_Amount:parseFloat(form['Expense_Amount'].value||0).toFixed(2),
+   Expense_Mode:form['Expense_Mode'].value,
+   Expense_Holder:form['Expense_Holder'].value,
+   Expense_Paid_From:form['Expense_Paid_From'].value,
+   Expense_Due_Date:form['Expense_Due_Date'].value,
+   Expense_Paid_Date:form['Expense_Paid_Date'].value,
+   Expense_Frequency:form['Expense_Frequency'].value,
+   Expense_Account_Status:form['Expense_Account_Status'].value,
+   Expense_Txn_Status:form['Expense_Txn_Status'].value
   };
   const d=getData();
   if(editIndex!==null)d[editIndex]=rec;else d.push(rec);
@@ -148,9 +149,42 @@ document.addEventListener("DOMContentLoaded",()=>{
  uniq('cat').forEach(v=>fCategory.innerHTML+=`<option>${v}</option>`);
  uniq('tag').forEach(v=>fTag.innerHTML+=`<option>${v}</option>`);
  uniq('holder').forEach(v=>fHolder.innerHTML+=`<option>${v}</option>`);
- ['cat','tag','cur','mode','holder','freq'].forEach(k=>{
-  const s=form[k];if(s)uniq(k).forEach(v=>s.innerHTML+=`<option>${v}</option>`);
+ 
+ // Populate form dropdowns with standardized field names
+ const formDropdownMap={
+  'Expense_Category':['Expense_Category','cat'],
+  'Expense_Tag':['Expense_Tag','tag'],
+  'Expense_Currency':['Expense_Currency','cur','Currency'],
+  'Expense_Mode':['Expense_Mode','mode','Txn_Mode'],
+  'Expense_Holder':['Expense_Holder','holder','Ac_Holder'],
+  'Expense_Frequency':['Expense_Frequency','freq','Frequency']
+ };
+ 
+ Object.entries(formDropdownMap).forEach(([formId,fieldNames])=>{
+  const select=form[formId];
+  if(select){
+   const values=new Set();
+   all.forEach(x=>{
+    fieldNames.forEach(fn=>{
+     if(x[fn] && x[fn]!=='')values.add(x[fn]);
+    });
+   });
+   [...values].sort().forEach(v=>select.innerHTML+=`<option>${v}</option>`);
+  }
  });
+ 
+ // Populate Paid_From dropdown from Income_Ac_Tag
+ // This is a cross-reference field that links to Income module
+ const paidFromSelect=form['Expense_Paid_From'];
+ if(paidFromSelect){
+  const incomeData=JSON.parse(localStorage.getItem('income_records')||'[]');
+  const incomeTags=new Set();
+  incomeData.forEach(x=>{
+   const tag=x.Income_Ac_Tag||x['Income_Ac_Tag']||x.tag;
+   if(tag && tag!=='')incomeTags.add(tag);
+  });
+  [...incomeTags].sort().forEach(v=>paidFromSelect.innerHTML+=`<option>${v}</option>`);
+ }
 
  // Column resize with persistent storage
  let startX,startW,th;

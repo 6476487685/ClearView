@@ -68,6 +68,7 @@
             <th class="resizable">Amount</th>
             <th class="resizable">Mode</th>
             <th class="resizable">Holder</th>
+            <th class="resizable">Paid From</th>
             <th class="resizable">Due Date</th>
             <th class="resizable">Paid Date</th>
             <th class="resizable">Frequency</th>
@@ -99,12 +100,18 @@
           <div><label>Holder</label><select id="Expense_Holder"></select></div>
         </div>
 
-        <!-- Line 2: Due Date, Currency, Mode, Paid Date -->
+        <!-- Line 2: Due Date, Currency, Mode, Paid From -->
         <div class="row4">
           <div><label>Due Date</label><input type="date" id="Expense_Due_Date"></div>
           <div><label>Currency</label><select id="Expense_Currency"></select></div>
           <div><label>Mode</label><select id="Expense_Mode"></select></div>
-          <div><label>Paid Date</label><input type="date" id="Expense_Paid_Date"></div>
+          <div><label>Paid From</label><select id="Expense_Paid_From"></select></div>
+        </div>
+
+        <!-- Line 2b: Paid Date -->
+        <div class="row-full">
+          <label>Paid Date</label>
+          <input type="date" id="Expense_Paid_Date">
         </div>
 
         <!-- Line 3: Frequency, Account Status, Transaction Status -->
