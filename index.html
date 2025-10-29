@@ -180,6 +180,9 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 </header>
 
 <nav id="sidebar">
+  <a href="#" class="nav-link" data-target="load"><span class="icon">📁</span>Load Local Data</a>
+  <a href="#" class="nav-link disabled" title="Coming soon"><span class="icon">☁️</span>Load From Google Drive</a>
+  <a href="#" class="nav-link" data-target="backup"><span class="icon">💾</span>Backup & Export</a>
   <a href="Manage_Master_Data.html" class="nav-link" id="masterDataNavLink"><span class="icon">🧩</span>Manage Master Data</a>
   <a href="#" class="nav-link" data-target="tasks"><span class="icon">✅</span>Manage Tasks</a>
   <a href="#" class="nav-link" data-target="accounts"><span class="icon">🗂️</span>Manage Accounts</a>
@@ -262,6 +265,28 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 </div>
 
 
+<!-- Backup & Export Modal -->
+<div id="modal-backup" class="modal">
+  <div class="modal-content docs-modal">
+    <div class="modal-header">
+      <h4><i class="fas fa-database"></i> Backup & Export</h4>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span class="close" data-close="modal-backup"><img src="assets/icons/close-interface.png?v=1" alt="Close" style="width: 16px; height: 16px;"></span>
+      </div>
+    </div>
+    <div style="padding:20px;">
+      <div style="background:var(--primary-bg);padding:15px;border-radius:8px;border-left:4px solid var(--accent-blue);">
+        <p style="margin:0 0 8px 0;font-size:14px;color:var(--text-body);">
+          <strong>Backup Folder:</strong> <span id="backupFolderDisplay">Not set</span>
+        </p>
+        <p style="margin:0;font-size:12px;color:var(--text-secondary);">
+          Exports will save to this folder.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Placeholder Modal (used for other menu items) -->
 <div id="modal-generic" class="modal">
   <div class="modal-content">
@@ -311,7 +336,15 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     if(link.dataset.target){
       e.preventDefault();
       const t=link.dataset.target;
-      if(t==='docs'){openDocumentsModal();}
+      if(t==='load'){
+        setupDownloadsFolder();
+      }
+      else if(t==='backup'){
+        openModal('modal-backup');
+      }
+      else if(t==='docs'){
+        openDocumentsModal();
+      }
       else if(t==='expense'){
         window.location.href='2_Expanse_Index.html';
       }
@@ -328,7 +361,6 @@ document.querySelectorAll('.nav-link').forEach(link=>{
         window.location.href='5_Task.html';
       }
     }
-    // Allow normal navigation for links without data-target (like Manage_Master_Data.html)
   });
 });
 
@@ -1316,6 +1348,9 @@ function updateManageMasterDataTooltip(){
 document.addEventListener('DOMContentLoaded',()=>{
   updateProjectDocumentsTooltip();
   updateManageMasterDataTooltip();
+  // Restore legacy tooltips
+  if(typeof updateLoadLocalTooltip==='function') updateLoadLocalTooltip();
+  if(typeof updateBackupTooltip==='function') updateBackupTooltip();
 });
 
 /* ---------- Enhanced Documents ---------- */
