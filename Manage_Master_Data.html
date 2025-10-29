@@ -757,12 +757,24 @@
             let foundModule = null;
             let foundKey = null;
 
-            // First, check exact mapping
-            if (SHEET_NAME_MAP[sheetName]) {
+            // PRIORITY 1: Check if sheet name is exactly Txn_Mode or Txn_Status (common fields) - CHECK FIRST!
+            // These must be checked BEFORE checking module prefixes to avoid mis-mapping
+            if (sheetName === 'Txn_Mode') {
+              foundModule = 'common';
+              foundKey = 'Txn_Mode';
+              console.log(`✓ PRIORITY MATCH: Sheet "${sheetName}" -> common.Txn_Mode`);
+            } else if (sheetName === 'Txn_Status') {
+              foundModule = 'common';
+              foundKey = 'Txn_Status';
+              console.log(`✓ PRIORITY MATCH: Sheet "${sheetName}" -> common.Txn_Status`);
+            }
+            // PRIORITY 2: Check exact mapping dictionary
+            else if (SHEET_NAME_MAP[sheetName]) {
               foundModule = SHEET_NAME_MAP[sheetName].module;
               foundKey = SHEET_NAME_MAP[sheetName].key;
+              console.log(`✓ Matched "${sheetName}" via SHEET_NAME_MAP -> ${foundModule}.${foundKey}`);
             } else {
-              // Try to determine based on prefix rules
+              // PRIORITY 3: Try to determine based on prefix rules
               const lowerSheet = sheetName.toLowerCase();
               
               // Check for module prefixes
@@ -818,16 +830,16 @@
                 } else if (lowerSheet === 'ac_holder' || lowerSheet === 'account holder' || lowerSheet === 'ac holder') {
                   foundModule = 'common';
                   foundKey = 'Ac_Holder';
-                } else if (lowerSheet === 'txn_mode' || lowerSheet === 'transaction mode' || lowerSheet === 'txn mode' || 
-                           lowerSheet === 'txn_mode' || sheetName === 'Txn_Mode' || sheetName === 'TXN_MODE') {
+                } else if (lowerSheet === 'txn_mode' || lowerSheet === 'transaction mode' || lowerSheet === 'txn mode' ||
+                           sheetName === 'Txn_Mode' || sheetName === 'TXN_MODE' || sheetName === 'txn_mode') {
                   foundModule = 'common';
                   foundKey = 'Txn_Mode';
-                  console.log(`Matched ${sheetName} to Txn_Mode`);
+                  console.log(`✓ Matched sheet "${sheetName}" to common.Txn_Mode`);
                 } else if (lowerSheet === 'txn_status' || lowerSheet === 'transaction status' || lowerSheet === 'txn status' ||
-                           lowerSheet === 'txn_status' || sheetName === 'Txn_Status' || sheetName === 'TXN_STATUS') {
+                           sheetName === 'Txn_Status' || sheetName === 'TXN_STATUS' || sheetName === 'txn_status') {
                   foundModule = 'common';
                   foundKey = 'Txn_Status';
-                  console.log(`Matched ${sheetName} to Txn_Status`);
+                  console.log(`✓ Matched sheet "${sheetName}" to common.Txn_Status`);
                 } else if (lowerSheet === 'ac_status' || lowerSheet === 'account status' || lowerSheet === 'ac status') {
                   foundModule = 'common';
                   foundKey = 'Ac_Status';
