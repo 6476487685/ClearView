@@ -859,18 +859,22 @@
               }
             }
 
-            if (foundModule && foundKey && values.length > 0) {
+            if (foundModule && foundKey) {
               // Initialize if needed
               if (!masterData[foundModule]) masterData[foundModule] = {};
               if (!masterData[foundModule][foundKey]) masterData[foundModule][foundKey] = [];
               
-              // Merge with existing values (avoid duplicates)
-              const existing = masterData[foundModule][foundKey] || [];
-              const newValues = values.filter(v => v && v !== '' && !existing.includes(v));
-              masterData[foundModule][foundKey] = [...existing, ...newValues].sort();
-              console.log(`Loaded ${values.length} values from ${sheetName} into ${foundModule}.${foundKey} (${newValues.length} new)`);
+              if (values.length > 0) {
+                // Merge with existing values (avoid duplicates)
+                const existing = masterData[foundModule][foundKey] || [];
+                const newValues = values.filter(v => v && v !== '' && !existing.includes(v));
+                masterData[foundModule][foundKey] = [...existing, ...newValues].sort();
+                console.log(`✓ Loaded ${values.length} values from "${sheetName}" into ${foundModule}.${foundKey} (${newValues.length} new values added)`);
+              } else {
+                console.log(`⚠ Sheet "${sheetName}" matched to ${foundModule}.${foundKey} but contains no values`);
+              }
             } else {
-              console.log(`Skipping sheet ${sheetName} - not a master data field or no values`);
+              console.log(`✗ Skipping sheet "${sheetName}" - not a master data field`);
             }
           });
 
