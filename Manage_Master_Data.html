@@ -339,7 +339,7 @@
     <div class="title">Manage Master Data</div>
     <div class="right">
       <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
-      <button class="excel" onclick="document.getElementById('excelFileInput').click()" title="Upload Excel File">📥 Load from D:</button>
+      <button class="excel" id="btnLoadFromD" title="Upload Excel File">📥 Load from D:</button>
       <button class="excel" onclick="alert('Google Drive integration is currently unavailable.')" title="Upload Excel File, Currently Unavailable" style="opacity: 0.6; cursor: not-allowed;">☁️ Load from Google Drive</button>
       <button class="danger" id="btnClearData" style="background:#ea4335;color:white;" title="It deletes all Master Data">🗑️ Clear All Data</button>
     </div>
@@ -424,6 +424,21 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
+    // Ensure the Load from D: button opens the hidden file input
+    (function(){
+      const btn=document.getElementById('btnLoadFromD');
+      const input=document.getElementById('excelFileInput');
+      if(btn && input){
+        btn.addEventListener('click',()=>{
+          try{
+            input.click();
+          }catch(err){
+            console.error('File input click failed:', err);
+            alert('Unable to open file picker. Please try again.');
+          }
+        });
+      }
+    })();
     // Master data structure - only fields specified by user
     // Sheets with prefix Income_, Investment_, Expense_, Task_ belong to those modules
     // Sheets without these prefixes are common fields (Currency, Frequency, Ac_Holder, Txn_Mode, Txn_Status, Ac_Status)
