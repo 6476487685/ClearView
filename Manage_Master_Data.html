@@ -334,52 +334,87 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
-    // Master data structure definition
+    // Master data structure - only fields that exist in Excel sheets
+    // Sheets with prefix Income_, Investment_, Expense_, Task_ belong to those modules
+    // Sheets without these prefixes are common fields (Currency, Frequency, Ac_Holder, Txn_Mode, Txn_Status, Ac_Status)
+    // Sheets with prefix Txn_ are transactional data (not master data)
     const MASTER_DATA_STRUCTURE = {
       income: {
-        Income_Category: 'Income Category',
-        Income_Ac_Tag: 'Income Account Tag',
-        Income_Tag: 'Income Tag',
-        Income_Mode: 'Income Mode',
-        Income_Holder: 'Income Holder',
-        Income_Account_Status: 'Income Account Status',
-        Income_Txn_Status: 'Income Transaction Status'
+        'Income_Category': 'Income Category',
+        'Income_Ac_Tag': 'Income Account Tag'
       },
       expense: {
-        Expanse_Category: 'Expense Category',
-        Expense_Category: 'Expense Category',
-        Expanse_Ac_Tag: 'Expense Account Tag',
-        Expense_Tag: 'Expense Tag',
-        Txn_Mode: 'Transaction Mode',
-        Expense_Mode: 'Expense Mode',
-        Ac_Holder: 'Account Holder',
-        Expense_Holder: 'Expense Holder',
-        Ac_Status: 'Account Status',
-        Expense_Account_Status: 'Expense Account Status',
-        Txn_Status: 'Transaction Status',
-        Expense_Txn_Status: 'Expense Transaction Status'
+        'Expanse_Category': 'Expense Category',
+        'Expanse_Ac_Tag': 'Expense Account Tag'
       },
       investment: {
-        Investment_Category: 'Investment Category',
-        Investment_Ac_Tag: 'Investment Account Tag',
-        Investment_Tag: 'Investment Tag',
-        Investment_Mode: 'Investment Mode',
-        Investment_Holder: 'Investment Holder',
-        Investment_Account_Status: 'Investment Account Status',
-        Investment_Txn_Status: 'Investment Transaction Status'
+        'Investment_Category': 'Investment Category',
+        'Investment_Ac_Tag': 'Investment Account Tag'
       },
       task: {
-        Task_Category: 'Task Category',
-        Task_Tag: 'Task Tag',
-        Task_Status: 'Task Status',
-        Task_Assignee: 'Task Assignee',
-        Task_Priority: 'Task Priority',
-        Task_Adhoc: 'Task Adhoc'
+        'Task_Category': 'Task Category',
+        'Task_Tag': 'Task Tag',
+        'Task_Status': 'Task Status',
+        'Task_Assignee': 'Task Assignee',
+        'Task_Priority': 'Task Priority',
+        'Task_Adhoc': 'Task Adhoc'
       },
       common: {
-        Currency: 'Currency',
-        Frequency: 'Frequency'
+        'Currency': 'Currency',
+        'Frequency': 'Frequency',
+        'Ac_Holder': 'Account Holder',
+        'Txn_Mode': 'Transaction Mode',
+        'Txn_Status': 'Transaction Status',
+        'Ac_Status': 'Account Status'
       }
+    };
+
+    // Mapping: Excel sheet name variations to unified field keys
+    const SHEET_NAME_MAP = {
+      // Expense variations → expense fields
+      'Expanse_Category': { module: 'expense', key: 'Expanse_Category' },
+      'Expense_Category': { module: 'expense', key: 'Expanse_Category' }, // Map to Expanse_Category
+      'Expanse_Ac_Tag': { module: 'expense', key: 'Expanse_Ac_Tag' },
+      'Expense_Tag': { module: 'expense', key: 'Expanse_Ac_Tag' }, // Map to Expanse_Ac_Tag
+      'Expense_Ac_Tag': { module: 'expense', key: 'Expanse_Ac_Tag' },
+      
+      // Income variations → income fields
+      'Income_Category': { module: 'income', key: 'Income_Category' },
+      'Income_Ac_Tag': { module: 'income', key: 'Income_Ac_Tag' },
+      'Income_Tag': { module: 'income', key: 'Income_Ac_Tag' }, // Map to Income_Ac_Tag
+      
+      // Investment variations → investment fields
+      'Investment_Category': { module: 'investment', key: 'Investment_Category' },
+      'Investment_Ac_Tag': { module: 'investment', key: 'Investment_Ac_Tag' },
+      'Investment_Tag': { module: 'investment', key: 'Investment_Ac_Tag' }, // Map to Investment_Ac_Tag
+      
+      // Task fields
+      'Task_Category': { module: 'task', key: 'Task_Category' },
+      'Task_Tag': { module: 'task', key: 'Task_Tag' },
+      'Task_Status': { module: 'task', key: 'Task_Status' },
+      'Task_Assignee': { module: 'task', key: 'Task_Assignee' },
+      'Task_Priority': { module: 'task', key: 'Task_Priority' },
+      'Task_Adhoc': { module: 'task', key: 'Task_Adhoc' },
+      
+      // Common fields (no prefix)
+      'Currency': { module: 'common', key: 'Currency' },
+      'Frequency': { module: 'common', key: 'Frequency' },
+      'Ac_Holder': { module: 'common', key: 'Ac_Holder' },
+      'Expense_Holder': { module: 'common', key: 'Ac_Holder' }, // Map variations to Ac_Holder
+      'Income_Holder': { module: 'common', key: 'Ac_Holder' },
+      'Investment_Holder': { module: 'common', key: 'Ac_Holder' },
+      'Txn_Mode': { module: 'common', key: 'Txn_Mode' },
+      'Expense_Mode': { module: 'common', key: 'Txn_Mode' }, // Map variations to Txn_Mode
+      'Income_Mode': { module: 'common', key: 'Txn_Mode' },
+      'Investment_Mode': { module: 'common', key: 'Txn_Mode' },
+      'Txn_Status': { module: 'common', key: 'Txn_Status' },
+      'Expense_Txn_Status': { module: 'common', key: 'Txn_Status' }, // Map variations to Txn_Status
+      'Income_Txn_Status': { module: 'common', key: 'Txn_Status' },
+      'Investment_Txn_Status': { module: 'common', key: 'Txn_Status' },
+      'Ac_Status': { module: 'common', key: 'Ac_Status' },
+      'Expense_Account_Status': { module: 'common', key: 'Ac_Status' }, // Map variations to Ac_Status
+      'Income_Account_Status': { module: 'common', key: 'Ac_Status' },
+      'Investment_Account_Status': { module: 'common', key: 'Ac_Status' }
     };
 
     // Unified master data container
@@ -453,7 +488,13 @@
       container.innerHTML = '';
 
       const fields = MASTER_DATA_STRUCTURE[module];
-      const fieldKeys = Object.keys(fields);
+      let fieldKeys = Object.keys(fields);
+      
+      // For module tabs (not common), also include common fields
+      if (module !== 'common') {
+        const commonFields = MASTER_DATA_STRUCTURE.common;
+        fieldKeys = [...fieldKeys, ...Object.keys(commonFields)];
+      }
       
       // Split fields into two columns
       const midPoint = Math.ceil(fieldKeys.length / 2);
@@ -463,26 +504,49 @@
       // Create left column
       const leftCol = document.createElement('div');
       leftFields.forEach(fieldKey => {
-        leftCol.appendChild(createFieldCard(module, fieldKey, fields[fieldKey]));
+        // Determine if this is a common field being shown in a module tab
+        const isCommonField = module !== 'common' && MASTER_DATA_STRUCTURE.common[fieldKey];
+        let displayLabel;
+        if (isCommonField) {
+          displayLabel = MASTER_DATA_STRUCTURE.common[fieldKey] + ' ↔';
+        } else {
+          displayLabel = fields[fieldKey];
+        }
+        leftCol.appendChild(createFieldCard(module, fieldKey, displayLabel, isCommonField));
       });
       container.appendChild(leftCol);
 
       // Create right column
       const rightCol = document.createElement('div');
       rightFields.forEach(fieldKey => {
-        rightCol.appendChild(createFieldCard(module, fieldKey, fields[fieldKey]));
+        // Determine if this is a common field being shown in a module tab
+        const isCommonField = module !== 'common' && MASTER_DATA_STRUCTURE.common[fieldKey];
+        let displayLabel;
+        if (isCommonField) {
+          displayLabel = MASTER_DATA_STRUCTURE.common[fieldKey] + ' ↔';
+        } else {
+          displayLabel = fields[fieldKey];
+        }
+        rightCol.appendChild(createFieldCard(module, fieldKey, displayLabel, isCommonField));
       });
       container.appendChild(rightCol);
     }
 
     // Create a field card
-    function createFieldCard(module, fieldKey, fieldLabel) {
+    function createFieldCard(module, fieldKey, fieldLabel, isCommonField = false) {
       const card = document.createElement('div');
       card.className = 'field-card';
 
       const header = document.createElement('div');
       header.className = 'field-header';
-      const values = masterData[module][fieldKey] || [];
+      // Get values - if this is a common field being accessed from a module tab
+      let values = [];
+      if (isCommonField || (module !== 'common' && MASTER_DATA_STRUCTURE.common[fieldKey])) {
+        // Access common field
+        values = masterData.common && masterData.common[fieldKey] ? masterData.common[fieldKey] : [];
+      } else {
+        values = masterData[module] && masterData[module][fieldKey] ? masterData[module][fieldKey] : [];
+      }
       header.innerHTML = `
         <span class="field-name">${fieldLabel}</span>
         <span class="field-count">(${values.length} entries)</span>
@@ -495,14 +559,21 @@
       if (values.length === 0) {
         valuesContainer.innerHTML = '<div class="empty-field">No entries yet</div>';
       } else {
-        values.forEach((value, index) => {
+          values.forEach((value, index) => {
           const row = document.createElement('div');
           row.className = 'value-row';
+          // Determine save module/key for common fields viewed from module tabs
+          let saveModule = module;
+          let saveKey = fieldKey;
+          if (isCommonField || (module !== 'common' && MASTER_DATA_STRUCTURE.common[fieldKey])) {
+            saveModule = 'common';
+            saveKey = fieldKey;
+          }
           row.innerHTML = `
             <span class="value-text">${escapeHtml(value)}</span>
             <div class="value-actions">
-              <button class="btn-icon btn-edit" onclick="editValue('${module}', '${fieldKey}', ${index})">Edit</button>
-              <button class="btn-icon btn-delete" onclick="deleteValue('${module}', '${fieldKey}', ${index})">Delete</button>
+              <button class="btn-icon btn-edit" onclick="editValue('${saveModule}', '${saveKey}', ${index}, '${module}')">Edit</button>
+              <button class="btn-icon btn-delete" onclick="deleteValue('${saveModule}', '${saveKey}', ${index}, '${module}')">Delete</button>
             </div>
           `;
           valuesContainer.appendChild(row);
@@ -512,9 +583,16 @@
 
       const addForm = document.createElement('div');
       addForm.className = 'add-form';
+      // Determine which module to save to for common fields
+      let saveModule = module;
+      let saveKey = fieldKey;
+      if (isCommonField || (module !== 'common' && MASTER_DATA_STRUCTURE.common[fieldKey])) {
+        saveModule = 'common';
+        saveKey = fieldKey;
+      }
       addForm.innerHTML = `
-        <input type="text" class="add-input" id="add_${module}_${fieldKey}" placeholder="Add new ${fieldLabel.toLowerCase()}" onkeypress="if(event.key==='Enter') addValue('${module}', '${fieldKey}')">
-        <button class="btn-add" onclick="addValue('${module}', '${fieldKey}')">Add</button>
+        <input type="text" class="add-input" id="add_${module}_${fieldKey}" placeholder="Add new ${fieldLabel.toLowerCase()}" onkeypress="if(event.key==='Enter') addValue('${saveModule}', '${saveKey}', '${module}', '${fieldKey}')">
+        <button class="btn-add" onclick="addValue('${saveModule}', '${saveKey}', '${module}', '${fieldKey}')">Add</button>
       `;
       card.appendChild(addForm);
 
@@ -522,31 +600,43 @@
     }
 
     // Add value
-    function addValue(module, fieldKey) {
-      const input = document.getElementById(`add_${module}_${fieldKey}`);
+    function addValue(saveModule, saveKey, displayModule, displayKey) {
+      // displayModule and displayKey are for the input element ID when viewing common fields from module tabs
+      const inputId = displayModule ? `add_${displayModule}_${displayKey}` : `add_${saveModule}_${saveKey}`;
+      const input = document.getElementById(inputId);
       const value = input.value.trim();
       if (!value) {
         alert('Please enter a value');
         return;
       }
-      if (!masterData[module][fieldKey]) masterData[module][fieldKey] = [];
-      if (masterData[module][fieldKey].includes(value)) {
+      if (!masterData[saveModule]) masterData[saveModule] = {};
+      if (!masterData[saveModule][saveKey]) masterData[saveModule][saveKey] = [];
+      if (masterData[saveModule][saveKey].includes(value)) {
         alert('This value already exists');
         return;
       }
-      masterData[module][fieldKey].push(value);
-      masterData[module][fieldKey].sort();
+      masterData[saveModule][saveKey].push(value);
+      masterData[saveModule][saveKey].sort();
       saveMasterData();
-      renderTab(module);
+      // Re-render the currently displayed tab
+      const currentTab = document.querySelector('.tab.active').getAttribute('data-tab');
+      renderTab(currentTab);
       input.value = '';
     }
 
     // Edit value
-    function editValue(module, fieldKey, index) {
-      currentEdit = { module, fieldKey, index };
+    function editValue(module, fieldKey, index, displayModule) {
+      currentEdit = { module, fieldKey, index, displayModule: displayModule || module };
       const value = masterData[module][fieldKey][index];
       document.getElementById('editInput').value = value;
-      document.getElementById('modalTitle').textContent = `Edit ${MASTER_DATA_STRUCTURE[module][fieldKey]}`;
+      // Get the display label
+      let displayLabel = '';
+      if (module === 'common') {
+        displayLabel = MASTER_DATA_STRUCTURE.common[fieldKey] || fieldKey;
+      } else {
+        displayLabel = MASTER_DATA_STRUCTURE[module][fieldKey] || fieldKey;
+      }
+      document.getElementById('modalTitle').textContent = `Edit ${displayLabel}`;
       document.getElementById('editModal').classList.add('show');
     }
 
@@ -559,7 +649,7 @@
         alert('Please enter a value');
         return;
       }
-      const { module, fieldKey, index } = currentEdit;
+      const { module, fieldKey, index, displayModule } = currentEdit;
       if (masterData[module][fieldKey].includes(newValue) && masterData[module][fieldKey][index] !== newValue) {
         alert('This value already exists');
         return;
@@ -568,15 +658,19 @@
       masterData[module][fieldKey].sort();
       saveMasterData();
       closeEditModal();
-      renderTab(module);
+      // Re-render the currently displayed tab
+      const currentTab = document.querySelector('.tab.active').getAttribute('data-tab');
+      renderTab(currentTab);
     }
 
     // Delete value
-    function deleteValue(module, fieldKey, index) {
+    function deleteValue(module, fieldKey, index, displayModule) {
       if (!confirm('Are you sure you want to delete this value?')) return;
       masterData[module][fieldKey].splice(index, 1);
       saveMasterData();
-      renderTab(module);
+      // Re-render the currently displayed tab
+      const currentTab = document.querySelector('.tab.active').getAttribute('data-tab');
+      renderTab(currentTab);
     }
 
     // Close edit modal
@@ -635,53 +729,100 @@
               values = jsonData.map(row => row[firstCol]).filter(v => v !== undefined && v !== null && v !== '');
             }
 
-            // Find which module this sheet belongs to
+            // Determine which module and field this sheet belongs to
             let foundModule = null;
             let foundKey = null;
 
-            for (const [module, fields] of Object.entries(MASTER_DATA_STRUCTURE)) {
-              for (const [key, label] of Object.entries(fields)) {
-                if (key === sheetName || sheetName.includes(key) || key.includes(sheetName)) {
-                  foundModule = module;
-                  foundKey = key;
-                  break;
-                }
-              }
-              if (foundModule) break;
-            }
-
-            // If not found, try partial matching for common names
-            if (!foundModule) {
+            // First, check exact mapping
+            if (SHEET_NAME_MAP[sheetName]) {
+              foundModule = SHEET_NAME_MAP[sheetName].module;
+              foundKey = SHEET_NAME_MAP[sheetName].key;
+            } else {
+              // Try to determine based on prefix rules
               const lowerSheet = sheetName.toLowerCase();
-              if (lowerSheet.includes('currency') || lowerSheet === 'currency') {
-                foundModule = 'common';
-                foundKey = 'Currency';
-              } else if (lowerSheet.includes('frequency') || lowerSheet === 'frequency') {
-                foundModule = 'common';
-                foundKey = 'Frequency';
-              } else if (lowerSheet.includes('task')) {
+              
+              // Check for module prefixes
+              if (sheetName.startsWith('Task_')) {
                 foundModule = 'task';
                 foundKey = sheetName;
-              } else if (lowerSheet.includes('expense') || lowerSheet.includes('expanse')) {
-                foundModule = 'expense';
-                foundKey = sheetName;
-              } else if (lowerSheet.includes('income')) {
+                // Check if it's in our structure
+                if (!MASTER_DATA_STRUCTURE.task[sheetName]) {
+                  foundModule = null;
+                  foundKey = null;
+                }
+              } else if (sheetName.startsWith('Income_')) {
                 foundModule = 'income';
                 foundKey = sheetName;
-              } else if (lowerSheet.includes('investment')) {
+                // Check if it's in our structure
+                if (!MASTER_DATA_STRUCTURE.income[sheetName]) {
+                  foundModule = null;
+                  foundKey = null;
+                }
+              } else if (sheetName.startsWith('Investment_')) {
                 foundModule = 'investment';
                 foundKey = sheetName;
+                // Check if it's in our structure
+                if (!MASTER_DATA_STRUCTURE.investment[sheetName]) {
+                  foundModule = null;
+                  foundKey = null;
+                }
+              } else if (sheetName.startsWith('Expense_') || sheetName.startsWith('Expanse_')) {
+                foundModule = 'expense';
+                // Map variations to unified keys
+                if (sheetName === 'Expense_Category') {
+                  foundKey = 'Expanse_Category';
+                } else if (sheetName === 'Expanse_Category') {
+                  foundKey = 'Expanse_Category';
+                } else if (sheetName === 'Expense_Tag' || sheetName === 'Expense_Ac_Tag') {
+                  foundKey = 'Expanse_Ac_Tag';
+                } else if (sheetName === 'Expanse_Ac_Tag') {
+                  foundKey = 'Expanse_Ac_Tag';
+                } else {
+                  // Not a valid expense master field - might be a variation that should map to common
+                  foundModule = null;
+                  foundKey = null;
+                }
+              } else {
+                // No prefix = common field
+                // Check if it matches common field names
+                if (lowerSheet === 'currency') {
+                  foundModule = 'common';
+                  foundKey = 'Currency';
+                } else if (lowerSheet === 'frequency') {
+                  foundModule = 'common';
+                  foundKey = 'Frequency';
+                } else if (lowerSheet === 'ac_holder' || lowerSheet === 'account holder') {
+                  foundModule = 'common';
+                  foundKey = 'Ac_Holder';
+                } else if (lowerSheet === 'txn_mode' || lowerSheet === 'transaction mode') {
+                  foundModule = 'common';
+                  foundKey = 'Txn_Mode';
+                } else if (lowerSheet === 'txn_status' || lowerSheet === 'transaction status') {
+                  foundModule = 'common';
+                  foundKey = 'Txn_Status';
+                } else if (lowerSheet === 'ac_status' || lowerSheet === 'account status') {
+                  foundModule = 'common';
+                  foundKey = 'Ac_Status';
+                } else if (SHEET_NAME_MAP[sheetName]) {
+                  // Check variations mapping
+                  foundModule = SHEET_NAME_MAP[sheetName].module;
+                  foundKey = SHEET_NAME_MAP[sheetName].key;
+                }
               }
             }
 
-            if (foundModule && values.length > 0) {
+            if (foundModule && foundKey && values.length > 0) {
+              // Initialize if needed
+              if (!masterData[foundModule]) masterData[foundModule] = {};
+              if (!masterData[foundModule][foundKey]) masterData[foundModule][foundKey] = [];
+              
               // Merge with existing values (avoid duplicates)
               const existing = masterData[foundModule][foundKey] || [];
-              const newValues = values.filter(v => !existing.includes(v));
+              const newValues = values.filter(v => v && v !== '' && !existing.includes(v));
               masterData[foundModule][foundKey] = [...existing, ...newValues].sort();
-              console.log(`Loaded ${values.length} values from ${sheetName} into ${foundModule}.${foundKey}`);
+              console.log(`Loaded ${values.length} values from ${sheetName} into ${foundModule}.${foundKey} (${newValues.length} new)`);
             } else {
-              console.log(`Could not match sheet ${sheetName} to any master data field`);
+              console.log(`Skipping sheet ${sheetName} - not a master data field or no values`);
             }
           });
 
