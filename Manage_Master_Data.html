@@ -361,8 +361,8 @@
       },
       common: {
         'Currency': 'Currency',
-        'Txn_Mode': 'Transaction Mode',
-        'Txn_Status': 'Transaction Status',
+        'Mode_Txn': 'Transaction Mode',
+        'Status_Txn': 'Transaction Status',
         'Ac_Holder': 'Account Holder',
         'Frequency': 'Frequency',
         'Ac_Status': 'Account Status'
@@ -403,14 +403,16 @@
       'Expense_Holder': { module: 'common', key: 'Ac_Holder' }, // Map variations to Ac_Holder
       'Income_Holder': { module: 'common', key: 'Ac_Holder' },
       'Investment_Holder': { module: 'common', key: 'Ac_Holder' },
-      'Txn_Mode': { module: 'common', key: 'Txn_Mode' },
-      'Expense_Mode': { module: 'common', key: 'Txn_Mode' }, // Map variations to Txn_Mode
-      'Income_Mode': { module: 'common', key: 'Txn_Mode' },
-      'Investment_Mode': { module: 'common', key: 'Txn_Mode' },
-      'Txn_Status': { module: 'common', key: 'Txn_Status' },
-      'Expense_Txn_Status': { module: 'common', key: 'Txn_Status' }, // Map variations to Txn_Status
-      'Income_Txn_Status': { module: 'common', key: 'Txn_Status' },
-      'Investment_Txn_Status': { module: 'common', key: 'Txn_Status' },
+      'Mode_Txn': { module: 'common', key: 'Mode_Txn' },
+      'Txn_Mode': { module: 'common', key: 'Mode_Txn' }, // Map old name to new
+      'Expense_Mode': { module: 'common', key: 'Mode_Txn' }, // Map variations to Mode_Txn
+      'Income_Mode': { module: 'common', key: 'Mode_Txn' },
+      'Investment_Mode': { module: 'common', key: 'Mode_Txn' },
+      'Status_Txn': { module: 'common', key: 'Status_Txn' },
+      'Txn_Status': { module: 'common', key: 'Status_Txn' }, // Map old name to new
+      'Expense_Txn_Status': { module: 'common', key: 'Status_Txn' }, // Map variations to Status_Txn
+      'Income_Txn_Status': { module: 'common', key: 'Status_Txn' },
+      'Investment_Txn_Status': { module: 'common', key: 'Status_Txn' },
       'Ac_Status': { module: 'common', key: 'Ac_Status' },
       'Expense_Account_Status': { module: 'common', key: 'Ac_Status' }, // Map variations to Ac_Status
       'Income_Account_Status': { module: 'common', key: 'Ac_Status' },
@@ -523,11 +525,11 @@
       const header = document.createElement('div');
       header.className = 'field-header';
       // Get values - if this is a common field being accessed from a module tab
-      // Task module does NOT show Txn_Status and Txn_Mode
+      // Task module does NOT show Status_Txn and Mode_Txn
       let values = [];
       if (isCommonField) {
-        // Access common field (but exclude Txn_Status and Txn_Mode from task module)
-        if (module === 'task' && (fieldKey === 'Txn_Status' || fieldKey === 'Txn_Mode')) {
+        // Access common field (but exclude Status_Txn and Mode_Txn from task module)
+        if (module === 'task' && (fieldKey === 'Status_Txn' || fieldKey === 'Mode_Txn')) {
           values = [];
         } else {
           values = masterData.common && masterData.common[fieldKey] ? masterData.common[fieldKey] : [];
@@ -693,12 +695,15 @@
           // Initialize master data
           initializeMasterData();
 
-          // Extract all master data sheets (exclude Txn_* sheets)
+          // Extract all master data sheets (exclude Txn_* transactional sheets, but include Mode_Txn and Status_Txn)
+          const processedSheets = [];
           sheetNames.forEach(sheetName => {
-            if (sheetName.startsWith('Txn_')) {
-              console.log('Skipping transactional sheet:', sheetName);
+            // Skip transactional data sheets (Txn_Expense, Txn_Income, Txn_Investment, Txn_Task)
+            if (sheetName.startsWith('Txn_') && !sheetName.includes('Mode') && !sheetName.includes('Status')) {
+              console.log('✗ Skipping transactional sheet:', sheetName);
               return;
             }
+            processedSheets.push(sheetName);
 
             const sheet = workbook.Sheets[sheetName];
             const jsonData = XLSX.utils.sheet_to_json(sheet);
@@ -724,14 +729,14 @@
                 columnName = matchingKey;
               } else {
                 // For common fields, also try common variations
-                if (sheetName === 'Txn_Mode' || sheetName.toLowerCase() === 'txn_mode') {
+                if (sheetName === 'Mode_Txn' || sheetName === 'Txn_Mode' || sheetName.toLowerCase() === 'mode_txn' || sheetName.toLowerCase() === 'txn_mode') {
                   const modeVariations = columnKeys.find(key => 
-                    key.toLowerCase().includes('mode') || key.toLowerCase().includes('txn_mode')
+                    key.toLowerCase().includes('mode') || key.toLowerCase().includes('txn_mode') || key.toLowerCase().includes('mode_txn')
                   );
                   if (modeVariations) columnName = modeVariations;
-                } else if (sheetName === 'Txn_Status' || sheetName.toLowerCase() === 'txn_status') {
+                } else if (sheetName === 'Status_Txn' || sheetName === 'Txn_Status' || sheetName.toLowerCase() === 'status_txn' || sheetName.toLowerCase() === 'txn_status') {
                   const statusVariations = columnKeys.find(key => 
-                    key.toLowerCase().includes('status') || key.toLowerCase().includes('txn_status')
+                    key.toLowerCase().includes('status') || key.toLowerCase().includes('txn_status') || key.toLowerCase().includes('status_txn')
                   );
                   if (statusVariations) columnName = statusVariations;
                 } else {
@@ -757,16 +762,16 @@
             let foundModule = null;
             let foundKey = null;
 
-            // PRIORITY 1: Check if sheet name is exactly Txn_Mode or Txn_Status (common fields) - CHECK FIRST!
+            // PRIORITY 1: Check if sheet name is exactly Mode_Txn or Status_Txn (common fields) - CHECK FIRST!
             // These must be checked BEFORE checking module prefixes to avoid mis-mapping
-            if (sheetName === 'Txn_Mode') {
+            if (sheetName === 'Mode_Txn' || sheetName === 'Txn_Mode') {
               foundModule = 'common';
-              foundKey = 'Txn_Mode';
-              console.log(`✓ PRIORITY MATCH: Sheet "${sheetName}" -> common.Txn_Mode`);
-            } else if (sheetName === 'Txn_Status') {
+              foundKey = 'Mode_Txn';
+              console.log(`✓ PRIORITY MATCH: Sheet "${sheetName}" -> common.Mode_Txn`);
+            } else if (sheetName === 'Status_Txn' || sheetName === 'Txn_Status') {
               foundModule = 'common';
-              foundKey = 'Txn_Status';
-              console.log(`✓ PRIORITY MATCH: Sheet "${sheetName}" -> common.Txn_Status`);
+              foundKey = 'Status_Txn';
+              console.log(`✓ PRIORITY MATCH: Sheet "${sheetName}" -> common.Status_Txn`);
             }
             // PRIORITY 2: Check exact mapping dictionary
             else if (SHEET_NAME_MAP[sheetName]) {
@@ -830,16 +835,16 @@
                 } else if (lowerSheet === 'ac_holder' || lowerSheet === 'account holder' || lowerSheet === 'ac holder') {
                   foundModule = 'common';
                   foundKey = 'Ac_Holder';
-                } else if (lowerSheet === 'txn_mode' || lowerSheet === 'transaction mode' || lowerSheet === 'txn mode' ||
-                           sheetName === 'Txn_Mode' || sheetName === 'TXN_MODE' || sheetName === 'txn_mode') {
+                } else if (lowerSheet === 'mode_txn' || lowerSheet === 'txn_mode' || lowerSheet === 'transaction mode' || lowerSheet === 'txn mode' ||
+                           sheetName === 'Mode_Txn' || sheetName === 'Txn_Mode' || sheetName === 'MODE_TXN' || sheetName === 'TXN_MODE' || sheetName === 'txn_mode') {
                   foundModule = 'common';
-                  foundKey = 'Txn_Mode';
-                  console.log(`✓ Matched sheet "${sheetName}" to common.Txn_Mode`);
-                } else if (lowerSheet === 'txn_status' || lowerSheet === 'transaction status' || lowerSheet === 'txn status' ||
-                           sheetName === 'Txn_Status' || sheetName === 'TXN_STATUS' || sheetName === 'txn_status') {
+                  foundKey = 'Mode_Txn';
+                  console.log(`✓ Matched sheet "${sheetName}" to common.Mode_Txn`);
+                } else if (lowerSheet === 'status_txn' || lowerSheet === 'txn_status' || lowerSheet === 'transaction status' || lowerSheet === 'txn status' ||
+                           sheetName === 'Status_Txn' || sheetName === 'Txn_Status' || sheetName === 'STATUS_TXN' || sheetName === 'TXN_STATUS' || sheetName === 'txn_status') {
                   foundModule = 'common';
-                  foundKey = 'Txn_Status';
-                  console.log(`✓ Matched sheet "${sheetName}" to common.Txn_Status`);
+                  foundKey = 'Status_Txn';
+                  console.log(`✓ Matched sheet "${sheetName}" to common.Status_Txn`);
                 } else if (lowerSheet === 'ac_status' || lowerSheet === 'account status' || lowerSheet === 'ac status') {
                   foundModule = 'common';
                   foundKey = 'Ac_Status';
@@ -849,17 +854,17 @@
                   foundKey = SHEET_NAME_MAP[sheetName].key;
                 } else {
                   // Try exact case match for common fields
-                  if (sheetName === 'Currency' || sheetName === 'FREQUENCY' || sheetName === 'Frequency' ||
+                    if (sheetName === 'Currency' || sheetName === 'FREQUENCY' || sheetName === 'Frequency' ||
                       sheetName === 'Ac_Holder' || sheetName === 'Ac_HOLDER' ||
-                      sheetName === 'Txn_Mode' || sheetName === 'TXN_MODE' || sheetName === 'Txn_MODE' ||
-                      sheetName === 'Txn_Status' || sheetName === 'TXN_STATUS' || sheetName === 'Txn_STATUS' ||
+                      sheetName === 'Mode_Txn' || sheetName === 'Txn_Mode' || sheetName === 'MODE_TXN' || sheetName === 'TXN_MODE' || sheetName === 'Txn_MODE' ||
+                      sheetName === 'Status_Txn' || sheetName === 'Txn_Status' || sheetName === 'STATUS_TXN' || sheetName === 'TXN_STATUS' || sheetName === 'Txn_STATUS' ||
                       sheetName === 'Ac_Status' || sheetName === 'AC_STATUS') {
                     foundModule = 'common';
                     // Normalize to standard case
-                    if (sheetName.toUpperCase() === 'TXN_MODE' || sheetName === 'Txn_MODE') {
-                      foundKey = 'Txn_Mode';
-                    } else if (sheetName.toUpperCase() === 'TXN_STATUS' || sheetName === 'Txn_STATUS') {
-                      foundKey = 'Txn_Status';
+                    if (sheetName === 'Mode_Txn' || sheetName.toUpperCase() === 'MODE_TXN' || sheetName === 'Txn_Mode' || sheetName.toUpperCase() === 'TXN_MODE' || sheetName === 'Txn_MODE') {
+                      foundKey = 'Mode_Txn';
+                    } else if (sheetName === 'Status_Txn' || sheetName.toUpperCase() === 'STATUS_TXN' || sheetName === 'Txn_Status' || sheetName.toUpperCase() === 'TXN_STATUS' || sheetName === 'Txn_STATUS') {
+                      foundKey = 'Status_Txn';
                     } else if (sheetName.toUpperCase() === 'FREQUENCY' || sheetName === 'Frequency') {
                       foundKey = 'Frequency';
                     } else if (sheetName.toUpperCase() === 'AC_STATUS' || sheetName === 'Ac_STATUS') {
@@ -897,7 +902,11 @@
           saveMasterData();
           const currentTab = document.querySelector('.tab.active').getAttribute('data-tab');
           renderTab(currentTab);
-          alert(`Successfully imported master data from Excel file!\n\nTotal sheets processed: ${sheetNames.filter(s => !s.startsWith('Txn_')).length}`);
+          
+          const totalSheets = sheetNames.length;
+          const transactionalSheets = sheetNames.filter(s => s.startsWith('Txn_') && s !== 'Txn_Mode' && s !== 'Txn_Status' && !s.includes('Mode') && !s.includes('Status')).length;
+          const masterDataSheets = processedSheets.length;
+          alert(`Successfully imported master data from Excel file!\n\nTotal sheets in file: ${totalSheets}\nTransactional sheets skipped: ${transactionalSheets}\nMaster data sheets processed: ${masterDataSheets}`);
         } catch (error) {
           console.error('Error reading Excel file:', error);
           alert('Error reading Excel file: ' + error.message);

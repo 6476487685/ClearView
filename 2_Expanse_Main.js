@@ -213,11 +213,11 @@ document.addEventListener("DOMContentLoaded",()=>{
     'Expense_Category':['Expanse_Category','Expense_Category'],
     'Expense_Tag':['Expanse_Ac_Tag','Expense_Tag'],
     'Expense_Currency':['Currency','Expense_Currency'], // Also checks common.Currency
-    'Expense_Mode':['Txn_Mode','Expense_Mode'],
-    'Expense_Holder':['Ac_Holder','Expense_Holder'],
-    'Expense_Frequency':['Frequency','Expense_Frequency'], // Also checks common.Frequency
-    'Expense_Account_Status':['Ac_Status','Expense_Account_Status'],
-    'Expense_Txn_Status':['Txn_Status','Expense_Txn_Status']
+   'Expense_Mode':['Mode_Txn','Txn_Mode','Expense_Mode'],
+   'Expense_Holder':['Ac_Holder','Expense_Holder'],
+   'Expense_Frequency':['Frequency','Expense_Frequency'], // Also checks common.Frequency
+   'Expense_Account_Status':['Ac_Status','Expense_Account_Status'],
+   'Expense_Txn_Status':['Status_Txn','Txn_Status','Expense_Txn_Status']
    };
    
    // Populate each dropdown
@@ -248,11 +248,11 @@ document.addEventListener("DOMContentLoaded",()=>{
       'Expense_Category':['Expense_Category','cat'],
       'Expense_Tag':['Expense_Tag','tag'],
       'Expense_Currency':['Expense_Currency','cur','Currency'],
-      'Expense_Mode':['Expense_Mode','mode','Txn_Mode'],
+      'Expense_Mode':['Expense_Mode','mode','Mode_Txn','Txn_Mode'],
       'Expense_Holder':['Expense_Holder','holder','Ac_Holder'],
       'Expense_Frequency':['Expense_Frequency','freq','Frequency'],
       'Expense_Account_Status':['Expense_Account_Status','acstatus'],
-      'Expense_Txn_Status':['Expense_Txn_Status','txnstatus']
+      'Expense_Txn_Status':['Expense_Txn_Status','txnstatus','Status_Txn','Txn_Status']
      };
      const fields=fallbackFields[formId]||[];
      const valueSet=new Set();

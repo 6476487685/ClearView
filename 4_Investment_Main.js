@@ -118,8 +118,8 @@ document.addEventListener("DOMContentLoaded",()=>{
     'cat':{sheets:['Investment_Category'],fallback:['cat']},
     'tag':{sheets:['Investment_Ac_Tag'],fallback:['tag']},
     'cur':{sheets:['Currency'],fallback:['cur']}, // Also checks common.Currency
-    'mode':{sheets:['Investment_Mode'],fallback:['mode']},
-    'holder':{sheets:['Investment_Holder'],fallback:['holder']},
+    'mode':{sheets:['Mode_Txn','Txn_Mode','Investment_Mode'],fallback:['mode']},
+    'holder':{sheets:['Ac_Holder','Investment_Holder'],fallback:['holder']},
     'freq':{sheets:['Frequency'],fallback:['freq']} // Also checks common.Frequency
    };
    
