@@ -111,7 +111,11 @@ document.addEventListener("DOMContentLoaded",()=>{
  });
 
  addBtn.addEventListener('click',()=>{
-  editIndex=null;form.reset();title.textContent="Add Task";modal.style.display='flex';
+  editIndex=null;
+  form.reset();
+  populateModalDropdowns(); // Refresh dropdowns with latest master data
+  title.textContent="Add Task";
+  modal.style.display='flex';
  });
  cancelBtn.addEventListener('click',()=>{modal.style.display='none';form.reset();editIndex=null;});
 
@@ -133,23 +137,108 @@ document.addEventListener("DOMContentLoaded",()=>{
   saveData(d);renderTable(d);modal.style.display='none';form.reset();editIndex=null;
  });
 
-// Populate dropdowns
+// Function to populate modal dropdowns from Excel master data
+function populateModalDropdowns(){
+ try{
+  // Load task master data from localStorage
+  const masterDataStr=localStorage.getItem('task_master_data');
+  const masterData=masterDataStr?JSON.parse(masterDataStr):{};
+  
+  // Mapping: form field ID -> master data sheet name -> database field name
+  const fieldMapping={
+   'cat':{sheets:['Task_Category','Category_Task'],dbField:'Category_Task'},
+   'tag':{sheets:['Task_Tag'],dbField:'Task_Tag'},
+   'assignee':{sheets:['Task_Assignee'],dbField:'Task_Assignee'},
+   'priority':{sheets:['Task_Priority'],dbField:'Task_Priority'},
+   'status':{sheets:['Task_Status'],dbField:'Task_Status'}
+  };
+  
+  // Populate filter dropdowns from existing records (for backwards compatibility)
+  const all=getData();
+  const uniq=k=>[...new Set(all.map(x=>x[k]))];
+  if(fCategory)fCategory.innerHTML='<option value="">All</option>';
+  if(fTag)fTag.innerHTML='<option value="">All</option>';
+  if(fAssignee)fAssignee.innerHTML='<option value="">All</option>';
+  if(fStatus)fStatus.innerHTML='<option value="">All</option>';
+  if(fPriority)fPriority.innerHTML='<option value="">All</option>';
+  uniq('Category_Task').forEach(v=>{
+   if(fCategory)fCategory.innerHTML+=`<option>${v}</option>`;
+  });
+  uniq('Task_Tag').forEach(v=>{
+   if(fTag)fTag.innerHTML+=`<option>${v}</option>`;
+  });
+  uniq('Task_Assignee').forEach(v=>{
+   if(fAssignee)fAssignee.innerHTML+=`<option>${v}</option>`;
+  });
+  uniq('Task_Status').forEach(v=>{
+   if(fStatus)fStatus.innerHTML+=`<option>${v}</option>`;
+  });
+  uniq('Task_Priority').forEach(v=>{
+   if(fPriority)fPriority.innerHTML+=`<option>${v}</option>`;
+  });
+  
+  // Populate modal form dropdowns from master data
+  Object.entries(fieldMapping).forEach(([formId,config])=>{
+   const select=form[formId];
+   if(!select)return;
+   
+   // Clear existing options
+   select.innerHTML='';
+   
+   // Try to load from master data
+   let values=[];
+   for(const sheetName of config.sheets){
+    if(masterData[sheetName]&&Array.isArray(masterData[sheetName])){
+     values=masterData[sheetName].filter(v=>v&&v!=='');
+     break;
+    }
+   }
+   
+   // Fallback: extract from existing records
+   if(values.length===0){
+    const dbField=config.dbField;
+    const valueSet=new Set();
+    all.forEach(x=>{
+     const val=x[dbField];
+     if(val&&val!=='')valueSet.add(val);
+    });
+    values=[...valueSet].sort();
+   }
+   
+   // Populate dropdown
+   values.forEach(v=>{
+    const option=document.createElement('option');
+    option.value=v;
+    option.textContent=v;
+    select.appendChild(option);
+   });
+  });
+ }catch(e){
+  console.error('Error populating modal dropdowns:',e);
+  // Fallback to original behavior
+  const all=getData();
+  const uniq=k=>[...new Set(all.map(x=>x[k]))];
+  ['cat','tag','assignee','priority'].forEach(k=>{
+   const s=form[k];
+   if(s){
+    s.innerHTML='';
+    const map={cat:'Category_Task',tag:'Task_Tag',assignee:'Task_Assignee',priority:'Task_Priority'};
+    const field=map[k]||k;
+    uniq(field).forEach(v=>s.innerHTML+=`<option>${v}</option>`);
+   }
+  });
+ }
+}
+
+// Get filter elements
 const fCategory=document.getElementById('fCategory');
 const fTag=document.getElementById('fTag');
 const fAssignee=document.getElementById('fAssignee');
 const fStatus=document.getElementById('fStatus');
 const fPriority=document.getElementById('fPriority');
-const all=getData();
-const uniq=k=>[...new Set(all.map(x=>x[k]))];
-uniq('Category_Task').forEach(v=>fCategory.innerHTML+=`<option>${v}</option>`);
-uniq('Task_Tag').forEach(v=>fTag.innerHTML+=`<option>${v}</option>`);
-uniq('Task_Assignee').forEach(v=>fAssignee.innerHTML+=`<option>${v}</option>`);
-['cat','tag','assignee','priority'].forEach(k=>{
- const s=form[k];if(s){
-  const map={cat:'Category_Task',tag:'Task_Tag',assignee:'Task_Assignee',priority:'Task_Priority'};
-  const field=map[k]||k;uniq(field).forEach(v=>s.innerHTML+=`<option>${v}</option>`);
- }
-});
+
+// Populate dropdowns on page load
+populateModalDropdowns();
 
  // Column resize with persistent storage
  let startX,startW,th;

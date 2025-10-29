@@ -9,6 +9,13 @@ document.addEventListener("DOMContentLoaded",()=>{
  const btnPDF=document.getElementById('btnPDF');
  const btnExcel=document.getElementById('btnExcel');
  const filters=document.querySelectorAll('#fCategory,#fTag,#fHolder,#fStatus,#fFrom,#fTo,#globalSearch');
+ const fCategory=document.getElementById('fCategory');
+ const fTag=document.getElementById('fTag');
+ const fHolder=document.getElementById('fHolder');
+ const fStatus=document.getElementById('fStatus');
+ const fFrom=document.getElementById('fFrom');
+ const fTo=document.getElementById('fTo');
+ const globalSearch=document.getElementById('globalSearch');
  const clearBtn=document.getElementById('btnClear');
  let editIndex=null;
 
@@ -51,7 +58,13 @@ document.addEventListener("DOMContentLoaded",()=>{
  });
 
  // Add
- addBtn.onclick=()=>{editIndex=null;form.reset();title.textContent="Add Income";modal.style.display='flex';};
+ addBtn.onclick=()=>{
+  editIndex=null;
+  form.reset();
+  populateModalDropdowns(); // Refresh dropdowns with latest master data
+  title.textContent="Add Income";
+  modal.style.display='flex';
+ };
  cancelBtn.onclick=()=>modal.style.display='none';
  window.onclick=e=>{if(e.target===modal)modal.style.display='none';};
 
@@ -81,15 +94,84 @@ document.addEventListener("DOMContentLoaded",()=>{
  filters.forEach(el=>el.oninput=applyFilters);
  clearBtn.onclick=()=>{filters.forEach(el=>el.value='');renderTable(getData());};
 
- // Dropdown populate
- const all=getData();
- const uniq=k=>[...new Set(all.map(x=>x[k]))];
- uniq('cat').forEach(v=>fCategory.innerHTML+=`<option>${v}</option>`);
- uniq('tag').forEach(v=>fTag.innerHTML+=`<option>${v}</option>`);
- uniq('holder').forEach(v=>fHolder.innerHTML+=`<option>${v}</option>`);
- ['cat','tag','cur','mode','holder','freq'].forEach(k=>{
-  const s=form[k];uniq(k).forEach(v=>s.innerHTML+=`<option>${v}</option>`);
- });
+ // Function to populate modal dropdowns from Excel master data
+ function populateModalDropdowns(){
+  try{
+   // Load income master data from localStorage
+   const masterDataStr=localStorage.getItem('income_master_data');
+   const masterData=masterDataStr?JSON.parse(masterDataStr):{};
+   
+   // Mapping: form field ID -> master data sheet name -> fallback field names
+   const fieldMapping={
+    'cat':{sheets:['Income_Category'],fallback:['cat']},
+    'tag':{sheets:['Income_Ac_Tag'],fallback:['tag']},
+    'cur':{sheets:['Currency'],fallback:['cur']},
+    'mode':{sheets:['Income_Mode'],fallback:['mode']},
+    'holder':{sheets:['Income_Holder'],fallback:['holder']},
+    'freq':{sheets:['Frequency'],fallback:['freq']}
+   };
+   
+   // Populate filter dropdowns from existing records (for backwards compatibility)
+   const all=getData();
+   const uniq=k=>[...new Set(all.map(x=>x[k]))];
+   uniq('cat').forEach(v=>fCategory.innerHTML+=`<option>${v}</option>`);
+   uniq('tag').forEach(v=>fTag.innerHTML+=`<option>${v}</option>`);
+   uniq('holder').forEach(v=>fHolder.innerHTML+=`<option>${v}</option>`);
+   
+   // Populate modal form dropdowns from master data
+   Object.entries(fieldMapping).forEach(([formId,config])=>{
+    const select=form[formId];
+    if(!select)return;
+    
+    // Clear existing options
+    select.innerHTML='';
+    
+    // Try to load from master data
+    let values=[];
+    for(const sheetName of config.sheets){
+     if(masterData[sheetName]&&Array.isArray(masterData[sheetName])){
+      values=masterData[sheetName].filter(v=>v&&v!=='');
+      break;
+     }
+    }
+    
+    // Fallback: extract from existing records
+    if(values.length===0){
+     const valueSet=new Set();
+     all.forEach(x=>{
+      config.fallback.forEach(fn=>{
+       const val=x[fn];
+       if(val&&val!=='')valueSet.add(val);
+      });
+     });
+     values=[...valueSet].sort();
+    }
+    
+    // Populate dropdown
+    values.forEach(v=>{
+     const option=document.createElement('option');
+     option.value=v;
+     option.textContent=v;
+     select.appendChild(option);
+    });
+   });
+  }catch(e){
+   console.error('Error populating modal dropdowns:',e);
+   // Fallback to original behavior
+   const all=getData();
+   const uniq=k=>[...new Set(all.map(x=>x[k]))];
+   ['cat','tag','cur','mode','holder','freq'].forEach(k=>{
+    const s=form[k];
+    if(s){
+     s.innerHTML='';
+     uniq(k).forEach(v=>s.innerHTML+=`<option>${v}</option>`);
+    }
+   });
+  }
+ }
+ 
+ // Populate dropdowns on page load
+ populateModalDropdowns();
 
  // Column resize with persistent storage
  let startX,startW,th;

@@ -90,6 +90,7 @@ document.addEventListener("DOMContentLoaded",()=>{
  addBtn.onclick=()=>{
   editIndex=null;
   form.reset();
+  populateModalDropdowns(); // Refresh dropdowns with latest master data
   // Set default values
   form['Expense_Mode'].value='Bill-Payment-Bank';
   form['Expense_Txn_Status'].value='Unpaid';
@@ -188,73 +189,110 @@ document.addEventListener("DOMContentLoaded",()=>{
  uniq('tag').forEach(v=>fTag.innerHTML+=`<option>${v}</option>`);
  uniq('holder').forEach(v=>fHolder.innerHTML+=`<option>${v}</option>`);
  
- // Function to load master data from Excel sheets stored in localStorage
- function loadMasterData(sheetName){
+ // Function to populate modal dropdowns from Excel master data
+ function populateModalDropdowns(){
   try{
-   const masterData=localStorage.getItem('master_data_'+sheetName);
-   if(masterData)return JSON.parse(masterData);
-   // If not found, try to get from expense data as fallback
-   const values=new Set();
-   all.forEach(x=>{
-    const val=x[sheetName]||x[sheetName.replace('Expense_','')];
-    if(val && val!=='')values.add(val);
-   });
-   return [...values].sort();
-  }catch(e){
-   console.log('Error loading master data for',sheetName,e);
-   return [];
-  }
- }
-
- // Populate form dropdowns from master data sheets
- const dropdownConfig={
-  'Expense_Category':{masterSheet:'Expanse_Category',fallback:['Expense_Category','cat']},
-  'Expense_Tag':{masterSheet:'Expanse_Ac_Tag',fallback:['Expense_Tag','tag']},
-  'Expense_Currency':{masterSheet:'Currency',fallback:['Expense_Currency','cur','Currency']},
-  'Expense_Mode':{masterSheet:'Txn_Mode',fallback:['Expense_Mode','mode','Txn_Mode']},
-  'Expense_Holder':{masterSheet:'Ac_Holder',fallback:['Expense_Holder','holder','Ac_Holder']},
-  'Expense_Frequency':{masterSheet:'Frequency',fallback:['Expense_Frequency','freq','Frequency']},
-  'Expense_Account_Status':{masterSheet:'Ac_Status',fallback:['Expense_Account_Status','acstatus']},
-  'Expense_Txn_Status':{masterSheet:'Txn_Status',fallback:['Expense_Txn_Status','txnstatus']}
- };
-
- Object.entries(dropdownConfig).forEach(([formId,config])=>{
-  const select=form[formId];
-  if(select){
-   const masterValues=loadMasterData(config.masterSheet);
-   if(masterValues.length>0){
-    masterValues.forEach(v=>select.innerHTML+=`<option>${v}</option>`);
-   }else{
-    // Fallback to expense data
-    const values=new Set();
-    all.forEach(x=>{
-     config.fallback.forEach(fn=>{
-      if(x[fn] && x[fn]!=='')values.add(x[fn]);
+   // Load expense master data from localStorage
+   const masterDataStr=localStorage.getItem('expense_master_data');
+   const masterData=masterDataStr?JSON.parse(masterDataStr):{};
+   
+   // Mapping: form field ID -> master data sheet name
+   const fieldMapping={
+    'Expense_Category':['Expanse_Category','Expense_Category'],
+    'Expense_Tag':['Expanse_Ac_Tag','Expense_Tag'],
+    'Expense_Currency':['Currency','Expense_Currency'],
+    'Expense_Mode':['Txn_Mode','Expense_Mode'],
+    'Expense_Holder':['Ac_Holder','Expense_Holder'],
+    'Expense_Frequency':['Frequency','Expense_Frequency'],
+    'Expense_Account_Status':['Ac_Status','Expense_Account_Status'],
+    'Expense_Txn_Status':['Txn_Status','Expense_Txn_Status']
+   };
+   
+   // Populate each dropdown
+   Object.entries(fieldMapping).forEach(([formId,sheetNames])=>{
+    const select=form[formId];
+    if(!select)return;
+    
+    // Clear existing options
+    select.innerHTML='';
+    
+    // Try to load from master data
+    let values=[];
+    for(const sheetName of sheetNames){
+     if(masterData[sheetName]&&Array.isArray(masterData[sheetName])){
+      values=masterData[sheetName].filter(v=>v&&v!=='');
+      break;
+     }
+    }
+    
+    // Fallback: extract from existing records
+    if(values.length===0){
+     const fallbackFields={
+      'Expense_Category':['Expense_Category','cat'],
+      'Expense_Tag':['Expense_Tag','tag'],
+      'Expense_Currency':['Expense_Currency','cur','Currency'],
+      'Expense_Mode':['Expense_Mode','mode','Txn_Mode'],
+      'Expense_Holder':['Expense_Holder','holder','Ac_Holder'],
+      'Expense_Frequency':['Expense_Frequency','freq','Frequency'],
+      'Expense_Account_Status':['Expense_Account_Status','acstatus'],
+      'Expense_Txn_Status':['Expense_Txn_Status','txnstatus']
+     };
+     const fields=fallbackFields[formId]||[];
+     const valueSet=new Set();
+     all.forEach(x=>{
+      fields.forEach(fn=>{
+       const val=x[fn];
+       if(val&&val!=='')valueSet.add(val);
+      });
      });
+     values=[...valueSet].sort();
+    }
+    
+    // Populate dropdown
+    values.forEach(v=>{
+     const option=document.createElement('option');
+     option.value=v;
+     option.textContent=v;
+     select.appendChild(option);
     });
-    [...values].sort().forEach(v=>select.innerHTML+=`<option>${v}</option>`);
-   }
-  }
- });
- 
- // Populate Paid_From dropdown from Income_Ac_Tag
- // This is a cross-reference field that links to Income module
- const paidFromSelect=form['Expense_Paid_From'];
- if(paidFromSelect){
-  const incomeTags=loadMasterData('Income_Ac_Tag');
-  if(incomeTags.length>0){
-   incomeTags.forEach(v=>paidFromSelect.innerHTML+=`<option>${v}</option>`);
-  }else{
-   // Fallback to income records
-   const incomeData=JSON.parse(localStorage.getItem('income_records')||'[]');
-   const incomeTags=new Set();
-   incomeData.forEach(x=>{
-    const tag=x.Income_Ac_Tag||x['Income_Ac_Tag']||x.tag;
-    if(tag && tag!=='')incomeTags.add(tag);
    });
-   [...incomeTags].sort().forEach(v=>paidFromSelect.innerHTML+=`<option>${v}</option>`);
+   
+   // Populate Paid_From dropdown from Income master data
+   const paidFromSelect=form['Expense_Paid_From'];
+   if(paidFromSelect){
+    paidFromSelect.innerHTML='';
+    const incomeMasterDataStr=localStorage.getItem('income_master_data');
+    const incomeMasterData=incomeMasterDataStr?JSON.parse(incomeMasterDataStr):{};
+    let incomeTags=[];
+    
+    // Try master data first
+    if(incomeMasterData['Income_Ac_Tag']&&Array.isArray(incomeMasterData['Income_Ac_Tag'])){
+     incomeTags=incomeMasterData['Income_Ac_Tag'].filter(v=>v&&v!=='');
+    }else{
+     // Fallback to income records
+     const incomeData=JSON.parse(localStorage.getItem('income_records')||'[]');
+     const tagSet=new Set();
+     incomeData.forEach(x=>{
+      const tag=x.Income_Ac_Tag||x.tag;
+      if(tag&&tag!=='')tagSet.add(tag);
+     });
+     incomeTags=[...tagSet].sort();
+    }
+    
+    incomeTags.forEach(v=>{
+     const option=document.createElement('option');
+     option.value=v;
+     option.textContent=v;
+     paidFromSelect.appendChild(option);
+    });
+   }
+  }catch(e){
+   console.error('Error populating modal dropdowns:',e);
   }
  }
+ 
+ // Populate dropdowns on page load
+ populateModalDropdowns();
 
  // Column resize with persistent storage
  let startX,startW,th;
