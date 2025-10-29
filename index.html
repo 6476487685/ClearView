@@ -1290,16 +1290,24 @@ function updateProjectDocumentsTooltip(){
   }
 }
 
-// Update Manage Master Data tooltip with last loaded Excel file
+// Update Manage Master Data tooltip with last loaded Excel file path
 function updateManageMasterDataTooltip(){
   const masterDataLink=document.getElementById('masterDataNavLink');
   if(masterDataLink){
     const lastExcelFile=localStorage.getItem('last_excel_file_loaded')||'';
     const lastExcelSource=localStorage.getItem('last_excel_file_source')||'';
+    const lastExcelPath=localStorage.getItem('last_excel_file_path')||lastExcelFile;
     if(lastExcelFile){
-      masterDataLink.title=`Last Excel file loaded: ${lastExcelFile} from ${lastExcelSource}`;
+      // Show file path - if it's from D:, show full path; if from Google Drive, show source
+      if(lastExcelSource === 'D:'){
+        masterDataLink.title=`Current Excel file: ${lastExcelPath} (from Local Drive D:)`;
+      }else if(lastExcelSource === 'Google Drive'){
+        masterDataLink.title=`Current Excel file: ${lastExcelFile} (from Google Drive)`;
+      }else{
+        masterDataLink.title=`Current Excel file: ${lastExcelPath} (from ${lastExcelSource})`;
+      }
     }else{
-      masterDataLink.title='Click to manage master data';
+      masterDataLink.title='Click to manage master data and load Excel file';
     }
   }
 }
