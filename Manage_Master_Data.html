@@ -488,14 +488,10 @@
       container.innerHTML = '';
 
       const fields = MASTER_DATA_STRUCTURE[module];
-      let fieldKeys = Object.keys(fields);
+      const fieldKeys = Object.keys(fields);
       
-      // For module tabs (not common and not task), also include common fields
-      // Task module does NOT use Txn_Status and Txn_Mode
-      if (module !== 'common' && module !== 'task') {
-        const commonFields = MASTER_DATA_STRUCTURE.common;
-        fieldKeys = [...fieldKeys, ...Object.keys(commonFields)];
-      }
+      // Only show module-specific fields - NO common fields in module tabs
+      // Common fields are only shown in the Common tab
       
       // Split fields into two columns
       const midPoint = Math.ceil(fieldKeys.length / 2);
@@ -505,30 +501,16 @@
       // Create left column
       const leftCol = document.createElement('div');
       leftFields.forEach(fieldKey => {
-        // Determine if this is a common field being shown in a module tab
-        const isCommonField = module !== 'common' && MASTER_DATA_STRUCTURE.common[fieldKey];
-        let displayLabel;
-        if (isCommonField) {
-          displayLabel = MASTER_DATA_STRUCTURE.common[fieldKey] + ' ↔';
-        } else {
-          displayLabel = fields[fieldKey];
-        }
-        leftCol.appendChild(createFieldCard(module, fieldKey, displayLabel, isCommonField));
+        const displayLabel = fields[fieldKey];
+        leftCol.appendChild(createFieldCard(module, fieldKey, displayLabel, false));
       });
       container.appendChild(leftCol);
 
       // Create right column
       const rightCol = document.createElement('div');
       rightFields.forEach(fieldKey => {
-        // Determine if this is a common field being shown in a module tab
-        const isCommonField = module !== 'common' && MASTER_DATA_STRUCTURE.common[fieldKey];
-        let displayLabel;
-        if (isCommonField) {
-          displayLabel = MASTER_DATA_STRUCTURE.common[fieldKey] + ' ↔';
-        } else {
-          displayLabel = fields[fieldKey];
-        }
-        rightCol.appendChild(createFieldCard(module, fieldKey, displayLabel, isCommonField));
+        const displayLabel = fields[fieldKey];
+        rightCol.appendChild(createFieldCard(module, fieldKey, displayLabel, false));
       });
       container.appendChild(rightCol);
     }
