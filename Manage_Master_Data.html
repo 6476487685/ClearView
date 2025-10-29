@@ -731,16 +731,36 @@
             // Try to find the column with the same name as the sheet, or use first column
             // Handle case-insensitive matching and variations
             let columnName = sheetName;
-            if (firstRow[sheetName] === undefined) {
+            
+            // First try exact match
+            if (firstRow[sheetName] !== undefined && firstRow[sheetName] !== null && String(firstRow[sheetName]).trim() !== '') {
+              columnName = sheetName;
+            } else {
               // Try case-insensitive match
               const matchingKey = columnKeys.find(key => key.toLowerCase() === sheetName.toLowerCase());
               if (matchingKey) {
                 columnName = matchingKey;
               } else {
-                // Use first column
-                columnName = columnKeys[0];
+                // For common fields, also try common variations
+                if (sheetName === 'Txn_Mode' || sheetName.toLowerCase() === 'txn_mode') {
+                  const modeVariations = columnKeys.find(key => 
+                    key.toLowerCase().includes('mode') || key.toLowerCase().includes('txn_mode')
+                  );
+                  if (modeVariations) columnName = modeVariations;
+                } else if (sheetName === 'Txn_Status' || sheetName.toLowerCase() === 'txn_status') {
+                  const statusVariations = columnKeys.find(key => 
+                    key.toLowerCase().includes('status') || key.toLowerCase().includes('txn_status')
+                  );
+                  if (statusVariations) columnName = statusVariations;
+                } else {
+                  // Use first column
+                  columnName = columnKeys[0];
+                }
               }
             }
+            
+            console.log(`Reading sheet "${sheetName}": Using column "${columnName}" from available columns:`, columnKeys);
+            
             values = jsonData.map(row => {
               const val = row[columnName];
               // Handle various data types
@@ -748,6 +768,8 @@
               const strVal = String(val).trim();
               return strVal === '' ? null : strVal;
             }).filter(v => v !== null && v !== '');
+            
+            console.log(`Extracted ${values.length} values from sheet "${sheetName}"`);
 
             // Determine which module and field this sheet belongs to
             let foundModule = null;
