@@ -664,30 +664,9 @@
     // Render a tab
     function renderTab(module) {
       const container = document.getElementById(`${module}Grid`);
-      if (!container) {
-        console.error(`Container not found for module: ${module}`);
-        return;
-      }
       container.innerHTML = '';
 
-      // Ensure masterData is loaded and properly initialized
-      loadMasterData();
-      
-      // Verify masterData structure
-      if (!masterData) {
-        console.error('masterData is null or undefined');
-        masterData = {};
-        initializeMasterData();
-      }
-      
-      console.log(`Rendering tab "${module}" with masterData:`, masterData);
-
       const fields = MASTER_DATA_STRUCTURE[module];
-      if (!fields) {
-        console.error(`No fields defined for module: ${module}`);
-        container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-secondary);">No fields defined for this module.</div>';
-        return;
-      }
       const fieldKeys = Object.keys(fields);
       
       // Only show module-specific fields - NO common fields in module tabs
@@ -890,10 +869,7 @@
 
           console.log('Available sheets:', sheetNames);
 
-          // Load existing master data first to preserve any existing entries
-          loadMasterData();
-          
-          // Then initialize structure to ensure all required fields exist
+          // Initialize master data
           initializeMasterData();
 
           // Extract all master data sheets (exclude Txn_* transactional sheets, but include Mode_Txn and Status_Txn)
@@ -907,25 +883,9 @@
             processedSheets.push(sheetName);
 
             const sheet = workbook.Sheets[sheetName];
-            
-            // Check if sheet exists and has data
-            if (!sheet || !sheet['!ref']) {
-              console.log(`⚠ Sheet "${sheetName}" is empty or does not exist`);
-              return;
-            }
-            
-            // Convert to JSON with options to handle empty cells better
-            const jsonData = XLSX.utils.sheet_to_json(sheet, { 
-              defval: '',  // Use empty string for missing values
-              raw: false   // Return formatted values
-            });
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-            if (!jsonData || jsonData.length === 0) {
-              console.log(`⚠ Sheet "${sheetName}" contains no data rows`);
-              return;
-            }
-            
-            console.log(`✓ Processing sheet "${sheetName}" with ${jsonData.length} rows`);
+            if (jsonData.length === 0) return;
 
             // Try to find the column with the same name as the sheet, or use first column
             let values = [];
@@ -973,7 +933,7 @@
               return strVal === '' ? null : strVal;
             }).filter(v => v !== null && v !== '');
             
-            console.log(`Extracted ${values.length} values from sheet "${sheetName}"`);
+            // values extracted
 
             // Determine which module and field this sheet belongs to
             let foundModule = null;
@@ -1116,93 +1076,32 @@
             }
           });
 
-          // Count how many sheets actually had data loaded
-          let sheetsWithData = 0;
-          let totalValuesLoaded = 0;
-          Object.keys(masterData).forEach(module => {
-            if (masterData[module]) {
-              Object.keys(masterData[module]).forEach(key => {
-                if (masterData[module][key] && Array.isArray(masterData[module][key]) && masterData[module][key].length > 0) {
-                  sheetsWithData++;
-                  totalValuesLoaded += masterData[module][key].length;
-                }
-              });
-            }
-          });
-          
-          console.log('Master data summary before save:', {
-            sheetsWithData,
-            totalValuesLoaded,
-            masterData: masterData
-          });
-          
-          // Save master data
           saveMasterData();
           
-          // Save the Excel file name and path for tooltip
-          const filePath = file.webkitRelativePath || file.name || 'Selected file';
+          // Save the Excel file name for tooltip
           localStorage.setItem('last_excel_file_loaded', file.name);
-          localStorage.setItem('last_excel_file_path', filePath);
           localStorage.setItem('last_excel_file_source', 'D:');
-          
-          console.log('Excel file info saved:', {
-            name: file.name,
-            path: filePath,
-            size: file.size,
-            type: file.type
-          });
-          
-          // Reload master data from localStorage to ensure we have saved data
-          loadMasterData();
-          
-          // Update last file display
-          updateLastFileDisplay();
           
           // Update tooltip in index.html if it's open
           if (window.opener && typeof window.opener.updateManageMasterDataTooltip === 'function') {
             window.opener.updateManageMasterDataTooltip();
           }
           
-          // Force re-render the current tab to show new data
-          const currentTab = document.querySelector('.tab.active')?.getAttribute('data-tab') || 'income';
-          console.log('Rendering tab:', currentTab);
+          const currentTab = document.querySelector('.tab.active').getAttribute('data-tab');
           renderTab(currentTab);
-          
-          // Also render all other tabs to ensure they show data
-          ['income', 'expense', 'investment', 'task', 'common'].forEach(tab => {
-            if (tab !== currentTab) {
-              const container = document.getElementById(`${tab}Grid`);
-              if (container) {
-                // Just ensure containers exist, we'll render on tab switch
-              }
-            }
-          });
           
           const totalSheets = sheetNames.length;
           const transactionalSheets = sheetNames.filter(s => s.startsWith('Txn_') && s !== 'Txn_Mode' && s !== 'Txn_Status' && !s.includes('Mode') && !s.includes('Status')).length;
           const masterDataSheets = processedSheets.length;
           
           // Check if paths are set and show warning if not
-          let message = `✅ Excel file loaded successfully!\n\n📊 Statistics:\n• Total sheets in file: ${totalSheets}\n• Transactional sheets skipped: ${transactionalSheets}\n• Master data sheets processed: ${masterDataSheets}\n• Sheets with data loaded: ${sheetsWithData}\n• Total values loaded: ${totalValuesLoaded}`;
-          
-          if (sheetsWithData === 0) {
-            message += '\n\n⚠️ WARNING: No data was loaded!\n\nPlease check:\n• Sheet names match expected master data names\n• Sheets contain data rows\n• Column names are correct\n• Check browser console (F12) for detailed logs';
-          } else {
-            message += '\n\n✓ Data is now available in the respective tabs.';
-          }
+          let message = `Successfully imported master data from Excel file!\n\nTotal sheets in file: ${totalSheets}\nTransactional sheets skipped: ${transactionalSheets}\nMaster data sheets processed: ${masterDataSheets}`;
           
           if (!arePathsSet()) {
             message += '\n\n⚠️ Please set Project Paths in the "Set/Change Paths" tab!';
           }
           
           alert(message);
-          
-          // Log final master data for debugging
-          console.log('Final master data after import and save:', JSON.stringify(masterData, null, 2));
-          console.log('Master data keys:', Object.keys(masterData));
-          Object.keys(masterData).forEach(module => {
-            console.log(`Module "${module}":`, Object.keys(masterData[module] || {}));
-          });
         } catch (error) {
           console.error('Error reading Excel file:', error);
           alert('Error reading Excel file: ' + error.message);
