@@ -859,8 +859,14 @@
     document.getElementById('excelFileInput').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
+      console.log('Excel change event fired. File selected:', file && file.name);
+      alert('Reading Excel file: ' + (file && file.name));
 
       const reader = new FileReader();
+      reader.onerror = function(err){
+        console.error('FileReader error:', err);
+        alert('Error reading file. Please try again.');
+      };
       reader.onload = function(e) {
         try {
           const data = new Uint8Array(e.target.result);
