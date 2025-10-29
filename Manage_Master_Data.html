@@ -338,7 +338,7 @@
     </div>
     <div class="title">Manage Master Data</div>
     <div class="right">
-      <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;" onchange="handleExcelInputChange(event)">
+      <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
       <button class="excel" id="btnLoadFromD" type="button" onclick="document.getElementById('excelFileInput').click()" title="Upload Excel File">📥 Load from D:</button>
       <button class="excel" onclick="alert('Google Drive integration is currently unavailable.')" title="Upload Excel File, Currently Unavailable" style="opacity: 0.6; cursor: not-allowed;">☁️ Load from Google Drive</button>
       <button class="danger" id="btnClearData" style="background:#ea4335;color:white;" title="It deletes all Master Data">🗑️ Clear All Data</button>
@@ -424,18 +424,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
-    // Inline onchange handler to ensure we see immediate feedback
-    function handleExcelInputChange(e){
-      const f = e && e.target && e.target.files && e.target.files[0];
-      if(!f){ return; }
-      try{
-        console.log('inline onchange fired:', f.name);
-        alert('Reading Excel file: ' + f.name);
-      }catch(err){
-        console.error('Inline onchange error:', err);
-      }
-      // The main change listener below will proceed with full processing
-    }
+    // (Reverted) No inline onchange handler; main listener will process
     // Master data structure - only fields specified by user
     // Sheets with prefix Income_, Investment_, Expense_, Task_ belong to those modules
     // Sheets without these prefixes are common fields (Currency, Frequency, Ac_Holder, Txn_Mode, Txn_Status, Ac_Status)
@@ -871,14 +860,10 @@
     document.getElementById('excelFileInput').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
-      console.log('Excel change event fired. File selected:', file && file.name);
-      alert('Reading Excel file: ' + (file && file.name));
+      // Proceed to read selected Excel file
 
       const reader = new FileReader();
-      reader.onerror = function(err){
-        console.error('FileReader error:', err);
-        alert('Error reading file. Please try again.');
-      };
+      // Use default error handling
       reader.onload = function(e) {
         try {
           const data = new Uint8Array(e.target.result);
