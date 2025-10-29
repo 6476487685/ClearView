@@ -356,7 +356,8 @@
         'Task_Status': 'Task Status',
         'Task_Assignee': 'Task Assignee',
         'Task_Priority': 'Task Priority',
-        'Task_Category': 'Task Category'
+        'Task_Category': 'Task Category',
+        'Task_Adhoc': 'Task Adhoc'
       },
       common: {
         'Currency': 'Currency',
@@ -489,8 +490,9 @@
       const fields = MASTER_DATA_STRUCTURE[module];
       let fieldKeys = Object.keys(fields);
       
-      // For module tabs (not common), also include common fields
-      if (module !== 'common') {
+      // For module tabs (not common and not task), also include common fields
+      // Task module does NOT use Txn_Status and Txn_Mode
+      if (module !== 'common' && module !== 'task') {
         const commonFields = MASTER_DATA_STRUCTURE.common;
         fieldKeys = [...fieldKeys, ...Object.keys(commonFields)];
       }
@@ -539,10 +541,15 @@
       const header = document.createElement('div');
       header.className = 'field-header';
       // Get values - if this is a common field being accessed from a module tab
+      // Task module does NOT show Txn_Status and Txn_Mode
       let values = [];
-      if (isCommonField || (module !== 'common' && MASTER_DATA_STRUCTURE.common[fieldKey])) {
-        // Access common field
-        values = masterData.common && masterData.common[fieldKey] ? masterData.common[fieldKey] : [];
+      if (isCommonField) {
+        // Access common field (but exclude Txn_Status and Txn_Mode from task module)
+        if (module === 'task' && (fieldKey === 'Txn_Status' || fieldKey === 'Txn_Mode')) {
+          values = [];
+        } else {
+          values = masterData.common && masterData.common[fieldKey] ? masterData.common[fieldKey] : [];
+        }
       } else {
         values = masterData[module] && masterData[module][fieldKey] ? masterData[module][fieldKey] : [];
       }
@@ -721,14 +728,26 @@
             const firstRow = jsonData[0];
             const columnKeys = Object.keys(firstRow);
 
-            // Try exact match first
-            if (firstRow[sheetName] !== undefined) {
-              values = jsonData.map(row => row[sheetName]).filter(v => v !== undefined && v !== null && v !== '');
-            } else {
-              // Use first column
-              const firstCol = columnKeys[0];
-              values = jsonData.map(row => row[firstCol]).filter(v => v !== undefined && v !== null && v !== '');
+            // Try to find the column with the same name as the sheet, or use first column
+            // Handle case-insensitive matching and variations
+            let columnName = sheetName;
+            if (firstRow[sheetName] === undefined) {
+              // Try case-insensitive match
+              const matchingKey = columnKeys.find(key => key.toLowerCase() === sheetName.toLowerCase());
+              if (matchingKey) {
+                columnName = matchingKey;
+              } else {
+                // Use first column
+                columnName = columnKeys[0];
+              }
             }
+            values = jsonData.map(row => {
+              const val = row[columnName];
+              // Handle various data types
+              if (val === undefined || val === null) return null;
+              const strVal = String(val).trim();
+              return strVal === '' ? null : strVal;
+            }).filter(v => v !== null && v !== '');
 
             // Determine which module and field this sheet belongs to
             let foundModule = null;
@@ -785,29 +804,57 @@
                 }
               } else {
                 // No prefix = common field
-                // Check if it matches common field names
+                // Check if it matches common field names (case-insensitive matching)
                 if (lowerSheet === 'currency') {
                   foundModule = 'common';
                   foundKey = 'Currency';
                 } else if (lowerSheet === 'frequency') {
                   foundModule = 'common';
                   foundKey = 'Frequency';
-                } else if (lowerSheet === 'ac_holder' || lowerSheet === 'account holder') {
+                } else if (lowerSheet === 'ac_holder' || lowerSheet === 'account holder' || lowerSheet === 'ac holder') {
                   foundModule = 'common';
                   foundKey = 'Ac_Holder';
-                } else if (lowerSheet === 'txn_mode' || lowerSheet === 'transaction mode') {
+                } else if (lowerSheet === 'txn_mode' || lowerSheet === 'transaction mode' || lowerSheet === 'txn mode' || 
+                           lowerSheet === 'txn_mode' || sheetName === 'Txn_Mode' || sheetName === 'TXN_MODE') {
                   foundModule = 'common';
                   foundKey = 'Txn_Mode';
-                } else if (lowerSheet === 'txn_status' || lowerSheet === 'transaction status') {
+                  console.log(`Matched ${sheetName} to Txn_Mode`);
+                } else if (lowerSheet === 'txn_status' || lowerSheet === 'transaction status' || lowerSheet === 'txn status' ||
+                           lowerSheet === 'txn_status' || sheetName === 'Txn_Status' || sheetName === 'TXN_STATUS') {
                   foundModule = 'common';
                   foundKey = 'Txn_Status';
-                } else if (lowerSheet === 'ac_status' || lowerSheet === 'account status') {
+                  console.log(`Matched ${sheetName} to Txn_Status`);
+                } else if (lowerSheet === 'ac_status' || lowerSheet === 'account status' || lowerSheet === 'ac status') {
                   foundModule = 'common';
                   foundKey = 'Ac_Status';
                 } else if (SHEET_NAME_MAP[sheetName]) {
                   // Check variations mapping
                   foundModule = SHEET_NAME_MAP[sheetName].module;
                   foundKey = SHEET_NAME_MAP[sheetName].key;
+                } else {
+                  // Try exact case match for common fields
+                  if (sheetName === 'Currency' || sheetName === 'FREQUENCY' || sheetName === 'Frequency' ||
+                      sheetName === 'Ac_Holder' || sheetName === 'Ac_HOLDER' ||
+                      sheetName === 'Txn_Mode' || sheetName === 'TXN_MODE' || sheetName === 'Txn_MODE' ||
+                      sheetName === 'Txn_Status' || sheetName === 'TXN_STATUS' || sheetName === 'Txn_STATUS' ||
+                      sheetName === 'Ac_Status' || sheetName === 'AC_STATUS') {
+                    foundModule = 'common';
+                    // Normalize to standard case
+                    if (sheetName.toUpperCase() === 'TXN_MODE' || sheetName === 'Txn_MODE') {
+                      foundKey = 'Txn_Mode';
+                    } else if (sheetName.toUpperCase() === 'TXN_STATUS' || sheetName === 'Txn_STATUS') {
+                      foundKey = 'Txn_Status';
+                    } else if (sheetName.toUpperCase() === 'FREQUENCY' || sheetName === 'Frequency') {
+                      foundKey = 'Frequency';
+                    } else if (sheetName.toUpperCase() === 'AC_STATUS' || sheetName === 'Ac_STATUS') {
+                      foundKey = 'Ac_Status';
+                    } else if (sheetName.toUpperCase() === 'AC_HOLDER' || sheetName === 'Ac_HOLDER') {
+                      foundKey = 'Ac_Holder';
+                    } else {
+                      foundKey = sheetName;
+                    }
+                    console.log(`Matched ${sheetName} to common.${foundKey}`);
+                  }
                 }
               }
             }
