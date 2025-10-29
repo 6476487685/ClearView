@@ -334,37 +334,36 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
-    // Master data structure - only fields that exist in Excel sheets
+    // Master data structure - only fields specified by user
     // Sheets with prefix Income_, Investment_, Expense_, Task_ belong to those modules
     // Sheets without these prefixes are common fields (Currency, Frequency, Ac_Holder, Txn_Mode, Txn_Status, Ac_Status)
     // Sheets with prefix Txn_ are transactional data (not master data)
     const MASTER_DATA_STRUCTURE = {
-      income: {
-        'Income_Category': 'Income Category',
-        'Income_Ac_Tag': 'Income Account Tag'
-      },
       expense: {
         'Expanse_Category': 'Expense Category',
         'Expanse_Ac_Tag': 'Expense Account Tag'
+      },
+      income: {
+        'Income_Category': 'Income Category',
+        'Income_Ac_Tag': 'Income Account Tag' // Relates to "Paid From" in Expense and Investment Dashboards
       },
       investment: {
         'Investment_Category': 'Investment Category',
         'Investment_Ac_Tag': 'Investment Account Tag'
       },
       task: {
-        'Task_Category': 'Task Category',
         'Task_Tag': 'Task Tag',
         'Task_Status': 'Task Status',
         'Task_Assignee': 'Task Assignee',
         'Task_Priority': 'Task Priority',
-        'Task_Adhoc': 'Task Adhoc'
+        'Task_Category': 'Task Category'
       },
       common: {
         'Currency': 'Currency',
-        'Frequency': 'Frequency',
-        'Ac_Holder': 'Account Holder',
         'Txn_Mode': 'Transaction Mode',
         'Txn_Status': 'Transaction Status',
+        'Ac_Holder': 'Account Holder',
+        'Frequency': 'Frequency',
         'Ac_Status': 'Account Status'
       }
     };

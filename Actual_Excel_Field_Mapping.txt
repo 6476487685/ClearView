@@ -79,5 +79,51 @@ END OF MAPPING DOCUMENT
 ================================================================================
 
 
+Also set some defulat values for some fields to aviod seltion or typing as:
+Txn_Mode: Bill-Payment-Bank	
+Paid	Om	Monthly	Paid
+Txn_Status: Unpaid
+Ac_Holder: Amit
+Frequency: Monthly
+Ac_Status: Active
 
+
+No its still not correct Why not you count how many records are there in master fields in from Excel file and then ensure how many are puplulating in Add/Edit modal so you know that these are not working correctly, I notice Cussrncy, Txn_Mode, Ac_Status and Txn_Status are still loading dummy data. SO with Add/Edit Modal with each drop down in brackets mention the number of itesm in list as well, beacuse you implemented the chnage globally you have messased up Task Dashboards also earlier its Add/Edit modal working fine now it also started showing statange begavious. To implement this FIrst of in Manager Masters Dashboards create 4 sections for  Income, Investment, Expase and Task master filelda and addtional section for common Master filed used across all or some of these sheeets. FOr each filed mention in brackets what you have read from Excel at first load keep it persistant untill next relaod of master Excel file. 
+
+
+
+	Currency	Amount_Due	Due_Date	Paid_From	Amount_Paid	Paid_Date	Txn_Mode	Txn_Status	Ac_Holder	Frequency	Ac_Status
+
+Please note that Master fileds for Expanse Dashboard will show only These: 
+Expanse_Category
+Expanse_Ac_Tag
+
+
+
+
+Please note the Master fileds for Income Master Data Dashboard will show only These: 
+Income_Category
+Income_Ac_Tag (Relates to "Paid From" in differnt Expanse and Investment Dashboards)
+
+
+Please note the Master fileds for Investment Master Data Dashboard will show only These: 
+Investment_Category
+Investment_Ac_Tag
+
+
+Please note the Master fileds for Common Master Data Dashboard will show These: 
+Currency
+Txn_Mode
+Txn_Status
+Ac_Holder
+Frequency
+Ac_Status
+Ac_Holder
+
+
+Task_Tag
+Task_Status
+Task_Assignee
+Task_Priority
+Task_Category
 
