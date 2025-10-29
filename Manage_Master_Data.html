@@ -4,215 +4,182 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Manage Master Data — ClearView</title>
-  <link rel="stylesheet" href="assets/font-awesome.min.css">
+  <link rel="stylesheet" href="2_Expanse_Style.css">
   <style>
-    :root {
-      --primary-bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text-primary: #1e293b;
-      --text-secondary: #64748b;
-      --border-color: #e2e8f0;
-      --accent-blue: #3b82f6;
-      --accent-green: #10b981;
-      --accent-red: #ef4444;
-      --accent-purple: #8b5cf6;
-      --accent-orange: #f59e0b;
-      --shadow: 0 1px 3px rgba(0,0,0,0.1);
-      --shadow-lg: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    body.dark {
-      --primary-bg: #0f172a;
-      --card-bg: #1e293b;
-      --text-primary: #f1f5f9;
-      --text-secondary: #94a3b8;
-      --border-color: #334155;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
+      margin: 0;
+      padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--primary-bg);
-      color: var(--text-primary);
-      padding: 20px;
-      line-height: 1.6;
+      background: var(--primary-bg, #f8fafc);
     }
-    .header {
-      background: var(--card-bg);
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow-lg);
+    .master-data-container {
+      min-height: 100vh;
+      background: var(--primary-bg, #f8fafc);
+    }
+    .tabs-container {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 15px;
+      gap: 8px;
+      padding: 15px 20px;
+      background: var(--card-bg, #ffffff);
+      border-bottom: 2px solid var(--border-color, #e2e8f0);
+      overflow-x: auto;
+      flex-wrap: nowrap;
     }
-    .header h1 {
-      font-size: 1.8rem;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .header-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .btn {
-      padding: 10px 20px;
-      border: none;
+    .tab {
+      padding: 12px 24px;
+      background: var(--primary-bg, #f8fafc);
+      border: 2px solid var(--border-color, #e2e8f0);
       border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      color: var(--text-secondary, #64748b);
       transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+      white-space: nowrap;
+      min-width: fit-content;
     }
-    .btn-primary {
-      background: var(--accent-blue);
+    .tab:hover {
+      background: var(--accent-blue, #3b82f6);
       color: white;
+      border-color: var(--accent-blue, #3b82f6);
     }
-    .btn-primary:hover { background: #2563eb; }
-    .btn-secondary {
-      background: var(--text-secondary);
+    .tab.active {
+      background: var(--accent-blue, #3b82f6);
       color: white;
+      border-color: var(--accent-blue, #3b82f6);
     }
-    .btn-secondary:hover { background: #475569; }
-    .btn-success {
-      background: var(--accent-green);
-      color: white;
-    }
-    .btn-success:hover { background: #059669; }
-    .btn-danger {
-      background: var(--accent-red);
-      color: white;
-    }
-    .btn-danger:hover { background: #dc2626; }
-    .btn-sm {
-      padding: 6px 12px;
-      font-size: 0.85rem;
-    }
-    input[type="file"] {
+    .tab-content {
       display: none;
+      padding: 20px;
     }
-    .section {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 25px;
-      margin-bottom: 25px;
-      box-shadow: var(--shadow-lg);
+    .tab-content.active {
+      display: block;
     }
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 2px solid var(--border-color);
+    .two-column-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 1600px;
+      margin: 0 auto;
     }
-    .section-title {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .section-title.task { color: var(--accent-blue); }
-    .section-title.expense { color: var(--accent-red); }
-    .section-title.income { color: var(--accent-green); }
-    .section-title.investment { color: var(--accent-purple); }
-    .section-title.common { color: var(--accent-orange); }
-    .master-field-group {
-      margin-bottom: 30px;
+    .field-card {
+      background: var(--card-bg, #ffffff);
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     .field-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
-      padding: 10px;
-      background: var(--primary-bg);
-      border-radius: 8px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border-color, #e2e8f0);
     }
     .field-name {
-      font-weight: 600;
+      font-weight: 700;
       font-size: 1.1rem;
-      color: var(--text-primary);
+      color: var(--text-primary, #1e293b);
     }
     .field-count {
-      font-size: 0.9rem;
-      color: var(--text-secondary);
+      font-size: 0.85rem;
+      color: var(--text-secondary, #64748b);
       font-weight: 500;
     }
-    .values-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 10px;
-      margin-top: 10px;
+    .values-container {
+      max-height: 280px;
+      overflow-y: auto;
+      margin-bottom: 15px;
     }
-    .value-item {
+    .value-row {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 12px 15px;
-      background: var(--primary-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
+      justify-content: space-between;
+      padding: 10px;
+      margin-bottom: 6px;
+      background: var(--primary-bg, #f8fafc);
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 6px;
       transition: all 0.2s;
     }
-    .value-item:hover {
-      border-color: var(--accent-blue);
-      box-shadow: var(--shadow);
+    .value-row:hover {
+      border-color: var(--accent-blue, #3b82f6);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .value-text {
       flex: 1;
-      color: var(--text-primary);
+      color: var(--text-primary, #1e293b);
       font-size: 0.95rem;
+      padding-right: 10px;
     }
     .value-actions {
       display: flex;
-      gap: 8px;
+      gap: 6px;
     }
     .btn-icon {
-      padding: 6px 10px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
       font-size: 0.85rem;
-      min-width: auto;
+      font-weight: 600;
+      transition: all 0.2s;
     }
-    .add-value-form {
+    .btn-edit {
+      background: var(--accent-blue, #3b82f6);
+      color: white;
+    }
+    .btn-edit:hover {
+      background: #2563eb;
+    }
+    .btn-delete {
+      background: #ef4444;
+      color: white;
+    }
+    .btn-delete:hover {
+      background: #dc2626;
+    }
+    .add-form {
       display: flex;
-      gap: 10px;
-      margin-top: 15px;
-      padding: 15px;
-      background: var(--primary-bg);
-      border-radius: 8px;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color, #e2e8f0);
     }
-    .add-value-form input {
+    .add-input {
       flex: 1;
-      padding: 10px 15px;
-      border: 1px solid var(--border-color);
+      padding: 10px 12px;
+      border: 1px solid var(--border-color, #e2e8f0);
       border-radius: 6px;
       font-size: 0.95rem;
-      background: var(--card-bg);
-      color: var(--text-primary);
+      background: var(--card-bg, #ffffff);
+      color: var(--text-primary, #1e293b);
     }
-    .add-value-form input:focus {
+    .add-input:focus {
       outline: none;
-      border-color: var(--accent-blue);
+      border-color: var(--accent-blue, #3b82f6);
     }
-    .empty-state {
+    .btn-add {
+      padding: 10px 20px;
+      background: #10b981;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+    .btn-add:hover {
+      background: #059669;
+    }
+    .empty-field {
       text-align: center;
       padding: 40px 20px;
-      color: var(--text-secondary);
+      color: var(--text-secondary, #64748b);
+      font-style: italic;
     }
-    .empty-state-icon {
-      font-size: 3rem;
-      margin-bottom: 15px;
-      opacity: 0.5;
-    }
+    /* Modal for editing */
     .modal {
       display: none;
       position: fixed;
@@ -229,8 +196,8 @@
       display: flex;
     }
     .modal-content {
-      background: var(--card-bg);
-      padding: 25px;
+      background: var(--card-bg, #ffffff);
+      padding: 30px;
       border-radius: 12px;
       max-width: 500px;
       width: 90%;
@@ -240,113 +207,114 @@
       margin-bottom: 20px;
       font-size: 1.3rem;
       font-weight: 700;
+      color: var(--text-primary, #1e293b);
     }
     .modal-body input {
       width: 100%;
       padding: 12px;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border-color, #e2e8f0);
       border-radius: 6px;
       font-size: 1rem;
       margin-bottom: 20px;
-      background: var(--card-bg);
-      color: var(--text-primary);
+      background: var(--card-bg, #ffffff);
+      color: var(--text-primary, #1e293b);
     }
     .modal-body input:focus {
       outline: none;
-      border-color: var(--accent-blue);
+      border-color: var(--accent-blue, #3b82f6);
     }
     .modal-actions {
       display: flex;
       gap: 10px;
       justify-content: flex-end;
     }
-    .stats-bar {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-      margin-top: 15px;
-    }
-    .stat-item {
+    .btn {
       padding: 10px 20px;
-      background: var(--primary-bg);
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.2s;
     }
-    .stat-label {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      margin-bottom: 5px;
+    .btn-secondary {
+      background: var(--text-secondary, #64748b);
+      color: white;
     }
-    .stat-value {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--text-primary);
+    .btn-secondary:hover {
+      background: #475569;
     }
-    @media (max-width: 768px) {
-      .values-list {
+    .btn-primary {
+      background: var(--accent-blue, #3b82f6);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+    @media (max-width: 1200px) {
+      .two-column-grid {
         grid-template-columns: 1fr;
       }
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
+    }
+    .values-container::-webkit-scrollbar {
+      width: 8px;
+    }
+    .values-container::-webkit-scrollbar-track {
+      background: var(--primary-bg, #f8fafc);
+      border-radius: 4px;
+    }
+    .values-container::-webkit-scrollbar-thumb {
+      background: var(--text-secondary, #64748b);
+      border-radius: 4px;
+    }
+    .values-container::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-blue, #3b82f6);
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>📊 Manage Master Data</h1>
-    <div class="header-actions">
-      <input type="file" id="excelFileInput" accept=".xlsx,.xls">
-      <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">
-        📥 Load from Excel
-      </button>
-      <button class="btn btn-secondary" onclick="window.location.href='index.html'">
-        ← Back to Dashboard
-      </button>
+  <!-- Header matching dashboard style -->
+  <header class="header">
+    <div class="left">
+      <button class="black" onclick="window.location.href='index.html'">← Back to Main Dashboard</button>
     </div>
-  </div>
-
-  <div id="statsBar" class="stats-bar"></div>
-
-  <!-- Task Master Data Section -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title task">📋 Task Master Data</h2>
+    <div class="title">Manage Master Data</div>
+    <div class="right">
+      <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
+      <button class="excel" onclick="document.getElementById('excelFileInput').click()">📥 Load from Excel</button>
     </div>
-    <div id="taskSection"></div>
-  </div>
+  </header>
 
-  <!-- Expense Master Data Section -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title expense">💰 Expense Master Data</h2>
+  <div class="master-data-container">
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <div class="tab active" data-tab="income">📊 Master Data for Income</div>
+      <div class="tab" data-tab="expense">💰 Master Data for Expense</div>
+      <div class="tab" data-tab="investment">📈 Master Data for Investment</div>
+      <div class="tab" data-tab="task">✅ Master Data for Task</div>
+      <div class="tab" data-tab="common">🌐 Common Master Data Fields</div>
     </div>
-    <div id="expenseSection"></div>
-  </div>
 
-  <!-- Income Master Data Section -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title income">💵 Income Master Data</h2>
+    <!-- Tab Contents -->
+    <div id="incomeContent" class="tab-content active">
+      <div class="two-column-grid" id="incomeGrid"></div>
     </div>
-    <div id="incomeSection"></div>
-  </div>
 
-  <!-- Investment Master Data Section -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title investment">📈 Investment Master Data</h2>
+    <div id="expenseContent" class="tab-content">
+      <div class="two-column-grid" id="expenseGrid"></div>
     </div>
-    <div id="investmentSection"></div>
-  </div>
 
-  <!-- Common Master Data Section -->
-  <div class="section">
-    <div class="section-header">
-      <h2 class="section-title common">🌐 Common Master Data</h2>
+    <div id="investmentContent" class="tab-content">
+      <div class="two-column-grid" id="investmentGrid"></div>
     </div>
-    <div id="commonSection"></div>
+
+    <div id="taskContent" class="tab-content">
+      <div class="two-column-grid" id="taskGrid"></div>
+    </div>
+
+    <div id="commonContent" class="tab-content">
+      <div class="two-column-grid" id="commonGrid"></div>
+    </div>
   </div>
 
   <!-- Edit Modal -->
@@ -367,13 +335,14 @@
   <script>
     // Master data structure definition
     const MASTER_DATA_STRUCTURE = {
-      task: {
-        Task_Category: 'Task Category',
-        Task_Tag: 'Task Tag',
-        Task_Status: 'Task Status',
-        Task_Assignee: 'Task Assignee',
-        Task_Priority: 'Task Priority',
-        Task_Adhoc: 'Task Adhoc'
+      income: {
+        Income_Category: 'Income Category',
+        Income_Ac_Tag: 'Income Account Tag',
+        Income_Tag: 'Income Tag',
+        Income_Mode: 'Income Mode',
+        Income_Holder: 'Income Holder',
+        Income_Account_Status: 'Income Account Status',
+        Income_Txn_Status: 'Income Transaction Status'
       },
       expense: {
         Expanse_Category: 'Expense Category',
@@ -389,15 +358,6 @@
         Txn_Status: 'Transaction Status',
         Expense_Txn_Status: 'Expense Transaction Status'
       },
-      income: {
-        Income_Category: 'Income Category',
-        Income_Ac_Tag: 'Income Account Tag',
-        Income_Tag: 'Income Tag',
-        Income_Mode: 'Income Mode',
-        Income_Holder: 'Income Holder',
-        Income_Account_Status: 'Income Account Status',
-        Income_Txn_Status: 'Income Transaction Status'
-      },
       investment: {
         Investment_Category: 'Investment Category',
         Investment_Ac_Tag: 'Investment Account Tag',
@@ -407,6 +367,14 @@
         Investment_Account_Status: 'Investment Account Status',
         Investment_Txn_Status: 'Investment Transaction Status'
       },
+      task: {
+        Task_Category: 'Task Category',
+        Task_Tag: 'Task Tag',
+        Task_Status: 'Task Status',
+        Task_Assignee: 'Task Assignee',
+        Task_Priority: 'Task Priority',
+        Task_Adhoc: 'Task Adhoc'
+      },
       common: {
         Currency: 'Currency',
         Frequency: 'Frequency'
@@ -415,6 +383,28 @@
 
     // Unified master data container
     let masterData = {};
+    let currentEdit = null;
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        const targetTab = this.getAttribute('data-tab');
+        switchTab(targetTab);
+      });
+    });
+
+    function switchTab(tabName) {
+      // Update active tab
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+      // Update active content
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(`${tabName}Content`).classList.add('active');
+
+      // Render the tab content
+      renderTab(tabName);
+    }
 
     // Load master data from localStorage
     function loadMasterData() {
@@ -432,7 +422,8 @@
         };
         saveMasterData();
       }
-      renderAllSections();
+      initializeMasterData();
+      renderTab('income'); // Render default tab
     }
 
     // Save master data to localStorage
@@ -455,72 +446,78 @@
       });
     }
 
-    // Render all sections
-    function renderAllSections() {
-      initializeMasterData();
-      renderSection('task', 'taskSection');
-      renderSection('expense', 'expenseSection');
-      renderSection('income', 'incomeSection');
-      renderSection('investment', 'investmentSection');
-      renderSection('common', 'commonSection');
-      renderStats();
-    }
-
-    // Render a section
-    function renderSection(module, containerId) {
-      const container = document.getElementById(containerId);
+    // Render a tab
+    function renderTab(module) {
+      const container = document.getElementById(`${module}Grid`);
       container.innerHTML = '';
 
       const fields = MASTER_DATA_STRUCTURE[module];
-      Object.keys(fields).forEach(fieldKey => {
-        const fieldLabel = fields[fieldKey];
-        const values = masterData[module][fieldKey] || [];
+      const fieldKeys = Object.keys(fields);
+      
+      // Split fields into two columns
+      const midPoint = Math.ceil(fieldKeys.length / 2);
+      const leftFields = fieldKeys.slice(0, midPoint);
+      const rightFields = fieldKeys.slice(midPoint);
 
-        const fieldGroup = document.createElement('div');
-        fieldGroup.className = 'master-field-group';
-
-        const fieldHeader = document.createElement('div');
-        fieldHeader.className = 'field-header';
-        fieldHeader.innerHTML = `
-          <span class="field-name">${fieldLabel}</span>
-          <span class="field-count">(${values.length} entries)</span>
-        `;
-        fieldGroup.appendChild(fieldHeader);
-
-        const valuesList = document.createElement('div');
-        valuesList.className = 'values-list';
-
-        if (values.length === 0) {
-          valuesList.innerHTML = `<div class="empty-state">
-            <div class="empty-state-icon">📭</div>
-            <div>No entries yet</div>
-          </div>`;
-        } else {
-          values.forEach((value, index) => {
-            const item = document.createElement('div');
-            item.className = 'value-item';
-            item.innerHTML = `
-              <span class="value-text">${escapeHtml(value)}</span>
-              <div class="value-actions">
-                <button class="btn btn-sm btn-primary btn-icon" onclick="editValue('${module}', '${fieldKey}', ${index})">✏️ Edit</button>
-                <button class="btn btn-sm btn-danger btn-icon" onclick="deleteValue('${module}', '${fieldKey}', ${index})">🗑️ Delete</button>
-              </div>
-            `;
-            valuesList.appendChild(item);
-          });
-        }
-        fieldGroup.appendChild(valuesList);
-
-        const addForm = document.createElement('div');
-        addForm.className = 'add-value-form';
-        addForm.innerHTML = `
-          <input type="text" id="add_${module}_${fieldKey}" placeholder="Add new ${fieldLabel.toLowerCase()}" onkeypress="if(event.key==='Enter') addValue('${module}', '${fieldKey}')">
-          <button class="btn btn-success btn-sm" onclick="addValue('${module}', '${fieldKey}')">➕ Add</button>
-        `;
-        fieldGroup.appendChild(addForm);
-
-        container.appendChild(fieldGroup);
+      // Create left column
+      const leftCol = document.createElement('div');
+      leftFields.forEach(fieldKey => {
+        leftCol.appendChild(createFieldCard(module, fieldKey, fields[fieldKey]));
       });
+      container.appendChild(leftCol);
+
+      // Create right column
+      const rightCol = document.createElement('div');
+      rightFields.forEach(fieldKey => {
+        rightCol.appendChild(createFieldCard(module, fieldKey, fields[fieldKey]));
+      });
+      container.appendChild(rightCol);
+    }
+
+    // Create a field card
+    function createFieldCard(module, fieldKey, fieldLabel) {
+      const card = document.createElement('div');
+      card.className = 'field-card';
+
+      const header = document.createElement('div');
+      header.className = 'field-header';
+      const values = masterData[module][fieldKey] || [];
+      header.innerHTML = `
+        <span class="field-name">${fieldLabel}</span>
+        <span class="field-count">(${values.length} entries)</span>
+      `;
+      card.appendChild(header);
+
+      const valuesContainer = document.createElement('div');
+      valuesContainer.className = 'values-container';
+
+      if (values.length === 0) {
+        valuesContainer.innerHTML = '<div class="empty-field">No entries yet</div>';
+      } else {
+        values.forEach((value, index) => {
+          const row = document.createElement('div');
+          row.className = 'value-row';
+          row.innerHTML = `
+            <span class="value-text">${escapeHtml(value)}</span>
+            <div class="value-actions">
+              <button class="btn-icon btn-edit" onclick="editValue('${module}', '${fieldKey}', ${index})">Edit</button>
+              <button class="btn-icon btn-delete" onclick="deleteValue('${module}', '${fieldKey}', ${index})">Delete</button>
+            </div>
+          `;
+          valuesContainer.appendChild(row);
+        });
+      }
+      card.appendChild(valuesContainer);
+
+      const addForm = document.createElement('div');
+      addForm.className = 'add-form';
+      addForm.innerHTML = `
+        <input type="text" class="add-input" id="add_${module}_${fieldKey}" placeholder="Add new ${fieldLabel.toLowerCase()}" onkeypress="if(event.key==='Enter') addValue('${module}', '${fieldKey}')">
+        <button class="btn-add" onclick="addValue('${module}', '${fieldKey}')">Add</button>
+      `;
+      card.appendChild(addForm);
+
+      return card;
     }
 
     // Add value
@@ -539,12 +536,11 @@
       masterData[module][fieldKey].push(value);
       masterData[module][fieldKey].sort();
       saveMasterData();
-      renderAllSections();
+      renderTab(module);
       input.value = '';
     }
 
     // Edit value
-    let currentEdit = null;
     function editValue(module, fieldKey, index) {
       currentEdit = { module, fieldKey, index };
       const value = masterData[module][fieldKey][index];
@@ -571,7 +567,7 @@
       masterData[module][fieldKey].sort();
       saveMasterData();
       closeEditModal();
-      renderAllSections();
+      renderTab(module);
     }
 
     // Delete value
@@ -579,34 +575,13 @@
       if (!confirm('Are you sure you want to delete this value?')) return;
       masterData[module][fieldKey].splice(index, 1);
       saveMasterData();
-      renderAllSections();
+      renderTab(module);
     }
 
     // Close edit modal
     function closeEditModal() {
       document.getElementById('editModal').classList.remove('show');
       currentEdit = null;
-    }
-
-    // Render statistics
-    function renderStats() {
-      const stats = {
-        task: Object.keys(MASTER_DATA_STRUCTURE.task).reduce((sum, key) => sum + (masterData.task[key]?.length || 0), 0),
-        expense: Object.keys(MASTER_DATA_STRUCTURE.expense).reduce((sum, key) => sum + (masterData.expense[key]?.length || 0), 0),
-        income: Object.keys(MASTER_DATA_STRUCTURE.income).reduce((sum, key) => sum + (masterData.income[key]?.length || 0), 0),
-        investment: Object.keys(MASTER_DATA_STRUCTURE.investment).reduce((sum, key) => sum + (masterData.investment[key]?.length || 0), 0),
-        common: Object.keys(MASTER_DATA_STRUCTURE.common).reduce((sum, key) => sum + (masterData.common[key]?.length || 0), 0)
-      };
-      const total = stats.task + stats.expense + stats.income + stats.investment + stats.common;
-
-      document.getElementById('statsBar').innerHTML = `
-        <div class="stat-item"><div class="stat-label">Total Entries</div><div class="stat-value">${total}</div></div>
-        <div class="stat-item"><div class="stat-label">Task</div><div class="stat-value">${stats.task}</div></div>
-        <div class="stat-item"><div class="stat-label">Expense</div><div class="stat-value">${stats.expense}</div></div>
-        <div class="stat-item"><div class="stat-label">Income</div><div class="stat-value">${stats.income}</div></div>
-        <div class="stat-item"><div class="stat-label">Investment</div><div class="stat-value">${stats.investment}</div></div>
-        <div class="stat-item"><div class="stat-label">Common</div><div class="stat-value">${stats.common}</div></div>
-      `;
     }
 
     // Escape HTML
@@ -710,7 +685,8 @@
           });
 
           saveMasterData();
-          renderAllSections();
+          const currentTab = document.querySelector('.tab.active').getAttribute('data-tab');
+          renderTab(currentTab);
           alert(`Successfully imported master data from Excel file!\n\nTotal sheets processed: ${sheetNames.filter(s => !s.startsWith('Txn_')).length}`);
         } catch (error) {
           console.error('Error reading Excel file:', error);
@@ -741,4 +717,3 @@
   </script>
 </body>
 </html>
-
