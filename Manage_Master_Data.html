@@ -547,9 +547,11 @@
       } else {
         values = masterData[module] && masterData[module][fieldKey] ? masterData[module][fieldKey] : [];
       }
+      // Format: Actual Field Name (count) <--> Mapped Field Name
+      const actualFieldName = fieldKey; // Excel sheet name (e.g., Expanse_Category)
+      const mappedFieldName = fieldLabel.replace(' ↔', ''); // Display name (e.g., Expense Category)
       header.innerHTML = `
-        <span class="field-name">${fieldLabel}</span>
-        <span class="field-count">(${values.length} entries)</span>
+        <span class="field-name">${actualFieldName} (${values.length}) <--> ${mappedFieldName}</span>
       `;
       card.appendChild(header);
 
