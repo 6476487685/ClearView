@@ -336,6 +336,24 @@ clearBtn.addEventListener('click',()=>{
  renderTable(migratedData);
 });
 
+// Helper function to get configured path and show message
+function showPathReminder(fileType) {
+  const downloadsPath = localStorage.getItem('project_downloads_path') || '';
+  const backupPath = localStorage.getItem('project_backup_path') || '';
+  
+  if (downloadsPath || backupPath) {
+    let message = `File downloaded to your default Downloads folder.\n\n`;
+    if (downloadsPath) {
+      message += `📁 Recommended: Move to: ${downloadsPath}\n`;
+    }
+    if (backupPath && fileType === 'excel') {
+      message += `💾 Backup: Copy to: ${backupPath}\n`;
+    }
+    message += `\n(Note: Browser security prevents automatic saving to custom paths)`;
+    setTimeout(() => alert(message), 500);
+  }
+}
+
 // Excel Export
 btnExcel.addEventListener('click',()=>{
  const rawData=getData();
@@ -354,6 +372,7 @@ btnExcel.addEventListener('click',()=>{
  const wb=XLSX.utils.book_new();
  XLSX.utils.book_append_sheet(wb,ws,'Tasks');
  XLSX.writeFile(wb,generateFilename('xlsx'));
+ showPathReminder('excel');
 });
 
 // PDF Export
@@ -418,6 +437,7 @@ btnPDF.addEventListener('click',()=>{
   
   // Download the PDF with proper filename
   doc.save(generateFilename('pdf'));
+  showPathReminder('pdf');
  
  } catch (error) {
    console.error('PDF generation error:', error);

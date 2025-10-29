@@ -440,16 +440,35 @@ function createExcelFile(data) {
   return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }
 
- // Exports
- btnExcel.onclick=()=>{
- const data = getData();
- const blob = createExcelFile(data);
- const a = document.createElement('a');
- a.href = URL.createObjectURL(blob);
- a.download = generateFilename('xlsx');
- a.click();
- URL.revokeObjectURL(a.href);
- };
+// Helper function to get configured path and show message
+function showPathReminder(fileType) {
+  const downloadsPath = localStorage.getItem('project_downloads_path') || '';
+  const backupPath = localStorage.getItem('project_backup_path') || '';
+  
+  if (downloadsPath || backupPath) {
+    let message = `File downloaded to your default Downloads folder.\n\n`;
+    if (downloadsPath) {
+      message += `📁 Recommended: Move to: ${downloadsPath}\n`;
+    }
+    if (backupPath && fileType === 'excel') {
+      message += `💾 Backup: Copy to: ${backupPath}\n`;
+    }
+    message += `\n(Note: Browser security prevents automatic saving to custom paths)`;
+    setTimeout(() => alert(message), 500);
+  }
+}
+
+// Exports
+btnExcel.onclick=()=>{
+const data = getData();
+const blob = createExcelFile(data);
+const a = document.createElement('a');
+a.href = URL.createObjectURL(blob);
+a.download = generateFilename('xlsx');
+a.click();
+URL.revokeObjectURL(a.href);
+showPathReminder('excel');
+};
  btnPDF.onclick=()=>{
  try {
   const data = getData();
@@ -598,8 +617,9 @@ function createExcelFile(data) {
  // Add final footer
  addFooter();
  
- // Download the PDF with proper filename
- doc.save(generateFilename('pdf'));
+// Download the PDF with proper filename
+doc.save(generateFilename('pdf'));
+showPathReminder('pdf');
  
  } catch (error) {
    console.error('PDF generation error:', error);

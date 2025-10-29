@@ -274,6 +274,60 @@
     .values-container::-webkit-scrollbar-thumb:hover {
       background: var(--accent-blue, #3b82f6);
     }
+    /* Paths tab styles */
+    .paths-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .path-section {
+      background: var(--card-bg, #ffffff);
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .path-title {
+      margin: 0 0 15px 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-primary, #1e293b);
+    }
+    .path-display {
+      background: var(--primary-bg, #f8fafc);
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      color: var(--text-primary, #1e293b);
+      word-break: break-all;
+      min-height: 20px;
+    }
+    .path-display:empty::before {
+      content: "Not set";
+      color: var(--text-secondary, #64748b);
+      font-style: italic;
+    }
+    .path-input-group {
+      display: flex;
+      gap: 10px;
+    }
+    .path-input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      background: var(--card-bg, #ffffff);
+      color: var(--text-primary, #1e293b);
+    }
+    .path-input:focus {
+      outline: none;
+      border-color: var(--accent-blue, #3b82f6);
+    }
   </style>
 </head>
 <body>
@@ -285,8 +339,9 @@
     <div class="title">Manage Master Data</div>
     <div class="right">
       <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
-      <button class="excel" onclick="document.getElementById('excelFileInput').click()">📥 Load from Excel</button>
-      <button class="danger" id="btnClearData" style="background:#ea4335;color:white;">🗑️ Clear All Data</button>
+      <button class="excel" onclick="document.getElementById('excelFileInput').click()" title="Upload Excel File">📥 Load from D:</button>
+      <button class="excel" onclick="alert('Google Drive integration is currently unavailable.')" title="Upload Excel File, Currently Unavailable" style="opacity: 0.6; cursor: not-allowed;">☁️ Load from Google Drive</button>
+      <button class="danger" id="btnClearData" style="background:#ea4335;color:white;" title="It deletes all Master Data">🗑️ Clear All Data</button>
     </div>
   </header>
 
@@ -298,6 +353,7 @@
       <div class="tab" data-tab="investment">📈 Investment</div>
       <div class="tab" data-tab="task">✅ Task</div>
       <div class="tab" data-tab="common">🌐 Common</div>
+      <div class="tab" data-tab="paths">🔧 Set/Change Paths</div>
     </div>
 
     <!-- Tab Contents -->
@@ -319,6 +375,35 @@
 
     <div id="commonContent" class="tab-content">
       <div class="two-column-grid" id="commonGrid"></div>
+    </div>
+
+    <div id="pathsContent" class="tab-content">
+      <div class="paths-container" id="pathsContainer">
+        <div class="path-section">
+          <h3 class="path-title">📁 Project Backup</h3>
+          <div class="path-display" id="backupPathDisplay">Not set</div>
+          <div class="path-input-group">
+            <input type="text" id="backupPathInput" class="path-input" placeholder="Enter backup folder path (e.g., D:\Projects\Backup)">
+            <button class="btn btn-primary" onclick="setPath('backup')">Set Path</button>
+          </div>
+        </div>
+        <div class="path-section">
+          <h3 class="path-title">📄 Project Documents</h3>
+          <div class="path-display" id="documentsPathDisplay">Not set</div>
+          <div class="path-input-group">
+            <input type="text" id="documentsPathInput" class="path-input" placeholder="Enter documents folder path (e.g., D:\Projects\Documents)">
+            <button class="btn btn-primary" onclick="setPath('documents')">Set Path</button>
+          </div>
+        </div>
+        <div class="path-section">
+          <h3 class="path-title">⬇️ Project Downloads</h3>
+          <div class="path-display" id="downloadsPathDisplay">Not set</div>
+          <div class="path-input-group">
+            <input type="text" id="downloadsPathInput" class="path-input" placeholder="Enter downloads folder path (e.g., D:\Projects\Downloads)">
+            <button class="btn btn-primary" onclick="setPath('downloads')">Set Path</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -444,8 +529,12 @@
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       document.getElementById(`${tabName}Content`).classList.add('active');
 
-      // Render the tab content
-      renderTab(tabName);
+      // Render the tab content (or load paths for paths tab)
+      if (tabName === 'paths') {
+        loadPaths();
+      } else {
+        renderTab(tabName);
+      }
     }
 
     // Load master data from localStorage
@@ -476,6 +565,69 @@
       localStorage.setItem('expense_master_data', JSON.stringify(masterData.expense || {}));
       localStorage.setItem('income_master_data', JSON.stringify(masterData.income || {}));
       localStorage.setItem('investment_master_data', JSON.stringify(masterData.investment || {}));
+    }
+
+    // Load paths from localStorage
+    function loadPaths() {
+      const backupPath = localStorage.getItem('project_backup_path') || '';
+      const documentsPath = localStorage.getItem('project_documents_path') || '';
+      const downloadsPath = localStorage.getItem('project_downloads_path') || '';
+      
+      if (document.getElementById('backupPathDisplay')) {
+        document.getElementById('backupPathDisplay').textContent = backupPath || 'Not set';
+        document.getElementById('documentsPathDisplay').textContent = documentsPath || 'Not set';
+        document.getElementById('downloadsPathDisplay').textContent = downloadsPath || 'Not set';
+        
+        document.getElementById('backupPathInput').value = backupPath;
+        document.getElementById('documentsPathInput').value = documentsPath;
+        document.getElementById('downloadsPathInput').value = downloadsPath;
+      }
+    }
+
+    // Set path function (exposed globally for onclick)
+    window.setPath = function(type) {
+      let inputId, storageKey, displayId;
+      
+      if (type === 'backup') {
+        inputId = 'backupPathInput';
+        storageKey = 'project_backup_path';
+        displayId = 'backupPathDisplay';
+      } else if (type === 'documents') {
+        inputId = 'documentsPathInput';
+        storageKey = 'project_documents_path';
+        displayId = 'documentsPathDisplay';
+      } else if (type === 'downloads') {
+        inputId = 'downloadsPathInput';
+        storageKey = 'project_downloads_path';
+        displayId = 'downloadsPathDisplay';
+      } else {
+        return;
+      }
+      
+      const path = document.getElementById(inputId).value.trim();
+      if (path) {
+        localStorage.setItem(storageKey, path);
+        document.getElementById(displayId).textContent = path;
+        alert(`Path set successfully for ${type}!`);
+      } else {
+        alert('Please enter a valid path.');
+      }
+    };
+
+    // Clear all paths
+    function clearAllPaths() {
+      localStorage.removeItem('project_backup_path');
+      localStorage.removeItem('project_documents_path');
+      localStorage.removeItem('project_downloads_path');
+      loadPaths();
+    }
+
+    // Check if paths are set
+    function arePathsSet() {
+      const backupPath = localStorage.getItem('project_backup_path');
+      const documentsPath = localStorage.getItem('project_documents_path');
+      const downloadsPath = localStorage.getItem('project_downloads_path');
+      return !!(backupPath && documentsPath && downloadsPath);
     }
 
     // Initialize master data structure
@@ -910,7 +1062,15 @@
           const totalSheets = sheetNames.length;
           const transactionalSheets = sheetNames.filter(s => s.startsWith('Txn_') && s !== 'Txn_Mode' && s !== 'Txn_Status' && !s.includes('Mode') && !s.includes('Status')).length;
           const masterDataSheets = processedSheets.length;
-          alert(`Successfully imported master data from Excel file!\n\nTotal sheets in file: ${totalSheets}\nTransactional sheets skipped: ${transactionalSheets}\nMaster data sheets processed: ${masterDataSheets}`);
+          
+          // Check if paths are set and show warning if not
+          let message = `Successfully imported master data from Excel file!\n\nTotal sheets in file: ${totalSheets}\nTransactional sheets skipped: ${transactionalSheets}\nMaster data sheets processed: ${masterDataSheets}`;
+          
+          if (!arePathsSet()) {
+            message += '\n\n⚠️ Please set Project Paths in the "Set/Change Paths" tab!';
+          }
+          
+          alert(message);
         } catch (error) {
           console.error('Error reading Excel file:', error);
           alert('Error reading Excel file: ' + error.message);
@@ -961,17 +1121,26 @@
       localStorage.removeItem('income_master_data');
       localStorage.removeItem('investment_master_data');
 
+      // Clear all paths
+      clearAllPaths();
+
       // Initialize empty structure and re-render
       initializeMasterData();
       saveMasterData();
       const currentTab = document.querySelector('.tab.active').getAttribute('data-tab');
-      renderTab(currentTab);
+      if (currentTab === 'paths') {
+        loadPaths();
+      } else {
+        renderTab(currentTab);
+      }
       
-      alert('✅ All master data has been cleared successfully.');
+      alert('✅ All master data and paths have been cleared successfully.');
     });
 
     // Initialize on load
     loadMasterData();
+    loadPaths(); // Load paths on page load
+    renderTab('income'); // Render default tab
   </script>
 </body>
 </html>
