@@ -343,6 +343,7 @@
       <button class="excel" onclick="alert('Google Drive integration is currently unavailable.')" title="Upload Excel File, Currently Unavailable" style="opacity: 0.6; cursor: not-allowed;">☁️ Load from Google Drive</button>
       <button class="danger" id="btnClearData" style="background:#ea4335;color:white;" title="It deletes all Master Data">🗑️ Clear All Data</button>
     </div>
+    <div style="text-align:center;padding:5px 0;font-size:0.85rem;color:var(--text-secondary);" id="lastFileInfo"></div>
   </header>
 
   <div class="master-data-container">
@@ -609,9 +610,21 @@
         localStorage.setItem(storageKey, path);
         document.getElementById(displayId).textContent = path;
         alert(`Path set successfully for ${type}!`);
+        
+        // Update tooltip in index.html if it's open
+        if (window.opener && typeof window.opener.updateProjectDocumentsTooltip === 'function') {
+          window.opener.updateProjectDocumentsTooltip();
+        }
       } else {
         alert('Please enter a valid path.');
       }
+    };
+    
+    // Function to update Manage Master Data tooltip (can be called from index.html)
+    window.updateManageMasterDataTooltip = function() {
+      const lastExcelFile = localStorage.getItem('last_excel_file_loaded') || '';
+      const lastExcelSource = localStorage.getItem('last_excel_file_source') || '';
+      // This will be called from index.html to update its tooltip
     };
 
     // Clear all paths
@@ -1056,6 +1069,16 @@
           });
 
           saveMasterData();
+          
+          // Save the Excel file name for tooltip
+          localStorage.setItem('last_excel_file_loaded', file.name);
+          localStorage.setItem('last_excel_file_source', 'D:');
+          
+          // Update tooltip in index.html if it's open
+          if (window.opener && typeof window.opener.updateManageMasterDataTooltip === 'function') {
+            window.opener.updateManageMasterDataTooltip();
+          }
+          
           const currentTab = document.querySelector('.tab.active').getAttribute('data-tab');
           renderTab(currentTab);
           
@@ -1137,10 +1160,28 @@
       alert('✅ All master data and paths have been cleared successfully.');
     });
 
+    // Display last loaded Excel file info
+    function updateLastFileDisplay() {
+      const lastExcelFile = localStorage.getItem('last_excel_file_loaded') || '';
+      const lastExcelSource = localStorage.getItem('last_excel_file_source') || '';
+      const infoDiv = document.getElementById('lastFileInfo');
+      if (infoDiv) {
+        if (lastExcelFile) {
+          infoDiv.textContent = `Last loaded: ${lastExcelFile} from ${lastExcelSource}`;
+          infoDiv.style.color = 'var(--text-secondary, #64748b)';
+        } else {
+          infoDiv.textContent = '';
+        }
+      }
+    }
+
     // Initialize on load
     loadMasterData();
     loadPaths(); // Load paths on page load
+    updateLastFileDisplay(); // Show last loaded file
     renderTab('income'); // Render default tab
-  </script>
+    
+    // Update tooltip for Manage Master Data link in index.html
+    updateManageMasterDataTooltip();
 </body>
 </html>

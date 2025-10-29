@@ -180,13 +180,13 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 </header>
 
 <nav id="sidebar">
-  <a href="Manage_Master_Data.html" class="nav-link"><span class="icon">🧩</span>Manage Master Data</a>
+  <a href="Manage_Master_Data.html" class="nav-link" id="masterDataNavLink"><span class="icon">🧩</span>Manage Master Data</a>
   <a href="#" class="nav-link" data-target="tasks"><span class="icon">✅</span>Manage Tasks</a>
   <a href="#" class="nav-link" data-target="accounts"><span class="icon">🗂️</span>Manage Accounts</a>
   <a href="#" class="nav-link" data-target="expense"><span class="icon">💸</span>Expense Transactions</a>
   <a href="#" class="nav-link" data-target="income"><span class="icon">💰</span>Income Transactions</a>
   <a href="#" class="nav-link" data-target="investments"><span class="icon">📈</span>Equity Transactions</a>
-  <a href="#" class="nav-link" data-target="docs"><span class="icon">📑</span>Documents</a>
+  <a href="#" class="nav-link" data-target="docs" id="docsNavLink"><span class="icon">📑</span>Project Documents</a>
   <a href="#" class="nav-link" data-target="analytics"><span class="icon">📊</span>Analytics</a>
 </nav>
 
@@ -1281,10 +1281,33 @@ function showDownloadsFolderSetup(){
   setTimeout(()=>folderInput.focus(),100);
 }
 
+// Update Project Documents tooltip with path from Manage Master Data
+function updateProjectDocumentsTooltip(){
+  const docsNavLink=document.getElementById('docsNavLink');
+  if(docsNavLink){
+    const documentsPath=localStorage.getItem('project_documents_path')||'';
+    docsNavLink.title=documentsPath?`Project Documents Path: ${documentsPath}`:'Click to manage project documents';
+  }
+}
+
+// Update Manage Master Data tooltip with last loaded Excel file
+function updateManageMasterDataTooltip(){
+  const masterDataLink=document.getElementById('masterDataNavLink');
+  if(masterDataLink){
+    const lastExcelFile=localStorage.getItem('last_excel_file_loaded')||'';
+    const lastExcelSource=localStorage.getItem('last_excel_file_source')||'';
+    if(lastExcelFile){
+      masterDataLink.title=`Last Excel file loaded: ${lastExcelFile} from ${lastExcelSource}`;
+    }else{
+      masterDataLink.title='Click to manage master data';
+    }
+  }
+}
+
 // Initialize tooltips on page load
 document.addEventListener('DOMContentLoaded',()=>{
-  updateDocsTooltip();
-  updateDownloadsTooltip();
+  updateProjectDocumentsTooltip();
+  updateManageMasterDataTooltip();
 });
 
 /* ---------- Enhanced Documents ---------- */
