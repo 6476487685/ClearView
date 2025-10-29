@@ -282,6 +282,7 @@
     <div class="right">
       <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
       <button class="excel" onclick="document.getElementById('excelFileInput').click()">📥 Load from Excel</button>
+      <button class="danger" id="btnClearData" style="background:#ea4335;color:white;">🗑️ Clear All Data</button>
     </div>
   </header>
 
@@ -710,6 +711,41 @@
       if (e.key === 'Escape') {
         closeEditModal();
       }
+    });
+
+    // Clear all data with double confirmation
+    document.getElementById('btnClearData').addEventListener('click', function() {
+      // First confirmation
+      const firstConfirm = confirm('⚠️ WARNING: This will delete ALL master data!\n\nAre you sure you want to proceed?');
+      if (!firstConfirm) return;
+
+      // Second confirmation with more details
+      const secondConfirm = confirm('⚠️ FINAL WARNING: This action cannot be undone!\n\nAll master data for Income, Expense, Investment, Task, and Common fields will be permanently deleted.\n\nClick OK to confirm deletion.');
+      if (!secondConfirm) return;
+
+      // Clear all master data
+      masterData = {
+        task: {},
+        expense: {},
+        income: {},
+        investment: {},
+        common: {}
+      };
+
+      // Clear localStorage
+      localStorage.removeItem('unified_master_data');
+      localStorage.removeItem('task_master_data');
+      localStorage.removeItem('expense_master_data');
+      localStorage.removeItem('income_master_data');
+      localStorage.removeItem('investment_master_data');
+
+      // Initialize empty structure and re-render
+      initializeMasterData();
+      saveMasterData();
+      const currentTab = document.querySelector('.tab.active').getAttribute('data-tab');
+      renderTab(currentTab);
+      
+      alert('✅ All master data has been cleared successfully.');
     });
 
     // Initialize on load
