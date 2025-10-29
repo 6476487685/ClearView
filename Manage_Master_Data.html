@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Master Data — ClearView</title>
+  <link rel="stylesheet" href="assets/font-awesome.min.css">
+  <style>
+    :root {
+      --primary-bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-purple: #8b5cf6;
+      --accent-orange: #f59e0b;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-lg: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    body.dark {
+      --primary-bg: #0f172a;
+      --card-bg: #1e293b;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border-color: #334155;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--primary-bg);
+      color: var(--text-primary);
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .header {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .header h1 {
+      font-size: 1.8rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: var(--accent-blue);
+      color: white;
+    }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-secondary {
+      background: var(--text-secondary);
+      color: white;
+    }
+    .btn-secondary:hover { background: #475569; }
+    .btn-success {
+      background: var(--accent-green);
+      color: white;
+    }
+    .btn-success:hover { background: #059669; }
+    .btn-danger {
+      background: var(--accent-red);
+      color: white;
+    }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .section {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: var(--shadow-lg);
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--border-color);
+    }
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title.task { color: var(--accent-blue); }
+    .section-title.expense { color: var(--accent-red); }
+    .section-title.income { color: var(--accent-green); }
+    .section-title.investment { color: var(--accent-purple); }
+    .section-title.common { color: var(--accent-orange); }
+    .master-field-group {
+      margin-bottom: 30px;
+    }
+    .field-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 10px;
+      background: var(--primary-bg);
+      border-radius: 8px;
+    }
+    .field-name {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+    }
+    .field-count {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .values-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .value-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 15px;
+      background: var(--primary-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .value-item:hover {
+      border-color: var(--accent-blue);
+      box-shadow: var(--shadow);
+    }
+    .value-text {
+      flex: 1;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+    }
+    .value-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-icon {
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      min-width: auto;
+    }
+    .add-value-form {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      padding: 15px;
+      background: var(--primary-bg);
+      border-radius: 8px;
+    }
+    .add-value-form input {
+      flex: 1;
+      padding: 10px 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      background: var(--card-bg);
+      color: var(--text-primary);
+    }
+    .add-value-form input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.show {
+      display: flex;
+    }
+    .modal-content {
+      background: var(--card-bg);
+      padding: 25px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .modal-header {
+      margin-bottom: 20px;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    .modal-body input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 1rem;
+      margin-bottom: 20px;
+      background: var(--card-bg);
+      color: var(--text-primary);
+    }
+    .modal-body input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .stats-bar {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+    .stat-item {
+      padding: 10px 20px;
+      background: var(--primary-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+    .stat-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    @media (max-width: 768px) {
+      .values-list {
+        grid-template-columns: 1fr;
+      }
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📊 Manage Master Data</h1>
+    <div class="header-actions">
+      <input type="file" id="excelFileInput" accept=".xlsx,.xls">
+      <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">
+        📥 Load from Excel
+      </button>
+      <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+        ← Back to Dashboard
+      </button>
+    </div>
+  </div>
+
+  <div id="statsBar" class="stats-bar"></div>
+
+  <!-- Task Master Data Section -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title task">📋 Task Master Data</h2>
+    </div>
+    <div id="taskSection"></div>
+  </div>
+
+  <!-- Expense Master Data Section -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title expense">💰 Expense Master Data</h2>
+    </div>
+    <div id="expenseSection"></div>
+  </div>
+
+  <!-- Income Master Data Section -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title income">💵 Income Master Data</h2>
+    </div>
+    <div id="incomeSection"></div>
+  </div>
+
+  <!-- Investment Master Data Section -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title investment">📈 Investment Master Data</h2>
+    </div>
+    <div id="investmentSection"></div>
+  </div>
+
+  <!-- Common Master Data Section -->
+  <div class="section">
+    <div class="section-header">
+      <h2 class="section-title common">🌐 Common Master Data</h2>
+    </div>
+    <div id="commonSection"></div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header" id="modalTitle">Edit Value</div>
+      <div class="modal-body">
+        <input type="text" id="editInput" placeholder="Enter value">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveEditedValue()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    // Master data structure definition
+    const MASTER_DATA_STRUCTURE = {
+      task: {
+        Task_Category: 'Task Category',
+        Task_Tag: 'Task Tag',
+        Task_Status: 'Task Status',
+        Task_Assignee: 'Task Assignee',
+        Task_Priority: 'Task Priority',
+        Task_Adhoc: 'Task Adhoc'
+      },
+      expense: {
+        Expanse_Category: 'Expense Category',
+        Expense_Category: 'Expense Category',
+        Expanse_Ac_Tag: 'Expense Account Tag',
+        Expense_Tag: 'Expense Tag',
+        Txn_Mode: 'Transaction Mode',
+        Expense_Mode: 'Expense Mode',
+        Ac_Holder: 'Account Holder',
+        Expense_Holder: 'Expense Holder',
+        Ac_Status: 'Account Status',
+        Expense_Account_Status: 'Expense Account Status',
+        Txn_Status: 'Transaction Status',
+        Expense_Txn_Status: 'Expense Transaction Status'
+      },
+      income: {
+        Income_Category: 'Income Category',
+        Income_Ac_Tag: 'Income Account Tag',
+        Income_Tag: 'Income Tag',
+        Income_Mode: 'Income Mode',
+        Income_Holder: 'Income Holder',
+        Income_Account_Status: 'Income Account Status',
+        Income_Txn_Status: 'Income Transaction Status'
+      },
+      investment: {
+        Investment_Category: 'Investment Category',
+        Investment_Ac_Tag: 'Investment Account Tag',
+        Investment_Tag: 'Investment Tag',
+        Investment_Mode: 'Investment Mode',
+        Investment_Holder: 'Investment Holder',
+        Investment_Account_Status: 'Investment Account Status',
+        Investment_Txn_Status: 'Investment Transaction Status'
+      },
+      common: {
+        Currency: 'Currency',
+        Frequency: 'Frequency'
+      }
+    };
+
+    // Unified master data container
+    let masterData = {};
+
+    // Load master data from localStorage
+    function loadMasterData() {
+      const saved = localStorage.getItem('unified_master_data');
+      if (saved) {
+        masterData = JSON.parse(saved);
+      } else {
+        // Try to load from legacy format and convert
+        masterData = {
+          task: JSON.parse(localStorage.getItem('task_master_data') || '{}'),
+          expense: JSON.parse(localStorage.getItem('expense_master_data') || '{}'),
+          income: JSON.parse(localStorage.getItem('income_master_data') || '{}'),
+          investment: JSON.parse(localStorage.getItem('investment_master_data') || '{}'),
+          common: {}
+        };
+        saveMasterData();
+      }
+      renderAllSections();
+    }
+
+    // Save master data to localStorage
+    function saveMasterData() {
+      localStorage.setItem('unified_master_data', JSON.stringify(masterData));
+      // Also save to module-specific keys for backwards compatibility
+      localStorage.setItem('task_master_data', JSON.stringify(masterData.task || {}));
+      localStorage.setItem('expense_master_data', JSON.stringify(masterData.expense || {}));
+      localStorage.setItem('income_master_data', JSON.stringify(masterData.expense || {}));
+      localStorage.setItem('investment_master_data', JSON.stringify(masterData.investment || {}));
+    }
+
+    // Initialize master data structure
+    function initializeMasterData() {
+      ['task', 'expense', 'income', 'investment', 'common'].forEach(module => {
+        if (!masterData[module]) masterData[module] = {};
+        Object.keys(MASTER_DATA_STRUCTURE[module]).forEach(key => {
+          if (!masterData[module][key]) masterData[module][key] = [];
+        });
+      });
+    }
+
+    // Render all sections
+    function renderAllSections() {
+      initializeMasterData();
+      renderSection('task', 'taskSection');
+      renderSection('expense', 'expenseSection');
+      renderSection('income', 'incomeSection');
+      renderSection('investment', 'investmentSection');
+      renderSection('common', 'commonSection');
+      renderStats();
+    }
+
+    // Render a section
+    function renderSection(module, containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      const fields = MASTER_DATA_STRUCTURE[module];
+      Object.keys(fields).forEach(fieldKey => {
+        const fieldLabel = fields[fieldKey];
+        const values = masterData[module][fieldKey] || [];
+
+        const fieldGroup = document.createElement('div');
+        fieldGroup.className = 'master-field-group';
+
+        const fieldHeader = document.createElement('div');
+        fieldHeader.className = 'field-header';
+        fieldHeader.innerHTML = `
+          <span class="field-name">${fieldLabel}</span>
+          <span class="field-count">(${values.length} entries)</span>
+        `;
+        fieldGroup.appendChild(fieldHeader);
+
+        const valuesList = document.createElement('div');
+        valuesList.className = 'values-list';
+
+        if (values.length === 0) {
+          valuesList.innerHTML = `<div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div>No entries yet</div>
+          </div>`;
+        } else {
+          values.forEach((value, index) => {
+            const item = document.createElement('div');
+            item.className = 'value-item';
+            item.innerHTML = `
+              <span class="value-text">${escapeHtml(value)}</span>
+              <div class="value-actions">
+                <button class="btn btn-sm btn-primary btn-icon" onclick="editValue('${module}', '${fieldKey}', ${index})">✏️ Edit</button>
+                <button class="btn btn-sm btn-danger btn-icon" onclick="deleteValue('${module}', '${fieldKey}', ${index})">🗑️ Delete</button>
+              </div>
+            `;
+            valuesList.appendChild(item);
+          });
+        }
+        fieldGroup.appendChild(valuesList);
+
+        const addForm = document.createElement('div');
+        addForm.className = 'add-value-form';
+        addForm.innerHTML = `
+          <input type="text" id="add_${module}_${fieldKey}" placeholder="Add new ${fieldLabel.toLowerCase()}" onkeypress="if(event.key==='Enter') addValue('${module}', '${fieldKey}')">
+          <button class="btn btn-success btn-sm" onclick="addValue('${module}', '${fieldKey}')">➕ Add</button>
+        `;
+        fieldGroup.appendChild(addForm);
+
+        container.appendChild(fieldGroup);
+      });
+    }
+
+    // Add value
+    function addValue(module, fieldKey) {
+      const input = document.getElementById(`add_${module}_${fieldKey}`);
+      const value = input.value.trim();
+      if (!value) {
+        alert('Please enter a value');
+        return;
+      }
+      if (!masterData[module][fieldKey]) masterData[module][fieldKey] = [];
+      if (masterData[module][fieldKey].includes(value)) {
+        alert('This value already exists');
+        return;
+      }
+      masterData[module][fieldKey].push(value);
+      masterData[module][fieldKey].sort();
+      saveMasterData();
+      renderAllSections();
+      input.value = '';
+    }
+
+    // Edit value
+    let currentEdit = null;
+    function editValue(module, fieldKey, index) {
+      currentEdit = { module, fieldKey, index };
+      const value = masterData[module][fieldKey][index];
+      document.getElementById('editInput').value = value;
+      document.getElementById('modalTitle').textContent = `Edit ${MASTER_DATA_STRUCTURE[module][fieldKey]}`;
+      document.getElementById('editModal').classList.add('show');
+    }
+
+    // Save edited value
+    function saveEditedValue() {
+      if (!currentEdit) return;
+      const input = document.getElementById('editInput');
+      const newValue = input.value.trim();
+      if (!newValue) {
+        alert('Please enter a value');
+        return;
+      }
+      const { module, fieldKey, index } = currentEdit;
+      if (masterData[module][fieldKey].includes(newValue) && masterData[module][fieldKey][index] !== newValue) {
+        alert('This value already exists');
+        return;
+      }
+      masterData[module][fieldKey][index] = newValue;
+      masterData[module][fieldKey].sort();
+      saveMasterData();
+      closeEditModal();
+      renderAllSections();
+    }
+
+    // Delete value
+    function deleteValue(module, fieldKey, index) {
+      if (!confirm('Are you sure you want to delete this value?')) return;
+      masterData[module][fieldKey].splice(index, 1);
+      saveMasterData();
+      renderAllSections();
+    }
+
+    // Close edit modal
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('show');
+      currentEdit = null;
+    }
+
+    // Render statistics
+    function renderStats() {
+      const stats = {
+        task: Object.keys(MASTER_DATA_STRUCTURE.task).reduce((sum, key) => sum + (masterData.task[key]?.length || 0), 0),
+        expense: Object.keys(MASTER_DATA_STRUCTURE.expense).reduce((sum, key) => sum + (masterData.expense[key]?.length || 0), 0),
+        income: Object.keys(MASTER_DATA_STRUCTURE.income).reduce((sum, key) => sum + (masterData.income[key]?.length || 0), 0),
+        investment: Object.keys(MASTER_DATA_STRUCTURE.investment).reduce((sum, key) => sum + (masterData.investment[key]?.length || 0), 0),
+        common: Object.keys(MASTER_DATA_STRUCTURE.common).reduce((sum, key) => sum + (masterData.common[key]?.length || 0), 0)
+      };
+      const total = stats.task + stats.expense + stats.income + stats.investment + stats.common;
+
+      document.getElementById('statsBar').innerHTML = `
+        <div class="stat-item"><div class="stat-label">Total Entries</div><div class="stat-value">${total}</div></div>
+        <div class="stat-item"><div class="stat-label">Task</div><div class="stat-value">${stats.task}</div></div>
+        <div class="stat-item"><div class="stat-label">Expense</div><div class="stat-value">${stats.expense}</div></div>
+        <div class="stat-item"><div class="stat-label">Income</div><div class="stat-value">${stats.income}</div></div>
+        <div class="stat-item"><div class="stat-label">Investment</div><div class="stat-value">${stats.investment}</div></div>
+        <div class="stat-item"><div class="stat-label">Common</div><div class="stat-value">${stats.common}</div></div>
+      `;
+    }
+
+    // Escape HTML
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Excel import handler
+    document.getElementById('excelFileInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetNames = workbook.SheetNames;
+
+          console.log('Available sheets:', sheetNames);
+
+          // Initialize master data
+          initializeMasterData();
+
+          // Extract all master data sheets (exclude Txn_* sheets)
+          sheetNames.forEach(sheetName => {
+            if (sheetName.startsWith('Txn_')) {
+              console.log('Skipping transactional sheet:', sheetName);
+              return;
+            }
+
+            const sheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+            if (jsonData.length === 0) return;
+
+            // Try to find the column with the same name as the sheet, or use first column
+            let values = [];
+            const firstRow = jsonData[0];
+            const columnKeys = Object.keys(firstRow);
+
+            // Try exact match first
+            if (firstRow[sheetName] !== undefined) {
+              values = jsonData.map(row => row[sheetName]).filter(v => v !== undefined && v !== null && v !== '');
+            } else {
+              // Use first column
+              const firstCol = columnKeys[0];
+              values = jsonData.map(row => row[firstCol]).filter(v => v !== undefined && v !== null && v !== '');
+            }
+
+            // Find which module this sheet belongs to
+            let foundModule = null;
+            let foundKey = null;
+
+            for (const [module, fields] of Object.entries(MASTER_DATA_STRUCTURE)) {
+              for (const [key, label] of Object.entries(fields)) {
+                if (key === sheetName || sheetName.includes(key) || key.includes(sheetName)) {
+                  foundModule = module;
+                  foundKey = key;
+                  break;
+                }
+              }
+              if (foundModule) break;
+            }
+
+            // If not found, try partial matching for common names
+            if (!foundModule) {
+              const lowerSheet = sheetName.toLowerCase();
+              if (lowerSheet.includes('currency') || lowerSheet === 'currency') {
+                foundModule = 'common';
+                foundKey = 'Currency';
+              } else if (lowerSheet.includes('frequency') || lowerSheet === 'frequency') {
+                foundModule = 'common';
+                foundKey = 'Frequency';
+              } else if (lowerSheet.includes('task')) {
+                foundModule = 'task';
+                foundKey = sheetName;
+              } else if (lowerSheet.includes('expense') || lowerSheet.includes('expanse')) {
+                foundModule = 'expense';
+                foundKey = sheetName;
+              } else if (lowerSheet.includes('income')) {
+                foundModule = 'income';
+                foundKey = sheetName;
+              } else if (lowerSheet.includes('investment')) {
+                foundModule = 'investment';
+                foundKey = sheetName;
+              }
+            }
+
+            if (foundModule && values.length > 0) {
+              // Merge with existing values (avoid duplicates)
+              const existing = masterData[foundModule][foundKey] || [];
+              const newValues = values.filter(v => !existing.includes(v));
+              masterData[foundModule][foundKey] = [...existing, ...newValues].sort();
+              console.log(`Loaded ${values.length} values from ${sheetName} into ${foundModule}.${foundKey}`);
+            } else {
+              console.log(`Could not match sheet ${sheetName} to any master data field`);
+            }
+          });
+
+          saveMasterData();
+          renderAllSections();
+          alert(`Successfully imported master data from Excel file!\n\nTotal sheets processed: ${sheetNames.filter(s => !s.startsWith('Txn_')).length}`);
+        } catch (error) {
+          console.error('Error reading Excel file:', error);
+          alert('Error reading Excel file: ' + error.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+      // Reset file input
+      e.target.value = '';
+    });
+
+    // Close modal on outside click
+    document.getElementById('editModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeEditModal();
+      }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeEditModal();
+      }
+    });
+
+    // Initialize on load
+    loadMasterData();
+  </script>
+</body>
+</html>
+

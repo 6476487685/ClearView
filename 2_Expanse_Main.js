@@ -192,18 +192,30 @@ document.addEventListener("DOMContentLoaded",()=>{
  // Function to populate modal dropdowns from Excel master data
  function populateModalDropdowns(){
   try{
-   // Load expense master data from localStorage
-   const masterDataStr=localStorage.getItem('expense_master_data');
-   const masterData=masterDataStr?JSON.parse(masterDataStr):{};
+   // Load unified master data from localStorage
+   const unifiedDataStr=localStorage.getItem('unified_master_data');
+   let masterData={};
+   if(unifiedDataStr){
+    const unifiedData=JSON.parse(unifiedDataStr);
+    masterData=unifiedData.expense||{};
+   }else{
+    // Fallback to legacy format
+    const masterDataStr=localStorage.getItem('expense_master_data');
+    masterData=masterDataStr?JSON.parse(masterDataStr):{};
+   }
    
-   // Mapping: form field ID -> master data sheet name
+   // Also load common master data
+   const unifiedDataFull=unifiedDataStr?JSON.parse(unifiedDataStr):{};
+   const commonData=unifiedDataFull.common||{};
+   
+   // Mapping: form field ID -> master data sheet name (checks both module-specific and common)
    const fieldMapping={
     'Expense_Category':['Expanse_Category','Expense_Category'],
     'Expense_Tag':['Expanse_Ac_Tag','Expense_Tag'],
-    'Expense_Currency':['Currency','Expense_Currency'],
+    'Expense_Currency':['Currency','Expense_Currency'], // Also checks common.Currency
     'Expense_Mode':['Txn_Mode','Expense_Mode'],
     'Expense_Holder':['Ac_Holder','Expense_Holder'],
-    'Expense_Frequency':['Frequency','Expense_Frequency'],
+    'Expense_Frequency':['Frequency','Expense_Frequency'], // Also checks common.Frequency
     'Expense_Account_Status':['Ac_Status','Expense_Account_Status'],
     'Expense_Txn_Status':['Txn_Status','Expense_Txn_Status']
    };
@@ -216,11 +228,16 @@ document.addEventListener("DOMContentLoaded",()=>{
     // Clear existing options
     select.innerHTML='';
     
-    // Try to load from master data
+    // Try to load from master data (check both module-specific and common)
     let values=[];
     for(const sheetName of sheetNames){
      if(masterData[sheetName]&&Array.isArray(masterData[sheetName])){
       values=masterData[sheetName].filter(v=>v&&v!=='');
+      break;
+     }
+     // Also check common fields
+     if(commonData[sheetName]&&Array.isArray(commonData[sheetName])){
+      values=commonData[sheetName].filter(v=>v&&v!=='');
       break;
      }
     }
@@ -261,14 +278,28 @@ document.addEventListener("DOMContentLoaded",()=>{
    const paidFromSelect=form['Expense_Paid_From'];
    if(paidFromSelect){
     paidFromSelect.innerHTML='';
-    const incomeMasterDataStr=localStorage.getItem('income_master_data');
-    const incomeMasterData=incomeMasterDataStr?JSON.parse(incomeMasterDataStr):{};
+    const unifiedDataStr=localStorage.getItem('unified_master_data');
+    let incomeMasterData={};
+    if(unifiedDataStr){
+     const unifiedData=JSON.parse(unifiedDataStr);
+     incomeMasterData=unifiedData.income||{};
+    }else{
+     const incomeMasterDataStr=localStorage.getItem('income_master_data');
+     incomeMasterData=incomeMasterDataStr?JSON.parse(incomeMasterDataStr):{};
+    }
     let incomeTags=[];
     
-    // Try master data first
-    if(incomeMasterData['Income_Ac_Tag']&&Array.isArray(incomeMasterData['Income_Ac_Tag'])){
-     incomeTags=incomeMasterData['Income_Ac_Tag'].filter(v=>v&&v!=='');
-    }else{
+    // Try master data first - check multiple possible keys
+    const incomeTagKeys=['Income_Ac_Tag','Income_Tag'];
+    let foundTags=false;
+    for(const key of incomeTagKeys){
+     if(incomeMasterData[key]&&Array.isArray(incomeMasterData[key])){
+      incomeTags=incomeMasterData[key].filter(v=>v&&v!=='');
+      foundTags=true;
+      break;
+     }
+    }
+    if(!foundTags){
      // Fallback to income records
      const incomeData=JSON.parse(localStorage.getItem('income_records')||'[]');
      const tagSet=new Set();

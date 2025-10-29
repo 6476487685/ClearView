@@ -97,18 +97,30 @@ document.addEventListener("DOMContentLoaded",()=>{
  // Function to populate modal dropdowns from Excel master data
  function populateModalDropdowns(){
   try{
-   // Load income master data from localStorage
-   const masterDataStr=localStorage.getItem('income_master_data');
-   const masterData=masterDataStr?JSON.parse(masterDataStr):{};
+   // Load unified master data from localStorage
+   const unifiedDataStr=localStorage.getItem('unified_master_data');
+   let masterData={};
+   if(unifiedDataStr){
+    const unifiedData=JSON.parse(unifiedDataStr);
+    masterData=unifiedData.income||{};
+   }else{
+    // Fallback to legacy format
+    const masterDataStr=localStorage.getItem('income_master_data');
+    masterData=masterDataStr?JSON.parse(masterDataStr):{};
+   }
+   
+   // Also load common master data
+   const unifiedDataFull=unifiedDataStr?JSON.parse(unifiedDataStr):{};
+   const commonData=unifiedDataFull.common||{};
    
    // Mapping: form field ID -> master data sheet name -> fallback field names
    const fieldMapping={
     'cat':{sheets:['Income_Category'],fallback:['cat']},
     'tag':{sheets:['Income_Ac_Tag'],fallback:['tag']},
-    'cur':{sheets:['Currency'],fallback:['cur']},
+    'cur':{sheets:['Currency'],fallback:['cur']}, // Also checks common.Currency
     'mode':{sheets:['Income_Mode'],fallback:['mode']},
     'holder':{sheets:['Income_Holder'],fallback:['holder']},
-    'freq':{sheets:['Frequency'],fallback:['freq']}
+    'freq':{sheets:['Frequency'],fallback:['freq']} // Also checks common.Frequency
    };
    
    // Populate filter dropdowns from existing records (for backwards compatibility)
@@ -126,11 +138,16 @@ document.addEventListener("DOMContentLoaded",()=>{
     // Clear existing options
     select.innerHTML='';
     
-    // Try to load from master data
+    // Try to load from master data (check both module-specific and common)
     let values=[];
     for(const sheetName of config.sheets){
      if(masterData[sheetName]&&Array.isArray(masterData[sheetName])){
       values=masterData[sheetName].filter(v=>v&&v!=='');
+      break;
+     }
+     // Also check common fields
+     if(commonData[sheetName]&&Array.isArray(commonData[sheetName])){
+      values=commonData[sheetName].filter(v=>v&&v!=='');
       break;
      }
     }

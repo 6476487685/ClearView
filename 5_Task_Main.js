@@ -140,9 +140,17 @@ document.addEventListener("DOMContentLoaded",()=>{
 // Function to populate modal dropdowns from Excel master data
 function populateModalDropdowns(){
  try{
-  // Load task master data from localStorage
-  const masterDataStr=localStorage.getItem('task_master_data');
-  const masterData=masterDataStr?JSON.parse(masterDataStr):{};
+  // Load unified master data from localStorage
+  const unifiedDataStr=localStorage.getItem('unified_master_data');
+  let masterData={};
+  if(unifiedDataStr){
+   const unifiedData=JSON.parse(unifiedDataStr);
+   masterData=unifiedData.task||{};
+  }else{
+   // Fallback to legacy format
+   const masterDataStr=localStorage.getItem('task_master_data');
+   masterData=masterDataStr?JSON.parse(masterDataStr):{};
+  }
   
   // Mapping: form field ID -> master data sheet name -> database field name
   const fieldMapping={
