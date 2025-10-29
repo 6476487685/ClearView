@@ -18,25 +18,29 @@
     }
     .tabs-container {
       display: flex;
-      gap: 8px;
-      padding: 15px 20px;
+      gap: 5px;
+      padding: 10px 12px;
       background: var(--card-bg, #ffffff);
       border-bottom: 2px solid var(--border-color, #e2e8f0);
-      overflow-x: auto;
+      overflow-x: hidden;
       flex-wrap: nowrap;
     }
     .tab {
-      padding: 12px 24px;
+      padding: 8px 12px;
       background: var(--primary-bg, #f8fafc);
       border: 2px solid var(--border-color, #e2e8f0);
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.8rem;
       color: var(--text-secondary, #64748b);
       transition: all 0.2s;
       white-space: nowrap;
-      min-width: fit-content;
+      flex: 1;
+      min-width: 0;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .tab:hover {
       background: var(--accent-blue, #3b82f6);
@@ -289,11 +293,11 @@
   <div class="master-data-container">
     <!-- Tabs -->
     <div class="tabs-container">
-      <div class="tab active" data-tab="income">📊 Master Data for Income</div>
-      <div class="tab" data-tab="expense">💰 Master Data for Expense</div>
-      <div class="tab" data-tab="investment">📈 Master Data for Investment</div>
-      <div class="tab" data-tab="task">✅ Master Data for Task</div>
-      <div class="tab" data-tab="common">🌐 Common Master Data Fields</div>
+      <div class="tab active" data-tab="income">📊 Income</div>
+      <div class="tab" data-tab="expense">💰 Expense</div>
+      <div class="tab" data-tab="investment">📈 Investment</div>
+      <div class="tab" data-tab="task">✅ Task</div>
+      <div class="tab" data-tab="common">🌐 Common</div>
     </div>
 
     <!-- Tab Contents -->
