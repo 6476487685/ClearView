@@ -339,7 +339,7 @@
     <div class="title">Manage Master Data</div>
     <div class="right">
       <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
-      <button class="excel" id="btnLoadFromD" type="button" onclick="document.getElementById('excelFileInput').click()" title="Upload Excel File">📥 Load from D:</button>
+      <button class="excel" id="btnLoadFromD" type="button" onclick="openFilePicker()" title="Upload Excel File">📥 Load from D:</button>
       <button class="excel" onclick="alert('Google Drive integration is currently unavailable.')" title="Upload Excel File, Currently Unavailable" style="opacity: 0.6; cursor: not-allowed;">☁️ Load from Google Drive</button>
       <button class="danger" id="btnClearData" style="background:#ea4335;color:white;" title="It deletes all Master Data">🗑️ Clear All Data</button>
     </div>
@@ -424,6 +424,23 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
+    // Reliable file picker opener with showPicker() fallback
+    function openFilePicker(){
+      const input=document.getElementById('excelFileInput');
+      if(!input){ alert('File input not found'); return; }
+      try{
+        if(typeof input.showPicker==='function'){
+          input.showPicker();
+          return;
+        }
+      }catch(err){ /* fall through to click */ }
+      try{
+        input.click();
+      }catch(err){
+        console.error('Unable to open file picker:', err);
+        alert('Unable to open file picker. Please try again.');
+      }
+    }
     // (Reverted) No inline onchange handler; main listener will process
     // Master data structure - only fields specified by user
     // Sheets with prefix Income_, Investment_, Expense_, Task_ belong to those modules
