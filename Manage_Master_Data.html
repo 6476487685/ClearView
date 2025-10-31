@@ -537,9 +537,25 @@
               });
               localStorage.setItem('unified_master_data', JSON.stringify(unified));
               localStorage.setItem('last_excel_file_loaded', f.name);
-              localStorage.setItem('last_excel_file_source', 'Local');
-              alert('Master data imported (early handler). Reloading to render.');
-              location.reload();
+              localStorage.setItem('last_excel_file_source', 'D:');
+              // If main helpers are available, render immediately without reload
+              if (typeof window !== 'undefined' && typeof saveMasterData === 'function' && typeof renderTab === 'function') {
+                try {
+                  window.masterData = unified;
+                  saveMasterData();
+                  if (typeof updateLastFileDisplay === 'function') updateLastFileDisplay();
+                  const currentTab = (document.querySelector('.tab.active')||{getAttribute:()=> 'income'}).getAttribute('data-tab');
+                  renderTab(currentTab || 'income');
+                  alert('Master data imported successfully.');
+                } catch (e) {
+                  console.warn('Immediate render failed, reloading...', e);
+                  alert('Master data imported (early handler). Reloading to render.');
+                  location.reload();
+                }
+              } else {
+                alert('Master data imported (early handler). Reloading to render.');
+                location.reload();
+              }
             }catch(err){
               console.error('[Early] Parse error:', err);
               alert('Error reading Excel (early): ' + err.message);
