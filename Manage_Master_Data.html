@@ -616,10 +616,12 @@
         return card;
       }
       window.renderTab = function(module){
+        console.log('[Fallback renderTab] module=', module);
         const container = document.getElementById(`${module}Grid`);
         if (!container) return;
         container.innerHTML = '';
-        const fields = FB_STRUCTURE[module];
+        const fields = FB_STRUCTURE[module] || {};
+        console.log('[Fallback renderTab] fields=', Object.keys(fields));
         const keys = Object.keys(fields);
         const mid = Math.ceil(keys.length/2);
         const left = document.createElement('div');
@@ -630,6 +632,7 @@
         container.appendChild(right);
       };
       window.switchTab = function(tab){
+        console.log('[Fallback switchTab] to', tab);
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         const t = document.querySelector(`[data-tab="${tab}"]`);
         if (t) t.classList.add('active');
@@ -643,7 +646,8 @@
         const data = JSON.parse(localStorage.getItem('unified_master_data')||'null');
         if (data){ window.masterData = data; initializeMasterData(); saveMasterData(); }
       }catch(_){ }
-      // Default tab
+      // Render all tabs once then default to income
+      ['income','expense','investment','task','common'].forEach(m => window.renderTab(m));
       window.switchTab('income');
     })();
   </script>
