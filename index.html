@@ -180,9 +180,6 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 </header>
 
 <nav id="sidebar">
-  <a href="#" class="nav-link" data-target="load"><span class="icon">📁</span>Load Local Data</a>
-  <a href="#" class="nav-link disabled" title="Coming soon"><span class="icon">☁️</span>Load From Google Drive</a>
-  <a href="#" class="nav-link" data-target="backup"><span class="icon">💾</span>Backup & Export</a>
   <a href="Manage_Master_Data.html" class="nav-link" id="masterDataNavLink"><span class="icon">🧩</span>Manage Master Data</a>
   <a href="#" class="nav-link" data-target="tasks"><span class="icon">✅</span>Manage Tasks</a>
   <a href="#" class="nav-link" data-target="accounts"><span class="icon">🗂️</span>Manage Accounts</a>
@@ -1328,29 +1325,34 @@ function updateManageMasterDataTooltip(){
   if(masterDataLink){
     const lastExcelFile=localStorage.getItem('last_excel_file_loaded')||'';
     const lastExcelSource=localStorage.getItem('last_excel_file_source')||'';
-    const lastExcelPath=localStorage.getItem('last_excel_file_path')||lastExcelFile;
-    if(lastExcelFile){
-      // Show file path - if it's from D:, show full path; if from Google Drive, show source
-      if(lastExcelSource === 'D:'){
-        masterDataLink.title=`Current Excel file: ${lastExcelPath} (from Local Drive D:)`;
-      }else if(lastExcelSource === 'Google Drive'){
-        masterDataLink.title=`Current Excel file: ${lastExcelFile} (from Google Drive)`;
-      }else{
-        masterDataLink.title=`Current Excel file: ${lastExcelPath} (from ${lastExcelSource})`;
-      }
+    const lastExcelPath=localStorage.getItem('last_excel_file_path')||'';
+    const displayPath = lastExcelPath || lastExcelFile;
+    if(lastExcelFile || lastExcelPath){
+      // Build a consistent tooltip that includes source and path/name
+      let sourceLabel = lastExcelSource === 'D:' ? 'Local Drive D:' : (lastExcelSource || 'Unknown source');
+      if(lastExcelSource === 'Google Drive') sourceLabel = 'Google Drive';
+      masterDataLink.title=`Current Excel file: ${displayPath} (from ${sourceLabel})`;
     }else{
       masterDataLink.title='Click to manage master data and load Excel file';
     }
   }
 }
 
-// Initialize tooltips on page load
+// Initialize tooltips on page load and keep them in sync across tabs
 document.addEventListener('DOMContentLoaded',()=>{
   updateProjectDocumentsTooltip();
   updateManageMasterDataTooltip();
   // Restore legacy tooltips
   if(typeof updateLoadLocalTooltip==='function') updateLoadLocalTooltip();
   if(typeof updateBackupTooltip==='function') updateBackupTooltip();
+});
+
+// Listen for cross-tab/local updates (e.g., after importing in Manage_Master_Data)
+window.addEventListener('storage',(e)=>{
+  if(e.key && (e.key.includes('last_excel_file_') || e.key === 'project_documents_path')){
+    updateManageMasterDataTooltip();
+    updateProjectDocumentsTooltip();
+  }
 });
 
 /* ---------- Enhanced Documents ---------- */
