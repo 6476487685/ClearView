@@ -424,23 +424,31 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
-    // Reliable file picker opener with showPicker() fallback
-    function openFilePicker(){
-      const input=document.getElementById('excelFileInput');
-      if(!input){ alert('File input not found'); return; }
+    // Reliable file picker opener with showPicker() fallback - exposed globally
+    window.openFilePicker = function(){
+      const input = document.getElementById('excelFileInput');
+      if(!input){ 
+        alert('File input not found'); 
+        console.error('File input element not found');
+        return; 
+      }
       try{
-        if(typeof input.showPicker==='function'){
+        if(typeof input.showPicker === 'function'){
           input.showPicker();
           return;
         }
-      }catch(err){ /* fall through to click */ }
+      }catch(err){ 
+        console.log('showPicker not available, using click fallback');
+        /* fall through to click */ 
+      }
       try{
         input.click();
+        console.log('File picker opened');
       }catch(err){
         console.error('Unable to open file picker:', err);
         alert('Unable to open file picker. Please try again.');
       }
-    }
+    };
     // (Reverted) No inline onchange handler; main listener will process
     // Master data structure - only fields specified by user
     // Sheets with prefix Income_, Investment_, Expense_, Task_ belong to those modules
@@ -884,16 +892,35 @@
       return div.innerHTML;
     }
 
-    // Excel import handler
-    document.getElementById('excelFileInput').addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      // Proceed to read selected Excel file
-
-      const reader = new FileReader();
-      // Use default error handling
-      reader.onload = function(e) {
+    // Excel import handler - set up when DOM is ready
+    function setupExcelFileHandler() {
+      const fileInput = document.getElementById('excelFileInput');
+      if (!fileInput) {
+        console.error('Excel file input not found in DOM');
+        return;
+      }
+      
+      fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) {
+          console.log('No file selected');
+          return;
+        }
+        
+        console.log('File selected:', file.name, file.type, file.size);
+        
+        // Proceed to read selected Excel file
+        const reader = new FileReader();
+        
+        reader.onerror = function(error) {
+          console.error('FileReader error:', error);
+          alert('Error reading file: ' + (error.target.error?.message || 'Unknown error'));
+          e.target.value = ''; // Reset file input
+        };
+        
+        reader.onload = function(e) {
         try {
+          console.log('File read successfully, size:', e.target.result.byteLength);
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
           const sheetNames = workbook.SheetNames;
@@ -1133,15 +1160,23 @@
           }
           
           alert(message);
+          e.target.value = ''; // Reset file input after successful processing
         } catch (error) {
           console.error('Error reading Excel file:', error);
           alert('Error reading Excel file: ' + error.message);
+          e.target.value = ''; // Reset file input on error
         }
       };
       reader.readAsArrayBuffer(file);
-      // Reset file input
-      e.target.value = '';
     });
+    }
+    
+    // Set up the file handler when page loads
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupExcelFileHandler);
+    } else {
+      setupExcelFileHandler();
+    }
 
     // Close modal on outside click
     document.getElementById('editModal').addEventListener('click', function(e) {
