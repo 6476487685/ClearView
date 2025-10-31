@@ -422,19 +422,12 @@
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Critical script runs first, before XLSX library -->
   <script>
-    // Test if script is running at all
-    try {
-      console.log('=== Script started loading ===');
-      alert('Script is running! Click OK to continue.');
-    } catch(e) {
-      alert('Error in script: ' + e.message);
-    }
+    console.log('=== Critical script loading ===');
     
-    // Define openFilePicker immediately and make it globally accessible
+    // Define openFilePicker immediately - this must work regardless of XLSX library
     window.openFilePicker = function(){
-      alert('openFilePicker called!');
       console.log('openFilePicker called');
       const input = document.getElementById('excelFileInput');
       if(!input){ 
@@ -442,17 +435,23 @@
         console.error('File input element not found');
         return; 
       }
-      console.log('File input found, attempting to open picker');
+      console.log('File input found, opening picker');
       try{
         input.click();
-        console.log('File picker opened successfully');
+        console.log('File picker triggered');
       }catch(err){
-        console.error('Unable to open file picker:', err);
-        alert('Error: ' + err.message);
+        console.error('Error opening file picker:', err);
+        alert('Error opening file picker: ' + err.message);
       }
     };
     
     console.log('openFilePicker function defined');
+  </script>
+  
+  <script src="assets/xlsx.full.min.js" 
+          onerror="console.error('Failed to load local XLSX library')"></script>
+  <script>
+    console.log('=== Main script started ===');
     // (Reverted) No inline onchange handler; main listener will process
     // Master data structure - only fields specified by user
     // Sheets with prefix Income_, Investment_, Expense_, Task_ belong to those modules
@@ -1268,38 +1267,36 @@
     updateLastFileDisplay(); // Show last loaded file
     renderTab('income'); // Render default tab
     
-    // Set up button event listener - simplified approach
-    function attachButtonListener() {
-      console.log('Attempting to attach button listener...');
-      const btnLoadFromD = document.getElementById('btnLoadFromD');
-      if (btnLoadFromD) {
-        console.log('Button found, attaching listener');
-        btnLoadFromD.onclick = function(e) {
+    // Set up button event listener - multiple attempts to ensure it works
+    function setupButton() {
+      const btn = document.getElementById('btnLoadFromD');
+      if (btn) {
+        btn.onclick = function(e) {
           e.preventDefault();
           e.stopPropagation();
-          alert('Button clicked!');
-          console.log('Button clicked!');
           if (window.openFilePicker) {
             window.openFilePicker();
           } else {
-            alert('openFilePicker function not found!');
+            alert('Error: openFilePicker function not available');
           }
         };
-        console.log('Button listener attached successfully');
-      } else {
-        console.error('Button not found yet');
+        console.log('Button listener attached');
+        return true;
       }
+      return false;
     }
     
-    // Try to attach immediately
-    attachButtonListener();
-    
-    // Also try when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', attachButtonListener);
-    } else {
-      // DOM already ready, try again
-      setTimeout(attachButtonListener, 100);
+    // Try multiple times to ensure button is attached
+    if (!setupButton()) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+          if (!setupButton()) {
+            setTimeout(setupButton, 500);
+          }
+        });
+      } else {
+        setTimeout(setupButton, 100);
+      }
     }
     
     // Update tooltip for Manage Master Data link in index.html
