@@ -446,6 +446,30 @@
     };
     
     console.log('openFilePicker function defined');
+    
+    // Attach button listener here as well (early), so it works even if other scripts fail
+    (function attachEarlyButtonListener(){
+      function tryAttach(){
+        const btn = document.getElementById('btnLoadFromD');
+        if (btn) {
+          btn.onclick = function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            window.openFilePicker();
+          };
+          console.log('Early button listener attached');
+          return true;
+        }
+        return false;
+      }
+      if (!tryAttach()) {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', tryAttach, { once: true });
+        } else {
+          setTimeout(tryAttach, 50);
+        }
+      }
+    })();
   </script>
   
   <script src="assets/xlsx.full.min.js" 
