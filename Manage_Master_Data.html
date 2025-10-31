@@ -470,6 +470,19 @@
         }
       }
     })();
+
+    // Early minimal change handler to verify file selection and XLSX availability
+    (function attachEarlyChangeHandler(){
+      const input = document.getElementById('excelFileInput');
+      if (!input) return;
+      input.addEventListener('change', function(e){
+        const f = e.target.files && e.target.files[0];
+        console.log('Early handler: file selected?', !!f, f ? f.name : '');
+        if (!window.XLSX) {
+          console.warn('Early handler: XLSX not loaded yet');
+        }
+      });
+    })();
   </script>
   
   <script src="assets/xlsx.full.min.js" 
