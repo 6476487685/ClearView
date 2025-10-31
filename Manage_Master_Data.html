@@ -1470,6 +1470,10 @@
           // Save the Excel file name for tooltip
           localStorage.setItem('last_excel_file_loaded', file.name);
           localStorage.setItem('last_excel_file_source', 'D:');
+          // Full path is not available via browser APIs; store filename as best-effort
+          if (!localStorage.getItem('last_excel_file_path')) {
+            localStorage.setItem('last_excel_file_path', file.name);
+          }
           
           // Update tooltip in index.html if it's open
           if (window.opener && typeof window.opener.updateManageMasterDataTooltip === 'function') {
