@@ -345,7 +345,7 @@
       <button class="danger" id="btnClearData" style="background:#ea4335;color:white;" title="It deletes all Master Data">🗑️ Clear All Data</button>
     </div>
   </header>
-  <div style="text-align:center;padding:5px 0;font-size:0.85rem;color:var(--text-secondary);" id="lastFileInfo"></div>
+  <div id="lastFileInfo" style="margin:8px auto 0 auto;max-width:1400px;padding:8px 12px;border-radius:8px;display:block;font-size:0.9rem;line-height:1.4;background:rgba(59,130,246,0.08);color:var(--accent-blue, #3b82f6);font-weight:600;border:1px solid rgba(59,130,246,0.25);"></div>
 
   <div class="master-data-container">
     <!-- Tabs -->
@@ -1575,21 +1575,15 @@
       const lastExcelSource = localStorage.getItem('last_excel_file_source') || '';
       const lastExcelPath = localStorage.getItem('last_excel_file_path') || lastExcelFile;
       const infoDiv = document.getElementById('lastFileInfo');
-      if (infoDiv) {
-        if (lastExcelFile) {
-          if (lastExcelSource === 'D:') {
-            infoDiv.textContent = `📄 Current file: ${lastExcelPath} (Local Drive D:)`;
-          } else if (lastExcelSource === 'Google Drive') {
-            infoDiv.textContent = `☁️ Current file: ${lastExcelFile} (Google Drive)`;
-          } else {
-            infoDiv.textContent = `📄 Current file: ${lastExcelPath}`;
-          }
-          infoDiv.style.color = 'var(--accent-blue, #3b82f6)';
-          infoDiv.style.fontWeight = '600';
-        } else {
-          infoDiv.textContent = '⚠️ No Excel file loaded yet';
-          infoDiv.style.color = 'var(--text-secondary, #64748b)';
-        }
+      if (!infoDiv) return;
+      if (lastExcelFile || lastExcelPath) {
+        let sourceLabel = lastExcelSource === 'D:' ? 'Local Drive D:' : lastExcelSource;
+        if (lastExcelSource === 'Google Drive') sourceLabel = 'Google Drive';
+        const display = lastExcelPath || lastExcelFile;
+        const icon = lastExcelSource === 'Google Drive' ? '☁️' : '📄';
+        infoDiv.innerHTML = `${icon} <strong>Current Excel:</strong> <span style="color:#1e293b;font-weight:700;">${display}</span> <span style="color:#64748b;font-weight:500;">(${sourceLabel || 'Unknown source'})</span>`;
+      } else {
+        infoDiv.innerHTML = '⚠️ <strong>No Excel file loaded yet.</strong> Use "Load from D:" to import master lists.';
       }
     }
 
