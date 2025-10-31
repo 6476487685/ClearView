@@ -424,8 +424,17 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
+    // Test if script is running at all
+    try {
+      console.log('=== Script started loading ===');
+      alert('Script is running! Click OK to continue.');
+    } catch(e) {
+      alert('Error in script: ' + e.message);
+    }
+    
     // Define openFilePicker immediately and make it globally accessible
-    window.openFilePicker = function openFilePicker(){
+    window.openFilePicker = function(){
+      alert('openFilePicker called!');
       console.log('openFilePicker called');
       const input = document.getElementById('excelFileInput');
       if(!input){ 
@@ -435,24 +444,15 @@
       }
       console.log('File input found, attempting to open picker');
       try{
-        if(typeof input.showPicker === 'function'){
-          console.log('Using showPicker()');
-          input.showPicker();
-          return;
-        }
-      }catch(err){ 
-        console.log('showPicker not available, using click fallback:', err);
-        /* fall through to click */ 
-      }
-      try{
-        console.log('Using click() method');
         input.click();
         console.log('File picker opened successfully');
       }catch(err){
         console.error('Unable to open file picker:', err);
-        alert('Unable to open file picker: ' + err.message);
+        alert('Error: ' + err.message);
       }
     };
+    
+    console.log('openFilePicker function defined');
     // (Reverted) No inline onchange handler; main listener will process
     // Master data structure - only fields specified by user
     // Sheets with prefix Income_, Investment_, Expense_, Task_ belong to those modules
@@ -1268,33 +1268,38 @@
     updateLastFileDisplay(); // Show last loaded file
     renderTab('income'); // Render default tab
     
-    // Set up button event listener
-    const btnLoadFromD = document.getElementById('btnLoadFromD');
-    if (btnLoadFromD) {
-      btnLoadFromD.addEventListener('click', function(e) {
-        console.log('Button clicked via event listener');
-        e.preventDefault();
-        e.stopPropagation();
-        window.openFilePicker();
-      });
-      console.log('Button event listener attached successfully');
-    } else {
-      console.error('Load from D button not found - will retry on DOMContentLoaded');
-      // Retry if DOM not ready yet
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-          const btn = document.getElementById('btnLoadFromD');
-          if (btn) {
-            btn.addEventListener('click', function(e) {
-              console.log('Button clicked via event listener (DOMContentLoaded)');
-              e.preventDefault();
-              e.stopPropagation();
-              window.openFilePicker();
-            });
-            console.log('Button event listener attached (DOMContentLoaded)');
+    // Set up button event listener - simplified approach
+    function attachButtonListener() {
+      console.log('Attempting to attach button listener...');
+      const btnLoadFromD = document.getElementById('btnLoadFromD');
+      if (btnLoadFromD) {
+        console.log('Button found, attaching listener');
+        btnLoadFromD.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          alert('Button clicked!');
+          console.log('Button clicked!');
+          if (window.openFilePicker) {
+            window.openFilePicker();
+          } else {
+            alert('openFilePicker function not found!');
           }
-        });
+        };
+        console.log('Button listener attached successfully');
+      } else {
+        console.error('Button not found yet');
       }
+    }
+    
+    // Try to attach immediately
+    attachButtonListener();
+    
+    // Also try when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', attachButtonListener);
+    } else {
+      // DOM already ready, try again
+      setTimeout(attachButtonListener, 100);
     }
     
     // Update tooltip for Manage Master Data link in index.html
