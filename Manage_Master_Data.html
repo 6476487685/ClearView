@@ -444,7 +444,7 @@
     // (Reverted) No inline onchange handler; main listener will process
     // Master data structure - only fields specified by user
     // Sheets with prefix Income_, Investment_, Expense_, Task_ belong to those modules
-    // Sheets without these prefixes are common fields (Currency, Frequency, Ac_Holder, Txn_Mode, Txn_Status, Ac_Status)
+    // Sheets without these prefixes are common fields (Currency, Frequency, Ac_Holder, Mode, Txn_Status, Ac_Status)
     // Sheets with prefix Txn_ are transactional data (not master data)
     const MASTER_DATA_STRUCTURE = {
       expense: {
@@ -469,7 +469,7 @@
       },
       common: {
         'Currency': 'Currency',
-        'Mode_Txn': 'Transaction Mode',
+        'Mode': 'Mode',
         'Status_Txn': 'Transaction Status',
         'Ac_Holder': 'Account Holder',
         'Frequency': 'Frequency',
@@ -511,11 +511,12 @@
       'Expense_Holder': { module: 'common', key: 'Ac_Holder' }, // Map variations to Ac_Holder
       'Income_Holder': { module: 'common', key: 'Ac_Holder' },
       'Investment_Holder': { module: 'common', key: 'Ac_Holder' },
-      'Mode_Txn': { module: 'common', key: 'Mode_Txn' },
-      'Txn_Mode': { module: 'common', key: 'Mode_Txn' }, // Map old name to new
-      'Expense_Mode': { module: 'common', key: 'Mode_Txn' }, // Map variations to Mode_Txn
-      'Income_Mode': { module: 'common', key: 'Mode_Txn' },
-      'Investment_Mode': { module: 'common', key: 'Mode_Txn' },
+      'Mode_Txn': { module: 'common', key: 'Mode' },
+      'Txn_Mode': { module: 'common', key: 'Mode' }, // Normalize to Mode
+      'Mode': { module: 'common', key: 'Mode' },
+      'Expense_Mode': { module: 'common', key: 'Mode' }, // Map variations to Mode
+      'Income_Mode': { module: 'common', key: 'Mode' },
+      'Investment_Mode': { module: 'common', key: 'Mode' },
       'Status_Txn': { module: 'common', key: 'Status_Txn' },
       'Txn_Status': { module: 'common', key: 'Status_Txn' }, // Map old name to new
       'Expense_Txn_Status': { module: 'common', key: 'Status_Txn' }, // Map variations to Status_Txn
@@ -561,6 +562,16 @@
       const saved = localStorage.getItem('unified_master_data');
       if (saved) {
         masterData = JSON.parse(saved);
+        // Migration: normalize common.Mode_Txn -> common.Mode
+        if (masterData.common) {
+          const legacy = masterData.common['Mode_Txn'];
+          if (legacy && Array.isArray(legacy)) {
+            if (!Array.isArray(masterData.common['Mode'])) masterData.common['Mode'] = [];
+            const merged = [...masterData.common['Mode'], ...legacy].filter((v, i, a) => v && a.indexOf(v) === i).sort();
+            masterData.common['Mode'] = merged;
+            delete masterData.common['Mode_Txn'];
+          }
+        }
       } else {
         // Try to load from legacy format and convert
         masterData = {
@@ -720,11 +731,11 @@
       const header = document.createElement('div');
       header.className = 'field-header';
       // Get values - if this is a common field being accessed from a module tab
-      // Task module does NOT show Status_Txn and Mode_Txn
+      // Task module does NOT show Status_Txn and Mode
       let values = [];
       if (isCommonField) {
-        // Access common field (but exclude Status_Txn and Mode_Txn from task module)
-        if (module === 'task' && (fieldKey === 'Status_Txn' || fieldKey === 'Mode_Txn')) {
+        // Access common field (but exclude Status_Txn and Mode from task module)
+        if (module === 'task' && (fieldKey === 'Status_Txn' || fieldKey === 'Mode')) {
           values = [];
         } else {
           values = masterData.common && masterData.common[fieldKey] ? masterData.common[fieldKey] : [];
@@ -926,7 +937,7 @@
                 columnName = matchingKey;
               } else {
                 // For common fields, also try common variations
-                if (sheetName === 'Mode_Txn' || sheetName === 'Txn_Mode' || sheetName.toLowerCase() === 'mode_txn' || sheetName.toLowerCase() === 'txn_mode') {
+                if (sheetName === 'Mode' || sheetName === 'Mode_Txn' || sheetName === 'Txn_Mode' || sheetName.toLowerCase() === 'mode' || sheetName.toLowerCase() === 'mode_txn' || sheetName.toLowerCase() === 'txn_mode') {
                   const modeVariations = columnKeys.find(key => 
                     key.toLowerCase().includes('mode') || key.toLowerCase().includes('txn_mode') || key.toLowerCase().includes('mode_txn')
                   );
@@ -959,12 +970,12 @@
             let foundModule = null;
             let foundKey = null;
 
-            // PRIORITY 1: Check if sheet name is exactly Mode_Txn or Status_Txn (common fields) - CHECK FIRST!
+            // PRIORITY 1: Check if sheet name is exactly Mode/Mode_Txn/Txn_Mode or Status_Txn (common fields) - CHECK FIRST!
             // These must be checked BEFORE checking module prefixes to avoid mis-mapping
-            if (sheetName === 'Mode_Txn' || sheetName === 'Txn_Mode') {
+            if (sheetName === 'Mode' || sheetName === 'Mode_Txn' || sheetName === 'Txn_Mode') {
               foundModule = 'common';
-              foundKey = 'Mode_Txn';
-              console.log(`✓ PRIORITY MATCH: Sheet "${sheetName}" -> common.Mode_Txn`);
+              foundKey = 'Mode';
+              console.log(`✓ PRIORITY MATCH: Sheet "${sheetName}" -> common.Mode`);
             } else if (sheetName === 'Status_Txn' || sheetName === 'Txn_Status') {
               foundModule = 'common';
               foundKey = 'Status_Txn';
@@ -1032,11 +1043,11 @@
                 } else if (lowerSheet === 'ac_holder' || lowerSheet === 'account holder' || lowerSheet === 'ac holder') {
                   foundModule = 'common';
                   foundKey = 'Ac_Holder';
-                } else if (lowerSheet === 'mode_txn' || lowerSheet === 'txn_mode' || lowerSheet === 'transaction mode' || lowerSheet === 'txn mode' ||
-                           sheetName === 'Mode_Txn' || sheetName === 'Txn_Mode' || sheetName === 'MODE_TXN' || sheetName === 'TXN_MODE' || sheetName === 'txn_mode') {
+                } else if (lowerSheet === 'mode' || lowerSheet === 'mode_txn' || lowerSheet === 'txn_mode' || lowerSheet === 'transaction mode' || lowerSheet === 'txn mode' ||
+                           sheetName === 'Mode' || sheetName === 'Mode_Txn' || sheetName === 'Txn_Mode' || sheetName === 'MODE' || sheetName === 'MODE_TXN' || sheetName === 'TXN_MODE' || sheetName === 'txn_mode' || sheetName === 'Txn_MODE') {
                   foundModule = 'common';
-                  foundKey = 'Mode_Txn';
-                  console.log(`✓ Matched sheet "${sheetName}" to common.Mode_Txn`);
+                  foundKey = 'Mode';
+                  console.log(`✓ Matched sheet "${sheetName}" to common.Mode`);
                 } else if (lowerSheet === 'status_txn' || lowerSheet === 'txn_status' || lowerSheet === 'transaction status' || lowerSheet === 'txn status' ||
                            sheetName === 'Status_Txn' || sheetName === 'Txn_Status' || sheetName === 'STATUS_TXN' || sheetName === 'TXN_STATUS' || sheetName === 'txn_status') {
                   foundModule = 'common';
@@ -1058,8 +1069,8 @@
                       sheetName === 'Ac_Status' || sheetName === 'AC_STATUS') {
                     foundModule = 'common';
                     // Normalize to standard case
-                    if (sheetName === 'Mode_Txn' || sheetName.toUpperCase() === 'MODE_TXN' || sheetName === 'Txn_Mode' || sheetName.toUpperCase() === 'TXN_MODE' || sheetName === 'Txn_MODE') {
-                      foundKey = 'Mode_Txn';
+                    if (sheetName === 'Mode' || sheetName.toUpperCase() === 'MODE' || sheetName === 'Mode_Txn' || sheetName.toUpperCase() === 'MODE_TXN' || sheetName === 'Txn_Mode' || sheetName.toUpperCase() === 'TXN_MODE' || sheetName === 'Txn_MODE') {
+                      foundKey = 'Mode';
                     } else if (sheetName === 'Status_Txn' || sheetName.toUpperCase() === 'STATUS_TXN' || sheetName === 'Txn_Status' || sheetName.toUpperCase() === 'TXN_STATUS' || sheetName === 'Txn_STATUS') {
                       foundKey = 'Status_Txn';
                     } else if (sheetName.toUpperCase() === 'FREQUENCY' || sheetName === 'Frequency') {
