@@ -650,6 +650,47 @@
       ['income','expense','investment','task','common'].forEach(m => window.renderTab(m));
       window.switchTab('income');
     })();
+
+    // Robust tab click delegation to ensure switching works even if other listeners fail
+    (function robustTabDelegation(){
+      function onClick(e){
+        const t = e.target && e.target.closest && e.target.closest('.tab');
+        if (!t) return;
+        const tab = t.getAttribute('data-tab');
+        if (!tab) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof window.switchTab === 'function') {
+          console.log('[Delegation] switching to', tab);
+          window.switchTab(tab);
+        }
+      }
+      document.addEventListener('click', onClick);
+    })();
+
+    // Early Clear All fallback
+    (function earlyClearAll(){
+      const btn = document.getElementById('btnClearData');
+      if (!btn) return;
+      if (btn.__earlyBound) return; // avoid duplicate
+      btn.__earlyBound = true;
+      btn.addEventListener('click', function(){
+        try{
+          if (!confirm('This will delete ALL master data. Continue?')) return;
+          localStorage.removeItem('unified_master_data');
+          ['task_master_data','expense_master_data','income_master_data','investment_master_data'].forEach(k=>localStorage.removeItem(k));
+          window.masterData = { task:{}, expense:{}, income:{}, investment:{}, common:{} };
+          if (typeof initializeMasterData==='function') initializeMasterData();
+          if (typeof saveMasterData==='function') saveMasterData();
+          ['income','expense','investment','task','common'].forEach(m=>{ if (typeof renderTab==='function') renderTab(m); });
+          window.switchTab && window.switchTab('income');
+          alert('All master data cleared.');
+        }catch(err){
+          console.error('Early clear error:', err);
+          alert('Error clearing data: '+err.message);
+        }
+      });
+    })();
   </script>
   
   <script src="assets/xlsx.full.min.js" 
