@@ -568,6 +568,84 @@
         }
       });
     })();
+
+    // Provide minimal fallback rendering if main script did not attach functions
+    (function ensureFallbackRender(){
+      if (typeof window.renderTab === 'function') return; // main script present
+      console.warn('Main render functions missing; installing fallback renderer');
+      // Basic structure mirrors the confirmed fields
+      const FB_STRUCTURE = {
+        expense: { 'Expanse_Category':'Expense Category', 'Expanse_Ac_Tag':'Expense Account Tag' },
+        income: { 'Income_Category':'Income Category', 'Income_Ac_Tag':'Income Account Tag' },
+        investment: { 'Investment_Category':'Investment Category', 'Investment_Ac_Tag':'Investment Account Tag' },
+        task: { 'Task_Tag':'Task Tag','Task_Status':'Task Status','Task_Assignee':'Task Assignee','Task_Priority':'Task Priority','Task_Category':'Task Category','Task_Adhoc':'Task Adhoc' },
+        common: { 'Currency':'Currency','Mode':'Mode','Status_Txn':'Transaction Status','Ac_Holder':'Account Holder','Frequency':'Frequency','Ac_Status':'Account Status' }
+      };
+      window.initializeMasterData = function(){
+        const data = window.masterData || {};
+        ['expense','income','investment','task','common'].forEach(m => {
+          if (!data[m]) data[m] = {};
+          Object.keys(FB_STRUCTURE[m]).forEach(k => { if (!Array.isArray(data[m][k])) data[m][k] = []; });
+        });
+        window.masterData = data;
+      };
+      window.saveMasterData = function(){
+        localStorage.setItem('unified_master_data', JSON.stringify(window.masterData||{}));
+      };
+      function createFieldCard(module, fieldKey, label){
+        const card = document.createElement('div');
+        card.className = 'field-card';
+        const header = document.createElement('div');
+        header.className = 'field-header';
+        const values = ((window.masterData||{})[module]||{})[fieldKey] || [];
+        header.innerHTML = `<span class="field-name">${fieldKey} (${values.length}) <--> ${label}</span>`;
+        card.appendChild(header);
+        const valuesContainer = document.createElement('div');
+        valuesContainer.className = 'values-container';
+        if (values.length === 0){
+          valuesContainer.innerHTML = '<div class="empty-field">No entries yet</div>';
+        } else {
+          values.forEach(v => {
+            const row = document.createElement('div');
+            row.className = 'value-row';
+            row.innerHTML = `<span class="value-text">${v}</span>`;
+            valuesContainer.appendChild(row);
+          });
+        }
+        card.appendChild(valuesContainer);
+        return card;
+      }
+      window.renderTab = function(module){
+        const container = document.getElementById(`${module}Grid`);
+        if (!container) return;
+        container.innerHTML = '';
+        const fields = FB_STRUCTURE[module];
+        const keys = Object.keys(fields);
+        const mid = Math.ceil(keys.length/2);
+        const left = document.createElement('div');
+        keys.slice(0,mid).forEach(k => left.appendChild(createFieldCard(module,k,fields[k])));
+        const right = document.createElement('div');
+        keys.slice(mid).forEach(k => right.appendChild(createFieldCard(module,k,fields[k])));
+        container.appendChild(left);
+        container.appendChild(right);
+      };
+      window.switchTab = function(tab){
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        const t = document.querySelector(`[data-tab="${tab}"]`);
+        if (t) t.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        const content = document.getElementById(`${tab}Content`);
+        if (content) content.classList.add('active');
+        window.renderTab(tab);
+      };
+      // If we already have data, render immediately
+      try{
+        const data = JSON.parse(localStorage.getItem('unified_master_data')||'null');
+        if (data){ window.masterData = data; initializeMasterData(); saveMasterData(); }
+      }catch(_){ }
+      // Default tab
+      window.switchTab('income');
+    })();
   </script>
   
   <script src="assets/xlsx.full.min.js" 
