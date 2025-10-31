@@ -92,7 +92,8 @@
       font-weight: 500;
     }
     .values-container {
-      max-height: 220px;
+      /* show ~4 rows with vertical scroll for better placement */
+      max-height: 208px;
       overflow-y: auto;
       margin-bottom: 15px;
     }
@@ -538,6 +539,35 @@
               localStorage.setItem('unified_master_data', JSON.stringify(unified));
               localStorage.setItem('last_excel_file_loaded', f.name);
               localStorage.setItem('last_excel_file_source', 'D:');
+              // Build detailed summary
+              const totalSheets = sheetNames.length;
+              const transactionalSheets = sheetNames.filter(s => s.startsWith('Txn_') && !s.includes('Mode') && !s.includes('Status')).length;
+              const masterDataSheets = sheetNames.length - transactionalSheets;
+              const moduleFieldCounts = {
+                income: Object.keys(unified.income||{}).length,
+                expense: Object.keys(unified.expense||{}).length,
+                investment: Object.keys(unified.investment||{}).length,
+                task: Object.keys(unified.task||{}).length,
+                common: Object.keys(unified.common||{}).length
+              };
+              const moduleValueCounts = {
+                income: Object.values(unified.income||{}).reduce((a,b)=>a+(b?b.length:0),0),
+                expense: Object.values(unified.expense||{}).reduce((a,b)=>a+(b?b.length:0),0),
+                investment: Object.values(unified.investment||{}).reduce((a,b)=>a+(b?b.length:0),0),
+                task: Object.values(unified.task||{}).reduce((a,b)=>a+(b?b.length:0),0),
+                common: Object.values(unified.common||{}).reduce((a,b)=>a+(b?b.length:0),0)
+              };
+              const summaryMsg =
+                `Successfully imported master data from Excel file!\n\n`+
+                `Total sheets in file: ${totalSheets}\n`+
+                `Transactional sheets skipped: ${transactionalSheets}\n`+
+                `Master data sheets processed: ${masterDataSheets}\n\n`+
+                `Fields loaded — Income: ${moduleFieldCounts.income}, Expense: ${moduleFieldCounts.expense}, Investment: ${moduleFieldCounts.investment}, Task: ${moduleFieldCounts.task}, Common: ${moduleFieldCounts.common}\n`+
+                `Total values — Income: ${moduleValueCounts.income}, Expense: ${moduleValueCounts.expense}, Investment: ${moduleValueCounts.investment}, Task: ${moduleValueCounts.task}, Common: ${moduleValueCounts.common}` +
+                (!localStorage.getItem('project_backup_path') || !localStorage.getItem('project_documents_path') || !localStorage.getItem('project_downloads_path')
+                  ? `\n\n⚠️ Please set Project Paths in the "Set/Change Paths" tab!`
+                  : '');
+
               // If main helpers are available, render immediately without reload
               if (typeof window !== 'undefined' && typeof saveMasterData === 'function' && typeof renderTab === 'function') {
                 try {
@@ -546,14 +576,14 @@
                   if (typeof updateLastFileDisplay === 'function') updateLastFileDisplay();
                   const currentTab = (document.querySelector('.tab.active')||{getAttribute:()=> 'income'}).getAttribute('data-tab');
                   renderTab(currentTab || 'income');
-                  alert('Master data imported successfully.');
+                  alert(summaryMsg);
                 } catch (e) {
                   console.warn('Immediate render failed, reloading...', e);
-                  alert('Master data imported (early handler). Reloading to render.');
+                  alert(summaryMsg + '\n\nReloading to render.');
                   location.reload();
                 }
               } else {
-                alert('Master data imported (early handler). Reloading to render.');
+                alert(summaryMsg + '\n\nReloading to render.');
                 location.reload();
               }
             }catch(err){
@@ -605,15 +635,67 @@
         if (values.length === 0){
           valuesContainer.innerHTML = '<div class="empty-field">No entries yet</div>';
         } else {
-          values.forEach(v => {
+          values.forEach((v, idx) => {
             const row = document.createElement('div');
             row.className = 'value-row';
-            row.innerHTML = `<span class="value-text">${v}</span>`;
+            row.innerHTML = `
+              <span class=\"value-text\">${v}</span>
+              <div class=\"value-actions\">
+                <button class=\"btn-icon btn-edit\" onclick=\"(window.editValue||window.__fb_editValue)('${module}','${fieldKey}',${idx})\">Edit</button>
+                <button class=\"btn-icon btn-delete\" onclick=\"(window.deleteValue||window.__fb_deleteValue)('${module}','${fieldKey}',${idx})\">Delete</button>
+              </div>`;
             valuesContainer.appendChild(row);
           });
         }
         card.appendChild(valuesContainer);
+        // Add form
+        const addForm = document.createElement('div');
+        addForm.className = 'add-form';
+        addForm.innerHTML = `
+          <input type=\"text\" class=\"add-input\" id=\"add_${module}_${fieldKey}\" placeholder=\"Add new ${label.toLowerCase()}\" onkeypress=\"if(event.key==='Enter')(window.addValue||window.__fb_addValue)('${module}','${fieldKey}')\">
+          <button class=\"btn-add\" onclick=\"(window.addValue||window.__fb_addValue)('${module}','${fieldKey}')\">Add</button>`;
+        card.appendChild(addForm);
         return card;
+      }
+      // Fallback add/edit/delete if main ones are missing
+      if (typeof window.editValue !== 'function') {
+        window.__fb_editValue = function(module, fieldKey, index){
+          const arr = ((window.masterData||{})[module]||{})[fieldKey]||[];
+          const curr = arr[index] || '';
+          const nv = prompt('Edit value', curr);
+          if (nv===null) return; const val = String(nv).trim(); if (!val) return;
+          if (arr.includes(val) && arr[index] !== val) { alert('This value already exists'); return; }
+          arr[index] = val; arr.sort();
+          if (!window.masterData[module]) window.masterData[module] = {};
+          window.masterData[module][fieldKey] = arr;
+          saveMasterData();
+          window.renderTab((document.querySelector('.tab.active')||{getAttribute:()=>module}).getAttribute('data-tab')||module);
+        };
+      }
+      if (typeof window.deleteValue !== 'function') {
+        window.__fb_deleteValue = function(module, fieldKey, index){
+          if (!confirm('Delete this value?')) return;
+          const arr = ((window.masterData||{})[module]||{})[fieldKey]||[];
+          arr.splice(index,1);
+          if (!window.masterData[module]) window.masterData[module] = {};
+          window.masterData[module][fieldKey] = arr;
+          saveMasterData();
+          window.renderTab((document.querySelector('.tab.active')||{getAttribute:()=>module}).getAttribute('data-tab')||module);
+        };
+      }
+      if (typeof window.addValue !== 'function') {
+        window.__fb_addValue = function(module, fieldKey){
+          const input = document.getElementById(`add_${module}_${fieldKey}`);
+          if (!input) return; const v = String(input.value||'').trim(); if (!v) { alert('Please enter a value'); return; }
+          if (!window.masterData[module]) window.masterData[module] = {};
+          if (!Array.isArray(window.masterData[module][fieldKey])) window.masterData[module][fieldKey] = [];
+          if (window.masterData[module][fieldKey].includes(v)) { alert('This value already exists'); return; }
+          window.masterData[module][fieldKey].push(v);
+          window.masterData[module][fieldKey].sort();
+          saveMasterData();
+          window.renderTab((document.querySelector('.tab.active')||{getAttribute:()=>module}).getAttribute('data-tab')||module);
+          input.value='';
+        };
       }
       window.renderTab = function(module){
         console.log('[Fallback renderTab] module=', module);
@@ -676,7 +758,8 @@
       btn.__earlyBound = true;
       btn.addEventListener('click', function(){
         try{
-          if (!confirm('This will delete ALL master data. Continue?')) return;
+          if (!confirm('⚠️ WARNING: This will delete ALL master data!\n\nAre you sure you want to proceed?')) return;
+          if (!confirm('⚠️ FINAL WARNING: This action cannot be undone!\n\nAll master data for Income, Expense, Investment, Task, and Common fields will be permanently deleted.\n\nClick OK to confirm deletion.')) return;
           localStorage.removeItem('unified_master_data');
           ['task_master_data','expense_master_data','income_master_data','investment_master_data'].forEach(k=>localStorage.removeItem(k));
           window.masterData = { task:{}, expense:{}, income:{}, investment:{}, common:{} };
