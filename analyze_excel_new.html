@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excel Structure Analyzer</title>
+  <script src="assets/xlsx.full.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    h1 { color: #333; }
+    h2 { color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-top: 30px; }
+    pre { background: #f8f8f8; padding: 15px; border-radius: 5px; overflow-x: auto; border: 1px solid #ddd; }
+    .info { background: #e7f3ff; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 4px solid #007bff; }
+    .error { background: #ffe7e7; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 4px solid #dc3545; color: #721c24; }
+    .success { background: #e7ffe7; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 4px solid #28a745; color: #155724; }
+    .warning { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 4px solid #ffc107; color: #856404; }
+    input[type="file"] { padding: 10px; margin: 10px 0; border: 2px dashed #007bff; border-radius: 5px; width: 300px; }
+    table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+    table th, table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    table th { background: #007bff; color: white; }
+    table tr:nth-child(even) { background: #f8f8f8; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Excel File Structure Analyzer</h1>
+    <input type="file" id="fileInput" accept=".xlsx,.xls">
+    <div id="output"></div>
+  </div>
+  
+  <script>
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const output = document.getElementById('output');
+          output.innerHTML = '<h2>File: ' + file.name + '</h2>';
+          output.innerHTML += '<div class="info"><strong>Total Sheets:</strong> ' + workbook.SheetNames.length + '</div>';
+          output.innerHTML += '<div class="info"><strong>Sheet Names:</strong> ' + workbook.SheetNames.join(', ') + '</div>';
+          
+          // Analyze each sheet
+          workbook.SheetNames.forEach(sheetName => {
+            const sheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
+            
+            output.innerHTML += `<h2>Sheet: ${sheetName} (${jsonData.length} rows)</h2>`;
+            
+            if (jsonData.length > 0) {
+              const firstRow = jsonData[0];
+              const columns = Object.keys(firstRow);
+              
+              output.innerHTML += `<div class="success"><strong>Columns (${columns.length}):</strong> ${columns.join(', ')}</div>`;
+              
+              // Special handling for merged sheets
+              if (sheetName === 'Ac_Category' || sheetName === 'Ac_Tag') {
+                if (columns.includes('Ac_Classification')) {
+                  const classifications = [...new Set(jsonData.map(r => String(r['Ac_Classification'] || '').trim()).filter(v => v))];
+                  output.innerHTML += `<div class="success"><strong>Found Ac_Classification with values:</strong> ${classifications.join(', ')}</div>`;
+                  
+                  // Count by classification
+                  const counts = {};
+                  const sampleData = {};
+                  classifications.forEach(cls => {
+                    const matching = jsonData.filter(r => String(r['Ac_Classification'] || '').trim() === cls);
+                    counts[cls] = matching.length;
+                    if (matching.length > 0) {
+                      const mainCol = sheetName === 'Ac_Category' ? 'Ac_Category' : 'Ac_Tag';
+                      sampleData[cls] = matching.slice(0, 3).map(r => r[mainCol]).filter(v => v);
+                    }
+                  });
+                  
+                  output.innerHTML += `<div class="info"><strong>Counts by classification:</strong></div>`;
+                  output.innerHTML += '<pre>' + JSON.stringify(counts, null, 2) + '</pre>';
+                  
+                  if (Object.keys(sampleData).length > 0) {
+                    output.innerHTML += `<div class="info"><strong>Sample values by classification:</strong></div>`;
+                    output.innerHTML += '<pre>' + JSON.stringify(sampleData, null, 2) + '</pre>';
+                  }
+                } else {
+                  output.innerHTML += `<div class="error"><strong>ERROR:</strong> Ac_Classification column not found in ${sheetName}!</div>`;
+                }
+              }
+              
+              if (sheetName === 'Ac_Classification') {
+                const values = jsonData.map(r => {
+                  const val = Object.values(r)[0];
+                  return String(val || '').trim();
+                }).filter(v => v);
+                output.innerHTML += `<div class="success"><strong>Classification values (${values.length}):</strong> ${values.join(', ')}</div>`;
+              }
+              
+              // Show first 5 rows as table
+              if (jsonData.length > 0) {
+                output.innerHTML += '<h3>First 5 Rows:</h3>';
+                let tableHtml = '<table><tr>';
+                columns.forEach(col => {
+                  tableHtml += `<th>${col}</th>`;
+                });
+                tableHtml += '</tr>';
+                jsonData.slice(0, 5).forEach(row => {
+                  tableHtml += '<tr>';
+                  columns.forEach(col => {
+                    tableHtml += `<td>${row[col] || ''}</td>`;
+                  });
+                  tableHtml += '</tr>';
+                });
+                tableHtml += '</table>';
+                output.innerHTML += tableHtml;
+              }
+            } else {
+              output.innerHTML += '<div class="warning">Sheet is empty</div>';
+            }
+          });
+        } catch (error) {
+          document.getElementById('output').innerHTML = '<div class="error"><strong>Error:</strong> ' + error.message + '<br>' + error.stack + '</div>';
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  </script>
+</body>
+</html>
+

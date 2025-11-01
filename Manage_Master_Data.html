@@ -935,7 +935,7 @@
                 else if (MAP.task[name]){ mod='task'; key=name; }
                 else if (MAP.common[name]){ mod='common'; key=name; }
                 else if (VARIANTS[name]){ mod=VARIANTS[name].module; key=VARIANTS[name].key; }
-                else if (name === 'Mode' || name === 'Status_Txn'){ mod='common'; key=name; }
+                else if (name === 'Mode' || name === 'Status_Txn' || name === 'Ac_Classification'){ mod='common'; key=name; }
                 if (!mod || !key) return;
                 const sheet = wb.Sheets[name];
                 const rows = XLSX.utils.sheet_to_json(sheet);
@@ -1031,12 +1031,12 @@
         income: { 'Income_Category':'Income Category', 'Income_Ac_Tag':'Income Account Tag' },
         investment: { 'Investment_Category':'Investment Category', 'Investment_Ac_Tag':'Investment Account Tag' },
         task: { 'Task_Tag':'Task Tag','Task_Status':'Task Status','Task_Assignee':'Task Assignee','Task_Priority':'Task Priority','Task_Category':'Task Category','Task_Adhoc':'Task Adhoc' },
-        common: { 'Currency':'Currency','Mode':'Mode','Status_Txn':'Transaction Status','Ac_Holder':'Account Holder','Frequency':'Frequency','Ac_Status':'Account Status' },
+        common: { 'Currency':'Currency','Mode':'Mode','Status_Txn':'Transaction Status','Ac_Holder':'Account Holder','Frequency':'Frequency','Ac_Status':'Account Status','Ac_Classification':'Account Classification' },
         'bank-accounts': {},
         'trading-accounts': {},
         'properties': {},
         'credit-cards': {},
-        'tenants': {}
+        'tenants': { 'Tenant_Category':'Tenant Category', 'Tenant_Ac_Tag':'Tenant Account Tag' }
       };
       window.initializeMasterData = function(){
         const data = window.masterData || {};
@@ -1865,6 +1865,8 @@
                   const newValues = values.filter(v => v && v !== '' && !existing.includes(v));
                   masterData[module][fieldKey] = [...existing, ...newValues].sort();
                   console.log(`✓ Loaded ${values.length} ${module} values from "${sheetName}" into ${module}.${fieldKey} (${newValues.length} new)`);
+                } else {
+                  console.log(`⚠ No ${module} values found in "${sheetName}"`);
                 }
               });
               
@@ -1908,6 +1910,13 @@
                     key.toLowerCase().includes('status') || key.toLowerCase().includes('txn_status') || key.toLowerCase().includes('status_txn')
                   );
                   if (statusVariations) columnName = statusVariations;
+                } else if (sheetName === 'Ac_Classification' || sheetName.toLowerCase() === 'ac_classification') {
+                  // For Ac_Classification sheet, try to find column with same name, or use first column
+                  const classVariations = columnKeys.find(key => 
+                    key.toLowerCase() === 'ac_classification' || key.toLowerCase().includes('classification')
+                  );
+                  if (classVariations) columnName = classVariations;
+                  else columnName = columnKeys[0]; // Use first column if no match
                 } else {
                   // Use first column
                   columnName = columnKeys[0];
@@ -1931,7 +1940,7 @@
             let foundModule = null;
             let foundKey = null;
 
-            // PRIORITY 1: Check if sheet name is exactly Mode/Mode_Txn/Txn_Mode or Status_Txn (common fields) - CHECK FIRST!
+            // PRIORITY 1: Check if sheet name is exactly Mode/Mode_Txn/Txn_Mode or Status_Txn or Ac_Classification (common fields) - CHECK FIRST!
             // These must be checked BEFORE checking module prefixes to avoid mis-mapping
             if (sheetName === 'Mode' || sheetName === 'Mode_Txn' || sheetName === 'Txn_Mode') {
               foundModule = 'common';
@@ -1941,6 +1950,10 @@
               foundModule = 'common';
               foundKey = 'Status_Txn';
               console.log(`✓ PRIORITY MATCH: Sheet "${sheetName}" -> common.Status_Txn`);
+            } else if (sheetName === 'Ac_Classification') {
+              foundModule = 'common';
+              foundKey = 'Ac_Classification';
+              console.log(`✓ PRIORITY MATCH: Sheet "${sheetName}" -> common.Ac_Classification`);
             }
             // PRIORITY 2: Check exact mapping dictionary
             else if (SHEET_NAME_MAP[sheetName]) {
