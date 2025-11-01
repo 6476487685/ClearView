@@ -63,14 +63,25 @@
             align-items: center;
             box-shadow: var(--shadow);
             flex-shrink: 0;
+            position: relative;
         }
 
         .header h2 {
             font-size: 22px;
             font-weight: 600;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            margin: 0;
         }
 
         .header-buttons {
+            display: flex;
+            gap: 12px;
+            margin-left: auto;
+        }
+        
+        .header .left {
             display: flex;
             gap: 12px;
         }
@@ -94,10 +105,30 @@
             background: #6c757d;
             color: white;
         }
+        
+        .btn.black {
+            background: #0a0a0a;
+            color: #ffffff;
+            border: none;
+        }
+        
+        .btn.black:hover {
+            background: #2d2d2d;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
+        }
 
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        body.dark .btn.black {
+            background: #ffffff;
+            color: #0a0a0a;
+        }
+        
+        body.dark .btn.black:hover {
+            background: #e0e0e0;
         }
 
         /* Main Layout */
@@ -319,16 +350,13 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
+            <div class="left">
+                <button class="btn black" onclick="window.location.href='../index.html'">← Back to Main Dashboard</button>
+            </div>
             <h2>File Manager</h2>
             <div class="header-buttons">
-                <button class="btn btn-primary" id="openLastFolderBtn" onclick="openLastFolder()" style="display:none;">
-                    Open Last Folder
-                </button>
                 <button class="btn btn-primary" onclick="selectFolder()">
                     Change Folder
-                </button>
-                <button class="btn btn-secondary" onclick="returnToMainMenu()">
-                    Return to Main Menu
                 </button>
             </div>
         </div>
@@ -439,13 +467,7 @@
         };
         
         async function checkForSavedHandle() {
-            const savedHandle = await loadDirectoryHandle();
-            const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY) || localStorage.getItem(STORAGE_KEY);
-            
-            // Show button if we have either a saved handle or saved path
-            if (savedHandle || (savedPath && savedPath !== DEFAULT_PATH)) {
-                document.getElementById('openLastFolderBtn').style.display = 'inline-block';
-            }
+            // Button is now only in the middle pane, no need to check for header button
         }
 
         async function loadSavedFolder() {
@@ -511,13 +533,7 @@
                     </div>
                 `;
                 
-                // Also show the header button if we have a saved handle
-                if (savedHandle) {
-                    document.getElementById('openLastFolderBtn').style.display = 'inline-block';
-                } else {
-                    // Show button anyway if there's a saved path
-                    document.getElementById('openLastFolderBtn').style.display = 'inline-block';
-                }
+                // Open Last Folder button is now in the middle pane, no header button needed
             } else {
                 // Show default message
                 document.getElementById('fileListContainer').innerHTML = `
@@ -666,9 +682,6 @@
                     localStorage.setItem(STORAGE_KEY, displayPath);
                     localStorage.setItem(FILE_MANAGER_PATH_KEY, displayPath);
                     localStorage.setItem(ACCESS_KEY, 'true');
-                    
-                    // Show "Open Last Folder" button for future use
-                    document.getElementById('openLastFolderBtn').style.display = 'inline-block';
                     
                     // Trigger storage event so index.html tooltip updates
                     window.dispatchEvent(new StorageEvent('storage', {
