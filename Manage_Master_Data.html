@@ -441,7 +441,7 @@
       <button class="danger" id="btnClearData" style="background:#ea4335;color:white;" title="It deletes all Master Data">🗑️ Clear All Data</button>
     </div>
   </header>
-  <div id="lastFileInfo" style="position:sticky;top:60px;z-index:50;margin:8px auto 0 auto;max-width:1400px;padding:8px 12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;line-height:1.4;background:rgba(59,130,246,0.08);color:var(--accent-blue, #3b82f6);font-weight:600;border:1px solid rgba(59,130,246,0.25);">
+  <div id="lastFileInfo" style="margin:8px auto 0 auto;max-width:1400px;padding:8px 12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;line-height:1.4;background:rgba(59,130,246,0.08);color:var(--accent-blue, #3b82f6);font-weight:600;border:1px solid rgba(59,130,246,0.25);">
     <span id="filePathDisplay" style="text-align:left;">Not set</span>
     <span id="fileNameDisplay" style="text-align:right;">No file loaded</span>
   </div>
@@ -1213,9 +1213,9 @@
       }
     }
 
-    // Set path function (exposed globally for onclick)
-    window.setPath = function(type) {
-      let inputId, storageKey, displayId;
+    // Set path function (exposed globally for onclick) - uses folder picker
+    window.setPath = async function(type) {
+      let storageKey, displayId, inputId;
       
       if (type === 'backup') {
         inputId = 'backupPathInput';
@@ -1233,18 +1233,71 @@
         return;
       }
       
-      const path = document.getElementById(inputId).value.trim();
-      if (path) {
-        localStorage.setItem(storageKey, path);
-        document.getElementById(displayId).textContent = path;
-        alert(`Path set successfully for ${type}!`);
-        
-        // Update tooltip in index.html if it's open
-        if (window.opener && typeof window.opener.updateProjectDocumentsTooltip === 'function') {
-          window.opener.updateProjectDocumentsTooltip();
+      // Check if File System Access API is available
+      if ('showDirectoryPicker' in window) {
+        try {
+          // Open folder picker
+          const directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+          const folderName = directoryHandle.name;
+          
+          // Get existing path or construct default
+          const existingPath = localStorage.getItem(storageKey) || '';
+          
+          // Prompt user for full path (API doesn't provide full path for security)
+          const pathPrompt = `Folder "${folderName}" selected.\n\nPlease paste the full folder path (or click Cancel to use folder name only):`;
+          const fullPath = prompt(pathPrompt, existingPath || 'D:\\' + folderName);
+          
+          if (fullPath && fullPath.trim()) {
+            const path = fullPath.trim();
+            // Save to localStorage
+            localStorage.setItem(storageKey, path);
+            // Update display
+            document.getElementById(displayId).textContent = path;
+            // Update input field
+            document.getElementById(inputId).value = path;
+            alert(`Path set successfully for ${type}!\n\n${path}`);
+            
+            // Update tooltip in index.html if it's open
+            if (window.opener && typeof window.opener.updateProjectDocumentsTooltip === 'function') {
+              window.opener.updateProjectDocumentsTooltip();
+            }
+          } else {
+            // Use folder name if user cancels (not ideal but better than nothing)
+            const defaultPath = 'D:\\' + folderName;
+            localStorage.setItem(storageKey, defaultPath);
+            document.getElementById(displayId).textContent = defaultPath;
+            document.getElementById(inputId).value = defaultPath;
+            alert(`Path set to default: ${defaultPath}\n\nYou can edit it manually in the input field if needed.`);
+          }
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            console.error('Error selecting folder:', error);
+            alert('Error selecting folder: ' + error.message);
+            // Fallback to manual input
+            const inputElement = document.getElementById(inputId);
+            if (inputElement && inputElement.value.trim()) {
+              const path = inputElement.value.trim();
+              localStorage.setItem(storageKey, path);
+              document.getElementById(displayId).textContent = path;
+              alert(`Path set from input field for ${type}!`);
+            }
+          }
         }
       } else {
-        alert('Please enter a valid path.');
+        // Fallback: browser doesn't support folder picker, use manual input
+        const path = document.getElementById(inputId).value.trim();
+        if (path) {
+          localStorage.setItem(storageKey, path);
+          document.getElementById(displayId).textContent = path;
+          alert(`Path set successfully for ${type}!`);
+          
+          // Update tooltip in index.html if it's open
+          if (window.opener && typeof window.opener.updateProjectDocumentsTooltip === 'function') {
+            window.opener.updateProjectDocumentsTooltip();
+          }
+        } else {
+          alert('Folder picker not supported in this browser. Please enter the path manually in the input field.');
+        }
       }
     };
     
