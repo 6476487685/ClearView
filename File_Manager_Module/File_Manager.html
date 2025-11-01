@@ -7,13 +7,19 @@
     <link rel="stylesheet" href="../assets/font-awesome.min.css?v=2">
     <style>
         :root {
-            --header-bg: linear-gradient(135deg, #343a40 0%, #495057 100%);
+            --bg: #fefefe;
+            --surface: #ffffff;
             --sidebar-bg: #f8f9fa;
             --content-bg: #ffffff;
             --primary-bg: #f1f5f9;
+            --text-primary: #0a0a0a;
             --text-body: #1e293b;
+            --text-secondary: #5f6368;
             --text-muted: #6c757d;
+            --border: #f1f3f4;
+            --border-light: #f8f9fa;
             --divider: #e2e8f0;
+            --shadow-xs: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
             --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
             --card-bg: #ffffff;
             --border-color: #e9ecef;
@@ -21,13 +27,19 @@
         }
 
         body.dark {
-            --header-bg: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            --bg: #1a1a1a;
+            --surface: #2d2d2d;
             --sidebar-bg: #1e293b;
             --content-bg: #0f172a;
             --primary-bg: #0f172a;
+            --text-primary: #ffffff;
             --text-body: #f1f5f9;
+            --text-secondary: #b3b3b3;
             --text-muted: #94a3b8;
+            --border: #404040;
+            --border-light: #333333;
             --divider: #334155;
+            --shadow-xs: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
             --shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
             --card-bg: #1e293b;
             --border-color: #334155;
@@ -55,24 +67,28 @@
 
         /* Header */
         .header {
-            background: var(--header-bg);
-            color: white;
-            padding: 18px 24px;
+            background: var(--surface);
+            color: var(--text-primary);
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-xs);
             flex-shrink: 0;
             position: relative;
+            border-bottom: 1px solid var(--border-light);
+            font-weight: 400;
         }
 
         .header h2 {
-            font-size: 22px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 500;
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
             margin: 0;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
         }
 
         .header-buttons {
