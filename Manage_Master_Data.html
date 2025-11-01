@@ -441,7 +441,10 @@
       <button class="danger" id="btnClearData" style="background:#ea4335;color:white;" title="It deletes all Master Data">🗑️ Clear All Data</button>
     </div>
   </header>
-  <div id="lastFileInfo" style="position:sticky;top:60px;z-index:50;margin:8px auto 0 auto;max-width:1400px;padding:8px 12px;border-radius:8px;display:block;font-size:0.9rem;line-height:1.4;background:rgba(59,130,246,0.08);color:var(--accent-blue, #3b82f6);font-weight:600;border:1px solid rgba(59,130,246,0.25);"></div>
+  <div id="lastFileInfo" style="position:sticky;top:60px;z-index:50;margin:8px auto 0 auto;max-width:1400px;padding:8px 12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:0.9rem;line-height:1.4;background:rgba(59,130,246,0.08);color:var(--accent-blue, #3b82f6);font-weight:600;border:1px solid rgba(59,130,246,0.25);">
+    <span id="filePathDisplay" style="text-align:left;">Not set</span>
+    <span id="fileNameDisplay" style="text-align:right;">No file loaded</span>
+  </div>
 
   <div class="master-data-container">
     <!-- Tabs -->
@@ -1621,9 +1624,28 @@
           // Save the Excel file name for tooltip
           localStorage.setItem('last_excel_file_loaded', file.name);
           localStorage.setItem('last_excel_file_source', 'D:');
-          // Full path is not available via browser APIs; store filename as best-effort
-          if (!localStorage.getItem('last_excel_file_path')) {
-            localStorage.setItem('last_excel_file_path', file.name);
+          // Try to get file path - browser security limitations mean we can't get full path
+          // But we can prompt user or use the last known path
+          const existingPath = localStorage.getItem('last_excel_file_path') || '';
+          if (!existingPath) {
+            // Try to extract directory from common locations or prompt user
+            const userPath = prompt(`File "${file.name}" selected.\n\nFor better tracking, paste the full file path (or click Cancel):`, 'D:\\');
+            if (userPath && userPath.trim()) {
+              localStorage.setItem('last_excel_file_path', userPath.trim() + (userPath.trim().endsWith('\\') ? '' : '\\') + file.name);
+            } else {
+              // Default to D: drive
+              localStorage.setItem('last_excel_file_path', 'D:\\' + file.name);
+            }
+          } else {
+            // Update path with current filename if path exists
+            const pathParts = existingPath.split('\\');
+            pathParts[pathParts.length - 1] = file.name;
+            localStorage.setItem('last_excel_file_path', pathParts.join('\\'));
+          }
+          
+          // Update display immediately
+          if (typeof updateLastFileDisplay === 'function') {
+            updateLastFileDisplay();
           }
           
           // Update tooltip in index.html if it's open
@@ -1734,17 +1756,29 @@
     function updateLastFileDisplay() {
       const lastExcelFile = localStorage.getItem('last_excel_file_loaded') || '';
       const lastExcelSource = localStorage.getItem('last_excel_file_source') || '';
-      const lastExcelPath = localStorage.getItem('last_excel_file_path') || lastExcelFile;
-      const infoDiv = document.getElementById('lastFileInfo');
-      if (!infoDiv) return;
+      const lastExcelPath = localStorage.getItem('last_excel_file_path') || '';
+      const filePathDisplay = document.getElementById('filePathDisplay');
+      const fileNameDisplay = document.getElementById('fileNameDisplay');
+      
+      if (!filePathDisplay || !fileNameDisplay) return;
+      
       if (lastExcelFile || lastExcelPath) {
+        // Display file path on left
+        if (lastExcelPath) {
+          filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#1e293b;font-weight:500;">${lastExcelPath}</span>`;
+        } else {
+          // Try to extract path from filename if full path not available
+          filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-style:italic;">Path not available</span>`;
+        }
+        
+        // Display file name on right
+        const icon = lastExcelSource === 'Google Drive' ? '☁️' : '📄';
         let sourceLabel = lastExcelSource === 'D:' ? 'Local Drive D:' : lastExcelSource;
         if (lastExcelSource === 'Google Drive') sourceLabel = 'Google Drive';
-        const display = lastExcelPath || lastExcelFile;
-        const icon = lastExcelSource === 'Google Drive' ? '☁️' : '📄';
-        infoDiv.innerHTML = `${icon} <strong>Current Excel:</strong> <span style="color:#1e293b;font-weight:700;">${display}</span> <span style="color:#64748b;font-weight:500;">(${sourceLabel || 'Unknown source'})</span>`;
+        fileNameDisplay.innerHTML = `${icon} <strong>${lastExcelFile}</strong> <span style="color:#64748b;font-weight:400;font-size:0.85rem;">(${sourceLabel || 'Unknown source'})</span>`;
       } else {
-        infoDiv.innerHTML = '⚠️ <strong>No Excel file loaded yet.</strong> Use "Load from D:" to import master lists.';
+        filePathDisplay.innerHTML = '<span style="color:#64748b;">⚠️ No file path set</span>';
+        fileNameDisplay.innerHTML = '<span style="color:#64748b;">⚠️ No Excel file loaded yet</span>';
       }
     }
 
