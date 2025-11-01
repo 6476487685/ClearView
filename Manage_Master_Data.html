@@ -666,21 +666,33 @@
               
               // Try to get file path - prompt user if not available
               const existingPath = localStorage.getItem('last_excel_file_path') || '';
+              let newPath = '';
+              
               if (!existingPath) {
                 // Prompt user for full file path
-                const userPath = prompt(`File "${f.name}" selected.\n\nFor better tracking, paste the full file path (or click Cancel):`, 'D:\\');
+                const userPath = prompt(`File "${f.name}" selected.\n\nFor better tracking, paste the full file path (including filename):`, 'D:\\');
                 if (userPath && userPath.trim()) {
-                  localStorage.setItem('last_excel_file_path', userPath.trim() + (userPath.trim().endsWith('\\') ? '' : '\\') + f.name);
+                  newPath = userPath.trim();
+                  // Ensure path ends with filename
+                  if (!newPath.endsWith(f.name)) {
+                    newPath = newPath.replace(/[\\\/]+$/, '') + '\\' + f.name;
+                  }
+                  localStorage.setItem('last_excel_file_path', newPath);
                 } else {
-                  // Default to D: drive
-                  localStorage.setItem('last_excel_file_path', 'D:\\' + f.name);
+                  // Default to D: drive with filename
+                  newPath = 'D:\\' + f.name;
+                  localStorage.setItem('last_excel_file_path', newPath);
                 }
               } else {
                 // Update path with current filename if path exists
                 const pathParts = existingPath.split('\\');
                 pathParts[pathParts.length - 1] = f.name;
-                localStorage.setItem('last_excel_file_path', pathParts.join('\\'));
+                newPath = pathParts.join('\\');
+                localStorage.setItem('last_excel_file_path', newPath);
               }
+              
+              console.log('File path saved:', newPath);
+              console.log('LocalStorage path:', localStorage.getItem('last_excel_file_path'));
               
               // Update display immediately if function exists
               if (typeof updateLastFileDisplay === 'function') {
@@ -889,12 +901,26 @@
           return;
         }
         
+        // Debug logging
+        console.log('updateLastFileDisplay called');
+        console.log('lastExcelFile:', lastExcelFile);
+        console.log('lastExcelPath:', lastExcelPath);
+        console.log('lastExcelSource:', lastExcelSource);
+        
         if (lastExcelFile || lastExcelPath) {
           // Display file path on left
-          if (lastExcelPath) {
+          if (lastExcelPath && lastExcelPath.trim() && lastExcelPath !== 'undefined') {
             filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#1e293b;font-weight:500;">${lastExcelPath}</span>`;
           } else {
-            filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-style:italic;">Path not available</span>`;
+            // Try to construct path from common locations if file name exists
+            if (lastExcelFile) {
+              const defaultPath = 'D:\\' + lastExcelFile;
+              filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-weight:500;">${defaultPath}</span>`;
+              // Save this default path for future use
+              localStorage.setItem('last_excel_file_path', defaultPath);
+            } else {
+              filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-style:italic;">Path not available</span>`;
+            }
           }
           
           // Display file name on right
@@ -1685,21 +1711,33 @@
           // Try to get file path - browser security limitations mean we can't get full path
           // But we can prompt user or use the last known path
           const existingPath = localStorage.getItem('last_excel_file_path') || '';
+          let newPath = '';
+          
           if (!existingPath) {
             // Try to extract directory from common locations or prompt user
-            const userPath = prompt(`File "${file.name}" selected.\n\nFor better tracking, paste the full file path (or click Cancel):`, 'D:\\');
+            const userPath = prompt(`File "${file.name}" selected.\n\nFor better tracking, paste the full file path (including filename):`, 'D:\\');
             if (userPath && userPath.trim()) {
-              localStorage.setItem('last_excel_file_path', userPath.trim() + (userPath.trim().endsWith('\\') ? '' : '\\') + file.name);
+              newPath = userPath.trim();
+              // Ensure path ends with filename
+              if (!newPath.endsWith(file.name)) {
+                newPath = newPath.replace(/[\\\/]+$/, '') + '\\' + file.name;
+              }
+              localStorage.setItem('last_excel_file_path', newPath);
             } else {
-              // Default to D: drive
-              localStorage.setItem('last_excel_file_path', 'D:\\' + file.name);
+              // Default to D: drive with filename
+              newPath = 'D:\\' + file.name;
+              localStorage.setItem('last_excel_file_path', newPath);
             }
           } else {
             // Update path with current filename if path exists
             const pathParts = existingPath.split('\\');
             pathParts[pathParts.length - 1] = file.name;
-            localStorage.setItem('last_excel_file_path', pathParts.join('\\'));
+            newPath = pathParts.join('\\');
+            localStorage.setItem('last_excel_file_path', newPath);
           }
+          
+          console.log('File path saved (main handler):', newPath);
+          console.log('LocalStorage path:', localStorage.getItem('last_excel_file_path'));
           
           // Update display immediately
           if (typeof updateLastFileDisplay === 'function') {
@@ -1824,12 +1862,26 @@
           return;
         }
         
+        // Debug logging
+        console.log('updateLastFileDisplay called');
+        console.log('lastExcelFile:', lastExcelFile);
+        console.log('lastExcelPath:', lastExcelPath);
+        console.log('lastExcelSource:', lastExcelSource);
+        
         if (lastExcelFile || lastExcelPath) {
           // Display file path on left
-          if (lastExcelPath) {
+          if (lastExcelPath && lastExcelPath.trim() && lastExcelPath !== 'undefined') {
             filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#1e293b;font-weight:500;">${lastExcelPath}</span>`;
           } else {
-            filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-style:italic;">Path not available</span>`;
+            // Try to construct path from common locations if file name exists
+            if (lastExcelFile) {
+              const defaultPath = 'D:\\' + lastExcelFile;
+              filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-weight:500;">${defaultPath}</span>`;
+              // Save this default path for future use
+              localStorage.setItem('last_excel_file_path', defaultPath);
+            } else {
+              filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-style:italic;">Path not available</span>`;
+            }
           }
           
           // Display file name on right
