@@ -182,6 +182,10 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 <nav id="sidebar">
   <a href="Manage_Master_Data.html" class="nav-link" id="masterDataNavLink"><span class="icon">🧩</span>Manage Master Data</a>
   <a href="#" class="nav-link" data-target="tasks"><span class="icon">✅</span>Manage Tasks</a>
+  <a href="#" class="nav-link" data-target="bank-accounts"><span class="icon">🏦</span>Manage Accounts</a>
+  <a href="#" class="nav-link" data-target="credit-cards"><span class="icon">💳</span>Manage Credit Cards</a>
+  <a href="#" class="nav-link" data-target="tenants"><span class="icon">👥</span>Manage Tenants</a>
+  <a href="#" class="nav-link" data-target="properties"><span class="icon">🏠</span>Manage Properties</a>
   <a href="#" class="nav-link" data-target="accounts" id="accountsNavLink"><span class="icon">🗂️</span>File Manager</a>
   <a href="#" class="nav-link" data-target="expense"><span class="icon">💸</span>Expense Transactions</a>
   <a href="#" class="nav-link" data-target="income"><span class="icon">💰</span>Income Transactions</a>
@@ -356,6 +360,22 @@ document.querySelectorAll('.nav-link').forEach(link=>{
       }
       else if(t==='tasks'){
         window.location.href='5_Task.html';
+      }
+      else if(t==='bank-accounts'){
+        document.getElementById('genericTitle').textContent='Manage Accounts';
+        openModal('modal-generic');
+      }
+      else if(t==='credit-cards'){
+        document.getElementById('genericTitle').textContent='Manage Credit Cards';
+        openModal('modal-generic');
+      }
+      else if(t==='tenants'){
+        document.getElementById('genericTitle').textContent='Manage Tenants';
+        openModal('modal-generic');
+      }
+      else if(t==='properties'){
+        document.getElementById('genericTitle').textContent='Manage Properties';
+        openModal('modal-generic');
       }
     }
   });
