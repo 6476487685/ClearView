@@ -900,7 +900,7 @@
                   
                   if (!cols.includes(mainCol) || !cols.includes(classCol)) return;
                   
-                  const incomeVals = [], investVals = [], expVals = [];
+                  const incomeVals = [], investVals = [], expVals = [], tenantVals = [];
                   rows.forEach(r => {
                     const val = String(r[mainCol]||'').trim();
                     const cls = String(r[classCol]||'').trim();
@@ -908,18 +908,19 @@
                     if (cls === 'Income') incomeVals.push(val);
                     else if (cls === 'Investment') investVals.push(val);
                     else if (cls === 'Expanse' || cls === 'Expense') expVals.push(val);
+                    else if (cls === 'Tenant') tenantVals.push(val);
                   });
                   
-                  let incKey, invKey, expKey;
+                  let incKey, invKey, expKey, tenKey;
                   if (name === 'Ac_Category') {
-                    incKey = 'Income_Category'; invKey = 'Investment_Category'; expKey = 'Expanse_Category';
+                    incKey = 'Income_Category'; invKey = 'Investment_Category'; expKey = 'Expanse_Category'; tenKey = 'Tenant_Category';
                   } else {
-                    incKey = 'Income_Ac_Tag'; invKey = 'Investment_Ac_Tag'; expKey = 'Expanse_Ac_Tag';
+                    incKey = 'Income_Ac_Tag'; invKey = 'Investment_Ac_Tag'; expKey = 'Expanse_Ac_Tag'; tenKey = 'Tenant_Ac_Tag';
                   }
                   
-                  ['income', 'investment', 'expense'].forEach(m => {
-                    const v = m === 'income' ? incomeVals : (m === 'investment' ? investVals : expVals);
-                    const k = m === 'income' ? incKey : (m === 'investment' ? invKey : expKey);
+                  ['income', 'investment', 'expense', 'tenants'].forEach(m => {
+                    const v = m === 'income' ? incomeVals : (m === 'investment' ? investVals : (m === 'expense' ? expVals : tenantVals));
+                    const k = m === 'income' ? incKey : (m === 'investment' ? invKey : (m === 'expense' ? expKey : tenKey));
                     if (!unified[m][k]) unified[m][k] = [];
                     unified[m][k] = Array.from(new Set([...(unified[m][k]||[]), ...v])).sort();
                     console.log(`[Early] Loaded ${v.length} ${m} from ${name}`);
@@ -1297,7 +1298,8 @@
         // Fields will be added later from Excel
       },
       'tenants': {
-        // Fields will be added later from Excel
+        'Tenant_Category': 'Tenant Category',
+        'Tenant_Ac_Tag': 'Tenant Account Tag'
       }
     };
 
@@ -1816,6 +1818,7 @@
               const incomeValues = [];
               const investmentValues = [];
               const expenseValues = [];
+              const tenantValues = [];
               
               jsonData.forEach(row => {
                 const value = String(row[mainColumn] || '').trim();
@@ -1829,26 +1832,30 @@
                   investmentValues.push(value);
                 } else if (classification === 'Expanse' || classification === 'Expense') {
                   expenseValues.push(value);
+                } else if (classification === 'Tenant') {
+                  tenantValues.push(value);
                 }
               });
               
               // Map to appropriate modules and fields
-              let incomeKey = null, investmentKey = null, expenseKey = null;
+              let incomeKey = null, investmentKey = null, expenseKey = null, tenantKey = null;
               
               if (sheetName === 'Ac_Category') {
                 incomeKey = 'Income_Category';
                 investmentKey = 'Investment_Category';
                 expenseKey = 'Expanse_Category';
+                tenantKey = 'Tenant_Category';
               } else if (sheetName === 'Ac_Tag') {
                 incomeKey = 'Income_Ac_Tag';
                 investmentKey = 'Investment_Ac_Tag';
                 expenseKey = 'Expanse_Ac_Tag';
+                tenantKey = 'Tenant_Ac_Tag';
               }
               
               // Load data into appropriate modules
-              ['income', 'investment', 'expense'].forEach(module => {
-                const fieldKey = module === 'income' ? incomeKey : (module === 'investment' ? investmentKey : expenseKey);
-                const values = module === 'income' ? incomeValues : (module === 'investment' ? investmentValues : expenseValues);
+              ['income', 'investment', 'expense', 'tenants'].forEach(module => {
+                const fieldKey = module === 'income' ? incomeKey : (module === 'investment' ? investmentKey : (module === 'expense' ? expenseKey : tenantKey));
+                const values = module === 'income' ? incomeValues : (module === 'investment' ? investmentValues : (module === 'expense' ? expenseValues : tenantValues));
                 
                 if (!masterData[module]) masterData[module] = {};
                 if (!masterData[module][fieldKey]) masterData[module][fieldKey] = [];
