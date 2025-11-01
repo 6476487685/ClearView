@@ -628,9 +628,16 @@
           const inputValue = e.target.value || '';
           if (inputValue && !folderPath) {
             // Extract folder path from input value (format: "C:\path\to\file.xlsx")
-            const match = inputValue.match(/^(.+)[\\\/][^\\\/]+$/);
-            if (match && match[1]) {
-              folderPath = match[1];
+            // Skip if it's the fake path browsers show for security
+            if (!inputValue.includes('fakepath') && !inputValue.toLowerCase().includes('c:\\fakepath')) {
+              const match = inputValue.match(/^(.+)[\\\/][^\\\/]+$/);
+              if (match && match[1]) {
+                folderPath = match[1];
+                // Double check it's not a fake path
+                if (folderPath.toLowerCase().includes('fakepath')) {
+                  folderPath = '';
+                }
+              }
             }
           }
           
@@ -923,11 +930,19 @@
         }
         
         if (lastExcelFile) {
-          // Display folder path if available
-          if (lastExcelFolderPath) {
+          // Display folder path if available and valid (not fake path)
+          if (lastExcelFolderPath && 
+              !lastExcelFolderPath.toLowerCase().includes('fakepath') && 
+              lastExcelFolderPath.trim() !== 'C:\\fakepath' &&
+              lastExcelFolderPath.trim() !== 'c:\\fakepath') {
             filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#1e293b;font-weight:500;">${lastExcelFolderPath}</span>`;
           } else {
-            filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-style:italic;">Folder path not captured</span>`;
+            // Clear invalid fake path from storage
+            if (lastExcelFolderPath && lastExcelFolderPath.toLowerCase().includes('fakepath')) {
+              window.lastExcelFolderPath = '';
+              localStorage.removeItem('last_excel_folder_path');
+            }
+            filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-style:italic;">Folder path not available</span>`;
           }
           
           // Display file name on right
@@ -1723,10 +1738,15 @@
             const inputValue = input ? input.value || '' : '';
             
             // Extract folder path from input value if available
-            if (inputValue) {
+            // Skip if it's the fake path browsers show for security
+            if (inputValue && !inputValue.includes('fakepath') && !inputValue.toLowerCase().includes('c:\\fakepath')) {
               const match = inputValue.match(/^(.+)[\\\/][^\\\/]+$/);
               if (match && match[1]) {
                 folderPath = match[1].replace(/[\\\/]+$/, '');
+                // Double check it's not a fake path
+                if (folderPath.toLowerCase().includes('fakepath')) {
+                  folderPath = '';
+                }
               }
             }
             
