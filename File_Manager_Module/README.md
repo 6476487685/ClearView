@@ -6,7 +6,7 @@ This module provides a comprehensive file management system for organizing and a
 ## Files Structure
 
 ### Core Files
-- **File_Manager_FileManager.html** - Main file manager interface
+- **File_Manager.html** - Main file manager interface
 - **File_Manager_Backend.py** - Python backend for file operations
 - **File_Manager_Config.json** - Configuration settings
 - **File_Manager_Viewer.js** - JavaScript viewer functionality
@@ -33,14 +33,14 @@ This module provides a comprehensive file management system for organizing and a
 ## Usage
 
 ### Direct Access
-1. Open `File_Manager_FileManager.html` directly in browser
+1. Open `File_Manager.html` directly in browser
 2. Click "Change Folder" to select your documents folder
 3. Navigate to `D:\Personal_Docs` (or your preferred folder)
 4. Select the folder to load files
 
 ### Through Main Application
 1. Launch the main ClearView application
-2. Click "View and Manage Personal Documents" button
+2. Click "File Manager" button
 3. Follow the same folder selection process
 
 ## Technical Details

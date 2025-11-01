@@ -366,6 +366,7 @@
     <script>
         const DEFAULT_PATH = 'D:\\Personal_Docs';
         const STORAGE_KEY = 'selectedFolderPath';
+        const FILE_MANAGER_PATH_KEY = 'file_manager_folder_path';
         const ACCESS_KEY = 'hasFolderAccess';
 
         let directoryHandle = null;
@@ -375,20 +376,35 @@
         let currentPreviewFile = null;
 
         window.onload = function() {
-            loadDefaultFolder();
+            loadSavedFolder();
         };
 
-        async function loadDefaultFolder() {
-            document.getElementById('currentFolder').textContent = `Current Path: ${DEFAULT_PATH}`;
+        async function loadSavedFolder() {
+            // Try to load the saved folder path
+            const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY) || localStorage.getItem(STORAGE_KEY);
+            const displayPath = savedPath || DEFAULT_PATH;
             
-            // Show simple message to select folder
-            document.getElementById('fileListContainer').innerHTML = `
-                <div class="loading">
-                    <h3>📁 Ready to Load Your Files</h3>
-                    <p><strong>Target folder:</strong> ${DEFAULT_PATH}</p>
-                    <p>Click "Change Folder" to select your folder and load files</p>
-                </div>
-            `;
+            document.getElementById('currentFolder').textContent = `Current Path: ${displayPath}`;
+            
+            if (savedPath && savedPath !== DEFAULT_PATH) {
+                // Show message with saved path
+                document.getElementById('fileListContainer').innerHTML = `
+                    <div class="loading">
+                        <h3>📁 Last Opened Folder</h3>
+                        <p><strong>Saved folder:</strong> ${savedPath}</p>
+                        <p>Click "Change Folder" to select a different folder or load files from the saved location</p>
+                    </div>
+                `;
+            } else {
+                // Show default message
+                document.getElementById('fileListContainer').innerHTML = `
+                    <div class="loading">
+                        <h3>📁 Ready to Load Your Files</h3>
+                        <p><strong>Target folder:</strong> ${DEFAULT_PATH}</p>
+                        <p>Click "Change Folder" to select your folder and load files</p>
+                    </div>
+                `;
+            }
         }
 
 
@@ -398,12 +414,44 @@
                 if ('showDirectoryPicker' in window) {
                     directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
                     
-                    const folderPath = directoryHandle.name;
-                    document.getElementById('currentFolder').textContent = `Current Path: ${folderPath}`;
+                    // Get the folder name (File System Access API limitation: we can't get full path directly)
+                    const folderName = directoryHandle.name;
+                    let displayPath = folderName;
                     
-                    // Save the folder access for persistence
-                    localStorage.setItem(STORAGE_KEY, folderPath);
+                    // Try to get saved path, or prompt user once for full path (optional)
+                    // This helps with persistence and tooltip display in index.html
+                    const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY);
+                    const hasPrompted = localStorage.getItem('file_manager_path_prompted');
+                    
+                    // Only prompt once if we don't have a saved full path
+                    if (!savedPath || (!hasPrompted && folderName === savedPath)) {
+                        const promptMessage = `Folder "${folderName}" selected.\n\nFor better tracking, paste the full folder path (or click Cancel to use folder name):`;
+                        const userPath = prompt(promptMessage, savedPath || '');
+                        
+                        if (userPath && userPath.trim()) {
+                            displayPath = userPath.trim();
+                            localStorage.setItem('file_manager_path_prompted', 'true');
+                        } else if (!hasPrompted) {
+                            // User cancelled - mark as prompted so we don't ask again
+                            localStorage.setItem('file_manager_path_prompted', 'true');
+                        }
+                    } else if (savedPath) {
+                        // Use saved path if available
+                        displayPath = savedPath;
+                    }
+                    
+                    document.getElementById('currentFolder').textContent = `Current Path: ${displayPath}`;
+                    
+                    // Save to localStorage - prefer user-provided path, fallback to folder name
+                    localStorage.setItem(STORAGE_KEY, displayPath);
+                    localStorage.setItem(FILE_MANAGER_PATH_KEY, displayPath);
                     localStorage.setItem(ACCESS_KEY, 'true');
+                    
+                    // Trigger storage event so index.html tooltip updates
+                    window.dispatchEvent(new StorageEvent('storage', {
+                        key: FILE_MANAGER_PATH_KEY,
+                        newValue: displayPath
+                    }));
                     
                     await loadRealFiles();
                 } else {
@@ -462,6 +510,20 @@
                 
                 loadCategories(folderArray);
                 loadFilesForCategory('All');
+                
+                // Update the displayed path and save it
+                const currentPath = directoryHandle.name || 'Selected Folder';
+                document.getElementById('currentFolder').textContent = `Current Path: ${currentPath}`;
+                
+                // Update localStorage with current path
+                localStorage.setItem(STORAGE_KEY, currentPath);
+                localStorage.setItem(FILE_MANAGER_PATH_KEY, currentPath);
+                
+                // Trigger storage event so index.html tooltip updates
+                window.dispatchEvent(new StorageEvent('storage', {
+                    key: FILE_MANAGER_PATH_KEY,
+                    newValue: currentPath
+                }));
                 
                 // Auto-preview the first file
                 setTimeout(() => {
@@ -723,6 +785,16 @@ how the preview would look for text files.
         }
 
         function returnToMainMenu() {
+            // Ensure path is saved before leaving
+            const currentPath = directoryHandle ? directoryHandle.name : (localStorage.getItem(FILE_MANAGER_PATH_KEY) || DEFAULT_PATH);
+            localStorage.setItem(FILE_MANAGER_PATH_KEY, currentPath);
+            
+            // Trigger storage event for tooltip update
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: FILE_MANAGER_PATH_KEY,
+                newValue: currentPath
+            }));
+            
             window.location.href = '../index.html';
         }
     </script>

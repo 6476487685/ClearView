@@ -182,7 +182,7 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 <nav id="sidebar">
   <a href="Manage_Master_Data.html" class="nav-link" id="masterDataNavLink"><span class="icon">🧩</span>Manage Master Data</a>
   <a href="#" class="nav-link" data-target="tasks"><span class="icon">✅</span>Manage Tasks</a>
-  <a href="#" class="nav-link" data-target="accounts" id="accountsNavLink"><span class="icon">🗂️</span>View and Manage Personal Documents</a>
+  <a href="#" class="nav-link" data-target="accounts" id="accountsNavLink"><span class="icon">🗂️</span>File Manager</a>
   <a href="#" class="nav-link" data-target="expense"><span class="icon">💸</span>Expense Transactions</a>
   <a href="#" class="nav-link" data-target="income"><span class="icon">💰</span>Income Transactions</a>
   <a href="#" class="nav-link" data-target="investments"><span class="icon">📈</span>Equity Transactions</a>
@@ -349,7 +349,7 @@ document.querySelectorAll('.nav-link').forEach(link=>{
         window.location.href='3_Income_Index.html';
       }
       else if(t==='accounts'){
-        window.location.href='File_Manager_Module/File_Manager_FileManager.html';
+        window.location.href='File_Manager_Module/File_Manager.html';
       }
       else if(t==='investments'){
         window.location.href='4_Investment_Index.html';
@@ -1337,13 +1337,14 @@ function updateManageMasterDataTooltip(){
   }
 }
 
-// New: File Manager tooltip with default path
+// New: File Manager tooltip with last opened folder path
 function updateAccountsTooltip(){
   const accountsLink=document.getElementById('accountsNavLink');
   if(accountsLink){
     const defaultPath='D:\\Personal_Docs';
-    const currentPath=localStorage.getItem('file_manager_folder_path')||defaultPath;
-    accountsLink.title=`Personal Documents folder: ${currentPath}`;
+    // Check for both possible localStorage keys (legacy and new)
+    const currentPath=localStorage.getItem('file_manager_folder_path')||localStorage.getItem('selectedFolderPath')||defaultPath;
+    accountsLink.title=`Last opened folder: ${currentPath}`;
   }
 }
 
@@ -1358,7 +1359,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 // Listen for cross-tab/local updates
 window.addEventListener('storage',(e)=>{
-  if(e.key && (e.key.includes('last_excel_file_') || e.key === 'project_documents_path' || e.key === 'file_manager_folder_path')){
+  if(e.key && (e.key.includes('last_excel_file_') || e.key === 'project_documents_path' || e.key === 'file_manager_folder_path' || e.key === 'selectedFolderPath')){
     updateManageMasterDataTooltip();
     updateProjectDocumentsTooltip();
     updateAccountsTooltip();
