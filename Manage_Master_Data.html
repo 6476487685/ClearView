@@ -596,6 +596,9 @@
       }
     })();
 
+    // Store folder path variable - persists until file is reloaded
+    window.lastExcelFolderPath = localStorage.getItem('last_excel_folder_path') || '';
+    
     // Early minimal change handler to verify file selection and XLSX availability
     (function attachEarlyChangeHandler(){
       const input = document.getElementById('excelFileInput');
@@ -608,6 +611,49 @@
           return;
         }
         if (!f) return;
+        
+        // Try to capture folder path from file input (may be limited by browser security)
+        let folderPath = '';
+        try {
+          // File System Access API provides better path info if available
+          if (f.path) {
+            // Chrome/Edge may provide this
+            const fullPath = f.path || '';
+            const pathParts = fullPath.split('\\');
+            pathParts.pop(); // Remove filename
+            folderPath = pathParts.join('\\');
+          }
+          
+          // If path not available, try to get from input value (often stripped but worth trying)
+          const inputValue = e.target.value || '';
+          if (inputValue && !folderPath) {
+            // Extract folder path from input value (format: "C:\path\to\file.xlsx")
+            const match = inputValue.match(/^(.+)[\\\/][^\\\/]+$/);
+            if (match && match[1]) {
+              folderPath = match[1];
+            }
+          }
+          
+          // If still no path, prompt user once
+          if (!folderPath && !window.lastExcelFolderPath) {
+            folderPath = prompt(`File "${f.name}" selected.\n\nEnter the folder path where this file is located:`, 'D:\\');
+            if (folderPath) {
+              folderPath = folderPath.trim().replace(/[\\\/]+$/, ''); // Remove trailing slashes
+            }
+          } else if (!folderPath && window.lastExcelFolderPath) {
+            // Reuse last known folder path
+            folderPath = window.lastExcelFolderPath;
+          }
+          
+          // Store folder path
+          if (folderPath) {
+            window.lastExcelFolderPath = folderPath;
+            localStorage.setItem('last_excel_folder_path', folderPath);
+            console.log('Folder path captured:', folderPath);
+          }
+        } catch (err) {
+          console.warn('Could not capture folder path:', err);
+        }
         try{
           const reader = new FileReader();
           reader.onload = function(ev){
@@ -664,9 +710,10 @@
               localStorage.setItem('last_excel_file_loaded', f.name);
               localStorage.setItem('last_excel_file_source', 'D:');
               
-              // Browser security: Cannot access actual file path
-              // Clear any previously stored (incorrect) path
-              localStorage.removeItem('last_excel_file_path');
+              // Store folder path if captured
+              if (window.lastExcelFolderPath) {
+                localStorage.setItem('last_excel_folder_path', window.lastExcelFolderPath);
+              }
               
               // Update display immediately if function exists
               if (typeof updateLastFileDisplay === 'function') {
@@ -865,7 +912,7 @@
       window.updateLastFileDisplay = function() {
         const lastExcelFile = localStorage.getItem('last_excel_file_loaded') || '';
         const lastExcelSource = localStorage.getItem('last_excel_file_source') || '';
-        const lastExcelPath = localStorage.getItem('last_excel_file_path') || '';
+        const lastExcelFolderPath = localStorage.getItem('last_excel_folder_path') || window.lastExcelFolderPath || '';
         const filePathDisplay = document.getElementById('filePathDisplay');
         const fileNameDisplay = document.getElementById('fileNameDisplay');
         
@@ -876,9 +923,12 @@
         }
         
         if (lastExcelFile) {
-          // Browser security prevents access to actual file path
-          // Show a clear message that path is not accessible
-          filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-style:italic;">Path not accessible (browser security)</span>`;
+          // Display folder path if available
+          if (lastExcelFolderPath) {
+            filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#1e293b;font-weight:500;">${lastExcelFolderPath}</span>`;
+          } else {
+            filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-style:italic;">Folder path not captured</span>`;
+          }
           
           // Display file name on right
           const icon = lastExcelSource === 'Google Drive' ? '☁️' : '📄';
@@ -1665,9 +1715,43 @@
           // Save the Excel file name for tooltip
           localStorage.setItem('last_excel_file_loaded', file.name);
           localStorage.setItem('last_excel_file_source', 'D:');
-          // Browser security: Cannot access actual file path
-          // Clear any previously stored (incorrect) path
-          localStorage.removeItem('last_excel_file_path');
+          
+          // Try to capture folder path from file input
+          let folderPath = '';
+          try {
+            const input = document.getElementById('excelFileInput');
+            const inputValue = input ? input.value || '' : '';
+            
+            // Extract folder path from input value if available
+            if (inputValue) {
+              const match = inputValue.match(/^(.+)[\\\/][^\\\/]+$/);
+              if (match && match[1]) {
+                folderPath = match[1].replace(/[\\\/]+$/, '');
+              }
+            }
+            
+            // If path not captured and we have a stored folder path, reuse it
+            if (!folderPath && window.lastExcelFolderPath) {
+              folderPath = window.lastExcelFolderPath;
+            }
+            
+            // If still no path, prompt user once
+            if (!folderPath) {
+              folderPath = prompt(`File "${file.name}" selected.\n\nEnter the folder path where this file is located:`, window.lastExcelFolderPath || 'D:\\');
+              if (folderPath) {
+                folderPath = folderPath.trim().replace(/[\\\/]+$/, '');
+              }
+            }
+            
+            // Store folder path
+            if (folderPath) {
+              window.lastExcelFolderPath = folderPath;
+              localStorage.setItem('last_excel_folder_path', folderPath);
+              console.log('Folder path captured (main handler):', folderPath);
+            }
+          } catch (err) {
+            console.warn('Could not capture folder path:', err);
+          }
           
           // Update display immediately
           if (typeof updateLastFileDisplay === 'function') {
@@ -1810,11 +1894,14 @@
       window.updateLastFileDisplay = updateLastFileDisplay;
     }
 
+    // Initialize folder path from localStorage on load
+    window.lastExcelFolderPath = localStorage.getItem('last_excel_folder_path') || '';
+    
     // Initialize on load
     loadMasterData();
     loadPaths(); // Load paths on page load
     updateLastFileDisplay(); // Show last loaded file
-    renderTab('income'); // Render default tab
+    renderTab('task'); // Render default tab
     
     // Set up button event listener - multiple attempts to ensure it works
     function setupButton() {
