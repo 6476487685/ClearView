@@ -870,7 +870,7 @@
                 income: { Income_Category: 'Income_Category', Income_Ac_Tag: 'Income_Ac_Tag' },
                 investment: { Investment_Category: 'Investment_Category', Investment_Ac_Tag: 'Investment_Ac_Tag' },
                 task: { Task_Category: 'Task_Category', Task_Tag: 'Task_Tag', Task_Status: 'Task_Status', Task_Assignee: 'Task_Assignee', Task_Priority: 'Task_Priority', Task_Adhoc: 'Task_Adhoc' },
-                common: { Currency: 'Currency', Mode: 'Mode', Status_Txn: 'Status_Txn', Ac_Holder: 'Ac_Holder', Frequency: 'Frequency', Ac_Status: 'Ac_Status' }
+                common: { Currency: 'Currency', Mode: 'Mode', Status_Txn: 'Status_Txn', Ac_Holder: 'Ac_Holder', Frequency: 'Frequency', Ac_Status: 'Ac_Status', Ac_Classification: 'Ac_Classification' }
               };
               const VARIANTS = {
                 Mode_Txn: { module: 'common', key: 'Mode' },
@@ -887,6 +887,46 @@
               sheetNames.forEach(name => {
                 // Skip Txn_* except Mode/Status
                 if (name.startsWith('Txn_') && !name.includes('Mode') && !name.includes('Status')) return;
+                
+                // NEW: Handle merged sheets (Ac_Category, Ac_Tag)
+                if (name === 'Ac_Category' || name === 'Ac_Tag') {
+                  const sheet = wb.Sheets[name];
+                  const rows = XLSX.utils.sheet_to_json(sheet);
+                  if (!rows || !rows.length) return;
+                  
+                  const mainCol = name === 'Ac_Category' ? 'Ac_Category' : 'Ac_Tag';
+                  const classCol = 'Ac_Classification';
+                  const cols = Object.keys(rows[0]);
+                  
+                  if (!cols.includes(mainCol) || !cols.includes(classCol)) return;
+                  
+                  const incomeVals = [], investVals = [], expVals = [];
+                  rows.forEach(r => {
+                    const val = String(r[mainCol]||'').trim();
+                    const cls = String(r[classCol]||'').trim();
+                    if (!val) return;
+                    if (cls === 'Income') incomeVals.push(val);
+                    else if (cls === 'Investment') investVals.push(val);
+                    else if (cls === 'Expanse' || cls === 'Expense') expVals.push(val);
+                  });
+                  
+                  let incKey, invKey, expKey;
+                  if (name === 'Ac_Category') {
+                    incKey = 'Income_Category'; invKey = 'Investment_Category'; expKey = 'Expanse_Category';
+                  } else {
+                    incKey = 'Income_Ac_Tag'; invKey = 'Investment_Ac_Tag'; expKey = 'Expanse_Ac_Tag';
+                  }
+                  
+                  ['income', 'investment', 'expense'].forEach(m => {
+                    const v = m === 'income' ? incomeVals : (m === 'investment' ? investVals : expVals);
+                    const k = m === 'income' ? incKey : (m === 'investment' ? invKey : expKey);
+                    if (!unified[m][k]) unified[m][k] = [];
+                    unified[m][k] = Array.from(new Set([...(unified[m][k]||[]), ...v])).sort();
+                    console.log(`[Early] Loaded ${v.length} ${m} from ${name}`);
+                  });
+                  return;
+                }
+                
                 let mod=null,key=null;
                 if (MAP.expense[name]){ mod='expense'; key=name; }
                 else if (MAP.income[name]){ mod='income'; key=name; }
@@ -1241,7 +1281,8 @@
         'Status_Txn': 'Transaction Status',
         'Ac_Holder': 'Account Holder',
         'Frequency': 'Frequency',
-        'Ac_Status': 'Account Status'
+        'Ac_Status': 'Account Status',
+        'Ac_Classification': 'Account Classification'
       },
       'bank-accounts': {
         // Fields will be added later from Excel
@@ -1750,6 +1791,80 @@
               console.log('✗ Skipping transactional sheet:', sheetName);
               return;
             }
+            
+            // NEW: Handle merged sheets (Ac_Category, Ac_Tag)
+            if (sheetName === 'Ac_Category' || sheetName === 'Ac_Tag') {
+              console.log(`✓ Processing merged sheet: ${sheetName}`);
+              const sheet = workbook.Sheets[sheetName];
+              const jsonData = XLSX.utils.sheet_to_json(sheet);
+              
+              if (jsonData.length === 0) return;
+              
+              const firstRow = jsonData[0];
+              const columnKeys = Object.keys(firstRow);
+              
+              // Find the main column (Ac_Category or Ac_Tag) and classification column
+              const mainColumn = sheetName === 'Ac_Category' ? 'Ac_Category' : 'Ac_Tag';
+              const classColumn = 'Ac_Classification';
+              
+              if (!columnKeys.includes(mainColumn) || !columnKeys.includes(classColumn)) {
+                console.log(`⚠ Sheet "${sheetName}" missing required columns`);
+                return;
+              }
+              
+              // Process data for each account type
+              const incomeValues = [];
+              const investmentValues = [];
+              const expenseValues = [];
+              
+              jsonData.forEach(row => {
+                const value = String(row[mainColumn] || '').trim();
+                const classification = String(row[classColumn] || '').trim();
+                
+                if (!value) return;
+                
+                if (classification === 'Income') {
+                  incomeValues.push(value);
+                } else if (classification === 'Investment') {
+                  investmentValues.push(value);
+                } else if (classification === 'Expanse' || classification === 'Expense') {
+                  expenseValues.push(value);
+                }
+              });
+              
+              // Map to appropriate modules and fields
+              let incomeKey = null, investmentKey = null, expenseKey = null;
+              
+              if (sheetName === 'Ac_Category') {
+                incomeKey = 'Income_Category';
+                investmentKey = 'Investment_Category';
+                expenseKey = 'Expanse_Category';
+              } else if (sheetName === 'Ac_Tag') {
+                incomeKey = 'Income_Ac_Tag';
+                investmentKey = 'Investment_Ac_Tag';
+                expenseKey = 'Expanse_Ac_Tag';
+              }
+              
+              // Load data into appropriate modules
+              ['income', 'investment', 'expense'].forEach(module => {
+                const fieldKey = module === 'income' ? incomeKey : (module === 'investment' ? investmentKey : expenseKey);
+                const values = module === 'income' ? incomeValues : (module === 'investment' ? investmentValues : expenseValues);
+                
+                if (!masterData[module]) masterData[module] = {};
+                if (!masterData[module][fieldKey]) masterData[module][fieldKey] = [];
+                
+                if (values.length > 0) {
+                  const existing = masterData[module][fieldKey] || [];
+                  const newValues = values.filter(v => v && v !== '' && !existing.includes(v));
+                  masterData[module][fieldKey] = [...existing, ...newValues].sort();
+                  console.log(`✓ Loaded ${values.length} ${module} values from "${sheetName}" into ${module}.${fieldKey} (${newValues.length} new)`);
+                }
+              });
+              
+              processedSheets.push(sheetName);
+              return;
+            }
+            
             processedSheets.push(sheetName);
 
             const sheet = workbook.Sheets[sheetName];
@@ -1895,6 +2010,9 @@
                 } else if (lowerSheet === 'ac_status' || lowerSheet === 'account status' || lowerSheet === 'ac status') {
                   foundModule = 'common';
                   foundKey = 'Ac_Status';
+                } else if (lowerSheet === 'ac_classification' || lowerSheet === 'account classification') {
+                  foundModule = 'common';
+                  foundKey = 'Ac_Classification';
                 } else if (SHEET_NAME_MAP[sheetName]) {
                   // Check variations mapping
                   foundModule = SHEET_NAME_MAP[sheetName].module;
@@ -1905,7 +2023,8 @@
                       sheetName === 'Ac_Holder' || sheetName === 'Ac_HOLDER' ||
                       sheetName === 'Mode_Txn' || sheetName === 'Txn_Mode' || sheetName === 'MODE_TXN' || sheetName === 'TXN_MODE' || sheetName === 'Txn_MODE' ||
                       sheetName === 'Status_Txn' || sheetName === 'Txn_Status' || sheetName === 'STATUS_TXN' || sheetName === 'TXN_STATUS' || sheetName === 'Txn_STATUS' ||
-                      sheetName === 'Ac_Status' || sheetName === 'AC_STATUS') {
+                      sheetName === 'Ac_Status' || sheetName === 'AC_STATUS' ||
+                      sheetName === 'Ac_Classification' || sheetName === 'AC_CLASSIFICATION') {
                     foundModule = 'common';
                     // Normalize to standard case
                     if (sheetName === 'Mode' || sheetName.toUpperCase() === 'MODE' || sheetName === 'Mode_Txn' || sheetName.toUpperCase() === 'MODE_TXN' || sheetName === 'Txn_Mode' || sheetName.toUpperCase() === 'TXN_MODE' || sheetName === 'Txn_MODE') {
@@ -1918,6 +2037,8 @@
                       foundKey = 'Ac_Status';
                     } else if (sheetName.toUpperCase() === 'AC_HOLDER' || sheetName === 'Ac_HOLDER') {
                       foundKey = 'Ac_Holder';
+                    } else if (sheetName.toUpperCase() === 'AC_CLASSIFICATION' || sheetName === 'Ac_Classification') {
+                      foundKey = 'Ac_Classification';
                     } else {
                       foundKey = sheetName;
                     }
