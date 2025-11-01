@@ -510,7 +510,7 @@
           <div class="path-display" id="backupPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="backupPathInput" class="path-input" placeholder="Enter backup folder path (e.g., D:\Projects\Backup)">
-            <button class="btn btn-primary" onclick="setPath('backup')">Set Path</button>
+            <button class="btn btn-primary" onclick="window.setPath('backup')">Set Path</button>
           </div>
         </div>
         <div class="path-section">
@@ -518,7 +518,7 @@
           <div class="path-display" id="documentsPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="documentsPathInput" class="path-input" placeholder="Enter documents folder path (e.g., D:\Projects\Documents)">
-            <button class="btn btn-primary" onclick="setPath('documents')">Set Path</button>
+            <button class="btn btn-primary" onclick="window.setPath('documents')">Set Path</button>
           </div>
         </div>
         <div class="path-section">
@@ -526,7 +526,7 @@
           <div class="path-display" id="downloadsPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="downloadsPathInput" class="path-input" placeholder="Enter downloads folder path (e.g., D:\Projects\Downloads)">
-            <button class="btn btn-primary" onclick="setPath('downloads')">Set Path</button>
+            <button class="btn btn-primary" onclick="window.setPath('downloads')">Set Path</button>
           </div>
         </div>
       </div>
@@ -1236,9 +1236,12 @@
       // Check if File System Access API is available
       if ('showDirectoryPicker' in window) {
         try {
-          // Open folder picker
+          console.log('Opening folder picker for:', type);
+          // Open folder picker immediately - called directly from user click
           const directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
           const folderName = directoryHandle.name;
+          
+          console.log('Folder selected:', folderName);
           
           // Get existing path or construct default
           const existingPath = localStorage.getItem(storageKey) || '';
@@ -1270,9 +1273,23 @@
             alert(`Path set to default: ${defaultPath}\n\nYou can edit it manually in the input field if needed.`);
           }
         } catch (error) {
-          if (error.name !== 'AbortError') {
+          if (error.name === 'AbortError') {
+            console.log('User cancelled folder picker');
+            // User cancelled, do nothing
+          } else if (error.message && error.message.includes('user gesture')) {
+            console.error('User gesture error:', error);
+            alert('Please click the "Set Path" button again to open the folder picker.\n\nThe folder picker must be opened directly by clicking a button.');
+            // Fallback to manual input
+            const inputElement = document.getElementById(inputId);
+            const manualPath = prompt(`Enter the ${type} folder path manually:`, localStorage.getItem(storageKey) || 'D:\\');
+            if (manualPath && manualPath.trim()) {
+              localStorage.setItem(storageKey, manualPath.trim());
+              document.getElementById(displayId).textContent = manualPath.trim();
+              document.getElementById(inputId).value = manualPath.trim();
+            }
+          } else {
             console.error('Error selecting folder:', error);
-            alert('Error selecting folder: ' + error.message);
+            alert('Error selecting folder: ' + error.message + '\n\nYou can enter the path manually in the input field below.');
             // Fallback to manual input
             const inputElement = document.getElementById(inputId);
             if (inputElement && inputElement.value.trim()) {
@@ -1285,6 +1302,7 @@
         }
       } else {
         // Fallback: browser doesn't support folder picker, use manual input
+        alert('Folder picker not supported in this browser.\n\nPlease enter the path manually in the input field below.');
         const path = document.getElementById(inputId).value.trim();
         if (path) {
           localStorage.setItem(storageKey, path);
@@ -1295,8 +1313,6 @@
           if (window.opener && typeof window.opener.updateProjectDocumentsTooltip === 'function') {
             window.opener.updateProjectDocumentsTooltip();
           }
-        } else {
-          alert('Folder picker not supported in this browser. Please enter the path manually in the input field.');
         }
       }
     };
