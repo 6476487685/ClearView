@@ -510,7 +510,7 @@
           <div class="path-display" id="backupPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="backupPathInput" class="path-input" placeholder="Enter backup folder path (e.g., D:\Projects\Backup)">
-            <button class="btn btn-primary" id="btnSetBackupPath">Set Path</button>
+            <button class="btn btn-primary" id="btnSetBackupPath" onclick="window.setPath('backup')">Set Path</button>
           </div>
         </div>
         <div class="path-section">
@@ -518,7 +518,7 @@
           <div class="path-display" id="documentsPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="documentsPathInput" class="path-input" placeholder="Enter documents folder path (e.g., D:\Projects\Documents)">
-            <button class="btn btn-primary" id="btnSetDocumentsPath">Set Path</button>
+            <button class="btn btn-primary" id="btnSetDocumentsPath" onclick="window.setPath('documents')">Set Path</button>
           </div>
         </div>
         <div class="path-section">
@@ -526,7 +526,7 @@
           <div class="path-display" id="downloadsPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="downloadsPathInput" class="path-input" placeholder="Enter downloads folder path (e.g., D:\Projects\Downloads)">
-            <button class="btn btn-primary" id="btnSetDownloadsPath">Set Path</button>
+            <button class="btn btn-primary" id="btnSetDownloadsPath" onclick="window.setPath('downloads')">Set Path</button>
           </div>
         </div>
       </div>
@@ -1221,6 +1221,8 @@
 
     // Set path function (exposed globally for onclick) - uses folder picker
     window.setPath = async function(type) {
+      console.log('=== setPath FUNCTION CALLED ===', type);
+      alert('setPath function called for: ' + type);
       let storageKey, displayId, inputId;
       
       if (type === 'backup') {
@@ -1243,9 +1245,6 @@
       console.log('setPath called for:', type);
       console.log('showDirectoryPicker in window:', 'showDirectoryPicker' in window);
       console.log('window.showDirectoryPicker:', typeof window.showDirectoryPicker);
-      
-      // First verify function was called
-      alert(`Set Path button clicked for ${type}! Opening folder picker...`);
       
       if ('showDirectoryPicker' in window) {
         try {
