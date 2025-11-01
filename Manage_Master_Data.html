@@ -510,7 +510,7 @@
           <div class="path-display" id="backupPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="backupPathInput" class="path-input" placeholder="Enter backup folder path (e.g., D:\Projects\Backup)">
-            <button class="btn btn-primary" onclick="window.setPath('backup')">Set Path</button>
+            <button class="btn btn-primary" id="btnSetBackupPath">Set Path</button>
           </div>
         </div>
         <div class="path-section">
@@ -518,7 +518,7 @@
           <div class="path-display" id="documentsPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="documentsPathInput" class="path-input" placeholder="Enter documents folder path (e.g., D:\Projects\Documents)">
-            <button class="btn btn-primary" onclick="window.setPath('documents')">Set Path</button>
+            <button class="btn btn-primary" id="btnSetDocumentsPath">Set Path</button>
           </div>
         </div>
         <div class="path-section">
@@ -526,7 +526,7 @@
           <div class="path-display" id="downloadsPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="downloadsPathInput" class="path-input" placeholder="Enter downloads folder path (e.g., D:\Projects\Downloads)">
-            <button class="btn btn-primary" onclick="window.setPath('downloads')">Set Path</button>
+            <button class="btn btn-primary" id="btnSetDownloadsPath">Set Path</button>
           </div>
         </div>
       </div>
@@ -1234,6 +1234,9 @@
       }
       
       // Check if File System Access API is available
+      console.log('setPath called for:', type);
+      console.log('showDirectoryPicker in window:', 'showDirectoryPicker' in window);
+      
       if ('showDirectoryPicker' in window) {
         try {
           console.log('Opening folder picker for:', type);
@@ -1986,11 +1989,82 @@
     // Initialize folder path from localStorage on load
     window.lastExcelFolderPath = localStorage.getItem('last_excel_folder_path') || '';
     
+    // Attach event listeners for Set Path buttons to ensure direct user gesture
+    function setupPathButtons() {
+      const btnBackup = document.getElementById('btnSetBackupPath');
+      const btnDocuments = document.getElementById('btnSetDocumentsPath');
+      const btnDownloads = document.getElementById('btnSetDownloadsPath');
+      
+      if (btnBackup) {
+        btnBackup.addEventListener('click', async function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          try {
+            await window.setPath('backup');
+          } catch (err) {
+            console.error('Error in setPath backup:', err);
+          }
+        });
+      }
+      
+      if (btnDocuments) {
+        btnDocuments.addEventListener('click', async function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          try {
+            await window.setPath('documents');
+          } catch (err) {
+            console.error('Error in setPath documents:', err);
+          }
+        });
+      }
+      
+      if (btnDownloads) {
+        btnDownloads.addEventListener('click', async function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          try {
+            await window.setPath('downloads');
+          } catch (err) {
+            console.error('Error in setPath downloads:', err);
+          }
+        });
+      }
+    }
+    
     // Initialize on load
     loadMasterData();
     loadPaths(); // Load paths on page load
     updateLastFileDisplay(); // Show last loaded file
     renderTab('task'); // Render default tab
+    
+    // Setup path buttons - try multiple times to ensure they're attached
+    function ensurePathButtonsSetup() {
+      const btnBackup = document.getElementById('btnSetBackupPath');
+      const btnDocuments = document.getElementById('btnSetDocumentsPath');
+      const btnDownloads = document.getElementById('btnSetDownloadsPath');
+      
+      if (btnBackup && btnDocuments && btnDownloads) {
+        setupPathButtons();
+        console.log('Path buttons setup completed');
+        return true;
+      }
+      return false;
+    }
+    
+    // Try to setup immediately
+    if (!ensurePathButtonsSetup()) {
+      // If not ready, wait for DOM
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+          if (!ensurePathButtonsSetup()) {
+            setTimeout(ensurePathButtonsSetup, 100);
+          }
+        });
+      } else {
+        setTimeout(ensurePathButtonsSetup, 100);
+      }
+    }
     
     // Set up button event listener - multiple attempts to ensure it works
     function setupButton() {
