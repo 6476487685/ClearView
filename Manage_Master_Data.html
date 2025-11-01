@@ -945,11 +945,11 @@
             filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-style:italic;">Folder path not available</span>`;
           }
           
-          // Display file name on right
+          // Display file name on right - same style as file path
           const icon = lastExcelSource === 'Google Drive' ? '☁️' : '📄';
           let sourceLabel = lastExcelSource === 'D:' ? 'Local Drive D:' : lastExcelSource;
           if (lastExcelSource === 'Google Drive') sourceLabel = 'Google Drive';
-          fileNameDisplay.innerHTML = `${icon} <strong>${lastExcelFile}</strong> <span style="color:#64748b;font-weight:400;font-size:0.85rem;">(${sourceLabel || 'Unknown source'})</span>`;
+          fileNameDisplay.innerHTML = `<span style="color:#64748b;">${icon}</span> <span style="color:#1e293b;font-weight:500;">${lastExcelFile}</span> <span style="color:#64748b;font-weight:400;font-size:0.85rem;">(${sourceLabel || 'Unknown source'})</span>`;
         } else {
           filePathDisplay.innerHTML = '<span style="color:#64748b;">⚠️ No file loaded</span>';
           fileNameDisplay.innerHTML = '<span style="color:#64748b;">⚠️ No Excel file loaded yet</span>';
