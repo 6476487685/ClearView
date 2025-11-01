@@ -1141,6 +1141,12 @@
       // Render the tab content (or load paths for paths tab)
       if (tabName === 'paths') {
         loadPaths();
+        // Setup path buttons when paths tab is activated
+        setTimeout(function() {
+          if (typeof window.setupPathButtons === 'function') {
+            window.setupPathButtons();
+          }
+        }, 100);
       } else {
         renderTab(tabName);
       }
@@ -1236,6 +1242,10 @@
       // Check if File System Access API is available
       console.log('setPath called for:', type);
       console.log('showDirectoryPicker in window:', 'showDirectoryPicker' in window);
+      console.log('window.showDirectoryPicker:', typeof window.showDirectoryPicker);
+      
+      // First verify function was called
+      alert(`Set Path button clicked for ${type}! Opening folder picker...`);
       
       if ('showDirectoryPicker' in window) {
         try {
@@ -1990,47 +2000,70 @@
     window.lastExcelFolderPath = localStorage.getItem('last_excel_folder_path') || '';
     
     // Attach event listeners for Set Path buttons to ensure direct user gesture
-    function setupPathButtons() {
+    window.setupPathButtons = function() {
       const btnBackup = document.getElementById('btnSetBackupPath');
       const btnDocuments = document.getElementById('btnSetDocumentsPath');
       const btnDownloads = document.getElementById('btnSetDownloadsPath');
       
-      if (btnBackup) {
-        btnBackup.addEventListener('click', async function(e) {
+      console.log('Setting up path buttons:', { btnBackup: !!btnBackup, btnDocuments: !!btnDocuments, btnDownloads: !!btnDownloads });
+      
+      if (btnBackup && !btnBackup.__pathListenerAttached) {
+        btnBackup.__pathListenerAttached = true;
+        btnBackup.onclick = async function(e) {
           e.preventDefault();
           e.stopPropagation();
-          try {
-            await window.setPath('backup');
-          } catch (err) {
-            console.error('Error in setPath backup:', err);
+          console.log('Backup button clicked');
+          if (typeof window.setPath === 'function') {
+            try {
+              await window.setPath('backup');
+            } catch (err) {
+              console.error('Error in setPath backup:', err);
+              alert('Error: ' + (err.message || err));
+            }
+          } else {
+            alert('setPath function not available. Please refresh the page.');
           }
-        });
+        };
       }
       
-      if (btnDocuments) {
-        btnDocuments.addEventListener('click', async function(e) {
+      if (btnDocuments && !btnDocuments.__pathListenerAttached) {
+        btnDocuments.__pathListenerAttached = true;
+        btnDocuments.onclick = async function(e) {
           e.preventDefault();
           e.stopPropagation();
-          try {
-            await window.setPath('documents');
-          } catch (err) {
-            console.error('Error in setPath documents:', err);
+          console.log('Documents button clicked');
+          if (typeof window.setPath === 'function') {
+            try {
+              await window.setPath('documents');
+            } catch (err) {
+              console.error('Error in setPath documents:', err);
+              alert('Error: ' + (err.message || err));
+            }
+          } else {
+            alert('setPath function not available. Please refresh the page.');
           }
-        });
+        };
       }
       
-      if (btnDownloads) {
-        btnDownloads.addEventListener('click', async function(e) {
+      if (btnDownloads && !btnDownloads.__pathListenerAttached) {
+        btnDownloads.__pathListenerAttached = true;
+        btnDownloads.onclick = async function(e) {
           e.preventDefault();
           e.stopPropagation();
-          try {
-            await window.setPath('downloads');
-          } catch (err) {
-            console.error('Error in setPath downloads:', err);
+          console.log('Downloads button clicked');
+          if (typeof window.setPath === 'function') {
+            try {
+              await window.setPath('downloads');
+            } catch (err) {
+              console.error('Error in setPath downloads:', err);
+              alert('Error: ' + (err.message || err));
+            }
+          } else {
+            alert('setPath function not available. Please refresh the page.');
           }
-        });
+        };
       }
-    }
+    };
     
     // Initialize on load
     loadMasterData();
@@ -2045,8 +2078,12 @@
       const btnDownloads = document.getElementById('btnSetDownloadsPath');
       
       if (btnBackup && btnDocuments && btnDownloads) {
-        setupPathButtons();
-        console.log('Path buttons setup completed');
+        if (typeof window.setupPathButtons === 'function') {
+          window.setupPathButtons();
+          console.log('Path buttons setup completed');
+        } else {
+          console.error('setupPathButtons function not available');
+        }
         return true;
       }
       return false;
