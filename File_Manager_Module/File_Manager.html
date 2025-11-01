@@ -440,8 +440,10 @@
         
         async function checkForSavedHandle() {
             const savedHandle = await loadDirectoryHandle();
-            if (savedHandle) {
-                // Show "Open Last Folder" button
+            const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY) || localStorage.getItem(STORAGE_KEY);
+            
+            // Show button if we have either a saved handle or saved path
+            if (savedHandle || (savedPath && savedPath !== DEFAULT_PATH)) {
                 document.getElementById('openLastFolderBtn').style.display = 'inline-block';
             }
         }
@@ -492,21 +494,42 @@
             }
             
             if (savedPath && savedPath !== DEFAULT_PATH) {
-                // Show message with saved path and option to open
+                // Show message with saved path and prominent Open button
                 document.getElementById('fileListContainer').innerHTML = `
                     <div class="loading">
                         <h3>📁 Last Opened Folder</h3>
                         <p><strong>Saved folder:</strong> ${savedPath}</p>
-                        <p>Click "Open Last Folder" to load files from the saved location, or "Change Folder" to select a different folder</p>
+                        <div style="margin: 20px 0; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="openLastFolder()" style="padding: 12px 24px; font-size: 14px;">
+                                📂 Open Last Folder
+                            </button>
+                            <button class="btn btn-secondary" onclick="selectFolder()" style="padding: 12px 24px; font-size: 14px;">
+                                🔄 Change Folder
+                            </button>
+                        </div>
+                        <p style="margin-top: 10px; color: var(--text-muted); font-size: 13px;">Click "Open Last Folder" to load files immediately, or "Change Folder" to select a different location</p>
                     </div>
                 `;
+                
+                // Also show the header button if we have a saved handle
+                if (savedHandle) {
+                    document.getElementById('openLastFolderBtn').style.display = 'inline-block';
+                } else {
+                    // Show button anyway if there's a saved path
+                    document.getElementById('openLastFolderBtn').style.display = 'inline-block';
+                }
             } else {
                 // Show default message
                 document.getElementById('fileListContainer').innerHTML = `
                     <div class="loading">
                         <h3>📁 Ready to Load Your Files</h3>
                         <p><strong>Target folder:</strong> ${DEFAULT_PATH}</p>
-                        <p>Click "Change Folder" to select your folder and load files</p>
+                        <div style="margin: 20px 0;">
+                            <button class="btn btn-primary" onclick="selectFolder()" style="padding: 12px 24px; font-size: 14px;">
+                                📂 Select Folder
+                            </button>
+                        </div>
+                        <p>Click "Select Folder" to choose your folder and load files</p>
                     </div>
                 `;
             }
@@ -515,8 +538,19 @@
         async function openLastFolder() {
             try {
                 const savedHandle = await loadDirectoryHandle();
+                const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY) || localStorage.getItem(STORAGE_KEY);
+                
                 if (!savedHandle) {
-                    alert('No previously saved folder found. Please use "Change Folder" to select a folder first.');
+                    // No saved handle, but maybe we have a saved path
+                    if (savedPath && savedPath !== DEFAULT_PATH) {
+                        // Show picker and ask user to select the folder again
+                        const confirmMsg = `To open the saved folder "${savedPath}", please select it again in the folder picker.\n\nThis will save the folder access for future direct opening.\n\nClick OK to open the folder picker.`;
+                        if (confirm(confirmMsg)) {
+                            await selectFolder();
+                        }
+                    } else {
+                        alert('No previously saved folder found. Please use "Change Folder" to select a folder first.');
+                    }
                     return;
                 }
                 
@@ -530,20 +564,21 @@
                     directoryHandle = savedHandle;
                     
                     // Update display
-                    const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY) || localStorage.getItem(STORAGE_KEY) || DEFAULT_PATH;
-                    document.getElementById('currentFolder').textContent = `Current Path: ${savedPath}`;
+                    const displayPath = savedPath || DEFAULT_PATH;
+                    document.getElementById('currentFolder').textContent = `Current Path: ${displayPath}`;
                     
                     // Show loading
                     document.getElementById('fileListContainer').innerHTML = `
                         <div class="loading">
                             <h3>📁 Loading Folder...</h3>
-                            <p>Opening previously accessed folder...</p>
+                            <p><strong>Opening:</strong> ${displayPath}</p>
+                            <p>Loading files from previously accessed folder...</p>
                         </div>
                     `;
                     
                     await loadRealFiles();
                 } else {
-                    alert('Permission denied. Please use "Change Folder" to select the folder again.');
+                    alert('Permission denied. The folder access has expired.\n\nPlease use "Change Folder" to select the folder again.');
                     // Remove invalid handle
                     if (db) {
                         const transaction = db.transaction([STORE_NAME], 'readwrite');
