@@ -18,26 +18,27 @@
     }
     .tabs-container {
       display: flex;
-      gap: 5px;
+      gap: 4px;
       padding: 10px 12px;
       background: var(--card-bg, #ffffff);
       border-bottom: 2px solid var(--border-color, #e2e8f0);
-      overflow-x: hidden;
+      overflow-x: auto;
       flex-wrap: nowrap;
     }
     .tab {
-      padding: 8px 12px;
+      padding: 8px 10px;
       background: var(--primary-bg, #f8fafc);
       border: 2px solid var(--border-color, #e2e8f0);
       border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--text-secondary, #64748b);
       transition: all 0.2s;
       white-space: nowrap;
-      flex: 1;
-      min-width: 0;
+      flex: 0 1 auto;
+      min-width: fit-content;
+      max-width: 140px;
       text-align: center;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -355,12 +356,12 @@
       <div class="tab" data-tab="investment">📈 Investment</div>
       <div class="tab" data-tab="task">✅ Task</div>
       <div class="tab" data-tab="common">🌐 Common</div>
-      <div class="tab" data-tab="bank-accounts">🏦 Bank Accounts</div>
-      <div class="tab" data-tab="trading-accounts">📊 Trading Accounts</div>
+      <div class="tab" data-tab="bank-accounts">🏦 Bank A/c</div>
+      <div class="tab" data-tab="trading-accounts">📊 Trading A/c</div>
       <div class="tab" data-tab="properties">🏠 Properties</div>
       <div class="tab" data-tab="credit-cards">💳 Credit Cards</div>
       <div class="tab" data-tab="tenants">👥 Tenants</div>
-      <div class="tab" data-tab="paths">🔧 Set/Change Paths</div>
+      <div class="tab" data-tab="paths">🔧 Paths</div>
     </div>
 
     <!-- Tab Contents -->
