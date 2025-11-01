@@ -543,11 +543,9 @@
                 if (!savedHandle) {
                     // No saved handle, but maybe we have a saved path
                     if (savedPath && savedPath !== DEFAULT_PATH) {
-                        // Show picker and ask user to select the folder again
-                        const confirmMsg = `To open the saved folder "${savedPath}", please select it again in the folder picker.\n\nThis will save the folder access for future direct opening.\n\nClick OK to open the folder picker.`;
-                        if (confirm(confirmMsg)) {
-                            await selectFolder();
-                        }
+                        // Can't call showDirectoryPicker here because user gesture chain is broken
+                        // Instead, guide user to use Change Folder button
+                        alert(`To open the saved folder "${savedPath}", please click the "Change Folder" button.\n\nThis will save the folder access for future direct opening.`);
                     } else {
                         alert('No previously saved folder found. Please use "Change Folder" to select a folder first.');
                     }
@@ -588,7 +586,13 @@
                 }
             } catch (error) {
                 console.error('Error opening last folder:', error);
-                alert('Error opening last folder: ' + error.message + '\n\nPlease use "Change Folder" to select the folder again.');
+                
+                // If it's the user gesture error, provide helpful message
+                if (error.message && error.message.includes('user gesture')) {
+                    alert('Please click the "Change Folder" button to select your folder.\n\nThe folder picker must be opened directly by clicking a button.');
+                } else {
+                    alert('Error opening last folder: ' + error.message + '\n\nPlease use "Change Folder" to select the folder again.');
+                }
             }
         }
 
