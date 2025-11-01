@@ -349,7 +349,7 @@ document.querySelectorAll('.nav-link').forEach(link=>{
         window.location.href='3_Income_Index.html';
       }
       else if(t==='accounts'){
-        window.location.href='Manage_Accounts_Module/Manage_Accounts_FileManager.html';
+        window.location.href='File_Manager_Module/File_Manager_FileManager.html';
       }
       else if(t==='investments'){
         window.location.href='4_Investment_Index.html';
@@ -1337,12 +1337,12 @@ function updateManageMasterDataTooltip(){
   }
 }
 
-// New: Accounts tooltip with default path
+// New: File Manager tooltip with default path
 function updateAccountsTooltip(){
   const accountsLink=document.getElementById('accountsNavLink');
   if(accountsLink){
     const defaultPath='D:\\Personal_Docs';
-    const currentPath=localStorage.getItem('accounts_folder_path')||defaultPath;
+    const currentPath=localStorage.getItem('file_manager_folder_path')||defaultPath;
     accountsLink.title=`Personal Documents folder: ${currentPath}`;
   }
 }
@@ -1358,7 +1358,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 // Listen for cross-tab/local updates
 window.addEventListener('storage',(e)=>{
-  if(e.key && (e.key.includes('last_excel_file_') || e.key === 'project_documents_path' || e.key === 'accounts_folder_path')){
+  if(e.key && (e.key.includes('last_excel_file_') || e.key === 'project_documents_path' || e.key === 'file_manager_folder_path')){
     updateManageMasterDataTooltip();
     updateProjectDocumentsTooltip();
     updateAccountsTooltip();

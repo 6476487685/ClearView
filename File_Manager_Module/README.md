@@ -1,4 +1,4 @@
-# Manage Accounts Module
+# File Manager Module
 
 ## Overview
 This module provides a comprehensive file management system for organizing and accessing personal documents and files.
@@ -6,10 +6,10 @@ This module provides a comprehensive file management system for organizing and a
 ## Files Structure
 
 ### Core Files
-- **Manage_Accounts_FileManager.html** - Main file manager interface
-- **Manage_Accounts_Backend.py** - Python backend for file operations
-- **Manage_Accounts_Config.json** - Configuration settings
-- **Manage_Accounts_Viewer.js** - JavaScript viewer functionality
+- **File_Manager_FileManager.html** - Main file manager interface
+- **File_Manager_Backend.py** - Python backend for file operations
+- **File_Manager_Config.json** - Configuration settings
+- **File_Manager_Viewer.js** - JavaScript viewer functionality
 
 ## Features
 
@@ -33,14 +33,14 @@ This module provides a comprehensive file management system for organizing and a
 ## Usage
 
 ### Direct Access
-1. Open `Manage_Accounts_FileManager.html` directly in browser
+1. Open `File_Manager_FileManager.html` directly in browser
 2. Click "Change Folder" to select your documents folder
 3. Navigate to `D:\Personal_Docs` (or your preferred folder)
 4. Select the folder to load files
 
 ### Through Main Application
 1. Launch the main ClearView application
-2. Click "Manage Accounts" button
+2. Click "View and Manage Personal Documents" button
 3. Follow the same folder selection process
 
 ## Technical Details
@@ -89,3 +89,4 @@ Files are automatically categorized into:
 
 ## Support
 For issues or questions, refer to the main ClearView application documentation.
+

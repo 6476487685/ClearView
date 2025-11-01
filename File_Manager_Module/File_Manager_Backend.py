@@ -1,6 +1,6 @@
 # ==============================================================
-# FILE: manage_accounts.py
-# PURPOSE: Backend for Manage Accounts viewer
+# FILE: file_manager_backend.py
+# PURPOSE: Backend for File Manager viewer
 # - Sends file data as Base64 to JS
 # - Handles Add, Rename, Delete, Change Folder
 # ==============================================================
@@ -22,7 +22,7 @@ except ImportError:
     from PySide6.QtWebChannel import QWebChannel
     from PySide6.QtCore import QObject, Slot, Signal, QUrl
 
-CONFIG_FILE = "manage_accounts_config.json"
+CONFIG_FILE = "file_manager_config.json"
 DEFAULT_PATH = r"D:\My_Programs\ClearView\Personal_Docs"
 
 class Backend(QObject):
@@ -130,8 +130,9 @@ s.setAttribute(QWebEngineSettings.LocalContentCanAccessFileUrls, True)
 s.setAttribute(QWebEngineSettings.PluginsEnabled, True)
 view.page().profile().settings().setAttribute(QWebEngineSettings.PdfViewerEnabled, True)
 
-view.load(QUrl.fromLocalFile(os.path.abspath("manage_accounts_viewer.html")))
+view.load(QUrl.fromLocalFile(os.path.abspath("file_manager_viewer.html")))
 view.resize(1600,900)
 view.show()
 backend.list_folders()
 sys.exit(app.exec())
+

@@ -107,3 +107,4 @@ function deleteFile(n){
   const f=document.querySelector(".category.active")?.textContent;
   if(confirm("Delete "+n+"?"))backend.delete_file(f,n);
 }
+
