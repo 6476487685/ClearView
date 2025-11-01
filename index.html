@@ -182,7 +182,7 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 <nav id="sidebar">
   <a href="Manage_Master_Data.html" class="nav-link" id="masterDataNavLink"><span class="icon">🧩</span>Manage Master Data</a>
   <a href="#" class="nav-link" data-target="tasks"><span class="icon">✅</span>Manage Tasks</a>
-  <a href="#" class="nav-link" data-target="accounts" id="accountsNavLink"><span class="icon">🗂️</span>Manage Accounts</a>
+  <a href="#" class="nav-link" data-target="accounts" id="accountsNavLink"><span class="icon">🗂️</span>View and Manage Personal Documents</a>
   <a href="#" class="nav-link" data-target="expense"><span class="icon">💸</span>Expense Transactions</a>
   <a href="#" class="nav-link" data-target="income"><span class="icon">💰</span>Income Transactions</a>
   <a href="#" class="nav-link" data-target="investments"><span class="icon">📈</span>Equity Transactions</a>
@@ -1343,7 +1343,7 @@ function updateAccountsTooltip(){
   if(accountsLink){
     const defaultPath='D:\\Personal_Docs';
     const currentPath=localStorage.getItem('accounts_folder_path')||defaultPath;
-    accountsLink.title=`Accounts folder: ${currentPath}`;
+    accountsLink.title=`Personal Documents folder: ${currentPath}`;
   }
 }
 
