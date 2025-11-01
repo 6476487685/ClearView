@@ -1150,7 +1150,10 @@
       if (tabName === 'paths') {
         loadPaths();
         // Initialize path buttons when paths tab is activated
-        setTimeout(initializePathButtons, 100);
+        setTimeout(function() {
+          console.log('Setting up path buttons for paths tab');
+          initializePathButtons();
+        }, 200);
       } else {
         renderTab(tabName);
       }
@@ -1285,12 +1288,20 @@
 
     // Setup path selection buttons
     function initializePathButtons() {
+      console.log('Initializing path buttons...');
+      
       // Master Data File button
       const btnMasterDataFile = document.getElementById('btnSetMasterDataFile');
+      console.log('Master Data File button found:', !!btnMasterDataFile);
       if (btnMasterDataFile) {
-        btnMasterDataFile.onclick = async function() {
+        btnMasterDataFile.onclick = async function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Master Data File button clicked');
+          alert('Choose File button clicked! Opening file picker...');
           try {
             if ('showOpenFilePicker' in window) {
+              console.log('showOpenFilePicker available');
               const [fileHandle] = await window.showOpenFilePicker({
                 types: [{
                   description: 'Excel Files',
@@ -1298,6 +1309,7 @@
                 }]
               });
               const file = await fileHandle.getFile();
+              console.log('File selected:', file.name);
               const path = prompt('Please enter the full path to this file:', file.name);
               if (path && path.trim()) {
                 savePath('master-data-file', path.trim());
@@ -1307,8 +1319,10 @@
                   savePath('master-data-folder', folderPath);
                 }
                 alert('Master Data File path saved!');
+                loadPaths();
               }
             } else {
+              console.log('showOpenFilePicker not available, using prompt');
               const path = prompt('Enter the full path to the Master Data Excel file:');
               if (path && path.trim()) {
                 savePath('master-data-file', path.trim());
@@ -1317,14 +1331,18 @@
                   savePath('master-data-folder', folderPath);
                 }
                 alert('Master Data File path saved!');
+                loadPaths();
               }
             }
           } catch (err) {
+            console.error('Error in file picker:', err);
             if (err.name !== 'AbortError') {
+              alert('File picker error: ' + err.message + '\n\nPlease enter the path manually.');
               const path = prompt('Enter the full path to the Master Data Excel file:');
               if (path && path.trim()) {
                 savePath('master-data-file', path.trim());
                 alert('Master Data File path saved!');
+                loadPaths();
               }
             }
           }
@@ -1333,29 +1351,42 @@
 
       // Backup Folder button
       const btnBackup = document.getElementById('btnSetBackupPath');
+      console.log('Backup button found:', !!btnBackup);
       if (btnBackup) {
-        btnBackup.onclick = async function() {
+        btnBackup.onclick = async function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Backup button clicked');
+          alert('Choose Folder button clicked! Opening folder picker...');
           try {
             if ('showDirectoryPicker' in window) {
+              console.log('showDirectoryPicker available');
               const dirHandle = await window.showDirectoryPicker();
+              console.log('Folder selected:', dirHandle.name);
               const path = prompt('Please enter the full path to this folder:', 'D:\\');
               if (path && path.trim()) {
                 savePath('backup', path.trim());
                 alert('Backup folder path saved!');
+                loadPaths();
               }
             } else {
+              console.log('showDirectoryPicker not available, using prompt');
               const path = prompt('Enter the full path to the Backup folder:');
               if (path && path.trim()) {
                 savePath('backup', path.trim());
                 alert('Backup folder path saved!');
+                loadPaths();
               }
             }
           } catch (err) {
+            console.error('Error in folder picker:', err);
             if (err.name !== 'AbortError') {
+              alert('Folder picker error: ' + err.message + '\n\nPlease enter the path manually.');
               const path = prompt('Enter the full path to the Backup folder:');
               if (path && path.trim()) {
                 savePath('backup', path.trim());
                 alert('Backup folder path saved!');
+                loadPaths();
               }
             }
           }
@@ -1364,29 +1395,42 @@
 
       // Documents Folder button
       const btnDocuments = document.getElementById('btnSetDocumentsPath');
+      console.log('Documents button found:', !!btnDocuments);
       if (btnDocuments) {
-        btnDocuments.onclick = async function() {
+        btnDocuments.onclick = async function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Documents button clicked');
+          alert('Choose Folder button clicked! Opening folder picker...');
           try {
             if ('showDirectoryPicker' in window) {
+              console.log('showDirectoryPicker available');
               const dirHandle = await window.showDirectoryPicker();
+              console.log('Folder selected:', dirHandle.name);
               const path = prompt('Please enter the full path to this folder:', 'D:\\');
               if (path && path.trim()) {
                 savePath('documents', path.trim());
                 alert('Documents folder path saved!');
+                loadPaths();
               }
             } else {
+              console.log('showDirectoryPicker not available, using prompt');
               const path = prompt('Enter the full path to the Documents folder:');
               if (path && path.trim()) {
                 savePath('documents', path.trim());
                 alert('Documents folder path saved!');
+                loadPaths();
               }
             }
           } catch (err) {
+            console.error('Error in folder picker:', err);
             if (err.name !== 'AbortError') {
+              alert('Folder picker error: ' + err.message + '\n\nPlease enter the path manually.');
               const path = prompt('Enter the full path to the Documents folder:');
               if (path && path.trim()) {
                 savePath('documents', path.trim());
                 alert('Documents folder path saved!');
+                loadPaths();
               }
             }
           }
@@ -1395,29 +1439,42 @@
 
       // Downloads Folder button
       const btnDownloads = document.getElementById('btnSetDownloadsPath');
+      console.log('Downloads button found:', !!btnDownloads);
       if (btnDownloads) {
-        btnDownloads.onclick = async function() {
+        btnDownloads.onclick = async function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Downloads button clicked');
+          alert('Choose Folder button clicked! Opening folder picker...');
           try {
             if ('showDirectoryPicker' in window) {
+              console.log('showDirectoryPicker available');
               const dirHandle = await window.showDirectoryPicker();
+              console.log('Folder selected:', dirHandle.name);
               const path = prompt('Please enter the full path to this folder:', 'D:\\');
               if (path && path.trim()) {
                 savePath('downloads', path.trim());
                 alert('Downloads folder path saved!');
+                loadPaths();
               }
             } else {
+              console.log('showDirectoryPicker not available, using prompt');
               const path = prompt('Enter the full path to the Downloads folder:');
               if (path && path.trim()) {
                 savePath('downloads', path.trim());
                 alert('Downloads folder path saved!');
+                loadPaths();
               }
             }
           } catch (err) {
+            console.error('Error in folder picker:', err);
             if (err.name !== 'AbortError') {
+              alert('Folder picker error: ' + err.message + '\n\nPlease enter the path manually.');
               const path = prompt('Enter the full path to the Downloads folder:');
               if (path && path.trim()) {
                 savePath('downloads', path.trim());
                 alert('Downloads folder path saved!');
+                loadPaths();
               }
             }
           }
@@ -2101,6 +2158,12 @@
     loadPaths(); // Load paths on page load
     updateLastFileDisplay(); // Show last loaded file
     renderTab('task'); // Render default tab
+    
+    // Also initialize path buttons on load (they'll be re-initialized when paths tab is clicked)
+    setTimeout(function() {
+      console.log('Initializing path buttons on page load');
+      initializePathButtons();
+    }, 500);
     
     // Set up button event listener - multiple attempts to ensure it works
     function setupButton() {
