@@ -355,6 +355,11 @@
       <div class="tab" data-tab="investment">📈 Investment</div>
       <div class="tab" data-tab="task">✅ Task</div>
       <div class="tab" data-tab="common">🌐 Common</div>
+      <div class="tab" data-tab="bank-accounts">🏦 Bank Accounts</div>
+      <div class="tab" data-tab="trading-accounts">📊 Trading Accounts</div>
+      <div class="tab" data-tab="properties">🏠 Properties</div>
+      <div class="tab" data-tab="credit-cards">💳 Credit Cards</div>
+      <div class="tab" data-tab="tenants">👥 Tenants</div>
       <div class="tab" data-tab="paths">🔧 Set/Change Paths</div>
     </div>
 
@@ -377,6 +382,26 @@
 
     <div id="commonContent" class="tab-content">
       <div class="two-column-grid" id="commonGrid"></div>
+    </div>
+
+    <div id="bank-accountsContent" class="tab-content">
+      <div class="two-column-grid" id="bank-accountsGrid"></div>
+    </div>
+
+    <div id="trading-accountsContent" class="tab-content">
+      <div class="two-column-grid" id="trading-accountsGrid"></div>
+    </div>
+
+    <div id="propertiesContent" class="tab-content">
+      <div class="two-column-grid" id="propertiesGrid"></div>
+    </div>
+
+    <div id="credit-cardsContent" class="tab-content">
+      <div class="two-column-grid" id="credit-cardsGrid"></div>
+    </div>
+
+    <div id="tenantsContent" class="tab-content">
+      <div class="two-column-grid" id="tenantsGrid"></div>
     </div>
 
     <div id="pathsContent" class="tab-content">
@@ -609,13 +634,18 @@
         income: { 'Income_Category':'Income Category', 'Income_Ac_Tag':'Income Account Tag' },
         investment: { 'Investment_Category':'Investment Category', 'Investment_Ac_Tag':'Investment Account Tag' },
         task: { 'Task_Tag':'Task Tag','Task_Status':'Task Status','Task_Assignee':'Task Assignee','Task_Priority':'Task Priority','Task_Category':'Task Category','Task_Adhoc':'Task Adhoc' },
-        common: { 'Currency':'Currency','Mode':'Mode','Status_Txn':'Transaction Status','Ac_Holder':'Account Holder','Frequency':'Frequency','Ac_Status':'Account Status' }
+        common: { 'Currency':'Currency','Mode':'Mode','Status_Txn':'Transaction Status','Ac_Holder':'Account Holder','Frequency':'Frequency','Ac_Status':'Account Status' },
+        'bank-accounts': {},
+        'trading-accounts': {},
+        'properties': {},
+        'credit-cards': {},
+        'tenants': {}
       };
       window.initializeMasterData = function(){
         const data = window.masterData || {};
-        ['expense','income','investment','task','common'].forEach(m => {
+        ['expense','income','investment','task','common','bank-accounts','trading-accounts','properties','credit-cards','tenants'].forEach(m => {
           if (!data[m]) data[m] = {};
-          Object.keys(FB_STRUCTURE[m]).forEach(k => { if (!Array.isArray(data[m][k])) data[m][k] = []; });
+          Object.keys(FB_STRUCTURE[m] || {}).forEach(k => { if (!Array.isArray(data[m][k])) data[m][k] = []; });
         });
         window.masterData = data;
       };
@@ -729,7 +759,7 @@
         if (data){ window.masterData = data; initializeMasterData(); saveMasterData(); }
       }catch(_){ }
       // Render all tabs once then default to income
-      ['income','expense','investment','task','common'].forEach(m => window.renderTab(m));
+      ['income','expense','investment','task','common','bank-accounts','trading-accounts','properties','credit-cards','tenants'].forEach(m => window.renderTab(m));
       window.switchTab('income');
     })();
 
@@ -761,11 +791,11 @@
           if (!confirm('⚠️ WARNING: This will delete ALL master data!\n\nAre you sure you want to proceed?')) return;
           if (!confirm('⚠️ FINAL WARNING: This action cannot be undone!\n\nAll master data for Income, Expense, Investment, Task, and Common fields will be permanently deleted.\n\nClick OK to confirm deletion.')) return;
           localStorage.removeItem('unified_master_data');
-          ['task_master_data','expense_master_data','income_master_data','investment_master_data'].forEach(k=>localStorage.removeItem(k));
-          window.masterData = { task:{}, expense:{}, income:{}, investment:{}, common:{} };
+          ['task_master_data','expense_master_data','income_master_data','investment_master_data','bank_accounts_master_data','trading_accounts_master_data','properties_master_data','credit_cards_master_data','tenants_master_data'].forEach(k=>localStorage.removeItem(k));
+          window.masterData = { task:{}, expense:{}, income:{}, investment:{}, common:{}, 'bank-accounts':{}, 'trading-accounts':{}, properties:{}, 'credit-cards':{}, tenants:{} };
           if (typeof initializeMasterData==='function') initializeMasterData();
           if (typeof saveMasterData==='function') saveMasterData();
-          ['income','expense','investment','task','common'].forEach(m=>{ if (typeof renderTab==='function') renderTab(m); });
+          ['income','expense','investment','task','common','bank-accounts','trading-accounts','properties','credit-cards','tenants'].forEach(m=>{ if (typeof renderTab==='function') renderTab(m); });
           window.switchTab && window.switchTab('income');
           alert('All master data cleared.');
         }catch(err){
@@ -813,6 +843,21 @@
         'Ac_Holder': 'Account Holder',
         'Frequency': 'Frequency',
         'Ac_Status': 'Account Status'
+      },
+      'bank-accounts': {
+        // Fields will be added later from Excel
+      },
+      'trading-accounts': {
+        // Fields will be added later from Excel
+      },
+      'properties': {
+        // Fields will be added later from Excel
+      },
+      'credit-cards': {
+        // Fields will be added later from Excel
+      },
+      'tenants': {
+        // Fields will be added later from Excel
       }
     };
 
@@ -918,7 +963,12 @@
           expense: JSON.parse(localStorage.getItem('expense_master_data') || '{}'),
           income: JSON.parse(localStorage.getItem('income_master_data') || '{}'),
           investment: JSON.parse(localStorage.getItem('investment_master_data') || '{}'),
-          common: {}
+          common: {},
+          'bank-accounts': JSON.parse(localStorage.getItem('bank_accounts_master_data') || '{}'),
+          'trading-accounts': JSON.parse(localStorage.getItem('trading_accounts_master_data') || '{}'),
+          properties: JSON.parse(localStorage.getItem('properties_master_data') || '{}'),
+          'credit-cards': JSON.parse(localStorage.getItem('credit_cards_master_data') || '{}'),
+          tenants: JSON.parse(localStorage.getItem('tenants_master_data') || '{}')
         };
         saveMasterData();
       }
@@ -934,6 +984,11 @@
       localStorage.setItem('expense_master_data', JSON.stringify(masterData.expense || {}));
       localStorage.setItem('income_master_data', JSON.stringify(masterData.income || {}));
       localStorage.setItem('investment_master_data', JSON.stringify(masterData.investment || {}));
+      localStorage.setItem('bank_accounts_master_data', JSON.stringify(masterData['bank-accounts'] || {}));
+      localStorage.setItem('trading_accounts_master_data', JSON.stringify(masterData['trading-accounts'] || {}));
+      localStorage.setItem('properties_master_data', JSON.stringify(masterData.properties || {}));
+      localStorage.setItem('credit_cards_master_data', JSON.stringify(masterData['credit-cards'] || {}));
+      localStorage.setItem('tenants_master_data', JSON.stringify(masterData.tenants || {}));
     }
 
     // Load paths from localStorage
@@ -1013,7 +1068,7 @@
 
     // Initialize master data structure
     function initializeMasterData() {
-      ['task', 'expense', 'income', 'investment', 'common'].forEach(module => {
+      ['task', 'expense', 'income', 'investment', 'common', 'bank-accounts', 'trading-accounts', 'properties', 'credit-cards', 'tenants'].forEach(module => {
         if (!masterData[module]) {
           masterData[module] = {};
         }
@@ -1543,7 +1598,12 @@
         expense: {},
         income: {},
         investment: {},
-        common: {}
+        common: {},
+        'bank-accounts': {},
+        'trading-accounts': {},
+        properties: {},
+        'credit-cards': {},
+        tenants: {}
       };
 
       // Clear localStorage
@@ -1552,6 +1612,11 @@
       localStorage.removeItem('expense_master_data');
       localStorage.removeItem('income_master_data');
       localStorage.removeItem('investment_master_data');
+      localStorage.removeItem('bank_accounts_master_data');
+      localStorage.removeItem('trading_accounts_master_data');
+      localStorage.removeItem('properties_master_data');
+      localStorage.removeItem('credit_cards_master_data');
+      localStorage.removeItem('tenants_master_data');
 
       // Clear all paths
       clearAllPaths();

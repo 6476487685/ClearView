@@ -182,7 +182,8 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 <nav id="sidebar">
   <a href="Manage_Master_Data.html" class="nav-link" id="masterDataNavLink"><span class="icon">🧩</span>Manage Master Data</a>
   <a href="#" class="nav-link" data-target="tasks"><span class="icon">✅</span>Manage Tasks</a>
-  <a href="#" class="nav-link" data-target="bank-accounts"><span class="icon">🏦</span>Manage Accounts</a>
+  <a href="#" class="nav-link" data-target="bank-accounts"><span class="icon">🏦</span>Manage Bank Accounts</a>
+  <a href="#" class="nav-link" data-target="trading-accounts"><span class="icon">📊</span>Manage Trading Accounts</a>
   <a href="#" class="nav-link" data-target="credit-cards"><span class="icon">💳</span>Manage Credit Cards</a>
   <a href="#" class="nav-link" data-target="tenants"><span class="icon">👥</span>Manage Tenants</a>
   <a href="#" class="nav-link" data-target="properties"><span class="icon">🏠</span>Manage Properties</a>
@@ -362,7 +363,11 @@ document.querySelectorAll('.nav-link').forEach(link=>{
         window.location.href='5_Task.html';
       }
       else if(t==='bank-accounts'){
-        document.getElementById('genericTitle').textContent='Manage Accounts';
+        document.getElementById('genericTitle').textContent='Manage Bank Accounts';
+        openModal('modal-generic');
+      }
+      else if(t==='trading-accounts'){
+        document.getElementById('genericTitle').textContent='Manage Trading Accounts';
         openModal('modal-generic');
       }
       else if(t==='credit-cards'){
