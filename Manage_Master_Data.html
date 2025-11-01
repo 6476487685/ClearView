@@ -436,8 +436,8 @@
     <div class="title">Manage Master Data</div>
     <div class="right">
       <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
-      <button class="excel" id="btnLoadFromD" type="button" title="Upload Excel File">📥 Load from D:</button>
-      <button class="excel" onclick="alert('Google Drive integration is currently unavailable.')" title="Upload Excel File, Currently Unavailable" style="opacity: 0.6; cursor: not-allowed;">☁️ Load from Google Drive</button>
+      <button class="excel" id="btnLoadFromD" type="button" title="Upload Excel File">📤 Load from D:</button>
+      <button class="excel" id="btnDownloadExcel" type="button" title="Download Current Master Data to Excel">📥 Download Master Data</button>
       <button class="danger" id="btnClearData" style="background:#ea4335;color:white;" title="It deletes all Master Data">🗑️ Clear All Data</button>
     </div>
   </header>
@@ -2279,6 +2279,146 @@
     // Initialize folder path from localStorage on load
     window.lastExcelFolderPath = localStorage.getItem('last_excel_folder_path') || '';
     
+    // Download Master Data to Excel function
+    function downloadMasterDataExcel() {
+      try {
+        // Create a new workbook
+        const wb = XLSX.utils.book_new();
+        
+        // STEP 1: Create merged Ac_Category sheet
+        const acCategoryData = [['Ac_Category', 'Ac_Classification']]; // Header
+        const classifications = ['Income', 'Investment', 'Expanse', 'Tenant'];
+        const categoryMapping = {
+          'Income': 'Income_Category',
+          'Investment': 'Investment_Category',
+          'Expanse': 'Expanse_Category',
+          'Tenant': 'Tenant_Category'
+        };
+        
+        classifications.forEach(cls => {
+          const fieldKey = categoryMapping[cls];
+          const moduleMap = {'Income': 'income', 'Investment': 'investment', 'Expanse': 'expense', 'Tenant': 'tenants'};
+          const moduleName = moduleMap[cls] || '';
+          const values = (masterData[moduleName] || {})[fieldKey] || [];
+          values.forEach(value => {
+            acCategoryData.push([value, cls]);
+          });
+        });
+        
+        if (acCategoryData.length > 1) { // If we have data beyond header
+          const acCategoryWs = XLSX.utils.aoa_to_sheet(acCategoryData);
+          XLSX.utils.book_append_sheet(wb, acCategoryWs, 'Ac_Category');
+          console.log(`Added Ac_Category sheet with ${acCategoryData.length - 1} items`);
+        }
+        
+        // STEP 2: Create merged Ac_Tag sheet
+        const acTagData = [['Ac_Tag', 'Ac_Classification']]; // Header
+        const tagMapping = {
+          'Income': 'Income_Ac_Tag',
+          'Investment': 'Investment_Ac_Tag',
+          'Expanse': 'Expanse_Ac_Tag',
+          'Tenant': 'Tenant_Ac_Tag'
+        };
+        
+        classifications.forEach(cls => {
+          const fieldKey = tagMapping[cls];
+          const moduleMap = {'Income': 'income', 'Investment': 'investment', 'Expanse': 'expense', 'Tenant': 'tenants'};
+          const moduleName = moduleMap[cls] || '';
+          const values = (masterData[moduleName] || {})[fieldKey] || [];
+          values.forEach(value => {
+            acTagData.push([value, cls]);
+          });
+        });
+        
+        if (acTagData.length > 1) { // If we have data beyond header
+          const acTagWs = XLSX.utils.aoa_to_sheet(acTagData);
+          XLSX.utils.book_append_sheet(wb, acTagWs, 'Ac_Tag');
+          console.log(`Added Ac_Tag sheet with ${acTagData.length - 1} items`);
+        }
+        
+        // STEP 3: Add Ac_Classification sheet from common data
+        const acClassificationData = [['Ac_Classification']]; // Header
+        const classificationValues = (masterData.common || {})['Ac_Classification'] || ['Income', 'Investment', 'Expanse', 'Tenant'];
+        classificationValues.forEach(value => {
+          acClassificationData.push([value]);
+        });
+        
+        const acClassWs = XLSX.utils.aoa_to_sheet(acClassificationData);
+        XLSX.utils.book_append_sheet(wb, acClassWs, 'Ac_Classification');
+        console.log(`Added Ac_Classification sheet with ${classificationValues.length} items`);
+        
+        // STEP 4: Add other common fields (skip Ac_Classification as we already added it)
+        const commonData = masterData.common || {};
+        Object.keys(commonData).forEach(fieldKey => {
+          if (fieldKey === 'Ac_Classification') return; // Skip, already added
+          const values = commonData[fieldKey];
+          if (values && Array.isArray(values) && values.length > 0) {
+            const sheetData = [];
+            sheetData.push([fieldKey]); // Header row
+            values.forEach(value => {
+              sheetData.push([value]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(sheetData);
+            XLSX.utils.book_append_sheet(wb, ws, fieldKey);
+            console.log(`Added ${fieldKey} sheet with ${values.length} items`);
+          }
+        });
+        
+        // STEP 5: Add Task fields
+        const taskData = masterData.task || {};
+        Object.keys(MASTER_DATA_STRUCTURE.task || {}).forEach(fieldKey => {
+          const values = taskData[fieldKey];
+          if (values && Array.isArray(values) && values.length > 0) {
+            const sheetData = [];
+            sheetData.push([fieldKey]); // Header row
+            values.forEach(value => {
+              sheetData.push([value]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(sheetData);
+            XLSX.utils.book_append_sheet(wb, ws, fieldKey);
+            console.log(`Added ${fieldKey} sheet with ${values.length} items`);
+          }
+        });
+        
+        // Generate Excel file
+        const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        
+        // Download file
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        
+        // Generate filename with timestamp
+        const now = new Date();
+        const timestamp = now.toISOString().split('T')[0];
+        a.download = `ClearView_Master_Data_${timestamp}.xlsx`;
+        
+        a.click();
+        URL.revokeObjectURL(a.href);
+        
+        // Show download path reminder
+        const downloadsPath = localStorage.getItem('project_downloads_path') || '';
+        const backupPath = localStorage.getItem('project_backup_path') || '';
+        
+        let message = 'Master data exported successfully!\n\nFile downloaded to your default Downloads folder.';
+        if (downloadsPath || backupPath) {
+          message += '\n\n';
+          if (downloadsPath) {
+            message += `📁 Recommended: Move to: ${downloadsPath}\n`;
+          }
+          if (backupPath) {
+            message += `💾 Backup: Copy to: ${backupPath}\n`;
+          }
+          message += '\n(Note: Browser security prevents automatic saving to custom paths)';
+        }
+        
+        setTimeout(() => alert(message), 500);
+      } catch (error) {
+        console.error('Error exporting master data:', error);
+        alert('Error exporting master data: ' + error.message);
+      }
+    }
+    
     // Initialize on load
     loadMasterData();
     loadPaths(); // Load paths on page load
@@ -2304,6 +2444,21 @@
       return false;
     }
     
+    // Set up download button event
+    function setupDownloadButton() {
+      const btn = document.getElementById('btnDownloadExcel');
+      if (btn) {
+        btn.onclick = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          downloadMasterDataExcel();
+        };
+        console.log('Download button listener attached');
+        return true;
+      }
+      return false;
+    }
+    
     // Try multiple times to ensure button is attached
     if (!setupButton()) {
       if (document.readyState === 'loading') {
@@ -2314,6 +2469,19 @@
         });
       } else {
         setTimeout(setupButton, 100);
+      }
+    }
+    
+    // Try multiple times to ensure download button is attached
+    if (!setupDownloadButton()) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+          if (!setupDownloadButton()) {
+            setTimeout(setupDownloadButton, 500);
+          }
+        });
+      } else {
+        setTimeout(setupDownloadButton, 100);
       }
     }
     
