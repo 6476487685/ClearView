@@ -617,39 +617,15 @@
         async function selectFolder() {
             try {
                 if ('showDirectoryPicker' in window) {
-                    // Try to get the saved path to suggest as starting location
-                    const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY);
-                    const savedHandle = await loadDirectoryHandle();
-                    
-                    // Options for showDirectoryPicker
+                    // Directly open the folder picker - no confirm dialogs
                     const options = { mode: 'readwrite' };
                     
-                    // If we have a saved handle, try to use it as the starting location
-                    // Note: The API doesn't directly support opening to a specific path,
-                    // but we can try to use the handle if it's still valid
-                    if (savedHandle) {
-                        try {
-                            // Check if handle is still valid
-                            const permission = await savedHandle.queryPermission({ mode: 'readwrite' });
-                            if (permission === 'granted') {
-                                // Option: Offer to use the saved handle directly
-                                const useSaved = confirm(`You have a previously opened folder saved.\n\nClick OK to use it directly, or Cancel to choose a different folder.`);
-                                if (useSaved) {
-                                    directoryHandle = savedHandle;
-                                    await loadRealFiles();
-                                    return;
-                                }
-                            }
-                        } catch (e) {
-                            // Handle is invalid, proceed with picker
-                        }
-                    }
-                    
-                    // Show the folder picker
+                    // Show the folder picker immediately
                     directoryHandle = await window.showDirectoryPicker(options);
                     
                     // Get the folder name (File System Access API limitation: we can't get full path directly)
                     const folderName = directoryHandle.name;
+                    const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY);
                     let displayPath = folderName;
                     
                     // Try to get saved path, or prompt user once for full path (optional)
