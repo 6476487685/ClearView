@@ -510,7 +510,7 @@
           <div class="path-display" id="masterDataFileDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="masterDataFileInput" class="path-input" placeholder="Enter Excel file path (e.g., D:\Projects\MasterData.xlsx)">
-            <button class="btn btn-primary" onclick="chooseMasterDataFile()">📁 Choose File</button>
+            <button class="btn btn-primary" onclick="console.log('Button clicked!'); alert('Button clicked!'); chooseMasterDataFile();">📁 Choose File</button>
           </div>
         </div>
         <div class="path-section">
@@ -518,7 +518,7 @@
           <div class="path-display" id="backupPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="backupPathInput" class="path-input" placeholder="Enter backup folder path (e.g., D:\Projects\Backup)">
-            <button class="btn btn-primary" onclick="chooseBackupFolder()">📁 Choose Folder</button>
+            <button class="btn btn-primary" onclick="console.log('Button clicked!'); alert('Button clicked!'); chooseBackupFolder();">📁 Choose Folder</button>
           </div>
         </div>
         <div class="path-section">
@@ -526,7 +526,7 @@
           <div class="path-display" id="documentsPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="documentsPathInput" class="path-input" placeholder="Enter documents folder path (e.g., D:\Projects\Documents)">
-            <button class="btn btn-primary" onclick="chooseDocumentsFolder()">📁 Choose Folder</button>
+            <button class="btn btn-primary" onclick="console.log('Button clicked!'); alert('Button clicked!'); chooseDocumentsFolder();">📁 Choose Folder</button>
           </div>
         </div>
         <div class="path-section">
@@ -534,7 +534,7 @@
           <div class="path-display" id="downloadsPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="downloadsPathInput" class="path-input" placeholder="Enter downloads folder path (e.g., D:\Projects\Downloads)">
-            <button class="btn btn-primary" onclick="chooseDownloadsFolder()">📁 Choose Folder</button>
+            <button class="btn btn-primary" onclick="console.log('Button clicked!'); alert('Button clicked!'); chooseDownloadsFolder();">📁 Choose Folder</button>
           </div>
         </div>
       </div>
@@ -558,6 +558,193 @@
   <!-- Critical script runs first, before XLSX library -->
   <script>
     console.log('=== Critical script loading ===');
+    
+    // Define path selection functions immediately so they're available for onclick
+    window.chooseMasterDataFile = async function() {
+      console.log('chooseMasterDataFile called');
+      try {
+        if ('showOpenFilePicker' in window) {
+          const [fileHandle] = await window.showOpenFilePicker({
+            types: [{
+              description: 'Excel Files',
+              accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }
+            }]
+          });
+          const file = await fileHandle.getFile();
+          const path = prompt('Please enter the full path to this file:', file.name);
+          if (path && path.trim()) {
+            localStorage.setItem('project_master_data_file', path.trim());
+            const folderPath = path.substring(0, path.lastIndexOf('\\'));
+            if (folderPath) {
+              localStorage.setItem('project_master_data_folder', folderPath);
+            }
+            alert('Master Data File path saved!');
+            // Update display immediately
+            const display = document.getElementById('masterDataFileDisplay');
+            const input = document.getElementById('masterDataFileInput');
+            if (display) display.textContent = path.trim();
+            if (input) input.value = path.trim();
+          }
+        } else {
+          const path = prompt('Enter the full path to the Master Data Excel file:');
+          if (path && path.trim()) {
+            localStorage.setItem('project_master_data_file', path.trim());
+            const folderPath = path.substring(0, path.lastIndexOf('\\'));
+            if (folderPath) {
+              localStorage.setItem('project_master_data_folder', folderPath);
+            }
+            alert('Master Data File path saved!');
+            // Update display immediately
+            const display = document.getElementById('masterDataFileDisplay');
+            const input = document.getElementById('masterDataFileInput');
+            if (display) display.textContent = path.trim();
+            if (input) input.value = path.trim();
+          }
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+            const path = prompt('Enter the full path to the Master Data Excel file:');
+            if (path && path.trim()) {
+              localStorage.setItem('project_master_data_file', path.trim());
+              alert('Master Data File path saved!');
+              // Update display immediately
+              const display = document.getElementById('masterDataFileDisplay');
+              const input = document.getElementById('masterDataFileInput');
+              if (display) display.textContent = path.trim();
+              if (input) input.value = path.trim();
+            }
+        }
+      }
+    };
+
+    window.chooseBackupFolder = async function() {
+      console.log('chooseBackupFolder called');
+      try {
+        if ('showDirectoryPicker' in window) {
+          const dirHandle = await window.showDirectoryPicker();
+          const path = prompt('Please enter the full path to this folder:', 'D:\\');
+          if (path && path.trim()) {
+            localStorage.setItem('project_backup_path', path.trim());
+            alert('Backup folder path saved!');
+            // Update display immediately
+            const display = document.getElementById('backupPathDisplay');
+            const input = document.getElementById('backupPathInput');
+            if (display) display.textContent = path.trim();
+            if (input) input.value = path.trim();
+          }
+        } else {
+          const path = prompt('Enter the full path to the Backup folder:');
+          if (path && path.trim()) {
+            localStorage.setItem('project_backup_path', path.trim());
+            alert('Backup folder path saved!');
+            // Update display immediately
+            const display = document.getElementById('backupPathDisplay');
+            const input = document.getElementById('backupPathInput');
+            if (display) display.textContent = path.trim();
+            if (input) input.value = path.trim();
+          }
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          const path = prompt('Enter the full path to the Backup folder:');
+          if (path && path.trim()) {
+            localStorage.setItem('project_backup_path', path.trim());
+            alert('Backup folder path saved!');
+            // Update display immediately
+            const display = document.getElementById('backupPathDisplay');
+            const input = document.getElementById('backupPathInput');
+            if (display) display.textContent = path.trim();
+            if (input) input.value = path.trim();
+          }
+        }
+      }
+    };
+
+    window.chooseDocumentsFolder = async function() {
+      console.log('chooseDocumentsFolder called');
+      try {
+        if ('showDirectoryPicker' in window) {
+          const dirHandle = await window.showDirectoryPicker();
+          const path = prompt('Please enter the full path to this folder:', 'D:\\');
+          if (path && path.trim()) {
+            localStorage.setItem('project_documents_path', path.trim());
+            alert('Documents folder path saved!');
+            // Update display immediately
+            const display = document.getElementById('documentsPathDisplay');
+            const input = document.getElementById('documentsPathInput');
+            if (display) display.textContent = path.trim();
+            if (input) input.value = path.trim();
+          }
+        } else {
+          const path = prompt('Enter the full path to the Documents folder:');
+          if (path && path.trim()) {
+            localStorage.setItem('project_documents_path', path.trim());
+            alert('Documents folder path saved!');
+            // Update display immediately
+            const display = document.getElementById('documentsPathDisplay');
+            const input = document.getElementById('documentsPathInput');
+            if (display) display.textContent = path.trim();
+            if (input) input.value = path.trim();
+          }
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          const path = prompt('Enter the full path to the Documents folder:');
+          if (path && path.trim()) {
+            localStorage.setItem('project_documents_path', path.trim());
+            alert('Documents folder path saved!');
+            // Update display immediately
+            const display = document.getElementById('documentsPathDisplay');
+            const input = document.getElementById('documentsPathInput');
+            if (display) display.textContent = path.trim();
+            if (input) input.value = path.trim();
+          }
+        }
+      }
+    };
+
+    window.chooseDownloadsFolder = async function() {
+      console.log('chooseDownloadsFolder called');
+      try {
+        if ('showDirectoryPicker' in window) {
+          const dirHandle = await window.showDirectoryPicker();
+          const path = prompt('Please enter the full path to this folder:', 'D:\\');
+          if (path && path.trim()) {
+            localStorage.setItem('project_downloads_path', path.trim());
+            alert('Downloads folder path saved!');
+            // Update display immediately
+            const display = document.getElementById('downloadsPathDisplay');
+            const input = document.getElementById('downloadsPathInput');
+            if (display) display.textContent = path.trim();
+            if (input) input.value = path.trim();
+          }
+        } else {
+          const path = prompt('Enter the full path to the Downloads folder:');
+          if (path && path.trim()) {
+            localStorage.setItem('project_downloads_path', path.trim());
+            alert('Downloads folder path saved!');
+            // Update display immediately
+            const display = document.getElementById('downloadsPathDisplay');
+            const input = document.getElementById('downloadsPathInput');
+            if (display) display.textContent = path.trim();
+            if (input) input.value = path.trim();
+          }
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          const path = prompt('Enter the full path to the Downloads folder:');
+          if (path && path.trim()) {
+            localStorage.setItem('project_downloads_path', path.trim());
+            alert('Downloads folder path saved!');
+            // Update display immediately
+            const display = document.getElementById('downloadsPathDisplay');
+            const input = document.getElementById('downloadsPathInput');
+            if (display) display.textContent = path.trim();
+            if (input) input.value = path.trim();
+          }
+        }
+      }
+    };
     
     // Define openFilePicker immediately - this must work regardless of XLSX library
     window.openFilePicker = function(){
@@ -1281,145 +1468,6 @@
       return false;
     }
 
-    // Simple, direct functions for path selection - called via inline onclick
-    window.chooseMasterDataFile = async function() {
-      console.log('chooseMasterDataFile called');
-      try {
-        if ('showOpenFilePicker' in window) {
-          const [fileHandle] = await window.showOpenFilePicker({
-            types: [{
-              description: 'Excel Files',
-              accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }
-            }]
-          });
-          const file = await fileHandle.getFile();
-          const path = prompt('Please enter the full path to this file:', file.name);
-          if (path && path.trim()) {
-            savePath('master-data-file', path.trim());
-            const folderPath = path.substring(0, path.lastIndexOf('\\'));
-            if (folderPath) {
-              savePath('master-data-folder', folderPath);
-            }
-            alert('Master Data File path saved!');
-            loadPaths();
-          }
-        } else {
-          const path = prompt('Enter the full path to the Master Data Excel file:');
-          if (path && path.trim()) {
-            savePath('master-data-file', path.trim());
-            const folderPath = path.substring(0, path.lastIndexOf('\\'));
-            if (folderPath) {
-              savePath('master-data-folder', folderPath);
-            }
-            alert('Master Data File path saved!');
-            loadPaths();
-          }
-        }
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          const path = prompt('Enter the full path to the Master Data Excel file:');
-          if (path && path.trim()) {
-            savePath('master-data-file', path.trim());
-            alert('Master Data File path saved!');
-            loadPaths();
-          }
-        }
-      }
-    };
-
-    window.chooseBackupFolder = async function() {
-      console.log('chooseBackupFolder called');
-      try {
-        if ('showDirectoryPicker' in window) {
-          const dirHandle = await window.showDirectoryPicker();
-          const path = prompt('Please enter the full path to this folder:', 'D:\\');
-          if (path && path.trim()) {
-            savePath('backup', path.trim());
-            alert('Backup folder path saved!');
-            loadPaths();
-          }
-        } else {
-          const path = prompt('Enter the full path to the Backup folder:');
-          if (path && path.trim()) {
-            savePath('backup', path.trim());
-            alert('Backup folder path saved!');
-            loadPaths();
-          }
-        }
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          const path = prompt('Enter the full path to the Backup folder:');
-          if (path && path.trim()) {
-            savePath('backup', path.trim());
-            alert('Backup folder path saved!');
-            loadPaths();
-          }
-        }
-      }
-    };
-
-    window.chooseDocumentsFolder = async function() {
-      console.log('chooseDocumentsFolder called');
-      try {
-        if ('showDirectoryPicker' in window) {
-          const dirHandle = await window.showDirectoryPicker();
-          const path = prompt('Please enter the full path to this folder:', 'D:\\');
-          if (path && path.trim()) {
-            savePath('documents', path.trim());
-            alert('Documents folder path saved!');
-            loadPaths();
-          }
-        } else {
-          const path = prompt('Enter the full path to the Documents folder:');
-          if (path && path.trim()) {
-            savePath('documents', path.trim());
-            alert('Documents folder path saved!');
-            loadPaths();
-          }
-        }
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          const path = prompt('Enter the full path to the Documents folder:');
-          if (path && path.trim()) {
-            savePath('documents', path.trim());
-            alert('Documents folder path saved!');
-            loadPaths();
-          }
-        }
-      }
-    };
-
-    window.chooseDownloadsFolder = async function() {
-      console.log('chooseDownloadsFolder called');
-      try {
-        if ('showDirectoryPicker' in window) {
-          const dirHandle = await window.showDirectoryPicker();
-          const path = prompt('Please enter the full path to this folder:', 'D:\\');
-          if (path && path.trim()) {
-            savePath('downloads', path.trim());
-            alert('Downloads folder path saved!');
-            loadPaths();
-          }
-        } else {
-          const path = prompt('Enter the full path to the Downloads folder:');
-          if (path && path.trim()) {
-            savePath('downloads', path.trim());
-            alert('Downloads folder path saved!');
-            loadPaths();
-          }
-        }
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          const path = prompt('Enter the full path to the Downloads folder:');
-          if (path && path.trim()) {
-            savePath('downloads', path.trim());
-            alert('Downloads folder path saved!');
-            loadPaths();
-          }
-        }
-      }
-    };
-    
     // Function to update Manage Master Data tooltip (can be called from index.html)
     window.updateManageMasterDataTooltip = function() {
       const lastExcelFile = localStorage.getItem('last_excel_file_loaded') || '';
