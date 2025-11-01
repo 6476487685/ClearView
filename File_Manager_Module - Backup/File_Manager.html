@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>File Manager</title>
+    <link rel="stylesheet" href="../assets/font-awesome.min.css?v=2">
+    <style>
+        :root {
+            --bg: #fefefe;
+            --surface: #ffffff;
+            --sidebar-bg: #f8f9fa;
+            --content-bg: #ffffff;
+            --primary-bg: #f1f5f9;
+            --text-primary: #0a0a0a;
+            --text-body: #1e293b;
+            --text-secondary: #5f6368;
+            --text-muted: #6c757d;
+            --border: #f1f3f4;
+            --border-light: #f8f9fa;
+            --divider: #e2e8f0;
+            --shadow-xs: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --card-bg: #ffffff;
+            --border-color: #e9ecef;
+            --gap-width: 8px;
+        }
+
+        body.dark {
+            --bg: #1a1a1a;
+            --surface: #2d2d2d;
+            --sidebar-bg: #1e293b;
+            --content-bg: #0f172a;
+            --primary-bg: #0f172a;
+            --text-primary: #ffffff;
+            --text-body: #f1f5f9;
+            --text-secondary: #b3b3b3;
+            --text-muted: #94a3b8;
+            --border: #404040;
+            --border-light: #333333;
+            --divider: #334155;
+            --shadow-xs: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+            --card-bg: #1e293b;
+            --border-color: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--primary-bg);
+            min-height: 100vh;
+            color: var(--text-body);
+        }
+
+        .container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: var(--surface);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-xs);
+            flex-shrink: 0;
+            position: relative;
+            border-bottom: 1px solid var(--border-light);
+            font-weight: 400;
+        }
+
+        .header h2 {
+            font-size: 15px;
+            font-weight: 500;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            margin: 0;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 12px;
+            margin-left: auto;
+        }
+        
+        .header .left {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn.black {
+            background: #0a0a0a;
+            color: #ffffff;
+            border: none;
+        }
+        
+        .btn.black:hover {
+            background: #2d2d2d;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        body.dark .btn.black {
+            background: #ffffff;
+            color: #0a0a0a;
+        }
+        
+        body.dark .btn.black:hover {
+            background: #e0e0e0;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            gap: var(--gap-width);
+            padding: var(--gap-width);
+            overflow: hidden;
+        }
+
+        /* Left Sidebar - Categories (2.5 inches = 240px) */
+        .sidebar {
+            width: 240px;
+            background: var(--sidebar-bg);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            box-shadow: var(--shadow);
+        }
+
+        .category {
+            padding: 12px;
+            margin: 4px 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .category:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .category.active {
+            background: #2196f3;
+            color: white;
+        }
+
+        .file-count {
+            font-size: 11px;
+            background: rgba(0,0,0,0.1);
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        /* Center - File List (6-7 inches = 600px) */
+        .file-list {
+            flex: 0 0 600px;
+            background: var(--sidebar-bg);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .file-list-header {
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        #fileListContainer {
+            flex: 1;
+            overflow-y: scroll;
+            padding: 12px;
+        }
+
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            table-layout: fixed;
+        }
+
+        .file-table th {
+            background: var(--primary-bg);
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--divider);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .file-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--divider);
+            word-wrap: break-word;
+            word-break: break-all;
+            white-space: normal;
+            vertical-align: top;
+        }
+
+        .file-table td:nth-child(1) {
+            width: 50%;
+            max-width: 0;
+        }
+
+        .file-table td:nth-child(2) {
+            width: 15%;
+            text-align: center;
+        }
+
+        .file-table td:nth-child(3) {
+            width: 35%;
+        }
+
+        .file-table tr:hover {
+            background: var(--primary-bg);
+        }
+
+        .file-table tr:first-child td {
+            border-top: none;
+        }
+
+        .file-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-small {
+            padding: 6px 8px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            min-width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+
+        .btn-small:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        /* Right - Preview Panel */
+        .preview-panel {
+            flex: 1;
+            background: var(--sidebar-bg);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .preview-header {
+            padding: 16px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .preview-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .preview-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        #previewContent {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+        
+        /* Theme Switch */
+        .theme-switch {
+            position: relative;
+            width: 44px;
+            height: 22px;
+        }
+        
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 22px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #4285f4;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="left">
+                <button class="btn black" onclick="window.location.href='../index.html'">← Back to Main Dashboard</button>
+            </div>
+            <h2>File Manager</h2>
+            <div class="header-buttons">
+                <label class="theme-switch"><input type="checkbox" id="themeSwitch"><span class="slider"></span></label>
+                <button class="btn btn-primary" onclick="selectFolder()">
+                    Change Folder
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Left Sidebar - Subfolders -->
+            <div class="sidebar">
+                <div id="categoriesList"></div>
+            </div>
+
+            <!-- Center - File List -->
+                    <div class="file-list">
+                <div class="file-list-header" id="currentFolder">
+                    Current Path: D:\My_Programs\ClearView\Personal_Docs
+                            </div>
+                <div id="fileListContainer"></div>
+                        </div>
+                        
+            <!-- Right - Preview Panel -->
+                    <div class="preview-panel">
+                        <div class="preview-header">
+                    <div class="preview-title" id="previewTitle">Preview</div>
+                    <div class="preview-buttons">
+                        <button class="btn btn-success btn-small" id="btnDownload" style="display:none;" onclick="downloadCurrent()">Download</button>
+                        <button class="btn btn-warning btn-small" id="btnPrint" style="display:none;" onclick="printCurrent()">Print</button>
+                            </div>
+                        </div>
+                <div id="previewContent">
+                    <div class="loading">
+                                <p>Select a file to preview</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_PATH = 'D:\\Personal_Docs';
+        const STORAGE_KEY = 'selectedFolderPath';
+        const FILE_MANAGER_PATH_KEY = 'file_manager_folder_path';
+        const ACCESS_KEY = 'hasFolderAccess';
+        const HANDLE_STORAGE_KEY = 'file_manager_directory_handle';
+        const DB_NAME = 'FileManagerDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'directoryHandles';
+
+        let directoryHandle = null;
+        let allFiles = [];
+        let currentFiles = [];
+        let currentCategory = 'All';
+        let currentPreviewFile = null;
+        let db = null;
+
+        // Initialize IndexedDB
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const database = event.target.result;
+                    if (!database.objectStoreNames.contains(STORE_NAME)) {
+                        database.createObjectStore(STORE_NAME);
+                    }
+                };
+            });
+        }
+
+        // Save directory handle to IndexedDB
+        async function saveDirectoryHandle(handle) {
+            try {
+                if (!db) await initDB();
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                await store.put(handle, 'lastFolder');
+            } catch (error) {
+                console.error('Error saving directory handle:', error);
+            }
+        }
+
+        // Load directory handle from IndexedDB
+        async function loadDirectoryHandle() {
+            try {
+                if (!db) await initDB();
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                return new Promise((resolve, reject) => {
+                    const request = store.get('lastFolder');
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (error) {
+                console.error('Error loading directory handle:', error);
+                return null;
+            }
+        }
+
+        window.onload = async function() {
+            await initDB();
+            await loadSavedFolder();
+            checkForSavedHandle();
+            initTheme();
+        };
+        
+        // Theme functionality
+        function initTheme() {
+            const themeSwitch = document.getElementById('themeSwitch');
+            if (!themeSwitch) return;
+            
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark');
+                themeSwitch.checked = true;
+            }
+            
+            themeSwitch.addEventListener('change', () => {
+                document.body.classList.toggle('dark');
+                localStorage.setItem('theme', themeSwitch.checked ? 'dark' : 'light');
+            });
+        }
+        
+        async function checkForSavedHandle() {
+            // Button is now only in the middle pane, no need to check for header button
+        }
+
+        async function loadSavedFolder() {
+            // Try to load the saved folder path
+            const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY) || localStorage.getItem(STORAGE_KEY);
+            const displayPath = savedPath || DEFAULT_PATH;
+            
+            document.getElementById('currentFolder').textContent = `Current Path: ${displayPath}`;
+            
+            // Try to load saved directory handle
+            const savedHandle = await loadDirectoryHandle();
+            if (savedHandle) {
+                // Verify handle is still valid by checking permission
+                try {
+                    const permission = await savedHandle.queryPermission({ mode: 'readwrite' });
+                    if (permission === 'granted') {
+                        directoryHandle = savedHandle;
+                        // Auto-load files if handle is valid
+                        document.getElementById('fileListContainer').innerHTML = `
+                            <div class="loading">
+                                <h3>📁 Loading Last Folder...</h3>
+                                <p><strong>Saved folder:</strong> ${displayPath}</p>
+                                <p>Opening previously accessed folder...</p>
+                            </div>
+                        `;
+                        await loadRealFiles();
+                        return;
+                    } else if (permission === 'prompt') {
+                        // Ask for permission again
+                        const newPermission = await savedHandle.requestPermission({ mode: 'readwrite' });
+                        if (newPermission === 'granted') {
+                            directoryHandle = savedHandle;
+                            document.getElementById('fileListContainer').innerHTML = `
+                                <div class="loading">
+                                    <h3>📁 Loading Last Folder...</h3>
+                                    <p><strong>Saved folder:</strong> ${displayPath}</p>
+                                </div>
+                            `;
+                            await loadRealFiles();
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error verifying handle:', error);
+                }
+            }
+            
+            if (savedPath && savedPath !== DEFAULT_PATH) {
+                // Show message with saved path and prominent Open button
+                document.getElementById('fileListContainer').innerHTML = `
+                    <div class="loading">
+                        <h3>📁 Last Opened Folder</h3>
+                        <p><strong>Saved folder:</strong> ${savedPath}</p>
+                        <div style="margin: 20px 0; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="openLastFolder()" style="padding: 12px 24px; font-size: 14px;">
+                                📂 Open Last Folder
+                            </button>
+                            <button class="btn btn-secondary" onclick="selectFolder()" style="padding: 12px 24px; font-size: 14px;">
+                                🔄 Change Folder
+                            </button>
+                        </div>
+                        <p style="margin-top: 10px; color: var(--text-muted); font-size: 13px;">Click "Open Last Folder" to load files immediately, or "Change Folder" to select a different location</p>
+                    </div>
+                `;
+                
+                // Open Last Folder button is now in the middle pane, no header button needed
+            } else {
+                // Show default message
+                document.getElementById('fileListContainer').innerHTML = `
+                    <div class="loading">
+                        <h3>📁 Ready to Load Your Files</h3>
+                        <p><strong>Target folder:</strong> ${DEFAULT_PATH}</p>
+                        <div style="margin: 20px 0;">
+                            <button class="btn btn-primary" onclick="selectFolder()" style="padding: 12px 24px; font-size: 14px;">
+                                📂 Select Folder
+                            </button>
+                        </div>
+                        <p>Click "Select Folder" to choose your folder and load files</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function openLastFolder() {
+            try {
+                const savedHandle = await loadDirectoryHandle();
+                const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY) || localStorage.getItem(STORAGE_KEY);
+                
+                if (!savedHandle) {
+                    // No saved handle, but maybe we have a saved path
+                    if (savedPath && savedPath !== DEFAULT_PATH) {
+                        // Can't call showDirectoryPicker here because user gesture chain is broken
+                        // Instead, guide user to use Change Folder button
+                        alert(`To open the saved folder "${savedPath}", please click the "Change Folder" button.\n\nThis will save the folder access for future direct opening.`);
+                    } else {
+                        alert('No previously saved folder found. Please use "Change Folder" to select a folder first.');
+                    }
+                    return;
+                }
+                
+                // Request permission if needed
+                let permission = await savedHandle.queryPermission({ mode: 'readwrite' });
+                if (permission !== 'granted') {
+                    permission = await savedHandle.requestPermission({ mode: 'readwrite' });
+                }
+                
+                if (permission === 'granted') {
+                    directoryHandle = savedHandle;
+                    
+                    // Update display
+                    const displayPath = savedPath || DEFAULT_PATH;
+                    document.getElementById('currentFolder').textContent = `Current Path: ${displayPath}`;
+                    
+                    // Show loading
+                    document.getElementById('fileListContainer').innerHTML = `
+                        <div class="loading">
+                            <h3>📁 Loading Folder...</h3>
+                            <p><strong>Opening:</strong> ${displayPath}</p>
+                            <p>Loading files from previously accessed folder...</p>
+                        </div>
+                    `;
+                    
+                    await loadRealFiles();
+                } else {
+                    alert('Permission denied. The folder access has expired.\n\nPlease use "Change Folder" to select the folder again.');
+                    // Remove invalid handle
+                    if (db) {
+                        const transaction = db.transaction([STORE_NAME], 'readwrite');
+                        const store = transaction.objectStore(STORE_NAME);
+                        await store.delete('lastFolder');
+                    }
+                }
+            } catch (error) {
+                console.error('Error opening last folder:', error);
+                
+                // If it's the user gesture error, provide helpful message
+                if (error.message && error.message.includes('user gesture')) {
+                    alert('Please click the "Change Folder" button to select your folder.\n\nThe folder picker must be opened directly by clicking a button.');
+                } else {
+                    alert('Error opening last folder: ' + error.message + '\n\nPlease use "Change Folder" to select the folder again.');
+                }
+            }
+        }
+
+
+
+        async function selectFolder() {
+            try {
+                if ('showDirectoryPicker' in window) {
+                    // Directly open the folder picker - no confirm dialogs
+                    const options = { mode: 'readwrite' };
+                    
+                    // Show the folder picker immediately
+                    directoryHandle = await window.showDirectoryPicker(options);
+                    
+                    // Get the folder name (File System Access API limitation: we can't get full path directly)
+                    const folderName = directoryHandle.name;
+                    const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY);
+                    let displayPath = folderName;
+                    
+                    // Try to get saved path, or prompt user once for full path (optional)
+                    // This helps with persistence and tooltip display in index.html
+                    const hasPrompted = localStorage.getItem('file_manager_path_prompted');
+                    
+                    // Only prompt once if we don't have a saved full path
+                    if (!savedPath || (!hasPrompted && folderName === savedPath)) {
+                        const promptMessage = `Folder "${folderName}" selected.\n\nFor better tracking, paste the full folder path (or click Cancel to use folder name):`;
+                        const userPath = prompt(promptMessage, savedPath || '');
+                        
+                        if (userPath && userPath.trim()) {
+                            displayPath = userPath.trim();
+                            localStorage.setItem('file_manager_path_prompted', 'true');
+                        } else if (!hasPrompted) {
+                            // User cancelled - mark as prompted so we don't ask again
+                            localStorage.setItem('file_manager_path_prompted', 'true');
+                        }
+                    } else if (savedPath) {
+                        // Use saved path if available
+                        displayPath = savedPath;
+                    }
+                    
+                    document.getElementById('currentFolder').textContent = `Current Path: ${displayPath}`;
+                    
+                    // Save directory handle to IndexedDB for future use
+                    await saveDirectoryHandle(directoryHandle);
+                    
+                    // Save to localStorage - prefer user-provided path, fallback to folder name
+                    localStorage.setItem(STORAGE_KEY, displayPath);
+                    localStorage.setItem(FILE_MANAGER_PATH_KEY, displayPath);
+                    localStorage.setItem(ACCESS_KEY, 'true');
+                    
+                    // Trigger storage event so index.html tooltip updates
+                    window.dispatchEvent(new StorageEvent('storage', {
+                        key: FILE_MANAGER_PATH_KEY,
+                        newValue: displayPath
+                    }));
+                    
+                    await loadRealFiles();
+                } else {
+                    alert('Folder picker not supported in this browser.');
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Error:', error);
+                    alert('Error accessing folder: ' + error.message);
+                }
+            }
+        }
+
+        async function loadRealFiles() {
+            try {
+                const folders = [];
+                const files = [];
+                
+                for await (const [name, entryHandle] of directoryHandle.entries()) {
+                    if (entryHandle.kind === 'directory') {
+                        let fileCount = 0;
+                        try {
+                            for await (const [fileName, fileHandle] of entryHandle.entries()) {
+                                if (fileHandle.kind === 'file') fileCount++;
+                            }
+                        } catch (e) {}
+                        
+                        folders.push({ name, fileCount });
+                        
+                        const folderHandle = await directoryHandle.getDirectoryHandle(name);
+                        for await (const [fileName, fileHandle] of folderHandle.entries()) {
+                            if (fileHandle.kind === 'file') {
+                                files.push({
+                                    name: fileName,
+                                    type: getFileType(fileName),
+                                    category: name,
+                                    handle: fileHandle
+                                });
+                            }
+                        }
+                    } else {
+                        files.push({
+                            name,
+                            type: getFileType(name),
+                            category: 'Root',
+                            handle: entryHandle
+                        });
+                    }
+                }
+                
+                allFiles = files;
+                const folderArray = folders.map(f => ({
+                    name: f.name,
+                    fileCount: allFiles.filter(file => file.category === f.name).length
+                }));
+                
+                loadCategories(folderArray);
+                loadFilesForCategory('All');
+                
+                // Update the displayed path and save it
+                const currentPath = directoryHandle.name || 'Selected Folder';
+                document.getElementById('currentFolder').textContent = `Current Path: ${currentPath}`;
+                
+                // Update localStorage with current path
+                localStorage.setItem(STORAGE_KEY, currentPath);
+                localStorage.setItem(FILE_MANAGER_PATH_KEY, currentPath);
+                
+                // Save directory handle for future direct access
+                if (directoryHandle) {
+                    await saveDirectoryHandle(directoryHandle);
+                }
+                
+                // Trigger storage event so index.html tooltip updates
+                window.dispatchEvent(new StorageEvent('storage', {
+                    key: FILE_MANAGER_PATH_KEY,
+                    newValue: currentPath
+                }));
+                
+                // Auto-preview the first file
+                setTimeout(() => {
+                    if (allFiles.length > 0) {
+                        previewFile(allFiles[0].name, allFiles[0].type, allFiles[0].category);
+                    }
+                }, 100);
+            } catch (error) {
+                console.error('Error loading files:', error);
+                document.getElementById('fileListContainer').innerHTML = `
+                    <div class="loading">
+                        <p>Error loading files: ${error.message}</p>
+                        <p>Click "Change Folder" to try again</p>
+                    </div>
+                `;
+            }
+        }
+
+        function loadCategories(folders) {
+            const container = document.getElementById('categoriesList');
+            container.innerHTML = '';
+            
+            const allDiv = document.createElement('div');
+            allDiv.className = 'category active';
+            allDiv.innerHTML = `<span>All Files</span><span class="file-count">${allFiles.length}</span>`;
+            allDiv.onclick = () => selectCategory('All');
+            container.appendChild(allDiv);
+            
+            folders.forEach(folder => {
+                const div = document.createElement('div');
+                div.className = 'category';
+                div.innerHTML = `<span>${folder.name}</span><span class="file-count">${folder.fileCount}</span>`;
+                div.onclick = () => selectCategory(folder.name);
+                container.appendChild(div);
+            });
+        }
+
+        function selectCategory(categoryName) {
+            document.querySelectorAll('.category').forEach(cat => cat.classList.remove('active'));
+            document.querySelectorAll('.category').forEach(cat => {
+                if (cat.textContent.includes(categoryName)) cat.classList.add('active');
+            });
+            currentCategory = categoryName;
+            loadFilesForCategory(categoryName);
+        }
+
+        function loadFilesForCategory(categoryName) {
+            currentFiles = categoryName === 'All' ? allFiles : allFiles.filter(file => file.category === categoryName);
+            displayFiles(currentFiles);
+        }
+
+        function displayFiles(files) {
+            const container = document.getElementById('fileListContainer');
+            
+            if (files.length === 0) {
+                container.innerHTML = '<div class="loading">No files found</div>';
+                return;
+            }
+            
+            let html = '<table class="file-table"><thead><tr><th>File Name</th><th>Type</th><th>Actions</th></tr></thead><tbody>';
+            
+            files.forEach(file => {
+                html += `<tr>
+                        <td>${file.name}</td>
+                        <td>${file.type}</td>
+                    <td><div class="file-actions">
+                        <button class="btn-small btn-success" onclick="previewFile('${file.name}', '${file.type}', '${file.category}')" title="Preview">👁️</button>
+                        <button class="btn-small btn-warning" onclick="renameFile('${file.name}', '${file.category}')" title="Rename">✏️</button>
+                        <button class="btn-small btn-danger" onclick="deleteFile('${file.name}', '${file.category}')" title="Delete">🗑️</button>
+                    </div></td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function getFileType(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const typeMap = {
+                'pdf': 'PDF', 'jpg': 'JPG', 'jpeg': 'JPG', 'png': 'PNG', 'gif': 'GIF',
+                'xlsx': 'XLSX', 'xls': 'XLS', 'docx': 'DOCX', 'doc': 'DOC', 'txt': 'TXT', 'md': 'MD'
+            };
+            return typeMap[ext] || 'FILE';
+        }
+
+        async function previewFile(fileName, fileType, category) {
+            currentPreviewFile = { fileName, fileType, category };
+            document.getElementById('previewTitle').textContent = fileName;
+            document.getElementById('btnDownload').style.display = 'inline-block';
+            document.getElementById('btnPrint').style.display = 'inline-block';
+            
+                const file = currentFiles.find(f => f.name === fileName && f.category === category);
+            const container = document.getElementById('previewContent');
+                
+                if (file && file.handle) {
+                try {
+                    const fileObj = await file.handle.getFile();
+                    const url = URL.createObjectURL(fileObj);
+                    
+                    if (fileType === 'PDF') {
+                        container.innerHTML = `
+                            <div style="text-align: center; padding: 10px;">
+                                <h3 style="color: var(--text-body); margin-bottom: 15px;">📄 Real PDF Preview</h3>
+                                <iframe src="${url}" width="100%" height="500px" style="border: 1px solid #ddd; border-radius: 8px;"></iframe>
+                                <p style="margin-top: 10px; color: #28a745; font-weight: bold;">✅ Real file content loaded!</p>
+                            </div>
+                        `;
+                    } else if (['JPG', 'PNG', 'GIF'].includes(fileType)) {
+                        container.innerHTML = `
+                            <div style="text-align: center; padding: 10px;">
+                                <h3 style="color: var(--text-body); margin-bottom: 15px;">🖼️ Real Image Preview</h3>
+                                <img src="${url}" style="max-width:100%; max-height:500px; border: 1px solid #ddd; border-radius: 8px;">
+                                <p style="margin-top: 10px; color: #28a745; font-weight: bold;">✅ Real image loaded!</p>
+                            </div>
+                        `;
+                    } else if (['TXT', 'MD'].includes(fileType)) {
+                        const text = await fileObj.text();
+                        container.innerHTML = `
+                            <div style="padding: 10px;">
+                                <h3 style="color: var(--text-body); margin-bottom: 15px;">📝 Real Text Preview</h3>
+                                <pre style="background:var(--primary-bg);padding:15px;border-radius:8px;white-space:pre-wrap;border: 1px solid #ddd;">${text}</pre>
+                                <p style="margin-top: 10px; color: #28a745; font-weight: bold;">✅ Real file content loaded!</p>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = `
+                            <div style="padding: 20px; text-align: center;">
+                                <h3 style="color: var(--text-body); margin-bottom: 15px;">📄 Real File</h3>
+                                <div style="background: white; border: 2px solid #28a745; padding: 30px; margin: 20px 0; border-radius: 8px;">
+                                    <h4 style="margin: 0 0 15px 0; color: #333;">${fileName}</h4>
+                                    <p style="margin: 0; color: #666; font-size: 14px;">
+                                        Real file loaded successfully!<br>
+                                        File Type: ${fileType}<br>
+                                        Click Download to save the file.
+                                    </p>
+                                    <p style="margin-top: 15px; color: #28a745; font-weight: bold;">✅ Real file access granted!</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    container.innerHTML = `<div class="loading"><p>Error loading real file: ${error.message}</p></div>`;
+                }
+                } else {
+                // Show demo preview for files without handles
+                    showDemoPreview(fileName, fileType, container);
+            }
+        }
+
+        function showDemoPreview(fileName, fileType, container) {
+            let previewHTML = '';
+            
+            if (fileType === 'PDF') {
+                previewHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">📄 PDF Document Preview</h3>
+                        <div style="background: white; border: 2px solid #ddd; padding: 30px; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                            <h4 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">${fileName.replace('.pdf', '')}</h4>
+                            <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.5;">
+                                This is a preview of <strong>${fileName}</strong><br>
+                                In a real implementation with folder access, you would see the actual PDF content here.
+                            </p>
+                            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                                <p style="margin: 0; color: #28a745; font-weight: bold;">✅ File Ready for Preview</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (['JPG', 'PNG', 'GIF'].includes(fileType)) {
+                previewHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">🖼️ Image Preview</h3>
+                        <div style="background: #f0f0f0; border: 2px dashed #ccc; padding: 40px; margin: 20px 0; border-radius: 8px;">
+                            <div style="font-size: 64px; color: #999; margin-bottom: 15px;">🖼️</div>
+                            <h4 style="margin: 0 0 10px 0; color: #333;">${fileName}</h4>
+                            <p style="margin: 0; color: #666; font-size: 14px;">Image preview would be displayed here</p>
+                        </div>
+                    </div>
+                `;
+            } else if (['TXT', 'MD'].includes(fileType)) {
+                previewHTML = `
+                    <div style="padding: 20px;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">📝 Text File Preview</h3>
+                        <div style="background: var(--primary-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+                            <h4 style="margin: 0 0 15px 0; color: #333;">${fileName}</h4>
+                            <pre style="background: white; padding: 15px; border-radius: 5px; white-space: pre-wrap; font-family: monospace; font-size: 14px; color: #333;">
+This is a preview of the text file: ${fileName}
+
+File Type: ${fileType}
+Category: ${currentPreviewFile.category}
+
+In a real implementation with folder access, 
+you would see the actual file content here.
+
+This is sample text content to demonstrate 
+how the preview would look for text files.
+                            </pre>
+                        </div>
+                    </div>
+                `;
+            } else if (['DOCX', 'XLSX'].includes(fileType)) {
+                previewHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">📊 Office Document Preview</h3>
+                        <div style="background: white; border: 2px solid #ddd; padding: 30px; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                            <div style="font-size: 48px; color: #007bff; margin-bottom: 15px;">📄</div>
+                            <h4 style="margin: 0 0 15px 0; color: #333;">${fileName}</h4>
+                            <p style="margin: 0; color: #666; font-size: 14px;">
+                                ${fileType} Document<br>
+                                Preview not available for this file type.<br>
+                                Click Download to save the file.
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                previewHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3 style="color: var(--text-body); margin-bottom: 15px;">📄 File Preview</h3>
+                        <div style="background: white; border: 2px solid #ddd; padding: 30px; margin: 20px 0; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                            <div style="font-size: 48px; color: #6c757d; margin-bottom: 15px;">📄</div>
+                            <h4 style="margin: 0 0 15px 0; color: #333;">${fileName}</h4>
+                            <p style="margin: 0; color: #666; font-size: 14px;">
+                                File Type: ${fileType}<br>
+                                Preview not available for this file type.
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = previewHTML;
+        }
+
+        function downloadCurrent() {
+            alert('Download functionality for: ' + currentPreviewFile.fileName);
+        }
+
+        function printCurrent() {
+            alert('Print functionality for: ' + currentPreviewFile.fileName);
+        }
+
+        function renameFile(fileName, category) {
+            const newName = prompt('Enter new name:', fileName);
+            if (newName && newName !== fileName) {
+                    const file = currentFiles.find(f => f.name === fileName && f.category === category);
+                if (file) file.name = newName;
+                        loadFilesForCategory(currentCategory);
+            }
+        }
+
+        function deleteFile(fileName, category) {
+            if (confirm(`Delete ${fileName}?`)) {
+                        currentFiles = currentFiles.filter(f => !(f.name === fileName && f.category === category));
+                        allFiles = allFiles.filter(f => !(f.name === fileName && f.category === category));
+                        loadFilesForCategory(currentCategory);
+            }
+        }
+
+        function returnToMainMenu() {
+            // Ensure path is saved before leaving
+            const currentPath = directoryHandle ? directoryHandle.name : (localStorage.getItem(FILE_MANAGER_PATH_KEY) || DEFAULT_PATH);
+            localStorage.setItem(FILE_MANAGER_PATH_KEY, currentPath);
+            
+            // Trigger storage event for tooltip update
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: FILE_MANAGER_PATH_KEY,
+                newValue: currentPath
+            }));
+            
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>
+
