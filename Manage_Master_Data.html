@@ -663,6 +663,29 @@
               localStorage.setItem('unified_master_data', JSON.stringify(unified));
               localStorage.setItem('last_excel_file_loaded', f.name);
               localStorage.setItem('last_excel_file_source', 'D:');
+              
+              // Try to get file path - prompt user if not available
+              const existingPath = localStorage.getItem('last_excel_file_path') || '';
+              if (!existingPath) {
+                // Prompt user for full file path
+                const userPath = prompt(`File "${f.name}" selected.\n\nFor better tracking, paste the full file path (or click Cancel):`, 'D:\\');
+                if (userPath && userPath.trim()) {
+                  localStorage.setItem('last_excel_file_path', userPath.trim() + (userPath.trim().endsWith('\\') ? '' : '\\') + f.name);
+                } else {
+                  // Default to D: drive
+                  localStorage.setItem('last_excel_file_path', 'D:\\' + f.name);
+                }
+              } else {
+                // Update path with current filename if path exists
+                const pathParts = existingPath.split('\\');
+                pathParts[pathParts.length - 1] = f.name;
+                localStorage.setItem('last_excel_file_path', pathParts.join('\\'));
+              }
+              
+              // Update display immediately if function exists
+              if (typeof updateLastFileDisplay === 'function') {
+                updateLastFileDisplay();
+              }
               // Build detailed summary
               const totalSheets = sheetNames.length;
               const transactionalSheets = sheetNames.filter(s => s.startsWith('Txn_') && !s.includes('Mode') && !s.includes('Status')).length;
@@ -852,6 +875,39 @@
         if (content) content.classList.add('active');
         window.renderTab(tab);
       };
+      // Define updateLastFileDisplay early so it can be called from file handlers
+      window.updateLastFileDisplay = function() {
+        const lastExcelFile = localStorage.getItem('last_excel_file_loaded') || '';
+        const lastExcelSource = localStorage.getItem('last_excel_file_source') || '';
+        const lastExcelPath = localStorage.getItem('last_excel_file_path') || '';
+        const filePathDisplay = document.getElementById('filePathDisplay');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        
+        if (!filePathDisplay || !fileNameDisplay) {
+          // Elements not ready yet, retry after a short delay
+          setTimeout(function() { window.updateLastFileDisplay(); }, 100);
+          return;
+        }
+        
+        if (lastExcelFile || lastExcelPath) {
+          // Display file path on left
+          if (lastExcelPath) {
+            filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#1e293b;font-weight:500;">${lastExcelPath}</span>`;
+          } else {
+            filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-style:italic;">Path not available</span>`;
+          }
+          
+          // Display file name on right
+          const icon = lastExcelSource === 'Google Drive' ? '☁️' : '📄';
+          let sourceLabel = lastExcelSource === 'D:' ? 'Local Drive D:' : lastExcelSource;
+          if (lastExcelSource === 'Google Drive') sourceLabel = 'Google Drive';
+          fileNameDisplay.innerHTML = `${icon} <strong>${lastExcelFile}</strong> <span style="color:#64748b;font-weight:400;font-size:0.85rem;">(${sourceLabel || 'Unknown source'})</span>`;
+        } else {
+          filePathDisplay.innerHTML = '<span style="color:#64748b;">⚠️ No file path set</span>';
+          fileNameDisplay.innerHTML = '<span style="color:#64748b;">⚠️ No Excel file loaded yet</span>';
+        }
+      };
+      
       // If we already have data, render immediately
       try{
         const data = JSON.parse(localStorage.getItem('unified_master_data')||'null');
@@ -860,6 +916,8 @@
       // Render all tabs once then default to task
       ['task','expense','income','investment','common','credit-cards','bank-accounts','trading-accounts','properties','tenants'].forEach(m => window.renderTab(m));
       window.switchTab('task');
+      // Update file display on load
+      setTimeout(function() { window.updateLastFileDisplay(); }, 200);
     })();
 
     // Robust tab click delegation to ensure switching works even if other listeners fail
@@ -1752,34 +1810,39 @@
       alert('✅ All master data and paths have been cleared successfully.');
     });
 
-    // Display last loaded Excel file info
-    function updateLastFileDisplay() {
-      const lastExcelFile = localStorage.getItem('last_excel_file_loaded') || '';
-      const lastExcelSource = localStorage.getItem('last_excel_file_source') || '';
-      const lastExcelPath = localStorage.getItem('last_excel_file_path') || '';
-      const filePathDisplay = document.getElementById('filePathDisplay');
-      const fileNameDisplay = document.getElementById('fileNameDisplay');
-      
-      if (!filePathDisplay || !fileNameDisplay) return;
-      
-      if (lastExcelFile || lastExcelPath) {
-        // Display file path on left
-        if (lastExcelPath) {
-          filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#1e293b;font-weight:500;">${lastExcelPath}</span>`;
-        } else {
-          // Try to extract path from filename if full path not available
-          filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-style:italic;">Path not available</span>`;
+    // Display last loaded Excel file info (if not already defined by fallback)
+    if (typeof window.updateLastFileDisplay !== 'function') {
+      function updateLastFileDisplay() {
+        const lastExcelFile = localStorage.getItem('last_excel_file_loaded') || '';
+        const lastExcelSource = localStorage.getItem('last_excel_file_source') || '';
+        const lastExcelPath = localStorage.getItem('last_excel_file_path') || '';
+        const filePathDisplay = document.getElementById('filePathDisplay');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        
+        if (!filePathDisplay || !fileNameDisplay) {
+          setTimeout(updateLastFileDisplay, 100);
+          return;
         }
         
-        // Display file name on right
-        const icon = lastExcelSource === 'Google Drive' ? '☁️' : '📄';
-        let sourceLabel = lastExcelSource === 'D:' ? 'Local Drive D:' : lastExcelSource;
-        if (lastExcelSource === 'Google Drive') sourceLabel = 'Google Drive';
-        fileNameDisplay.innerHTML = `${icon} <strong>${lastExcelFile}</strong> <span style="color:#64748b;font-weight:400;font-size:0.85rem;">(${sourceLabel || 'Unknown source'})</span>`;
-      } else {
-        filePathDisplay.innerHTML = '<span style="color:#64748b;">⚠️ No file path set</span>';
-        fileNameDisplay.innerHTML = '<span style="color:#64748b;">⚠️ No Excel file loaded yet</span>';
+        if (lastExcelFile || lastExcelPath) {
+          // Display file path on left
+          if (lastExcelPath) {
+            filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#1e293b;font-weight:500;">${lastExcelPath}</span>`;
+          } else {
+            filePathDisplay.innerHTML = `<span style="color:#64748b;">📁</span> <span style="color:#64748b;font-style:italic;">Path not available</span>`;
+          }
+          
+          // Display file name on right
+          const icon = lastExcelSource === 'Google Drive' ? '☁️' : '📄';
+          let sourceLabel = lastExcelSource === 'D:' ? 'Local Drive D:' : lastExcelSource;
+          if (lastExcelSource === 'Google Drive') sourceLabel = 'Google Drive';
+          fileNameDisplay.innerHTML = `${icon} <strong>${lastExcelFile}</strong> <span style="color:#64748b;font-weight:400;font-size:0.85rem;">(${sourceLabel || 'Unknown source'})</span>`;
+        } else {
+          filePathDisplay.innerHTML = '<span style="color:#64748b;">⚠️ No file path set</span>';
+          fileNameDisplay.innerHTML = '<span style="color:#64748b;">⚠️ No Excel file loaded yet</span>';
+        }
       }
+      window.updateLastFileDisplay = updateLastFileDisplay;
     }
 
     // Initialize on load
