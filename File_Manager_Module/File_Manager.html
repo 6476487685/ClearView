@@ -321,6 +321,9 @@
         <div class="header">
             <h2>File Manager</h2>
             <div class="header-buttons">
+                <button class="btn btn-primary" id="openLastFolderBtn" onclick="openLastFolder()" style="display:none;">
+                    Open Last Folder
+                </button>
                 <button class="btn btn-primary" onclick="selectFolder()">
                     Change Folder
                 </button>
@@ -368,16 +371,80 @@
         const STORAGE_KEY = 'selectedFolderPath';
         const FILE_MANAGER_PATH_KEY = 'file_manager_folder_path';
         const ACCESS_KEY = 'hasFolderAccess';
+        const HANDLE_STORAGE_KEY = 'file_manager_directory_handle';
+        const DB_NAME = 'FileManagerDB';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'directoryHandles';
 
         let directoryHandle = null;
         let allFiles = [];
         let currentFiles = [];
         let currentCategory = 'All';
         let currentPreviewFile = null;
+        let db = null;
 
-        window.onload = function() {
-            loadSavedFolder();
+        // Initialize IndexedDB
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const database = event.target.result;
+                    if (!database.objectStoreNames.contains(STORE_NAME)) {
+                        database.createObjectStore(STORE_NAME);
+                    }
+                };
+            });
+        }
+
+        // Save directory handle to IndexedDB
+        async function saveDirectoryHandle(handle) {
+            try {
+                if (!db) await initDB();
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                await store.put(handle, 'lastFolder');
+            } catch (error) {
+                console.error('Error saving directory handle:', error);
+            }
+        }
+
+        // Load directory handle from IndexedDB
+        async function loadDirectoryHandle() {
+            try {
+                if (!db) await initDB();
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                return new Promise((resolve, reject) => {
+                    const request = store.get('lastFolder');
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (error) {
+                console.error('Error loading directory handle:', error);
+                return null;
+            }
+        }
+
+        window.onload = async function() {
+            await initDB();
+            await loadSavedFolder();
+            checkForSavedHandle();
         };
+        
+        async function checkForSavedHandle() {
+            const savedHandle = await loadDirectoryHandle();
+            if (savedHandle) {
+                // Show "Open Last Folder" button
+                document.getElementById('openLastFolderBtn').style.display = 'inline-block';
+            }
+        }
 
         async function loadSavedFolder() {
             // Try to load the saved folder path
@@ -386,13 +453,51 @@
             
             document.getElementById('currentFolder').textContent = `Current Path: ${displayPath}`;
             
+            // Try to load saved directory handle
+            const savedHandle = await loadDirectoryHandle();
+            if (savedHandle) {
+                // Verify handle is still valid by checking permission
+                try {
+                    const permission = await savedHandle.queryPermission({ mode: 'readwrite' });
+                    if (permission === 'granted') {
+                        directoryHandle = savedHandle;
+                        // Auto-load files if handle is valid
+                        document.getElementById('fileListContainer').innerHTML = `
+                            <div class="loading">
+                                <h3>📁 Loading Last Folder...</h3>
+                                <p><strong>Saved folder:</strong> ${displayPath}</p>
+                                <p>Opening previously accessed folder...</p>
+                            </div>
+                        `;
+                        await loadRealFiles();
+                        return;
+                    } else if (permission === 'prompt') {
+                        // Ask for permission again
+                        const newPermission = await savedHandle.requestPermission({ mode: 'readwrite' });
+                        if (newPermission === 'granted') {
+                            directoryHandle = savedHandle;
+                            document.getElementById('fileListContainer').innerHTML = `
+                                <div class="loading">
+                                    <h3>📁 Loading Last Folder...</h3>
+                                    <p><strong>Saved folder:</strong> ${displayPath}</p>
+                                </div>
+                            `;
+                            await loadRealFiles();
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error verifying handle:', error);
+                }
+            }
+            
             if (savedPath && savedPath !== DEFAULT_PATH) {
-                // Show message with saved path
+                // Show message with saved path and option to open
                 document.getElementById('fileListContainer').innerHTML = `
                     <div class="loading">
                         <h3>📁 Last Opened Folder</h3>
                         <p><strong>Saved folder:</strong> ${savedPath}</p>
-                        <p>Click "Change Folder" to select a different folder or load files from the saved location</p>
+                        <p>Click "Open Last Folder" to load files from the saved location, or "Change Folder" to select a different folder</p>
                     </div>
                 `;
             } else {
@@ -406,13 +511,87 @@
                 `;
             }
         }
+        
+        async function openLastFolder() {
+            try {
+                const savedHandle = await loadDirectoryHandle();
+                if (!savedHandle) {
+                    alert('No previously saved folder found. Please use "Change Folder" to select a folder first.');
+                    return;
+                }
+                
+                // Request permission if needed
+                let permission = await savedHandle.queryPermission({ mode: 'readwrite' });
+                if (permission !== 'granted') {
+                    permission = await savedHandle.requestPermission({ mode: 'readwrite' });
+                }
+                
+                if (permission === 'granted') {
+                    directoryHandle = savedHandle;
+                    
+                    // Update display
+                    const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY) || localStorage.getItem(STORAGE_KEY) || DEFAULT_PATH;
+                    document.getElementById('currentFolder').textContent = `Current Path: ${savedPath}`;
+                    
+                    // Show loading
+                    document.getElementById('fileListContainer').innerHTML = `
+                        <div class="loading">
+                            <h3>📁 Loading Folder...</h3>
+                            <p>Opening previously accessed folder...</p>
+                        </div>
+                    `;
+                    
+                    await loadRealFiles();
+                } else {
+                    alert('Permission denied. Please use "Change Folder" to select the folder again.');
+                    // Remove invalid handle
+                    if (db) {
+                        const transaction = db.transaction([STORE_NAME], 'readwrite');
+                        const store = transaction.objectStore(STORE_NAME);
+                        await store.delete('lastFolder');
+                    }
+                }
+            } catch (error) {
+                console.error('Error opening last folder:', error);
+                alert('Error opening last folder: ' + error.message + '\n\nPlease use "Change Folder" to select the folder again.');
+            }
+        }
 
 
 
         async function selectFolder() {
             try {
                 if ('showDirectoryPicker' in window) {
-                    directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                    // Try to get the saved path to suggest as starting location
+                    const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY);
+                    const savedHandle = await loadDirectoryHandle();
+                    
+                    // Options for showDirectoryPicker
+                    const options = { mode: 'readwrite' };
+                    
+                    // If we have a saved handle, try to use it as the starting location
+                    // Note: The API doesn't directly support opening to a specific path,
+                    // but we can try to use the handle if it's still valid
+                    if (savedHandle) {
+                        try {
+                            // Check if handle is still valid
+                            const permission = await savedHandle.queryPermission({ mode: 'readwrite' });
+                            if (permission === 'granted') {
+                                // Option: Offer to use the saved handle directly
+                                const useSaved = confirm(`You have a previously opened folder saved.\n\nClick OK to use it directly, or Cancel to choose a different folder.`);
+                                if (useSaved) {
+                                    directoryHandle = savedHandle;
+                                    await loadRealFiles();
+                                    return;
+                                }
+                            }
+                        } catch (e) {
+                            // Handle is invalid, proceed with picker
+                        }
+                    }
+                    
+                    // Show the folder picker
+                    directoryHandle = await window.showDirectoryPicker(options);
                     
                     // Get the folder name (File System Access API limitation: we can't get full path directly)
                     const folderName = directoryHandle.name;
@@ -420,7 +599,6 @@
                     
                     // Try to get saved path, or prompt user once for full path (optional)
                     // This helps with persistence and tooltip display in index.html
-                    const savedPath = localStorage.getItem(FILE_MANAGER_PATH_KEY);
                     const hasPrompted = localStorage.getItem('file_manager_path_prompted');
                     
                     // Only prompt once if we don't have a saved full path
@@ -442,10 +620,16 @@
                     
                     document.getElementById('currentFolder').textContent = `Current Path: ${displayPath}`;
                     
+                    // Save directory handle to IndexedDB for future use
+                    await saveDirectoryHandle(directoryHandle);
+                    
                     // Save to localStorage - prefer user-provided path, fallback to folder name
                     localStorage.setItem(STORAGE_KEY, displayPath);
                     localStorage.setItem(FILE_MANAGER_PATH_KEY, displayPath);
                     localStorage.setItem(ACCESS_KEY, 'true');
+                    
+                    // Show "Open Last Folder" button for future use
+                    document.getElementById('openLastFolderBtn').style.display = 'inline-block';
                     
                     // Trigger storage event so index.html tooltip updates
                     window.dispatchEvent(new StorageEvent('storage', {
@@ -518,6 +702,11 @@
                 // Update localStorage with current path
                 localStorage.setItem(STORAGE_KEY, currentPath);
                 localStorage.setItem(FILE_MANAGER_PATH_KEY, currentPath);
+                
+                // Save directory handle for future direct access
+                if (directoryHandle) {
+                    await saveDirectoryHandle(directoryHandle);
+                }
                 
                 // Trigger storage event so index.html tooltip updates
                 window.dispatchEvent(new StorageEvent('storage', {
