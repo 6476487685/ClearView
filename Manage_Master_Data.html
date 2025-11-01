@@ -510,7 +510,7 @@
           <div class="path-display" id="masterDataFileDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="masterDataFileInput" class="path-input" placeholder="Enter Excel file path (e.g., D:\Projects\MasterData.xlsx)">
-            <button class="btn btn-primary" onclick="console.log('Button clicked!'); alert('Button clicked!'); chooseMasterDataFile();">📁 Choose File</button>
+            <button class="btn btn-primary" onclick="chooseMasterDataFile()">📁 Choose File</button>
           </div>
         </div>
         <div class="path-section">
@@ -518,7 +518,7 @@
           <div class="path-display" id="backupPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="backupPathInput" class="path-input" placeholder="Enter backup folder path (e.g., D:\Projects\Backup)">
-            <button class="btn btn-primary" onclick="console.log('Button clicked!'); alert('Button clicked!'); chooseBackupFolder();">📁 Choose Folder</button>
+            <button class="btn btn-primary" onclick="chooseBackupFolder()">📁 Choose Folder</button>
           </div>
         </div>
         <div class="path-section">
@@ -526,7 +526,7 @@
           <div class="path-display" id="documentsPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="documentsPathInput" class="path-input" placeholder="Enter documents folder path (e.g., D:\Projects\Documents)">
-            <button class="btn btn-primary" onclick="console.log('Button clicked!'); alert('Button clicked!'); chooseDocumentsFolder();">📁 Choose Folder</button>
+            <button class="btn btn-primary" onclick="chooseDocumentsFolder()">📁 Choose Folder</button>
           </div>
         </div>
         <div class="path-section">
@@ -534,7 +534,7 @@
           <div class="path-display" id="downloadsPathDisplay">Not set</div>
           <div class="path-input-group">
             <input type="text" id="downloadsPathInput" class="path-input" placeholder="Enter downloads folder path (e.g., D:\Projects\Downloads)">
-            <button class="btn btn-primary" onclick="console.log('Button clicked!'); alert('Button clicked!'); chooseDownloadsFolder();">📁 Choose Folder</button>
+            <button class="btn btn-primary" onclick="chooseDownloadsFolder()">📁 Choose Folder</button>
           </div>
         </div>
       </div>
@@ -571,7 +571,7 @@
             }]
           });
           const file = await fileHandle.getFile();
-          const path = prompt('Please enter the full path to this file:', file.name);
+          const path = prompt('File selected: ' + file.name + '\n\nDue to browser security limitations, you need to enter the full path manually:\n(e.g., D:\\Projects\\' + file.name, file.name);
           if (path && path.trim()) {
             localStorage.setItem('project_master_data_file', path.trim());
             const folderPath = path.substring(0, path.lastIndexOf('\\'));
@@ -586,7 +586,7 @@
             if (input) input.value = path.trim();
           }
         } else {
-          const path = prompt('Enter the full path to the Master Data Excel file:');
+          const path = prompt('Due to browser security limitations, you need to enter the full path manually.\n\nEnter the full path to the Master Data Excel file:\n(e.g., D:\\Projects\\MasterData.xlsx)', 'D:\\');
           if (path && path.trim()) {
             localStorage.setItem('project_master_data_file', path.trim());
             const folderPath = path.substring(0, path.lastIndexOf('\\'));
@@ -603,16 +603,16 @@
         }
       } catch (err) {
         if (err.name !== 'AbortError') {
-            const path = prompt('Enter the full path to the Master Data Excel file:');
-            if (path && path.trim()) {
-              localStorage.setItem('project_master_data_file', path.trim());
-              alert('Master Data File path saved!');
-              // Update display immediately
-              const display = document.getElementById('masterDataFileDisplay');
-              const input = document.getElementById('masterDataFileInput');
-              if (display) display.textContent = path.trim();
-              if (input) input.value = path.trim();
-            }
+          const path = prompt('Due to browser security limitations, you need to enter the full path manually.\n\nEnter the full path to the Master Data Excel file:\n(e.g., D:\\Projects\\MasterData.xlsx)', 'D:\\');
+          if (path && path.trim()) {
+            localStorage.setItem('project_master_data_file', path.trim());
+            alert('Master Data File path saved!');
+            // Update display immediately
+            const display = document.getElementById('masterDataFileDisplay');
+            const input = document.getElementById('masterDataFileInput');
+            if (display) display.textContent = path.trim();
+            if (input) input.value = path.trim();
+          }
         }
       }
     };
@@ -622,7 +622,7 @@
       try {
         if ('showDirectoryPicker' in window) {
           const dirHandle = await window.showDirectoryPicker();
-          const path = prompt('Please enter the full path to this folder:', 'D:\\');
+          const path = prompt('Folder selected: ' + dirHandle.name + '\n\nDue to browser security limitations, you need to enter the full path manually:\n(e.g., D:\\Projects\\' + dirHandle.name, 'D:\\');
           if (path && path.trim()) {
             localStorage.setItem('project_backup_path', path.trim());
             alert('Backup folder path saved!');
@@ -633,7 +633,7 @@
             if (input) input.value = path.trim();
           }
         } else {
-          const path = prompt('Enter the full path to the Backup folder:');
+          const path = prompt('Due to browser security limitations, you need to enter the full path manually.\n\nEnter the full path to the Backup folder:\n(e.g., D:\\Projects\\Backup)', 'D:\\');
           if (path && path.trim()) {
             localStorage.setItem('project_backup_path', path.trim());
             alert('Backup folder path saved!');
@@ -646,10 +646,10 @@
         }
       } catch (err) {
         if (err.name !== 'AbortError') {
-          const path = prompt('Enter the full path to the Backup folder:');
-          if (path && path.trim()) {
-            localStorage.setItem('project_backup_path', path.trim());
-            alert('Backup folder path saved!');
+            const path = prompt('Due to browser security limitations, you need to enter the full path manually.\n\nEnter the full path to the Backup folder:\n(e.g., D:\\Projects\\Backup)', 'D:\\');
+            if (path && path.trim()) {
+              localStorage.setItem('project_backup_path', path.trim());
+              alert('Backup folder path saved!');
             // Update display immediately
             const display = document.getElementById('backupPathDisplay');
             const input = document.getElementById('backupPathInput');
@@ -665,7 +665,7 @@
       try {
         if ('showDirectoryPicker' in window) {
           const dirHandle = await window.showDirectoryPicker();
-          const path = prompt('Please enter the full path to this folder:', 'D:\\');
+          const path = prompt('Folder selected: ' + dirHandle.name + '\n\nDue to browser security limitations, you need to enter the full path manually:\n(e.g., D:\\Projects\\' + dirHandle.name, 'D:\\');
           if (path && path.trim()) {
             localStorage.setItem('project_documents_path', path.trim());
             alert('Documents folder path saved!');
@@ -676,7 +676,7 @@
             if (input) input.value = path.trim();
           }
         } else {
-          const path = prompt('Enter the full path to the Documents folder:');
+          const path = prompt('Due to browser security limitations, you need to enter the full path manually.\n\nEnter the full path to the Documents folder:\n(e.g., D:\\Projects\\Documents)', 'D:\\');
           if (path && path.trim()) {
             localStorage.setItem('project_documents_path', path.trim());
             alert('Documents folder path saved!');
@@ -689,10 +689,10 @@
         }
       } catch (err) {
         if (err.name !== 'AbortError') {
-          const path = prompt('Enter the full path to the Documents folder:');
-          if (path && path.trim()) {
-            localStorage.setItem('project_documents_path', path.trim());
-            alert('Documents folder path saved!');
+            const path = prompt('Due to browser security limitations, you need to enter the full path manually.\n\nEnter the full path to the Documents folder:\n(e.g., D:\\Projects\\Documents)', 'D:\\');
+            if (path && path.trim()) {
+              localStorage.setItem('project_documents_path', path.trim());
+              alert('Documents folder path saved!');
             // Update display immediately
             const display = document.getElementById('documentsPathDisplay');
             const input = document.getElementById('documentsPathInput');
@@ -708,7 +708,7 @@
       try {
         if ('showDirectoryPicker' in window) {
           const dirHandle = await window.showDirectoryPicker();
-          const path = prompt('Please enter the full path to this folder:', 'D:\\');
+          const path = prompt('Folder selected: ' + dirHandle.name + '\n\nDue to browser security limitations, you need to enter the full path manually:\n(e.g., D:\\Projects\\' + dirHandle.name, 'D:\\');
           if (path && path.trim()) {
             localStorage.setItem('project_downloads_path', path.trim());
             alert('Downloads folder path saved!');
@@ -719,7 +719,7 @@
             if (input) input.value = path.trim();
           }
         } else {
-          const path = prompt('Enter the full path to the Downloads folder:');
+          const path = prompt('Due to browser security limitations, you need to enter the full path manually.\n\nEnter the full path to the Downloads folder:\n(e.g., D:\\Projects\\Downloads)', 'D:\\');
           if (path && path.trim()) {
             localStorage.setItem('project_downloads_path', path.trim());
             alert('Downloads folder path saved!');
@@ -732,10 +732,10 @@
         }
       } catch (err) {
         if (err.name !== 'AbortError') {
-          const path = prompt('Enter the full path to the Downloads folder:');
-          if (path && path.trim()) {
-            localStorage.setItem('project_downloads_path', path.trim());
-            alert('Downloads folder path saved!');
+            const path = prompt('Due to browser security limitations, you need to enter the full path manually.\n\nEnter the full path to the Downloads folder:\n(e.g., D:\\Projects\\Downloads)', 'D:\\');
+            if (path && path.trim()) {
+              localStorage.setItem('project_downloads_path', path.trim());
+              alert('Downloads folder path saved!');
             // Update display immediately
             const display = document.getElementById('downloadsPathDisplay');
             const input = document.getElementById('downloadsPathInput');
@@ -945,7 +945,6 @@
                 `Transactional sheets skipped: ${transactionalSheets}\n`+
                 `Master data sheets processed: ${masterDataSheets}\n\n`+
                 `Fields loaded — Income: ${moduleFieldCounts.income}, Expense: ${moduleFieldCounts.expense}, Investment: ${moduleFieldCounts.investment}, Task: ${moduleFieldCounts.task}, Common: ${moduleFieldCounts.common}\n`+
-                `Total values — Income: ${moduleValueCounts.income}, Expense: ${moduleValueCounts.expense}, Investment: ${moduleValueCounts.investment}, Task: ${moduleValueCounts.task}, Common: ${moduleValueCounts.common}` +
                 (!localStorage.getItem('project_backup_path') || !localStorage.getItem('project_documents_path') || !localStorage.getItem('project_downloads_path')
                   ? `\n\n⚠️ Please set Project Paths in the "Set/Change Paths" tab!`
                   : '');
