@@ -888,7 +888,7 @@
                 Task_Tag: { module: 'common', key: 'Country' },
                 Country: { module: 'common', key: 'Country' }
               };
-              let unified = { task:{}, expense:{}, income:{}, investment:{}, common:{} };
+              let unified = { task:{}, expense:{}, income:{}, investment:{}, common:{}, tenants:{}, 'bank-accounts':{}, 'trading-accounts':{}, properties:{}, 'credit-cards':{} };
               // Merge existing if present
               try{ const existing = JSON.parse(localStorage.getItem('unified_master_data')||'null'); if (existing) unified = existing; }catch(_){ }
 
