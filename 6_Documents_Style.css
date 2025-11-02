@@ -42,7 +42,7 @@ body.dark{--bg:#1a1a1a;--surface:#2d2d2d;--border:#404040;--border-light:#333333
 /* Main content sections */
 main{max-width:1400px;margin:16px auto;padding:0 20px;}
 .upload-section{margin-bottom:12px;}
-.path-display{background:var(--upload-bg);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:10px 16px;margin-bottom:12px;text-align:center;box-shadow:var(--shadow-xs);}
+.path-display{background:var(--upload-bg);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:10px 16px;margin-bottom:12px;box-shadow:var(--shadow-xs);}
 .path-text{margin:0;font-size:14px;color:var(--text-secondary);}
 .path-text strong{color:var(--accent);font-weight:600;margin-left:8px;}
 .path-text i{margin-right:8px;color:var(--accent);}

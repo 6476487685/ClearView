@@ -44,18 +44,19 @@
     </section>
     
     <section class="path-display">
-      <p class="path-text">
-        <i class="fas fa-folder-open"></i> Project Documents Path: 
-        <strong id="documentsPathDisplay">Not Set</strong>
-      </p>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+        <p class="path-text" style="margin:0;">
+          <i class="fas fa-folder-open"></i> Project Documents Path: 
+          <strong id="documentsPathDisplay">Not Set</strong>
+        </p>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <h5 style="margin:0;font-size:14px;font-weight:600;color:var(--text-primary);"><i class="fas fa-files"></i> Your Documents</h5>
+          <div class="doc-stats" id="docStats">0 documents</div>
+        </div>
+      </div>
     </section>
     
     <section class="documents-section">
-      <div class="section-header">
-        <h5><i class="fas fa-files"></i> Your Documents</h5>
-        <div class="doc-stats" id="docStats">0 documents</div>
-      </div>
-      
       <div class="table-container">
         <table class="table docs-table" width="100%">
           <thead>
