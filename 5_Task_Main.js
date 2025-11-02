@@ -143,9 +143,11 @@ function populateModalDropdowns(){
   // Load unified master data from localStorage
   const unifiedDataStr=localStorage.getItem('unified_master_data');
   let masterData={};
+  let commonData={};
   if(unifiedDataStr){
    const unifiedData=JSON.parse(unifiedDataStr);
    masterData=unifiedData.task||{};
+   commonData=unifiedData.common||{};  // Load common data for Country (Task_Tag)
   }else{
    // Fallback to legacy format
    const masterDataStr=localStorage.getItem('task_master_data');
@@ -154,11 +156,11 @@ function populateModalDropdowns(){
   
   // Mapping: form field ID -> master data sheet name -> database field name
   const fieldMapping={
-   'cat':{sheets:['Task_Category','Category_Task'],dbField:'Category_Task'},
-   'tag':{sheets:['Task_Tag'],dbField:'Task_Tag'},
-   'assignee':{sheets:['Task_Assignee'],dbField:'Task_Assignee'},
-   'priority':{sheets:['Task_Priority'],dbField:'Task_Priority'},
-   'status':{sheets:['Task_Status'],dbField:'Task_Status'}
+   'cat':{sheets:['Task_Category','Category_Task'],dbField:'Category_Task',isCommon:false},
+   'tag':{sheets:['Country','Task_Tag'],dbField:'Task_Tag',isCommon:true},  // Now loads from Country in common
+   'assignee':{sheets:['Task_Assignee'],dbField:'Task_Assignee',isCommon:false},
+   'priority':{sheets:['Task_Priority'],dbField:'Task_Priority',isCommon:false},
+   'status':{sheets:['Task_Status'],dbField:'Task_Status',isCommon:false}
   };
   
   // Populate filter dropdowns from existing records (for backwards compatibility)
@@ -193,11 +195,13 @@ function populateModalDropdowns(){
    // Clear existing options
    select.innerHTML='';
    
-   // Try to load from master data
+   // Try to load from master data (check common or task module based on isCommon flag)
    let values=[];
    for(const sheetName of config.sheets){
-    if(masterData[sheetName]&&Array.isArray(masterData[sheetName])){
-     values=masterData[sheetName].filter(v=>v&&v!=='');
+    // Check the appropriate data source based on isCommon flag
+    const dataSource=config.isCommon?commonData:masterData;
+    if(dataSource[sheetName]&&Array.isArray(dataSource[sheetName])){
+     values=dataSource[sheetName].filter(v=>v&&v!=='');
      break;
     }
    }

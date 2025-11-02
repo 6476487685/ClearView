@@ -840,8 +840,8 @@
                 expense: { Expanse_Category: 'Expanse_Category', Expanse_Ac_Tag: 'Expanse_Ac_Tag' },
                 income: { Income_Category: 'Income_Category', Income_Ac_Tag: 'Income_Ac_Tag' },
                 investment: { Investment_Category: 'Investment_Category', Investment_Ac_Tag: 'Investment_Ac_Tag' },
-                task: { Task_Category: 'Task_Category', Task_Status: 'Task_Status', Task_Assignee: 'Task_Assignee', Task_Priority: 'Task_Priority', Task_Adhoc: 'Task_Adhoc' },
-                common: { Currency: 'Currency', Mode: 'Mode', Status_Txn: 'Status_Txn', Ac_Holder: 'Ac_Holder', Frequency: 'Frequency', Ac_Status: 'Ac_Status', Ac_Classification: 'Ac_Classification', Country: 'Country' }
+                task: { Task_Category: 'Task_Category', Task_Tag: 'Task_Tag', Task_Status: 'Task_Status', Task_Assignee: 'Task_Assignee', Task_Priority: 'Task_Priority', Task_Adhoc: 'Task_Adhoc' },
+                common: { Currency: 'Currency', Mode: 'Mode', Status_Txn: 'Status_Txn', Ac_Holder: 'Ac_Holder', Frequency: 'Frequency', Ac_Status: 'Ac_Status', Ac_Classification: 'Ac_Classification' }
               };
               const VARIANTS = {
                 Mode_Txn: { module: 'common', key: 'Mode' },
@@ -849,9 +849,7 @@
                 Expense_Category: { module: 'expense', key: 'Expanse_Category' },
                 Expense_Ac_Tag: { module: 'expense', key: 'Expanse_Ac_Tag' },
                 Expense_Tag: { module: 'expense', key: 'Expanse_Ac_Tag' },
-                Investment_Tag: { module: 'investment', key: 'Investment_Ac_Tag' },
-                Task_Tag: { module: 'common', key: 'Country' },
-                Country: { module: 'common', key: 'Country' }
+                Investment_Tag: { module: 'investment', key: 'Investment_Ac_Tag' }
               };
               let unified = { task:{}, expense:{}, income:{}, investment:{}, common:{} };
               // Merge existing if present
@@ -1265,7 +1263,8 @@
         'Task_Assignee': 'Task Assignee',
         'Task_Priority': 'Task Priority',
         'Task_Category': 'Task Category',
-        'Task_Adhoc': 'Task Adhoc'
+        'Task_Adhoc': 'Task Adhoc',
+        'Country': 'Task Tag'  // Display name in Task dashboard, but stored as Country in common
       },
       common: {
         'Currency': 'Currency',
@@ -1316,12 +1315,11 @@
       
       // Task fields
       'Task_Category': { module: 'task', key: 'Task_Category' },
-      'Task_Tag': { module: 'common', key: 'Country' },  // Map to Country in common
+      'Task_Tag': { module: 'task', key: 'Task_Tag' },
       'Task_Status': { module: 'task', key: 'Task_Status' },
       'Task_Assignee': { module: 'task', key: 'Task_Assignee' },
       'Task_Priority': { module: 'task', key: 'Task_Priority' },
       'Task_Adhoc': { module: 'task', key: 'Task_Adhoc' },
-      'Country': { module: 'common', key: 'Country' },  // Direct Country mapping
       
       // Common fields (no prefix)
       'Currency': { module: 'common', key: 'Currency' },
@@ -1993,18 +1991,12 @@
               
               // Check for module prefixes
               if (sheetName.startsWith('Task_')) {
-                // Special case: Task_Tag maps to Country in common, not task
-                if (sheetName === 'Task_Tag') {
-                  foundModule = 'common';
-                  foundKey = 'Country';
-                } else {
-                  foundModule = 'task';
-                  foundKey = sheetName;
-                  // Check if it's in our structure
-                  if (!MASTER_DATA_STRUCTURE.task[sheetName]) {
-                    foundModule = null;
-                    foundKey = null;
-                  }
+                foundModule = 'task';
+                foundKey = sheetName;
+                // Check if it's in our structure
+                if (!MASTER_DATA_STRUCTURE.task[sheetName]) {
+                  foundModule = null;
+                  foundKey = null;
                 }
               } else if (sheetName.startsWith('Income_')) {
                 foundModule = 'income';
@@ -2066,10 +2058,6 @@
                 } else if (lowerSheet === 'ac_classification' || lowerSheet === 'account classification') {
                   foundModule = 'common';
                   foundKey = 'Ac_Classification';
-                } else if (lowerSheet === 'country' || sheetName === 'Country' || sheetName === 'COUNTRY') {
-                  foundModule = 'common';
-                  foundKey = 'Country';
-                  console.log(`✓ Matched sheet "${sheetName}" to common.Country`);
                 } else if (SHEET_NAME_MAP[sheetName]) {
                   // Check variations mapping
                   foundModule = SHEET_NAME_MAP[sheetName].module;
@@ -2081,8 +2069,7 @@
                       sheetName === 'Mode_Txn' || sheetName === 'Txn_Mode' || sheetName === 'MODE_TXN' || sheetName === 'TXN_MODE' || sheetName === 'Txn_MODE' ||
                       sheetName === 'Status_Txn' || sheetName === 'Txn_Status' || sheetName === 'STATUS_TXN' || sheetName === 'TXN_STATUS' || sheetName === 'Txn_STATUS' ||
                       sheetName === 'Ac_Status' || sheetName === 'AC_STATUS' ||
-                      sheetName === 'Ac_Classification' || sheetName === 'AC_CLASSIFICATION' ||
-                      sheetName === 'Country' || sheetName === 'COUNTRY') {
+                      sheetName === 'Ac_Classification' || sheetName === 'AC_CLASSIFICATION') {
                     foundModule = 'common';
                     // Normalize to standard case
                     if (sheetName === 'Mode' || sheetName.toUpperCase() === 'MODE' || sheetName === 'Mode_Txn' || sheetName.toUpperCase() === 'MODE_TXN' || sheetName === 'Txn_Mode' || sheetName.toUpperCase() === 'TXN_MODE' || sheetName === 'Txn_MODE') {
@@ -2097,8 +2084,6 @@
                       foundKey = 'Ac_Holder';
                     } else if (sheetName.toUpperCase() === 'AC_CLASSIFICATION' || sheetName === 'Ac_Classification') {
                       foundKey = 'Ac_Classification';
-                    } else if (sheetName.toUpperCase() === 'COUNTRY' || sheetName === 'Country') {
-                      foundKey = 'Country';
                     } else {
                       foundKey = sheetName;
                     }
