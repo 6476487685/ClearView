@@ -273,7 +273,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const count=docs.length;
     console.log('Updating stats - document count:', count);
     if(docStats){
-      docStats.textContent=`${count} document${count!==1?'s':''}`;
+      docStats.textContent=`(${count})`;
       console.log('Stats updated to:', docStats.textContent);
     }else{
       console.error('docStats element not found');
