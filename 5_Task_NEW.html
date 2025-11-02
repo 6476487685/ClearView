@@ -1,0 +1,145 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Task Manager â€” Task Dashboard</title>
+  <link rel="stylesheet" href="5_Task_Style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+  <header class="header">
+    <div class="left">
+      <button class="black" onclick="window.location.href='index.html'">â† Back to Main Dashboard</button>
+    </div>
+    <div class="title">Task Manager â€” Task Dashboard</div>
+    <div class="right">
+      <label class="theme-switch"><input type="checkbox" id="themeSwitch"><span class="slider"></span></label>
+      <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
+      <button class="excel" id="btnImportExcel" onclick="document.getElementById('excelFileInput').click();">ðŸ“¥ Load From Excel</button>
+      <button class="danger" id="btnClearData" style="background:#ea4335;color:white;">ðŸ—‘ï¸ Clear Data</button>
+      <button class="pdf" id="btnPDF">ðŸ“˜ Export PDF</button>
+      <button class="excel" id="btnExcel">ðŸ“— Export Excel</button>
+      <button class="primary" id="btnAdd">âž• Add Task</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="filter-card">
+      <div class="filter-grid filter-labels">
+        <div>Category</div>
+        <div>Task Tag</div>
+        <div>Assignee</div>
+        <div>Status</div>
+        <div>Priority</div>
+        <div>From</div>
+        <div>To</div>
+        <div>Search</div>
+        <div>Action</div>
+      </div>
+
+      <div class="filter-grid">
+        <select id="fCategory"><option value="">All</option></select>
+        <select id="fTag"><option value="">All</option></select>
+        <select id="fAssignee"><option value="">All</option></select>
+        <select id="fStatus">
+          <option value="">All</option>
+          <option>Pending</option>
+          <option>In Progress</option>
+          <option>Completed</option>
+          <option>Cancelled</option>
+        </select>
+        <select id="fPriority">
+          <option value="">All</option>
+          <option>Low</option>
+          <option>Medium</option>
+          <option>High</option>
+          <option>Critical</option>
+        </select>
+        <input type="date" id="fFrom">
+        <input type="date" id="fTo">
+        <input type="search" id="globalSearch" placeholder="Search...">
+        <button id="btnClear">ðŸ§¹ Clear All</button>
+      </div>
+    </section>
+
+    <section class="table-card">
+      <table id="taskTable">
+        <thead>
+          <tr>
+            <th class="resizable">#</th>
+            <th class="resizable">Task Description</th>
+            <th class="resizable">Task Category</th>
+            <th class="resizable">Tag</th>
+            <th class="resizable">Status</th>
+            <th class="resizable">Assignee</th>
+            <th class="resizable">Priority</th>
+            <th class="resizable">Due Date</th>
+            <th class="resizable">Completed On</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="taskBody"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- Modal -->
+  <div id="taskModal" class="modal">
+    <div class="modal-content">
+      <h3 id="modalTitle">Add Task</h3>
+      <form id="taskForm">
+        <div class="row-snippets">
+          <div class="desc-section">
+            <label>Task Description</label>
+            <input type="text" id="desc" placeholder="Describe the task" required>
+          </div>
+          <div class="snippets-section">
+            <label>&nbsp;</label>
+            <div class="snippets-controls">
+              <select id="snippetsDropdown">
+                <option value="">Snippets</option>
+              </select>
+              <button type="button" id="saveSnippetBtn" class="btn-save-snippet">Save to Snippets</button>
+            </div>
+          </div>
+        </div>
+        <div class="tip-text" style="margin-top: -10px; margin-bottom: 10px;">Tip: click a snippet to insert at the cursor.</div>
+
+        <!-- Line 1: Category, Task Tag, Assignee, Priority -->
+        <div class="row4">
+          <div><label>Category Task</label><select id="cat"></select></div>
+          <div><label>Task Tag</label><select id="tag"></select></div>
+          <div><label>Task Assignee</label><select id="assignee"></select></div>
+          <div><label>Task Priority</label><select id="priority"></select></div>
+        </div>
+
+        <!-- Line 2: Due Date, Completed On -->
+        <div class="row2">
+          <div><label>Due Date</label><input type="date" id="due"></div>
+          <div><label>Completed On</label><input type="date" id="completed"></div>
+        </div>
+
+        <!-- Line 3: Task Status -->
+        <div class="row1">
+          <div><label>Task Status</label>
+            <select id="status">
+              <option>Pending</option>
+              <option>In Progress</option>
+              <option>Completed</option>
+              <option>Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelBtn">Cancel</button>
+          <button type="submit" id="saveBtn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>

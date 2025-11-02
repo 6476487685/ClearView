@@ -378,6 +378,21 @@ document.addEventListener("DOMContentLoaded",()=>{
      paidFromSelect.appendChild(option);
     });
    }
+   
+   // Log master data counts for verification
+   const unifiedDataStr=localStorage.getItem('unified_master_data');
+   const unifiedDataFull=unifiedDataStr?JSON.parse(unifiedDataStr):{};
+   const masterDataExpense=unifiedDataFull.expense||{};
+   const commonDataExpense=unifiedDataFull.common||{};
+   console.log('📊 Expense Dashboard Master Data Loaded:');
+   console.log(`   Expanse_Category: ${(masterDataExpense['Expanse_Category']||[]).length} records`);
+   console.log(`   Expanse_Ac_Tag: ${(masterDataExpense['Expanse_Ac_Tag']||[]).length} records`);
+   console.log(`   Currency: ${(commonDataExpense['Currency']||[]).length} records`);
+   console.log(`   Mode: ${(commonDataExpense['Mode']||[]).length} records`);
+   console.log(`   Ac_Holder: ${(commonDataExpense['Ac_Holder']||[]).length} records`);
+   console.log(`   Frequency: ${(commonDataExpense['Frequency']||[]).length} records`);
+   console.log(`   Ac_Status: ${(commonDataExpense['Ac_Status']||[]).length} records`);
+   console.log(`   Status_Txn: ${(commonDataExpense['Status_Txn']||[]).length} records`);
   }catch(e){
    console.error('Error populating modal dropdowns:',e);
   }

@@ -234,22 +234,33 @@ document.addEventListener("DOMContentLoaded",()=>{
      option.value=v;
      option.textContent=v;
      select.appendChild(option);
-    });
    });
-  }catch(e){
-   console.error('Error populating modal dropdowns:',e);
-   // Fallback to original behavior
-   const all=getData();
-   const uniq=k=>[...new Set(all.map(x=>x[k]))];
-   ['cat','tag','cur','mode','holder','freq'].forEach(k=>{
-    const s=form[k];
-    if(s){
-     s.innerHTML='';
-     uniq(k).forEach(v=>s.innerHTML+=`<option>${v}</option>`);
-    }
-   });
-  }
+  });
+  
+  // Log master data counts for verification
+  console.log('📊 Investment Dashboard Master Data Loaded:');
+  console.log(`   Investment_Category: ${(masterData['Investment_Category']||[]).length} records`);
+  console.log(`   Investment_Ac_Tag: ${(masterData['Investment_Ac_Tag']||[]).length} records`);
+  console.log(`   Currency: ${(commonData['Currency']||[]).length} records`);
+  console.log(`   Mode: ${(commonData['Mode']||[]).length} records`);
+  console.log(`   Ac_Holder: ${(commonData['Ac_Holder']||[]).length} records`);
+  console.log(`   Frequency: ${(commonData['Frequency']||[]).length} records`);
+  console.log(`   Ac_Status: ${(commonData['Ac_Status']||[]).length} records`);
+  console.log(`   Status_Txn: ${(commonData['Status_Txn']||[]).length} records`);
+ }catch(e){
+  console.error('Error populating modal dropdowns:',e);
+  // Fallback to original behavior
+  const all=getData();
+  const uniq=k=>[...new Set(all.map(x=>x[k]))];
+  ['cat','tag','cur','mode','holder','freq'].forEach(k=>{
+   const s=form[k];
+   if(s){
+    s.innerHTML='';
+    uniq(k).forEach(v=>s.innerHTML+=`<option>${v}</option>`);
+   }
+  });
  }
+}
  
  // Populate dropdowns on page load
  populateModalDropdowns();

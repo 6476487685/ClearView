@@ -284,6 +284,14 @@ function populateModalDropdowns(){
     select.appendChild(option);
    });
   });
+  
+  // Log master data counts for verification
+  console.log('📊 Task Dashboard Master Data Loaded:');
+  console.log(`   Task_Category: ${(masterData['Task_Category']||[]).length} records`);
+  console.log(`   Task_Assignee: ${(masterData['Task_Assignee']||[]).length} records`);
+  console.log(`   Task_Priority: ${(masterData['Task_Priority']||[]).length} records`);
+  console.log(`   Task_Status: ${(masterData['Task_Status']||[]).length} records`);
+  console.log(`   Country (Task_Tag): ${(commonData['Country']||[]).length} records`);
  }catch(e){
   console.error('Error populating modal dropdowns:',e);
   // Fallback to original behavior
