@@ -31,6 +31,9 @@ button.pdf{background:var(--accent);color:var(--surface);}
 button.pdf:hover{background:var(--accent-hover);box-shadow:var(--shadow-xs);}
 button.excel{background:var(--success);color:var(--surface);}
 button.excel:hover{background:#2e7d32;box-shadow:var(--shadow-xs);}
+button.danger{background:var(--danger);color:var(--surface);}
+button.danger:hover{background:#c62828;box-shadow:var(--shadow-xs);}
+button.danger:disabled{opacity:0.5;cursor:not-allowed;}
 
 /* Theme Switch */
 .theme-switch{position:relative;width:44px;height:22px;}

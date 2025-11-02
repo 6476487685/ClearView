@@ -78,6 +78,37 @@ document.addEventListener("DOMContentLoaded",()=>{
   saveData(d);renderTable(d);modal.style.display='none';
  };
 
+ // Clear Data button with safety mechanism (4 clicks to enable, then double confirmation)
+ let clearDataClickCount=0;
+ if(btnClearData){
+  btnClearData.disabled=true;
+  btnClearData.title='Click 4 times to enable, then click to clear all data';
+  btnClearData.addEventListener('click',()=>{
+   clearDataClickCount++;
+   if(clearDataClickCount<4){
+    btnClearData.title=`Click ${4-clearDataClickCount} more time(s) to enable`;
+    return;
+   }
+   if(clearDataClickCount===4){
+    btnClearData.disabled=false;
+    btnClearData.title='⚠️ Enabled! Click again to clear all data';
+    return;
+   }
+   // 5th+ click - double confirmation
+   const firstConfirm=confirm('⚠️ WARNING: This will delete ALL investment records!\n\nAre you sure you want to proceed?');
+   if(!firstConfirm){clearDataClickCount=4;return;}
+   const secondConfirm=confirm('⚠️ FINAL WARNING: This action cannot be undone!\n\nAll investment records will be permanently deleted.\n\nClick OK to confirm deletion.');
+   if(!secondConfirm){clearDataClickCount=4;return;}
+   // Clear data
+   localStorage.removeItem('investment_records');
+   renderTable([]);
+   clearDataClickCount=0;
+   btnClearData.disabled=true;
+   btnClearData.title='Click 4 times to enable, then click to clear all data';
+   alert('✅ All investment records have been cleared successfully.');
+  });
+ }
+
  // Filters
  function applyFilters(){
   let d=getData();

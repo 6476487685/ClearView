@@ -1,6 +1,3 @@
-// Test if JavaScript is loading
-alert('Task Manager JavaScript is loading...');
-
 document.addEventListener("DOMContentLoaded",()=>{
  const table=document.getElementById('taskTable');
  const tbody=document.getElementById('taskBody');
@@ -11,6 +8,7 @@ document.addEventListener("DOMContentLoaded",()=>{
  const title=document.getElementById('modalTitle');
  const btnPDF=document.getElementById('btnPDF');
  const btnExcel=document.getElementById('btnExcel');
+ const btnClearData=document.getElementById('btnClearData');
  const filters=document.querySelectorAll('#fCategory,#fTag,#fAssignee,#fStatus,#fPriority,#fFrom,#fTo,#globalSearch');
  const clearBtn=document.getElementById('btnClear');
  let editIndex=null;
@@ -38,8 +36,10 @@ document.addEventListener("DOMContentLoaded",()=>{
   {Task_Description:'Design Mobile App Interface',Category_Task:'Design',Task_Tag:'MOBILE-020',Task_Assignee:'Alex Chen',Task_Priority:'Medium',Due_Date:'2025-02-24',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'}
  ];
  
- // Set sample data
- localStorage.setItem('task_records', JSON.stringify(sample));
+ // Set sample data only if task_records doesn't exist
+ if(!localStorage.getItem('task_records')){
+  localStorage.setItem('task_records', JSON.stringify(sample));
+ }
  
  const getData=()=>JSON.parse(localStorage.getItem('task_records'))||[];
  const saveData=d=>localStorage.setItem('task_records',JSON.stringify(d));
@@ -137,6 +137,37 @@ document.addEventListener("DOMContentLoaded",()=>{
   saveData(d);renderTable(d);modal.style.display='none';form.reset();editIndex=null;
  });
 
+// Clear Data button with safety mechanism (4 clicks to enable, then double confirmation)
+let clearDataClickCount=0;
+if(btnClearData){
+  btnClearData.disabled=true;
+  btnClearData.title='Click 4 times to enable, then click to clear all data';
+  btnClearData.addEventListener('click',()=>{
+   clearDataClickCount++;
+   if(clearDataClickCount<4){
+    btnClearData.title=`Click ${4-clearDataClickCount} more time(s) to enable`;
+    return;
+   }
+   if(clearDataClickCount===4){
+    btnClearData.disabled=false;
+    btnClearData.title='⚠️ Enabled! Click again to clear all data';
+    return;
+   }
+   // 5th+ click - double confirmation
+   const firstConfirm=confirm('⚠️ WARNING: This will delete ALL task records!\n\nAre you sure you want to proceed?');
+   if(!firstConfirm){clearDataClickCount=4;return;}
+   const secondConfirm=confirm('⚠️ FINAL WARNING: This action cannot be undone!\n\nAll task records will be permanently deleted.\n\nClick OK to confirm deletion.');
+   if(!secondConfirm){clearDataClickCount=4;return;}
+   // Clear data
+   localStorage.removeItem('task_records');
+   renderTable([]);
+   clearDataClickCount=0;
+   btnClearData.disabled=true;
+   btnClearData.title='Click 4 times to enable, then click to clear all data';
+   alert('✅ All task records have been cleared successfully.');
+  });
+ }
+
 // Function to populate modal dropdowns from Excel master data
 function populateModalDropdowns(){
  try{
@@ -163,29 +194,51 @@ function populateModalDropdowns(){
    'status':{sheets:['Task_Status'],dbField:'Task_Status',isCommon:false}
   };
   
-  // Populate filter dropdowns from existing records (for backwards compatibility)
-  const all=getData();
-  const uniq=k=>[...new Set(all.map(x=>x[k]))];
-  if(fCategory)fCategory.innerHTML='<option value="">All</option>';
-  if(fTag)fTag.innerHTML='<option value="">All</option>';
-  if(fAssignee)fAssignee.innerHTML='<option value="">All</option>';
-  if(fStatus)fStatus.innerHTML='<option value="">All</option>';
-  if(fPriority)fPriority.innerHTML='<option value="">All</option>';
-  uniq('Category_Task').forEach(v=>{
-   if(fCategory)fCategory.innerHTML+=`<option>${v}</option>`;
-  });
-  uniq('Task_Tag').forEach(v=>{
-   if(fTag)fTag.innerHTML+=`<option>${v}</option>`;
-  });
-  uniq('Task_Assignee').forEach(v=>{
-   if(fAssignee)fAssignee.innerHTML+=`<option>${v}</option>`;
-  });
-  uniq('Task_Status').forEach(v=>{
-   if(fStatus)fStatus.innerHTML+=`<option>${v}</option>`;
-  });
-  uniq('Task_Priority').forEach(v=>{
-   if(fPriority)fPriority.innerHTML+=`<option>${v}</option>`;
-  });
+  // Populate filter dropdowns from master data (Task-specific data)
+  // Category filter - only Task categories
+  if(fCategory){
+   fCategory.innerHTML='<option value="">All</option>';
+   const categories=masterData['Task_Category']||[];
+   categories.forEach(v=>{
+    if(v&&v!=='')fCategory.innerHTML+=`<option>${v}</option>`;
+   });
+  }
+  
+  // Tag filter - only Country (Task_Tag) from common
+  if(fTag){
+   fTag.innerHTML='<option value="">All</option>';
+   const tags=commonData['Country']||[]; // Task_Tag is now Country in common
+   tags.forEach(v=>{
+    if(v&&v!=='')fTag.innerHTML+=`<option>${v}</option>`;
+   });
+  }
+  
+  // Assignee filter - only Task assignees
+  if(fAssignee){
+   fAssignee.innerHTML='<option value="">All</option>';
+   const assignees=masterData['Task_Assignee']||[];
+   assignees.forEach(v=>{
+    if(v&&v!=='')fAssignee.innerHTML+=`<option>${v}</option>`;
+   });
+  }
+  
+  // Status filter - only Task statuses
+  if(fStatus){
+   fStatus.innerHTML='<option value="">All</option>';
+   const statuses=masterData['Task_Status']||[];
+   statuses.forEach(v=>{
+    if(v&&v!=='')fStatus.innerHTML+=`<option>${v}</option>`;
+   });
+  }
+  
+  // Priority filter - only Task priorities
+  if(fPriority){
+   fPriority.innerHTML='<option value="">All</option>';
+   const priorities=masterData['Task_Priority']||[];
+   priorities.forEach(v=>{
+    if(v&&v!=='')fPriority.innerHTML+=`<option>${v}</option>`;
+   });
+  }
   
   // Populate modal form dropdowns from master data
   Object.entries(fieldMapping).forEach(([formId,config])=>{

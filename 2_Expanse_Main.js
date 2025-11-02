@@ -785,28 +785,36 @@ if (excelFileInput) {
   });
 }
 
-// Clear Data functionality
-if (btnClearData) {
-  btnClearData.addEventListener('click', () => {
-    if (confirm('Are you sure you want to clear all expense data? This action cannot be undone.')) {
-      localStorage.removeItem('expense_records');
-      
-      // Clear table
-      if (tbody) tbody.innerHTML = '';
-      
-      // Clear filter dropdowns
-      if (fCategory) fCategory.innerHTML = '<option value="">All</option>';
-      if (fTag) fTag.innerHTML = '<option value="">All</option>';
-      if (fHolder) fHolder.innerHTML = '<option value="">All</option>';
-      if (fStatus) fStatus.value = '';
-      if (fFrom) fFrom.value = '';
-      if (fTo) fTo.value = '';
-      if (globalSearch) globalSearch.value = '';
-      
-      alert('All expense data has been cleared.');
-    }
+// Clear Data button with safety mechanism (4 clicks to enable, then double confirmation)
+let clearDataClickCount=0;
+if(btnClearData){
+  btnClearData.disabled=true;
+  btnClearData.title='Click 4 times to enable, then click to clear all data';
+  btnClearData.addEventListener('click',()=>{
+   clearDataClickCount++;
+   if(clearDataClickCount<4){
+    btnClearData.title=`Click ${4-clearDataClickCount} more time(s) to enable`;
+    return;
+   }
+   if(clearDataClickCount===4){
+    btnClearData.disabled=false;
+    btnClearData.title='⚠️ Enabled! Click again to clear all data';
+    return;
+   }
+   // 5th+ click - double confirmation
+   const firstConfirm=confirm('⚠️ WARNING: This will delete ALL expense records!\n\nAre you sure you want to proceed?');
+   if(!firstConfirm){clearDataClickCount=4;return;}
+   const secondConfirm=confirm('⚠️ FINAL WARNING: This action cannot be undone!\n\nAll expense records will be permanently deleted.\n\nClick OK to confirm deletion.');
+   if(!secondConfirm){clearDataClickCount=4;return;}
+   // Clear data
+   localStorage.removeItem('expense_records');
+   renderTable([]);
+   clearDataClickCount=0;
+   btnClearData.disabled=true;
+   btnClearData.title='Click 4 times to enable, then click to clear all data';
+   alert('✅ All expense records have been cleared successfully.');
   });
-}
+ }
 
 // Theme functionality
 const themeSwitch = document.getElementById('themeSwitch');
