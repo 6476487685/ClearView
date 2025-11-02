@@ -118,9 +118,11 @@ document.addEventListener("DOMContentLoaded",()=>{
     'cat':{sheets:['Investment_Category'],fallback:['cat']},
     'tag':{sheets:['Investment_Ac_Tag'],fallback:['tag']},
     'cur':{sheets:['Currency'],fallback:['cur']}, // Also checks common.Currency
-    'mode':{sheets:['Mode_Txn','Txn_Mode','Investment_Mode'],fallback:['mode']},
+    'mode':{sheets:['Mode'],fallback:['mode']}, // Check common.Mode
     'holder':{sheets:['Ac_Holder','Investment_Holder'],fallback:['holder']},
-    'freq':{sheets:['Frequency'],fallback:['freq']} // Also checks common.Frequency
+    'freq':{sheets:['Frequency'],fallback:['freq']}, // Also checks common.Frequency
+    'acstatus':{sheets:['Ac_Status'],fallback:['acstatus']}, // Check common.Ac_Status
+    'txnstatus':{sheets:['Status_Txn'],fallback:['txnstatus']} // Check common.Status_Txn
    };
    
    // Populate filter dropdowns from existing records (for backwards compatibility)
@@ -138,14 +140,23 @@ document.addEventListener("DOMContentLoaded",()=>{
     // Clear existing options
     select.innerHTML='';
     
-    // Try to load from master data (check both module-specific and common)
+    // Try to load from master data (check common first for common fields, then module-specific)
     let values=[];
+    const commonFieldNames=['Mode','Currency','Frequency','Ac_Status','Status_Txn','Ac_Holder'];
     for(const sheetName of config.sheets){
+     // For common fields, check commonData first
+     if(commonFieldNames.includes(sheetName)){
+      if(commonData[sheetName]&&Array.isArray(commonData[sheetName])){
+       values=commonData[sheetName].filter(v=>v&&v!=='');
+       break;
+      }
+     }
+     // Then check module-specific master data
      if(masterData[sheetName]&&Array.isArray(masterData[sheetName])){
       values=masterData[sheetName].filter(v=>v&&v!=='');
       break;
      }
-     // Also check common fields
+     // Also check common fields as fallback
      if(commonData[sheetName]&&Array.isArray(commonData[sheetName])){
       values=commonData[sheetName].filter(v=>v&&v!=='');
       break;
