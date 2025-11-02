@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function() {
       border:1px solid rgba(255,255,255,0.2);
       backdrop-filter:blur(10px);
     `;
-    toast.textContent=message;
+    toast.innerHTML=message;
     document.body.appendChild(toast);
     
     // Force reflow to ensure initial styles are applied
@@ -254,16 +254,16 @@ document.addEventListener("DOMContentLoaded", function() {
       <td>
         <div class="doc-actions">
           <button class="doc-btn download" data-i="${i}" title="Download">
-            <span style="font-size: 16px;">⬇️</span>
+            <i class="fas fa-download"></i>
           </button>
           <button class="doc-btn move-up" data-i="${i}" title="Move Up" ${i === 0 ? 'disabled' : ''}>
-            <span style="font-size: 16px;">⬆️</span>
+            <i class="fas fa-arrow-up"></i>
           </button>
           <button class="doc-btn move-down" data-i="${i}" title="Move Down" ${i === docs.length - 1 ? 'disabled' : ''}>
-            <span style="font-size: 16px;">⬇️</span>
+            <i class="fas fa-arrow-down"></i>
           </button>
           <button class="doc-btn delete" data-i="${i}" title="Delete">
-            <span style="font-size: 16px;">🗑️</span>
+            <i class="fas fa-trash"></i>
           </button>
         </div>
       </td>`;
