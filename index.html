@@ -317,11 +317,6 @@ document.getElementById('logoutBtn').addEventListener('click',()=>{
 /* ---------- Modal Logic ---------- */
 function openModal(id){
   document.getElementById(id).style.display='block';
-  
-  // Update document stats when Documents modal is opened
-  if(id === 'modal-docs'){
-    updateStats();
-  }
 }
 function closeModal(id){
   document.getElementById(id).style.display='none';
@@ -345,7 +340,7 @@ document.querySelectorAll('.nav-link').forEach(link=>{
         openModal('modal-backup');
       }
       else if(t==='docs'){
-        openDocumentsModal();
+        window.location.href='6_Documents_Index.html';
       }
       else if(t==='expense'){
         window.location.href='2_Expanse_Index.html';

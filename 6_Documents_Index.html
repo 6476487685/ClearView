@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Document Manager — Project Documents</title>
+  <link rel="stylesheet" href="6_Documents_Style.css">
+  <link rel="stylesheet" href="assets/font-awesome.min.css">
+</head>
+
+<body>
+  <header class="header">
+    <div class="header-left">
+      <h1 class="header-title">Document Manager — Project Documents</h1>
+      <div class="header-buttons">
+        <button id="downloadAllBtn" class="header-btn download-btn" title="Download all documents to Backup folder">
+          <img src="assets/icons/download-all.png" alt="Download All" style="width: 18px; height: 18px;">
+          <span>Download All</span>
+        </button>
+        <button id="changeDocsFolderBtn" class="header-btn folder-btn" title="Change Documents folder">
+          <img src="assets/icons/change-folder.png" alt="Change Folder" style="width: 18px; height: 18px;">
+          <span>Change Folder</span>
+        </button>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="black" onclick="window.location.href='index.html'">← Back to Main Dashboard</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="upload-section">
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon"><img src="assets/icons/Drag-and-Drop.png" alt="Drag and Drop" style="width: 36px; height: 36px;"></div>
+        <p class="upload-text">Drag & drop files here or click to browse</p>
+        <p class="upload-subtext">Supports: PDF, DOC, DOCX, XLS, XLSX, TXT, Images</p>
+        <button class="upload-btn" id="uploadBtn">Choose Files</button>
+        <input type="file" id="docUpload" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif">
+      </div>
+    </section>
+    
+    <section class="documents-section">
+      <div class="section-header">
+        <h5><i class="fas fa-files"></i> Your Documents</h5>
+        <div class="doc-stats" id="docStats">0 documents</div>
+      </div>
+      
+      <div class="table-container">
+        <table class="table docs-table" width="100%">
+          <thead>
+            <tr>
+              <th><i class="fas fa-file"></i> Name</th>
+              <th><i class="fas fa-folder"></i> Type</th>
+              <th><i class="fas fa-weight-hanging"></i> Size</th>
+              <th><i class="fas fa-calendar-plus"></i> Added</th>
+              <th><i class="fas fa-cogs"></i> Actions</th>
+            </tr>
+          </thead>
+          <tbody id="docsTbody">
+            <tr class="empty-state">
+              <td colspan="5" class="empty-message">
+                <div class="empty-icon"><i class="fas fa-folder-open"></i></div>
+                <p>No documents yet. Upload your first document above!</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="6_Documents_Main.js"></script>
+  <script>
+    // Close dropdown when clicking outside (if needed in future)
+    document.addEventListener('click', function(event) {
+      if (!event.target.closest('.dropdown')) {
+        var dropdowns = document.getElementsByClassName('dropdown-content');
+        for (var i = 0; i < dropdowns.length; i++) {
+          var openDropdown = dropdowns[i];
+          if (openDropdown.classList.contains('show')) {
+            openDropdown.classList.remove('show');
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
+
