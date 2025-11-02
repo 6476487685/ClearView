@@ -705,44 +705,15 @@
 
     window.chooseDownloadsFolder = async function() {
       console.log('chooseDownloadsFolder called');
-      try {
-        if ('showDirectoryPicker' in window) {
-          const dirHandle = await window.showDirectoryPicker();
-          const path = prompt('Folder selected: ' + dirHandle.name + '\n\nDue to browser security limitations, you need to enter the full path manually:\n(e.g., D:\\Projects\\' + dirHandle.name, 'D:\\');
-          if (path && path.trim()) {
-            localStorage.setItem('project_downloads_path', path.trim());
-            alert('Downloads folder path saved!');
-            // Update display immediately
-            const display = document.getElementById('downloadsPathDisplay');
-            const input = document.getElementById('downloadsPathInput');
-            if (display) display.textContent = path.trim();
-            if (input) input.value = path.trim();
-          }
-        } else {
-          const path = prompt('Due to browser security limitations, you need to enter the full path manually.\n\nEnter the full path to the Downloads folder:\n(e.g., D:\\Projects\\Downloads)', 'D:\\');
-          if (path && path.trim()) {
-            localStorage.setItem('project_downloads_path', path.trim());
-            alert('Downloads folder path saved!');
-            // Update display immediately
-            const display = document.getElementById('downloadsPathDisplay');
-            const input = document.getElementById('downloadsPathInput');
-            if (display) display.textContent = path.trim();
-            if (input) input.value = path.trim();
-          }
-        }
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-            const path = prompt('Due to browser security limitations, you need to enter the full path manually.\n\nEnter the full path to the Downloads folder:\n(e.g., D:\\Projects\\Downloads)', 'D:\\');
-            if (path && path.trim()) {
-              localStorage.setItem('project_downloads_path', path.trim());
-              alert('Downloads folder path saved!');
-            // Update display immediately
-            const display = document.getElementById('downloadsPathDisplay');
-            const input = document.getElementById('downloadsPathInput');
-            if (display) display.textContent = path.trim();
-            if (input) input.value = path.trim();
-          }
-        }
+      const path = prompt('Enter the full path to the Downloads folder:\n(e.g., D:\\Projects\\Downloads)', localStorage.getItem('project_downloads_path') || 'D:\\');
+      if (path && path.trim()) {
+        localStorage.setItem('project_downloads_path', path.trim());
+        alert('Downloads folder path saved!');
+        // Update display immediately
+        const display = document.getElementById('downloadsPathDisplay');
+        const input = document.getElementById('downloadsPathInput');
+        if (display) display.textContent = path.trim();
+        if (input) input.value = path.trim();
       }
     };
     
@@ -884,6 +855,24 @@
               // Merge existing if present
               try{ const existing = JSON.parse(localStorage.getItem('unified_master_data')||'null'); if (existing) unified = existing; }catch(_){ }
 
+              // Handle Paths sheet if it exists
+              if (sheetNames.includes('Paths')) {
+                const pathsSheet = wb.Sheets['Paths'];
+                const pathsData = XLSX.utils.sheet_to_json(pathsSheet);
+                pathsData.forEach(row => {
+                  const pathType = String(row['Path Type'] || '').trim();
+                  const path = String(row['Path'] || '').trim();
+                  if (pathType && path) {
+                    let storageKey = null;
+                    if (pathType === 'Master Data File') storageKey = 'project_master_data_file';
+                    else if (pathType === 'Backup Path') storageKey = 'project_backup_path';
+                    else if (pathType === 'Documents Path') storageKey = 'project_documents_path';
+                    else if (pathType === 'Downloads Path') storageKey = 'project_downloads_path';
+                    if (storageKey) localStorage.setItem(storageKey, path);
+                  }
+                });
+              }
+
               sheetNames.forEach(name => {
                 // Skip Txn_* except Mode/Status
                 if (name.startsWith('Txn_') && !name.includes('Mode') && !name.includes('Status')) return;
@@ -965,7 +954,8 @@
               // Build detailed summary
               const totalSheets = sheetNames.length;
               const transactionalSheets = sheetNames.filter(s => s.startsWith('Txn_') && !s.includes('Mode') && !s.includes('Status')).length;
-              const masterDataSheets = sheetNames.length - transactionalSheets;
+              const hasPathsSheet = sheetNames.includes('Paths');
+              const masterDataSheets = sheetNames.length - transactionalSheets - (hasPathsSheet ? 1 : 0);
               const moduleFieldCounts = {
                 income: Object.keys(unified.income||{}).length,
                 expense: Object.keys(unified.expense||{}).length,
@@ -984,8 +974,8 @@
                 `Successfully imported master data from Excel file!\n\n`+
                 `Total sheets in file: ${totalSheets}\n`+
                 `Transactional sheets skipped: ${transactionalSheets}\n`+
-                `Master data sheets processed: ${masterDataSheets}\n\n`+
-                `Fields loaded — Income: ${moduleFieldCounts.income}, Expense: ${moduleFieldCounts.expense}, Investment: ${moduleFieldCounts.investment}, Task: ${moduleFieldCounts.task}, Shared Attributes: ${moduleFieldCounts.common}\n`+
+                `Master data sheets processed: ${masterDataSheets}${hasPathsSheet ? ' + Paths' : ''}\n\n`+
+                `Fields loaded — Income: ${moduleFieldCounts.income}, Expense: ${moduleFieldCounts.expense}, Investment: ${moduleFieldCounts.investment}, Task: ${moduleFieldCounts.task}, Shared Attributes: ${moduleFieldCounts.common}${hasPathsSheet ? ', Paths: 4' : ''}\n`+
                 (!localStorage.getItem('project_backup_path') || !localStorage.getItem('project_documents_path') || !localStorage.getItem('project_downloads_path')
                   ? `\n\n⚠️ Please set Project Paths in the "Set/Change Paths" tab!`
                   : '');
@@ -1787,6 +1777,40 @@
 
           // Extract all master data sheets (exclude Txn_* transactional sheets, but include Mode_Txn and Status_Txn)
           const processedSheets = [];
+          
+          // FIRST: Handle Paths sheet if it exists
+          if (sheetNames.includes('Paths')) {
+            console.log('✓ Processing Paths sheet');
+            const pathsSheet = workbook.Sheets['Paths'];
+            const pathsData = XLSX.utils.sheet_to_json(pathsSheet);
+            
+            pathsData.forEach(row => {
+              const pathType = String(row['Path Type'] || '').trim();
+              const path = String(row['Path'] || '').trim();
+              
+              if (pathType && path) {
+                let storageKey = null;
+                if (pathType === 'Master Data File') {
+                  storageKey = 'project_master_data_file';
+                } else if (pathType === 'Backup Path') {
+                  storageKey = 'project_backup_path';
+                } else if (pathType === 'Documents Path') {
+                  storageKey = 'project_documents_path';
+                } else if (pathType === 'Downloads Path') {
+                  storageKey = 'project_downloads_path';
+                }
+                
+                if (storageKey) {
+                  localStorage.setItem(storageKey, path);
+                  console.log(`✓ Loaded path for ${pathType}: ${path}`);
+                }
+              }
+            });
+            
+            processedSheets.push('Paths');
+            loadPaths(); // Refresh UI display
+          }
+          
           sheetNames.forEach(sheetName => {
             // Skip transactional data sheets (Txn_Expense, Txn_Income, Txn_Investment, Txn_Task)
             if (sheetName.startsWith('Txn_') && !sheetName.includes('Mode') && !sheetName.includes('Status')) {
@@ -2150,10 +2174,11 @@
           
           const totalSheets = sheetNames.length;
           const transactionalSheets = sheetNames.filter(s => s.startsWith('Txn_') && s !== 'Txn_Mode' && s !== 'Txn_Status' && !s.includes('Mode') && !s.includes('Status')).length;
+          const hasPathsSheet = sheetNames.includes('Paths');
           const masterDataSheets = processedSheets.length;
           
           // Check if paths are set and show warning if not
-          let message = `Successfully imported master data from Excel file!\n\nTotal sheets in file: ${totalSheets}\nTransactional sheets skipped: ${transactionalSheets}\nMaster data sheets processed: ${masterDataSheets}`;
+          let message = `Successfully imported master data from Excel file!\n\nTotal sheets in file: ${totalSheets}\nTransactional sheets skipped: ${transactionalSheets}\nMaster data sheets processed: ${masterDataSheets}${hasPathsSheet ? ' (includes Paths)' : ''}`;
           
           if (!arePathsSet()) {
             message += '\n\n⚠️ Please set Project Paths in the "Set/Change Paths" tab!';
@@ -2280,7 +2305,7 @@
     window.lastExcelFolderPath = localStorage.getItem('last_excel_folder_path') || '';
     
     // Download Master Data to Excel function
-    function downloadMasterDataExcel() {
+    async function downloadMasterDataExcel() {
       try {
         // Create a new workbook
         const wb = XLSX.utils.book_new();
@@ -2380,19 +2405,37 @@
           }
         });
         
+        // STEP 6: Add Paths sheet
+        const pathsData = [['Path Type', 'Path']]; // Header
+        const pathsToExport = [
+          ['Master Data File', 'project_master_data_file'],
+          ['Backup Path', 'project_backup_path'],
+          ['Documents Path', 'project_documents_path'],
+          ['Downloads Path', 'project_downloads_path']
+        ];
+        
+        pathsToExport.forEach(([label, key]) => {
+          const pathValue = localStorage.getItem(key) || '';
+          pathsData.push([label, pathValue]);
+        });
+        
+        const pathsWs = XLSX.utils.aoa_to_sheet(pathsData);
+        XLSX.utils.book_append_sheet(wb, pathsWs, 'Paths');
+        console.log(`Added Paths sheet with ${pathsData.length - 1} items`);
+        
         // Generate Excel file
         const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
         const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         
-        // Download file
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        
         // Generate filename with timestamp
         const now = new Date();
         const timestamp = now.toISOString().split('T')[0];
-        a.download = `ClearView_Master_Data_${timestamp}.xlsx`;
+        const filename = `ClearView_Master_Data_${timestamp}.xlsx`;
         
+        // Traditional download to default Downloads folder
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
         a.click();
         URL.revokeObjectURL(a.href);
         
@@ -2409,7 +2452,7 @@
           if (backupPath) {
             message += `💾 Backup: Copy to: ${backupPath}\n`;
           }
-          message += '\n(Note: Browser security prevents automatic saving to custom paths)';
+          message += '\n(Note: Use Chrome/Edge to save directly to custom locations)';
         }
         
         setTimeout(() => alert(message), 500);
@@ -2487,5 +2530,6 @@
     
     // Update tooltip for Manage Master Data link in index.html
     updateManageMasterDataTooltip();
+  </script>
 </body>
 </html>
