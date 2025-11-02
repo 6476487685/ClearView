@@ -677,98 +677,143 @@
     window.exportToPDF = exportToPDF;
     window.exportToExcel = exportToExcel;
     
-    // Populate modal form dropdowns from actual data
+    // Populate modal form dropdowns from unified master data
     function populateModalDropdowns() {
-      const modalCat = document.getElementById('cat');
-      const modalTag = document.getElementById('tag');
-      const modalAssignee = document.getElementById('assignee');
-      const modalPriority = document.getElementById('priority');
-      
-      // Get unique values from actual task records
-      const data = getData();
-      const uniqueCategories = [...new Set(data.map(t => t.Task_Category).filter(v => v))];
-      const uniqueTags = [...new Set(data.map(t => t.Task_Tag).filter(v => v))];
-      const uniqueAssignees = [...new Set(data.map(t => t.Task_Assignee).filter(v => v))];
-      const uniquePriorities = [...new Set(data.map(t => t.Task_Priority).filter(v => v))];
-      
-      if (modalCat) {
-        modalCat.innerHTML = '<option value="">Select Category</option>';
-        uniqueCategories.forEach(cat => {
-          modalCat.innerHTML += `<option value="${cat}">${cat}</option>`;
-        });
-      }
-      
-      if (modalTag) {
-        modalTag.innerHTML = '<option value="">Select Tag</option>';
-        uniqueTags.forEach(tag => {
-          modalTag.innerHTML += `<option value="${tag}">${tag}</option>`;
-        });
-      }
-      
-      if (modalAssignee) {
-        modalAssignee.innerHTML = '<option value="">Select Assignee</option>';
-        uniqueAssignees.forEach(assignee => {
-          modalAssignee.innerHTML += `<option value="${assignee}">${assignee}</option>`;
-        });
-      }
-      
-      if (modalPriority) {
-        modalPriority.innerHTML = '<option value="">Select Priority</option>';
-        uniquePriorities.forEach(priority => {
-          modalPriority.innerHTML += `<option value="${priority}">${priority}</option>`;
-        });
+      try {
+        // Load unified master data from localStorage
+        const unifiedDataStr = localStorage.getItem('unified_master_data');
+        let masterData = {};
+        let commonData = {};
+        
+        if (unifiedDataStr) {
+          const unifiedData = JSON.parse(unifiedDataStr);
+          masterData = unifiedData.task || {};
+          commonData = unifiedData.common || {};  // Load common data for Country (Task_Tag)
+        } else {
+          // Fallback to legacy format
+          const masterDataStr = localStorage.getItem('task_master_data');
+          masterData = masterDataStr ? JSON.parse(masterDataStr) : {};
+        }
+        
+        const modalCat = document.getElementById('cat');
+        const modalTag = document.getElementById('tag');
+        const modalAssignee = document.getElementById('assignee');
+        const modalPriority = document.getElementById('priority');
+        
+        // Populate Category from Task_Category master data
+        if (modalCat) {
+          modalCat.innerHTML = '<option value="">Select Category</option>';
+          const categories = (masterData['Task_Category'] || []).filter(v => v && v !== '').sort();
+          categories.forEach(cat => {
+            modalCat.innerHTML += `<option value="${cat}">${cat}</option>`;
+          });
+        }
+        
+        // Populate Tag from Country in common master data (Task_Tag maps to Country)
+        if (modalTag) {
+          modalTag.innerHTML = '<option value="">Select Tag</option>';
+          const tags = (commonData['Country'] || []).filter(v => v && v !== '').sort();
+          tags.forEach(tag => {
+            modalTag.innerHTML += `<option value="${tag}">${tag}</option>`;
+          });
+        }
+        
+        // Populate Assignee from Task_Assignee master data
+        if (modalAssignee) {
+          modalAssignee.innerHTML = '<option value="">Select Assignee</option>';
+          const assignees = (masterData['Task_Assignee'] || []).filter(v => v && v !== '').sort();
+          assignees.forEach(assignee => {
+            modalAssignee.innerHTML += `<option value="${assignee}">${assignee}</option>`;
+          });
+        }
+        
+        // Populate Priority from Task_Priority master data
+        if (modalPriority) {
+          modalPriority.innerHTML = '<option value="">Select Priority</option>';
+          const priorities = (masterData['Task_Priority'] || []).filter(v => v && v !== '').sort();
+          priorities.forEach(priority => {
+            modalPriority.innerHTML += `<option value="${priority}">${priority}</option>`;
+          });
+        }
+        
+        console.log('Modal dropdowns populated from unified master data');
+      } catch (e) {
+        console.error('Error populating modal dropdowns:', e);
       }
     }
     
-    // Populate filter dropdowns from actual data
+    // Populate filter dropdowns from unified master data
     function populateFilters() {
-      const catFilter = document.getElementById('fCategory');
-      const tagFilter = document.getElementById('fTag');
-      const assigneeFilter = document.getElementById('fAssignee');
-      const statusFilter = document.getElementById('fStatus');
-      const priorityFilter = document.getElementById('fPriority');
-      
-      // Get unique values from actual task records
-      const data = getData();
-      const uniqueCategories = [...new Set(data.map(t => t.Task_Category).filter(v => v))];
-      const uniqueTags = [...new Set(data.map(t => t.Task_Tag).filter(v => v))];
-      const uniqueAssignees = [...new Set(data.map(t => t.Task_Assignee).filter(v => v))];
-      const uniqueStatuses = [...new Set(data.map(t => t.Task_Status).filter(v => v))];
-      const uniquePriorities = [...new Set(data.map(t => t.Task_Priority).filter(v => v))];
-      
-      if (catFilter) {
-        catFilter.innerHTML = '<option value="">All Categories</option>';
-        uniqueCategories.forEach(cat => {
-          catFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
-        });
-      }
-      
-      if (tagFilter) {
-        tagFilter.innerHTML = '<option value="">All Tags</option>';
-        uniqueTags.forEach(tag => {
-          tagFilter.innerHTML += `<option value="${tag}">${tag}</option>`;
-        });
-      }
-      
-      if (assigneeFilter) {
-        assigneeFilter.innerHTML = '<option value="">All Assignees</option>';
-        uniqueAssignees.forEach(assignee => {
-          assigneeFilter.innerHTML += `<option value="${assignee}">${assignee}</option>`;
-        });
-      }
-      
-      if (statusFilter) {
-        statusFilter.innerHTML = '<option value="">All Statuses</option>';
-        uniqueStatuses.forEach(status => {
-          statusFilter.innerHTML += `<option value="${status}">${status}</option>`;
-        });
-      }
-      
-      if (priorityFilter) {
-        priorityFilter.innerHTML = '<option value="">All Priorities</option>';
-        uniquePriorities.forEach(priority => {
-          priorityFilter.innerHTML += `<option value="${priority}">${priority}</option>`;
-        });
+      try {
+        // Load unified master data from localStorage
+        const unifiedDataStr = localStorage.getItem('unified_master_data');
+        let masterData = {};
+        let commonData = {};
+        
+        if (unifiedDataStr) {
+          const unifiedData = JSON.parse(unifiedDataStr);
+          masterData = unifiedData.task || {};
+          commonData = unifiedData.common || {};  // Load common data for Country (Task_Tag)
+        } else {
+          // Fallback to legacy format
+          const masterDataStr = localStorage.getItem('task_master_data');
+          masterData = masterDataStr ? JSON.parse(masterDataStr) : {};
+        }
+        
+        const catFilter = document.getElementById('fCategory');
+        const tagFilter = document.getElementById('fTag');
+        const assigneeFilter = document.getElementById('fAssignee');
+        const statusFilter = document.getElementById('fStatus');
+        const priorityFilter = document.getElementById('fPriority');
+        
+        // Populate Category filter from Task_Category master data
+        if (catFilter) {
+          catFilter.innerHTML = '<option value="">All</option>';
+          const categories = (masterData['Task_Category'] || []).filter(v => v && v !== '').sort();
+          categories.forEach(cat => {
+            catFilter.innerHTML += `<option value="${cat}">${cat}</option>`;
+          });
+        }
+        
+        // Populate Tag filter from Country in common master data (Task_Tag maps to Country)
+        if (tagFilter) {
+          tagFilter.innerHTML = '<option value="">All</option>';
+          const tags = (commonData['Country'] || []).filter(v => v && v !== '').sort();
+          tags.forEach(tag => {
+            tagFilter.innerHTML += `<option value="${tag}">${tag}</option>`;
+          });
+        }
+        
+        // Populate Assignee filter from Task_Assignee master data
+        if (assigneeFilter) {
+          assigneeFilter.innerHTML = '<option value="">All</option>';
+          const assignees = (masterData['Task_Assignee'] || []).filter(v => v && v !== '').sort();
+          assignees.forEach(assignee => {
+            assigneeFilter.innerHTML += `<option value="${assignee}">${assignee}</option>`;
+          });
+        }
+        
+        // Populate Status filter from Task_Status master data
+        if (statusFilter) {
+          statusFilter.innerHTML = '<option value="">All</option>';
+          const statuses = (masterData['Task_Status'] || []).filter(v => v && v !== '').sort();
+          statuses.forEach(status => {
+            statusFilter.innerHTML += `<option value="${status}">${status}</option>`;
+          });
+        }
+        
+        // Populate Priority filter from Task_Priority master data
+        if (priorityFilter) {
+          priorityFilter.innerHTML = '<option value="">All</option>';
+          const priorities = (masterData['Task_Priority'] || []).filter(v => v && v !== '').sort();
+          priorities.forEach(priority => {
+            priorityFilter.innerHTML += `<option value="${priority}">${priority}</option>`;
+          });
+        }
+        
+        console.log('Filter dropdowns populated from unified master data');
+      } catch (e) {
+        console.error('Error populating filter dropdowns:', e);
       }
     }
     
@@ -890,34 +935,10 @@
         renderTable(migratedData);
       }
       
-      // Setup filters - check if we have master data saved
-      const savedMasterData = localStorage.getItem('task_master_data');
-      if (savedMasterData) {
-        try {
-          const masterData = JSON.parse(savedMasterData);
-          console.log('Loading saved master data:', masterData);
-          
-          // Populate filters from saved master data
-          if (typeof populateFiltersFromMaster === 'function') {
-            populateFiltersFromMaster(masterData);
-          }
-          
-          // Populate modal dropdowns from actual task records
-          populateModalDropdowns();
-          
-          // Populate snippets from Task_Adhoc field in task records
-          populateSnippets();
-        } catch (e) {
-          console.error('Error loading saved master data:', e);
-          // Fall back to regular population
-          populateModalDropdowns();
-          setTimeout(populateFilters, 500);
-        }
-      } else {
-        // No saved master data, use regular population
-        populateModalDropdowns();
-        setTimeout(populateFilters, 500);
-      }
+      // Setup filters - always use populateFilters and populateModalDropdowns functions
+      // These now load from unified_master_data
+      populateModalDropdowns();
+      populateFilters();
       
       setTimeout(setupFilterEvents, 1000);
       
