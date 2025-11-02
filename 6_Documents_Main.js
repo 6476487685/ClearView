@@ -52,6 +52,7 @@ document.addEventListener("DOMContentLoaded", function() {
   // Initialize
   renderDocs();
   updateStats();
+  loadDocumentsPath();
 
   // Change Documents folder button and Download All button
   const changeDocsFolderBtn = document.getElementById('changeDocsFolderBtn');
@@ -666,7 +667,9 @@ document.addEventListener("DOMContentLoaded", function() {
       
       if(folderPath){
         localStorage.setItem('docsFolderPath',folderPath);
+        localStorage.setItem('project_documents_path',folderPath);
         console.log('Docs folder saved to localStorage:', folderPath);
+        loadDocumentsPath(); // Update the path display
         showToast('<i class="fas fa-folder-open"></i> Documents folder set successfully!');
         document.body.removeChild(overlay);
       }else{
@@ -686,11 +689,27 @@ document.addEventListener("DOMContentLoaded", function() {
     setTimeout(()=>folderInput.focus(),100);
   }
 
+  // Load and display Documents Path from Paths sheet
+  function loadDocumentsPath() {
+    const documentsPathDisplay = document.getElementById('documentsPathDisplay');
+    if(documentsPathDisplay) {
+      const path = localStorage.getItem('project_documents_path') || 'Not Set';
+      documentsPathDisplay.textContent = path;
+    }
+  }
+
   // Theme functionality removed - using global theme from index.html
   // Apply saved theme from index.html
   const savedTheme = localStorage.getItem('theme') || 'light';
   if (savedTheme === 'dark') {
     document.body.classList.add('dark');
   }
+  
+  // Listen for storage changes to update path display
+  window.addEventListener('storage', function(e) {
+    if(e.key === 'project_documents_path') {
+      loadDocumentsPath();
+    }
+  });
 });
 
