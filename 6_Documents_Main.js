@@ -347,8 +347,8 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function downloadToDefaultLocation(blob, fileName, docsFolderPath) {
-    // Create filename with Documents folder path for easy identification
-    const finalFileName = docsFolderPath ? `[${docsFolderPath}]_${fileName}` : fileName;
+    // Download with original filename
+    const finalFileName = fileName;
     
     // Silent download to default location
     const url = URL.createObjectURL(blob);
@@ -400,8 +400,8 @@ document.addEventListener("DOMContentLoaded", function() {
           const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${doc.folderPath || 'Documents'}\nDocuments Folder: ${docsFolderPath}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
           const blob = new Blob([content], { type: 'text/plain' });
           
-          // Create filename with Documents folder path for easy identification
-          const fileName = `[${docsFolderPath}]_${doc.name}`;
+          // Download with original filename
+          const fileName = doc.name;
           
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
