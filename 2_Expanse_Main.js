@@ -216,6 +216,15 @@ document.addEventListener("DOMContentLoaded",()=>{
      if(v&&v!=='')fHolder.innerHTML+=`<option>${v}</option>`;
     });
    }
+   
+   // Populate Status filter - from common Status_Txn
+   if(fStatus){
+    fStatus.innerHTML='<option value="">All</option>';
+    const statuses=commonData['Status_Txn']||[];
+    statuses.forEach(v=>{
+     if(v&&v!=='')fStatus.innerHTML+=`<option>${v}</option>`;
+    });
+   }
   }catch(e){
    console.error('Error populating filter dropdowns:',e);
    // Fallback to existing records
@@ -831,15 +840,10 @@ if(btnClearData){
   });
  }
 
-// Theme functionality
-const themeSwitch = document.getElementById('themeSwitch');
+// Theme functionality removed - using global theme from index.html
+// Apply saved theme from index.html
 const savedTheme = localStorage.getItem('theme') || 'light';
 if (savedTheme === 'dark') {
   document.body.classList.add('dark');
-  themeSwitch.checked = true;
 }
-themeSwitch.addEventListener('change', () => {
-  document.body.classList.toggle('dark');
-  localStorage.setItem('theme', themeSwitch.checked ? 'dark' : 'light');
-});
 });

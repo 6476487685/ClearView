@@ -14,19 +14,19 @@
     <div class="left">
       <button class="black" onclick="window.location.href='index.html'">← Back to Main Dashboard</button>
     </div>
-    <div class="title">Transaction Manager — Expense Dashboard</div>
     <div class="right">
-      <label class="theme-switch"><input type="checkbox" id="themeSwitch"><span class="slider"></span></label>
       <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
       <button class="excel" id="btnImportExcel" onclick="document.getElementById('excelFileInput').click();">📥 Load From Excel</button>
       <button class="danger" id="btnClearData" style="opacity: 0.5; cursor: not-allowed;">🗑️ Clear Data</button>
       <button class="pdf" id="btnPDF">📘 Export PDF</button>
       <button class="excel" id="btnExcel">📗 Export Excel</button>
-      <button class="primary" id="btnAdd">➕ Add Expense</button>
     </div>
   </header>
 
   <main>
+    <div style="max-width:1400px;margin:16px auto;padding:0 20px;">
+      <h1 style="font-size:30px;font-weight:900;color:#b87333;letter-spacing:-0.02em;text-shadow:2px 2px 4px rgba(0,0,0,0.1);margin:0 0 16px 0;">Transaction Manager — Expense Dashboard</h1>
+    </div>
     <section class="filter-card">
       <div class="filter-grid filter-labels">
         <div>Category</div>
@@ -44,10 +44,7 @@
         <select id="fHolder"><option value="">All</option></select>
         <select id="fStatus">
           <option value="">All</option>
-          <option>Paid</option>
-          <option>Unpaid</option>
-          <option>Pending</option>
-          <option>Cancelled</option>
+          <!-- Populated from master data -->
         </select>
         <input type="date" id="fFrom">
         <input type="date" id="fTo">
@@ -57,7 +54,8 @@
     </section>
 
     <section class="record-count-bar" id="recordCountBar">
-      Total Records: <span id="recordCount">0</span>
+      <span>Total Records: <span id="recordCount">0</span></span>
+      <button class="primary" id="btnAdd">➕ Add Expense</button>
     </section>
 
     <section class="table-card">

@@ -20,12 +20,7 @@ document.addEventListener("DOMContentLoaded",()=>{
  const btnClearData=document.getElementById('btnClearData');
  let editIndex=null;
 
- const sample=[
-  {desc:'Salary Payment',cat:'Salary',tag:'CAD-Brightlight',cur:'CAD',amt:5000,mode:'Bank',holder:'Amit',paid:'2025-02-01',freq:'Monthly',acstatus:'Active',txnstatus:'Paid'},
-  {desc:'Freelance Work',cat:'Freelance',tag:'INR-Personal',cur:'INR',amt:15000,mode:'UPI',holder:'Rashmi',paid:'2025-05-05',freq:'One-Time',acstatus:'Active',txnstatus:'Paid'},
-  {desc:'Investment Returns',cat:'Investment',tag:'USD-Business',cur:'USD',amt:500,mode:'Bank Transfer',holder:'Amit',paid:'2025-01-10',freq:'Quarterly',acstatus:'Active',txnstatus:'Paid'}
- ];
- if(!localStorage.getItem('income_records')) localStorage.setItem('income_records',JSON.stringify(sample));
+// Don't load sample data - start with empty array
  const getData=()=>JSON.parse(localStorage.getItem('income_records'))||[];
  const saveData=d=>localStorage.setItem('income_records',JSON.stringify(d));
 
@@ -39,6 +34,10 @@ document.addEventListener("DOMContentLoaded",()=>{
    <td><span class='del' title='Delete'>🗑️</span></td>`;
    tbody.appendChild(tr);
   });
+  
+  // Update record count
+  const recordCount = document.getElementById('recordCount');
+  if(recordCount)recordCount.textContent=d.length;
  }
  renderTable(getData());
 
@@ -182,6 +181,15 @@ document.addEventListener("DOMContentLoaded",()=>{
     const holders=commonData['Ac_Holder']||[];
     holders.forEach(v=>{
      if(v&&v!=='')fHolder.innerHTML+=`<option>${v}</option>`;
+    });
+   }
+   
+   // Status filter - from common Status_Txn
+   if(fStatus){
+    fStatus.innerHTML='<option value="">All</option>';
+    const statuses=commonData['Status_Txn']||[];
+    statuses.forEach(v=>{
+     if(v&&v!=='')fStatus.innerHTML+=`<option>${v}</option>`;
     });
    }
    
@@ -564,15 +572,10 @@ showPathReminder('pdf');
  }
 };
 
-// Theme functionality
-const themeSwitch = document.getElementById('themeSwitch');
+// Theme functionality removed - using global theme from index.html
+// Apply saved theme from index.html
 const savedTheme = localStorage.getItem('theme') || 'light';
 if (savedTheme === 'dark') {
   document.body.classList.add('dark');
-  themeSwitch.checked = true;
 }
-themeSwitch.addEventListener('change', () => {
-  document.body.classList.toggle('dark');
-  localStorage.setItem('theme', themeSwitch.checked ? 'dark' : 'light');
-});
 });

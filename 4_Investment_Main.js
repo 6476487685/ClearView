@@ -20,12 +20,7 @@ document.addEventListener("DOMContentLoaded",()=>{
  const btnClearData=document.getElementById('btnClearData');
  let editIndex=null;
 
- const sample=[
-  {desc:'Stock Purchase AAPL',cat:'Equity',tag:'USD-Investment',cur:'USD',amt:5000,mode:'Bank',holder:'Amit',investdate:'2025-01-15',maturitydate:'2025-12-31',freq:'One-Time',acstatus:'Active',txnstatus:'Paid'},
-  {desc:'Mutual Fund Investment',cat:'Mutual Fund',tag:'INR-Retirement',cur:'INR',amt:10000,mode:'Bank',holder:'Rashmi',investdate:'2025-02-01',maturitydate:'2030-02-01',freq:'Monthly',acstatus:'Active',txnstatus:'Paid'},
-  {desc:'Bond Purchase',cat:'Bond',tag:'USD-Conservative',cur:'USD',amt:2500,mode:'Credit Card',holder:'Amit',investdate:'2025-01-20',maturitydate:'2027-01-20',freq:'Yearly',acstatus:'Active',txnstatus:'Paid'}
- ];
- if(!localStorage.getItem('investment_records')) localStorage.setItem('investment_records',JSON.stringify(sample));
+// Don't load sample data - start with empty array
  const getData=()=>JSON.parse(localStorage.getItem('investment_records'))||[];
  const saveData=d=>localStorage.setItem('investment_records',JSON.stringify(d));
 
@@ -39,6 +34,10 @@ document.addEventListener("DOMContentLoaded",()=>{
    <td><span class='del' title='Delete'>🗑️</span></td>`;
    tbody.appendChild(tr);
   });
+  
+  // Update record count
+  const recordCount = document.getElementById('recordCount');
+  if(recordCount)recordCount.textContent=d.length;
  }
  renderTable(getData());
 
@@ -182,6 +181,15 @@ document.addEventListener("DOMContentLoaded",()=>{
     const holders=commonData['Ac_Holder']||[];
     holders.forEach(v=>{
      if(v&&v!=='')fHolder.innerHTML+=`<option>${v}</option>`;
+    });
+   }
+   
+   // Status filter - from common Status_Txn
+   if(fStatus){
+    fStatus.innerHTML='<option value="">All</option>';
+    const statuses=commonData['Status_Txn']||[];
+    statuses.forEach(v=>{
+     if(v&&v!=='')fStatus.innerHTML+=`<option>${v}</option>`;
     });
    }
    
@@ -567,15 +575,10 @@ showPathReminder('pdf');
  }
 };
 
-// Theme functionality
-const themeSwitch = document.getElementById('themeSwitch');
+// Theme functionality removed - using global theme from index.html
+// Apply saved theme from index.html
 const savedTheme = localStorage.getItem('theme') || 'light';
 if (savedTheme === 'dark') {
   document.body.classList.add('dark');
-  themeSwitch.checked = true;
 }
-themeSwitch.addEventListener('change', () => {
-  document.body.classList.toggle('dark');
-  localStorage.setItem('theme', themeSwitch.checked ? 'dark' : 'light');
-});
 });

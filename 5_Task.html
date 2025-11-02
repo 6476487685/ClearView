@@ -14,19 +14,19 @@
     <div class="left">
       <button class="black" onclick="window.location.href='index.html'">← Back to Main Dashboard</button>
     </div>
-    <div class="title">Task Manager — Task Dashboard</div>
     <div class="right">
-      <label class="theme-switch"><input type="checkbox" id="themeSwitch"><span class="slider"></span></label>
       <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
       <button class="excel" id="btnImportExcel" onclick="document.getElementById('excelFileInput').click();">📥 Load From Excel</button>
       <button class="danger" id="btnClearData" style="background:#ea4335;color:white;">🗑️ Clear Data</button>
       <button class="pdf" id="btnPDF">📘 Export PDF</button>
       <button class="excel" id="btnExcel">📗 Export Excel</button>
-      <button class="primary" id="btnAdd">➕ Add Task</button>
     </div>
   </header>
 
   <main>
+    <div style="max-width:1400px;margin:16px auto;padding:0 20px;">
+      <h1 style="font-size:30px;font-weight:900;color:#b87333;letter-spacing:-0.02em;text-shadow:2px 2px 4px rgba(0,0,0,0.1);margin:0 0 16px 0;">Transaction Manager — Task Dashboard</h1>
+    </div>
     <section class="filter-card">
       <div class="filter-grid filter-labels">
         <div>Category</div>
@@ -57,6 +57,11 @@
         <input type="search" id="globalSearch" placeholder="Search...">
         <button id="btnClear">🧹 Clear All</button>
       </div>
+    </section>
+
+    <section class="record-count-bar" id="recordCountBar">
+      <span>Total Records: <span id="recordCount">0</span></span>
+      <button class="primary" id="btnAdd">➕ Add Task</button>
     </section>
 
     <section class="table-card">
@@ -276,34 +281,6 @@
       reader.readAsArrayBuffer(file);
     };
     
-    function loadSampleData() {
-      const sample = [
-        {Task_Description:'Complete Project Documentation',Task_Category:'Development',Task_Tag:'PROJ-001',Task_Assignee:'John Doe',Task_Priority:'High',Due_Date:'2025-02-15',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
-        {Task_Description:'Review Code Changes',Task_Category:'Development',Task_Tag:'CODE-002',Task_Assignee:'Jane Smith',Task_Priority:'Medium',Due_Date:'2025-02-10',Completed_On:'2025-02-08',Task_Status:'Completed',Task_Adhoc:'No'},
-        {Task_Description:'Update User Manual',Task_Category:'Documentation',Task_Tag:'DOC-003',Task_Assignee:'Mike Johnson',Task_Priority:'Low',Due_Date:'2025-02-20',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Fix Critical Bug in Login System',Task_Category:'Development',Task_Tag:'BUG-004',Task_Assignee:'Sarah Wilson',Task_Priority:'Critical',Due_Date:'2025-02-05',Completed_On:'2025-02-03',Task_Status:'Completed',Task_Adhoc:'No'},
-        {Task_Description:'Design New Dashboard UI',Task_Category:'Design',Task_Tag:'UI-005',Task_Assignee:'Alex Chen',Task_Priority:'High',Due_Date:'2025-02-18',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
-        {Task_Description:'Write Unit Tests for API',Task_Category:'Testing',Task_Tag:'TEST-006',Task_Assignee:'David Brown',Task_Priority:'Medium',Due_Date:'2025-02-25',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Deploy Application to Production',Task_Category:'DevOps',Task_Tag:'DEPLOY-007',Task_Assignee:'Lisa Garcia',Task_Priority:'High',Due_Date:'2025-02-12',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Create Database Schema',Task_Category:'Database',Task_Tag:'DB-008',Task_Assignee:'Robert Taylor',Task_Priority:'Medium',Due_Date:'2025-02-08',Completed_On:'2025-02-06',Task_Status:'Completed',Task_Adhoc:'No'},
-        {Task_Description:'Setup CI/CD Pipeline',Task_Category:'DevOps',Task_Tag:'CI-009',Task_Assignee:'Lisa Garcia',Task_Priority:'High',Due_Date:'2025-02-14',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
-        {Task_Description:'Conduct Security Audit',Task_Category:'Security',Task_Tag:'SEC-010',Task_Assignee:'Emma Davis',Task_Priority:'Critical',Due_Date:'2025-02-22',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Optimize Database Performance',Task_Category:'Database',Task_Tag:'DB-011',Task_Assignee:'Robert Taylor',Task_Priority:'Medium',Due_Date:'2025-02-28',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Create User Training Materials',Task_Category:'Documentation',Task_Tag:'TRAIN-012',Task_Assignee:'Mike Johnson',Task_Priority:'Low',Due_Date:'2025-03-05',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Implement Payment Gateway',Task_Category:'Development',Task_Tag:'PAY-013',Task_Assignee:'John Doe',Task_Priority:'High',Due_Date:'2025-02-16',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
-        {Task_Description:'Setup Monitoring Dashboard',Task_Category:'DevOps',Task_Tag:'MON-014',Task_Assignee:'Lisa Garcia',Task_Priority:'Medium',Due_Date:'2025-02-19',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Refactor Legacy Code',Task_Category:'Development',Task_Tag:'REF-015',Task_Assignee:'Jane Smith',Task_Priority:'Low',Due_Date:'2025-03-01',Completed_On:'',Task_Status:'Cancelled',Task_Adhoc:'No'},
-        {Task_Description:'Create API Documentation',Task_Category:'Documentation',Task_Tag:'API-016',Task_Assignee:'Mike Johnson',Task_Priority:'Medium',Due_Date:'2025-02-21',Completed_On:'2025-02-19',Task_Status:'Completed',Task_Adhoc:'No'},
-        {Task_Description:'Implement Two-Factor Authentication',Task_Category:'Security',Task_Tag:'2FA-017',Task_Assignee:'Emma Davis',Task_Priority:'High',Due_Date:'2025-02-17',Completed_On:'',Task_Status:'In Progress',Task_Adhoc:'No'},
-        {Task_Description:'Setup Automated Testing',Task_Category:'Testing',Task_Tag:'AUTO-018',Task_Assignee:'David Brown',Task_Priority:'Medium',Due_Date:'2025-02-26',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'},
-        {Task_Description:'Create Backup Strategy',Task_Category:'DevOps',Task_Tag:'BACKUP-019',Task_Assignee:'Lisa Garcia',Task_Priority:'High',Due_Date:'2025-02-13',Completed_On:'2025-02-11',Task_Status:'Completed',Task_Adhoc:'No'},
-        {Task_Description:'Design Mobile App Interface',Task_Category:'Design',Task_Tag:'MOBILE-020',Task_Assignee:'Alex Chen',Task_Priority:'Medium',Due_Date:'2025-02-24',Completed_On:'',Task_Status:'Pending',Task_Adhoc:'No'}
-      ];
-      
-      localStorage.setItem('task_records', JSON.stringify(sample));
-      renderTable(sample);
-    }
-    
     // Get and save data functions
     function getData() {
       return JSON.parse(localStorage.getItem('task_records')) || [];
@@ -344,6 +321,12 @@
           <td><span class='del' title='Delete'>🗑️</span></td>`;
           tbody.appendChild(tr);
         });
+      }
+      
+      // Update record count
+      const recordCount = document.getElementById('recordCount');
+      if (recordCount) {
+        recordCount.textContent = data.length;
       }
     }
     
@@ -664,7 +647,6 @@
     }
     
     // Make functions globally accessible
-    window.loadSampleData = loadSampleData;
     window.exportToPDF = exportToPDF;
     window.exportToExcel = exportToExcel;
     
@@ -930,11 +912,8 @@
       if (migratedData !== rawData) {
         saveData(migratedData);
       }
-      if (migratedData.length === 0) {
-        loadSampleData();
-      } else {
-        renderTable(migratedData);
-      }
+      // Don't load sample data - start with empty array
+      renderTable(migratedData);
       
       // Setup filters - always use populateFilters and populateModalDropdowns functions
       // These now load from unified_master_data
@@ -1326,18 +1305,11 @@
         th = null;
       }
       
-      // Theme functionality
-      const themeSwitch = document.getElementById('themeSwitch');
-      if (themeSwitch) {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        if (savedTheme === 'dark') {
-          document.body.classList.add('dark');
-          themeSwitch.checked = true;
-        }
-        themeSwitch.addEventListener('change', () => {
-          document.body.classList.toggle('dark');
-          localStorage.setItem('theme', themeSwitch.checked ? 'dark' : 'light');
-        });
+      // Theme functionality removed - using global theme from index.html
+      // Apply saved theme from index.html
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark');
       }
     });
   </script>
