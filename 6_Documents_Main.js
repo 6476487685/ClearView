@@ -358,7 +358,8 @@ document.addEventListener("DOMContentLoaded", function() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Delay revoke to ensure download starts
+    setTimeout(() => URL.revokeObjectURL(url), 100);
     
     // Show success message
     setTimeout(() => {
@@ -410,7 +411,8 @@ document.addEventListener("DOMContentLoaded", function() {
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          URL.revokeObjectURL(url);
+          // Delay revoke to ensure download starts
+          setTimeout(() => URL.revokeObjectURL(url), 100);
           
           successCount++;
           
