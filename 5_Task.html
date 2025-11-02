@@ -46,17 +46,11 @@
         <select id="fAssignee"><option value="">All</option></select>
         <select id="fStatus">
           <option value="">All</option>
-          <option>Pending</option>
-          <option>In Progress</option>
-          <option>Completed</option>
-          <option>Cancelled</option>
+          <!-- Populated from master data -->
         </select>
         <select id="fPriority">
           <option value="">All</option>
-          <option>Low</option>
-          <option>Medium</option>
-          <option>High</option>
-          <option>Critical</option>
+          <!-- Populated from master data -->
         </select>
         <input type="date" id="fFrom">
         <input type="date" id="fTo">
@@ -126,10 +120,7 @@
         <div class="row1">
           <div><label>Task Status</label>
             <select id="status">
-              <option>Pending</option>
-              <option>In Progress</option>
-              <option>Completed</option>
-              <option>Cancelled</option>
+              <!-- Populated from master data -->
             </select>
           </div>
         </div>
@@ -699,6 +690,7 @@
         const modalTag = document.getElementById('tag');
         const modalAssignee = document.getElementById('assignee');
         const modalPriority = document.getElementById('priority');
+        const modalStatus = document.getElementById('status');
         
         // Populate Category from Task_Category master data
         if (modalCat) {
@@ -733,6 +725,15 @@
           const priorities = (masterData['Task_Priority'] || []).filter(v => v && v !== '').sort();
           priorities.forEach(priority => {
             modalPriority.innerHTML += `<option value="${priority}">${priority}</option>`;
+          });
+        }
+        
+        // Populate Status from Task_Status master data
+        if (modalStatus) {
+          modalStatus.innerHTML = '';
+          const statuses = (masterData['Task_Status'] || []).filter(v => v && v !== '').sort();
+          statuses.forEach(status => {
+            modalStatus.innerHTML += `<option value="${status}">${status}</option>`;
           });
         }
         
@@ -1163,6 +1164,7 @@
       addBtn.onclick = () => {
         editIndex = null;
         form.reset();
+        populateModalDropdowns(); // Reload dropdowns from master data
         populateSnippets(); // Reload snippets when opening modal
         title.textContent = 'Add Task';
         modal.style.display = 'flex';

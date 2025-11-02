@@ -4,6 +4,7 @@
 In Task Dashboard, master data was not loading from Master Fields for:
 1. Task_Tag - should come from Shared Attributes: Country field
 2. Task_Priority - showing dummy data instead of master data
+3. Task_Status - was hardcoded and not loading from master data
 
 Also, all master data should display in sorted order in dropdown lists.
 
@@ -14,6 +15,7 @@ Additionally:
 - Task_Tag is mapped to Country in the unified_master_data.common structure
 - The functions were not loading from `unified_master_data`
 - Data was not being sorted in dropdown lists
+- Task_Status was hardcoded with default values (Pending, In Progress, Completed, Cancelled)
 
 ## Solution Implemented
 
@@ -29,6 +31,7 @@ Additionally:
 - Tag: `Country` from `unified_master_data.common` (mapped field)
 - Assignee: `Task_Assignee` from `unified_master_data.task`
 - Priority: `Task_Priority` from `unified_master_data.task`
+- Status: `Task_Status` from `unified_master_data.task`
 
 ### 2. Updated `populateFilters()` Function
 - Changed to load from `unified_master_data` instead of task records
@@ -72,7 +75,7 @@ The Task Dashboard now correctly uses the unified master data structure:
 ## Key Changes
 
 ### File Modified
-- `5_Task.html` - Lines 681-819
+- `5_Task.html` - Lines 681-819, 125-135, 47-54, 1164-1171
 
 ### Functions Modified
 1. `populateModalDropdowns()` (Lines 681-743)
