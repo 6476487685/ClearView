@@ -30,6 +30,7 @@ button.black,button.primary{background:var(--text-primary);color:var(--surface);
 button.black:hover,button.primary:hover{background:#2d2d2d;box-shadow:var(--shadow-xs);}
 .header-btn{background:linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%);color:#fff;border:none;padding:6px 12px;border-radius:4px;font-size:13px;cursor:pointer;transition:all 0.1s ease;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.15);height:32px;}
 .header-btn.load-btn{background:linear-gradient(135deg, #10b981 0%, #059669 100%);}
+.header-btn.clear-btn{background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%);}
 .header-btn.folder-btn{background:linear-gradient(135deg, #6B46C1 0%, #8B5CF6 100%);}
 .header-btn:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(0,0,0,0.2);}
 .header-btn img{width:18px;height:18px;}
@@ -41,10 +42,6 @@ body.dark{--bg:#1a1a1a;--surface:#2d2d2d;--border:#404040;--border-light:#333333
 /* Main content sections */
 main{max-width:1400px;margin:16px auto;padding:0 20px;}
 .upload-section{margin-bottom:12px;}
-.path-display{background:var(--upload-bg);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:10px 16px;margin-bottom:12px;text-align:center;box-shadow:var(--shadow-xs);}
-.path-text{margin:0;font-size:14px;color:var(--text-secondary);}
-.path-text strong{color:var(--accent);font-weight:600;margin-left:8px;}
-.path-text i{margin-right:8px;color:var(--accent);}
 .upload-area{border:2px dashed var(--accent);border-radius:8px;padding:20px;text-align:center;background:linear-gradient(135deg, rgba(66,133,244,0.05) 0%, rgba(66,133,244,0.02) 100%);transition:all 0.3s ease;cursor:pointer;position:relative;height:80px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;}
 .upload-area:hover{border-color:var(--accent-hover);background:linear-gradient(135deg, rgba(66,133,244,0.1) 0%, rgba(66,133,244,0.05) 100%);transform:translateY(-1px);box-shadow:var(--shadow-xs);}
 .upload-area.dragover{border-color:var(--success);background:linear-gradient(135deg, rgba(52,168,83,0.1) 0%, rgba(52,168,83,0.05) 100%);}

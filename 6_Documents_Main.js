@@ -48,15 +48,15 @@ document.addEventListener("DOMContentLoaded", function() {
   const docStats=document.getElementById('docStats');
   let docs=JSON.parse(localStorage.getItem('docsList')||'[]');
   let isFilePickerOpen = false;
+  let cachedFolderHandle = null; // Cache folder handle in memory for the session
 
   // Initialize
   renderDocs();
   updateStats();
-  loadDocumentsPath();
 
-  // Load Files, Change Documents folder button and Download All button
+  // Load Files, Clear All button and Download All button
   const loadFilesBtn = document.getElementById('loadFilesBtn');
-  const changeDocsFolderBtn = document.getElementById('changeDocsFolderBtn');
+  const clearAllBtn = document.getElementById('clearAllBtn');
   const downloadAllBtn = document.getElementById('downloadAllBtn');
   
   if(loadFilesBtn) {
@@ -65,9 +65,9 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   }
   
-  if(changeDocsFolderBtn) {
-    changeDocsFolderBtn.addEventListener('click', function() {
-      showDocumentsFolderSetup();
+  if(clearAllBtn) {
+    clearAllBtn.addEventListener('click', function() {
+      clearAllDocuments();
     });
   }
   
@@ -136,41 +136,86 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 100);
   }
 
-  function handleFiles(files){
+  async function handleFiles(files){
     let addedCount = 0;
     let skippedCount = 0;
     
     console.log('Processing files:', Array.from(files).map(f => f.name));
     
-    Array.from(files).forEach(file=>{
+    // Get or request folder handle for saving files
+    let folderHandle = null;
+    const docsFolderPath = localStorage.getItem('docsFolderPath') || localStorage.getItem('project_documents_path') || '';
+    
+    if (docsFolderPath && 'showDirectoryPicker' in window) {
+      // Try to use cached folder handle
+      folderHandle = cachedFolderHandle;
+      
+      // If no cached handle, ask user to select the folder
+      if (!folderHandle && confirm('To save uploaded files, please select your Documents folder.')) {
+        try {
+          folderHandle = await window.showDirectoryPicker();
+          cachedFolderHandle = folderHandle; // Cache it for future uploads in this session
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            console.error('Error accessing folder:', error);
+          }
+        }
+      }
+    }
+    
+    const newDocs = [];
+    
+    for (const file of Array.from(files)) {
       console.log('Processing file:', file.name);
       
       if(isValidFileType(file)){
         // Add file directly without duplicate checking
         console.log('Adding file:', file.name);
         const entry=createDocumentEntry(file);
-        docs.push(entry);
+        newDocs.push(entry);
         addedCount++;
+        
+        // Save file to disk if folder handle is available
+        if (folderHandle) {
+          try {
+            const fileHandle = await folderHandle.getFileHandle(file.name, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(file);
+            await writable.close();
+            console.log(`File saved to disk: ${file.name}`);
+          } catch (error) {
+            console.error(`Error saving file ${file.name} to disk:`, error);
+          }
+        }
       }else{
         console.log('Invalid file type:', file.name);
         alert(`File type not supported: ${file.name}`);
         skippedCount++;
       }
-    });
+    }
     
     console.log('Final counts - Added:', addedCount, 'Skipped:', skippedCount);
     
     // Save and update UI
     if(addedCount > 0){
+      docs.push(...newDocs);
       localStorage.setItem('docsList',JSON.stringify(docs));
       renderDocs();
       updateStats();
       
       const folderPath = localStorage.getItem('docsFolderPath') || 'Documents';
       if(addedCount === 1){
-        showToast(`<i class="fas fa-upload"></i> File uploaded successfully to ${folderPath}`);
+        if (folderHandle) {
+          showToast(`<i class="fas fa-upload"></i> File uploaded and saved to ${folderPath}`);
+        } else {
+          showToast(`<i class="fas fa-upload"></i> File uploaded successfully to ${folderPath}`);
+        }
       }else{
-        showToast(`<i class="fas fa-upload"></i> ${addedCount} files uploaded successfully to ${folderPath}`);
+        if (folderHandle) {
+          showToast(`<i class="fas fa-upload"></i> ${addedCount} files uploaded and saved to ${folderPath}`);
+        } else {
+          showToast(`<i class="fas fa-upload"></i> ${addedCount} files uploaded successfully to ${folderPath}`);
+        }
       }
     }
     
@@ -574,126 +619,20 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  function showDocumentsFolderSetup(){
-    const overlay=document.createElement('div');
-    overlay.style.cssText=`
-      position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);
-      display:flex;justify-content:center;align-items:center;z-index:10001;
-      backdrop-filter:blur(8px);
-    `;
+  // Clear all documents from the list
+  function clearAllDocuments() {
+    if (docs.length === 0) {
+      showToast('<i class="fas fa-info-circle"></i> No documents to clear.');
+      return;
+    }
     
-    const modal=document.createElement('div');
-    modal.style.cssText=`
-      background:var(--surface);padding:32px;border-radius:20px;
-      box-shadow:0 32px 64px rgba(0,0,0,0.2);max-width:420px;width:90%;
-      border:1px solid var(--border);backdrop-filter:blur(15px);
-      position:relative;
-    `;
-    
-    modal.innerHTML=`
-      <div style="text-align:center;margin-bottom:24px;">
-        <div style="font-size:56px;margin-bottom:12px;"><i class="fas fa-folder-open"></i></div>
-        <h3 style="margin:0 0 8px 0;color:var(--text-primary);font-size:20px;font-weight:700;">Choose Documents Folder</h3>
-        <p style="margin:0;color:var(--text-secondary);font-size:14px;line-height:1.5;">Select a folder where your documents will be saved</p>
-      </div>
-      
-      <div style="margin-bottom:24px;">
-        <label style="display:block;margin-bottom:12px;color:var(--text-primary);font-weight:600;font-size:15px;">Folder Name:</label>
-        <input type="text" id="docsFolderNameInput" placeholder="Enter folder name (e.g., ClearView_Documents)" 
-               style="width:calc(100% - 36px);padding:16px 18px;border:2px solid var(--border);border-radius:12px;
-               font-size:15px;background:var(--surface);color:var(--text-primary);
-               transition:all 0.3s ease;box-shadow:0 4px 12px rgba(0,0,0,0.08);
-               margin-bottom:20px;outline:none;" />
-        
-        <button id="pasteDocsPathBtn" style="
-          width:100%;padding:14px 18px;background:var(--accent);color:#fff;border:none;
-          border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
-          box-shadow:0 4px 12px rgba(66,133,244,0.3);font-size:15px;
-          display:flex;align-items:center;justify-content:center;gap:10px;
-          text-align:center;margin-bottom:16px;
-        ">
-          <i class="fas fa-clipboard" style="font-size:20px;"></i>
-          <span>Paste Custom Path</span>
-        </button>
-        
-        <div style="font-size:12px;color:var(--text-secondary);text-align:center;line-height:1.4;padding:12px;background:var(--bg);border-radius:8px;">
-          <i class="fas fa-lightbulb"></i> <strong>Copy your Custom Folder Path using File Explorer and hit Paste Button</strong>
-        </div>
-      </div>
-      
-      <div style="display:flex;gap:12px;justify-content:center;">
-        <button id="cancelDocsBtn" style="
-          padding:14px 24px;background:var(--text-secondary);color:#fff;border:none;
-          border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
-          box-shadow:0 4px 12px rgba(107,114,128,0.2);font-size:15px;
-          min-width:100px;
-        ">Cancel</button>
-        <button id="saveDocsBtn" style="
-          padding:14px 24px;background:var(--success);color:#ffffff;border:none;
-          border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
-          box-shadow:0 4px 12px rgba(52,168,83,0.2);font-size:15px;
-          min-width:100px;
-        ">Save</button>
-      </div>
-    `;
-    
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-    
-    const folderInput=modal.querySelector('#docsFolderNameInput');
-    const pasteBtn=modal.querySelector('#pasteDocsPathBtn');
-    const cancelBtn=modal.querySelector('#cancelDocsBtn');
-    const saveBtn=modal.querySelector('#saveDocsBtn');
-    
-    // Paste custom path
-    pasteBtn.addEventListener('click',async ()=>{
-      try{
-        const text=await navigator.clipboard.readText();
-        if(text.trim()){
-          folderInput.value=text.trim();
-          console.log('Pasted custom docs path:', text.trim());
-          showToast('<i class="fas fa-clipboard"></i> Custom path pasted from clipboard');
-        }else{
-          alert('<i class="fas fa-clipboard"></i> CLIPBOARD EMPTY\n\nYour clipboard is empty.\n\nCopy a folder path and try again, or type a folder name manually.');
-        }
-      }catch(error){
-        console.error('Error reading clipboard:', error);
-        alert('<i class="fas fa-clipboard"></i> CLIPBOARD ACCESS DENIED\n\nUnable to access clipboard.\n\nPlease type the folder name or path manually.');
-      }
-    });
-    
-    // Cancel button
-    cancelBtn.addEventListener('click',()=>{
-      document.body.removeChild(overlay);
-    });
-    
-    // Save button
-    saveBtn.addEventListener('click',()=>{
-      const folderPath=folderInput.value.trim();
-      console.log('Save docs button clicked, folder path:', folderPath);
-      
-      if(folderPath){
-        localStorage.setItem('docsFolderPath',folderPath);
-        localStorage.setItem('project_documents_path',folderPath);
-        console.log('Docs folder saved to localStorage:', folderPath);
-        loadDocumentsPath(); // Update the path display
-        showToast('<i class="fas fa-folder-open"></i> Documents folder set successfully!');
-        document.body.removeChild(overlay);
-      }else{
-        alert('Please enter a folder name.\n\nYou can:\n• Type a custom folder name\n• Use "Paste Custom Path" to paste a folder path from clipboard');
-        folderInput.focus();
-      }
-    });
-    
-    // Close on overlay click
-    overlay.addEventListener('click',(e)=>{
-      if(e.target===overlay){
-        document.body.removeChild(overlay);
-      }
-    });
-    
-    // Focus on input
-    setTimeout(()=>folderInput.focus(),100);
+    if (confirm(`Are you sure you want to clear all ${docs.length} document(s)? This action cannot be undone.`)) {
+      docs = [];
+      localStorage.setItem('docsList', JSON.stringify(docs));
+      renderDocs();
+      updateStats();
+      showToast('<i class="fas fa-check-circle"></i> All documents cleared successfully!');
+    }
   }
 
   // Load files from Documents folder using File System Access API
@@ -708,6 +647,7 @@ document.addEventListener("DOMContentLoaded", function() {
       
       const dirHandle = await window.showDirectoryPicker();
       const folderPath = dirHandle.name;
+      cachedFolderHandle = dirHandle; // Cache the folder handle for future use
       const fileHandles = [];
       
       // Read all files in the directory
@@ -770,27 +710,11 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // Load and display Documents Path from Paths sheet
-  function loadDocumentsPath() {
-    const documentsPathDisplay = document.getElementById('documentsPathDisplay');
-    if(documentsPathDisplay) {
-      const path = localStorage.getItem('project_documents_path') || 'Not Set';
-      documentsPathDisplay.textContent = path;
-    }
-  }
-
   // Theme functionality removed - using global theme from index.html
   // Apply saved theme from index.html
   const savedTheme = localStorage.getItem('theme') || 'light';
   if (savedTheme === 'dark') {
     document.body.classList.add('dark');
   }
-  
-  // Listen for storage changes to update path display
-  window.addEventListener('storage', function(e) {
-    if(e.key === 'project_documents_path') {
-      loadDocumentsPath();
-    }
-  });
 });
 
