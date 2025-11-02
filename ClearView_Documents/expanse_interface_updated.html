@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transaction Manager — Expense Dashboard</title>
+<style>
+:root {
+  --bg:#f8fafc;
+  --surface:#ffffff;
+  --border:#e2e8f0;
+  --text:#0f172a;
+  --muted:#475569;
+  --primary:#2563eb;
+  --shadow:0 4px 10px rgba(0,0,0,.05);
+}
+body {
+  margin:0;
+  font-family:system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+.header {
+  background:var(--surface);
+  box-shadow:0 2px 6px rgba(0,0,0,.05);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 20px;
+  font-weight:600;
+  font-size:18px;
+  position:relative;
+}
+.header .title {
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+}
+.header .left {display:flex;align-items:center;gap:10px;}
+.header .right {display:flex;align-items:center;gap:8px;}
+button {
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:6px 12px;
+  background:var(--surface);
+  cursor:pointer;
+}
+button.primary {background:var(--primary);color:#fff;border-color:var(--primary);}
+button:hover {box-shadow:var(--shadow);}
+main {max-width:1200px;margin:20px auto;padding:0 16px;}
+.filter-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  box-shadow:var(--shadow);
+  padding:12px;
+  margin-bottom:12px;
+}
+.filter-grid {
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:8px;
+  align-items:center;
+}
+.filter-labels {font-size:12px;color:var(--muted);}
+select,input[type=date] {
+  width:100%;
+  padding:6px 8px;
+  border:1px solid var(--border);
+  border-radius:8px;
+}
+.control-line {
+  background:#f9fafb;
+  border:1px solid var(--border);
+  border-radius:10px;
+  box-shadow:var(--shadow);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 12px;
+  margin-bottom:12px;
+}
+.control-left {display:flex;align-items:center;gap:6px;}
+.control-left input[type=search] {
+  width:140px;
+  height:28px;
+  padding:4px 8px;
+  border:1px solid var(--border);
+  border-radius:8px;
+}
+.table-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  box-shadow:var(--shadow);
+  overflow:auto;
+}
+table {
+  width:100%;
+  border-collapse:collapse;
+}
+th, td {
+  text-align:left;
+  padding:10px;
+  border-bottom:1px solid var(--border);
+  font-size:14px;
+}
+th {
+  background:#f1f5f9;
+  font-weight:600;
+  text-transform:uppercase;
+  font-size:12px;
+}
+tbody tr:hover {background:#f8fafc;}
+.pagination {display:flex;align-items:center;gap:8px;}
+.muted {color:var(--muted);font-size:13px;}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="left">
+    <button>← Back to Main Dashboard</button>
+  </div>
+  <div class="title">Transaction Manager — Expense Dashboard</div>
+  <div class="right">
+    <button>🧾 Export PDF</button>
+    <button>📄 Export Excel</button>
+    <button class="primary">➕ Add Expense</button>
+  </div>
+</header>
+
+<main>
+  <!-- Filter Panel -->
+  <section class="filter-card">
+    <div class="filter-grid filter-labels">
+      <div>Category (Expense)</div>
+      <div>Account Tag (Expense)</div>
+      <div>Currency</div>
+      <div>Expense Belong To</div>
+      <div style="grid-column: span 2; text-align:center;">Paid Date — From / To</div>
+    </div>
+    <div class="filter-grid" style="margin-top:4px;">
+      <select><option>All</option></select>
+      <select><option>All</option></select>
+      <select><option>All</option></select>
+      <select><option>All</option></select>
+      <div style="display:flex;gap:6px;align-items:center;justify-content:center;">
+        <input type="date"><input type="date">
+      </div>
+      <button style="justify-self:end;">🧹 Clear All</button>
+    </div>
+  </section>
+
+  <!-- Unified Control Line -->
+  <div class="control-line">
+    <div class="control-left">
+      <input type="search" placeholder="Search...">
+      <button>❌</button>
+    </div>
+    <div class="muted">Showing 10 of 200 records (Page 1 of 20)</div>
+    <div class="pagination">
+      <button>◀ Prev</button><span class="muted">Page 1 of 20</span><button>Next ▶</button>
+    </div>
+  </div>
+
+  <!-- Data Pane -->
+  <section class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Account Tag</th>
+          <th>Currency</th>
+          <th>Amount</th>
+          <th>Payment Mode</th>
+          <th>Expense Belong To</th>
+          <th>Due Date</th>
+          <th>Paid Date</th>
+          <th>Account Status</th>
+          <th>Transaction Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Office Rent (Halifax)</td><td>Rent</td><td>CAD-Brightlight</td><td>CAD</td><td>1200.00</td><td>Bank Transfer</td><td>Amit</td><td>2025-02-01</td><td>2025-02-01</td><td>Active</td><td>Paid</td></tr>
+        <tr><td>2</td><td>Travel — Toronto Meeting</td><td>Travel</td><td>CAD-Brightlight</td><td>CAD</td><td>380.00</td><td>Bank Transfer</td><td>Tara</td><td>2025-03-21</td><td></td><td>Active</td><td>Unpaid</td></tr>
+        <tr><td>3</td><td>Utilities — Internet</td><td>Utilities</td><td>CAD-Brightlight</td><td>CAD</td><td>79.99</td><td>Credit Card</td><td>Brightlight Health</td><td>2025-04-10</td><td>2025-04-09</td><td>Active</td><td>Paid</td></tr>
+        <tr><td>4</td><td>Software Subscription</td><td>Software</td><td>USD-Business</td><td>USD</td><td>49.00</td><td>Credit Card</td><td>Amit</td><td>2025-01-10</td><td>2025-01-09</td><td>Active</td><td>Paid</td></tr>
+        <tr><td>5</td><td>Meals — Team Lunch</td><td>Meals</td><td>INR-Personal</td><td>INR</td><td>2000.00</td><td>Cash</td><td>Rashmi</td><td>2025-05-05</td><td></td><td>Active</td><td>Unpaid</td></tr>
+        <tr><td>6</td><td>Insurance Premium</td><td>Insurance</td><td>CAD-Brightlight</td><td>CAD</td><td>250.00</td><td>Bank Transfer</td><td>Amit</td><td>2025-06-01</td><td></td><td>Active</td><td>Pending</td></tr>
+        <tr><td>7</td><td>Maintenance Fee</td><td>Maintenance</td><td>CAD-Brightlight</td><td>CAD</td><td>150.00</td><td>Bank Transfer</td><td>Tara</td><td>2025-07-01</td><td></td><td>Active</td><td>Unpaid</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+</body>
+</html>

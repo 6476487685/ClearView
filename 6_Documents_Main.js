@@ -53,6 +53,7 @@ document.addEventListener("DOMContentLoaded", function() {
   // Initialize
   renderDocs();
   updateStats();
+  loadDocumentsPath();
 
   // Load Files, Clear All button and Download All button
   const loadFilesBtn = document.getElementById('loadFilesBtn');
@@ -707,6 +708,15 @@ document.addEventListener("DOMContentLoaded", function() {
         console.error('Error loading files:', error);
         showToast(`<i class="fas fa-exclamation-triangle"></i> Error loading files: ${error.message}`);
       }
+    }
+  }
+
+  // Load and display Documents Path from Paths sheet
+  function loadDocumentsPath() {
+    const documentsPathDisplay = document.getElementById('documentsPathDisplay');
+    if(documentsPathDisplay) {
+      const path = localStorage.getItem('project_documents_path') || 'Not Set';
+      documentsPathDisplay.textContent = path;
     }
   }
 
