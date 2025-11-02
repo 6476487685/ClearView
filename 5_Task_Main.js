@@ -268,7 +268,8 @@ function populateModalDropdowns(){
    if(values.length===0){
     const dbField=config.dbField;
     const valueSet=new Set();
-    all.forEach(x=>{
+    const allRecords=getData();
+    allRecords.forEach(x=>{
      const val=x[dbField];
      if(val&&val!=='')valueSet.add(val);
     });

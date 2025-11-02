@@ -142,9 +142,9 @@
     </div>
   </div>
 
-  <script src="5_Task_Main.js"></script>
-</body>
-</html>
+  <script>
+    // Embedded JavaScript - Task Manager
+    let editIndex = null;
     
     // Global function to handle Excel file change
     window.handleExcelFileChange = function(e) {
