@@ -54,9 +54,16 @@ document.addEventListener("DOMContentLoaded", function() {
   updateStats();
   loadDocumentsPath();
 
-  // Change Documents folder button and Download All button
+  // Load Files, Change Documents folder button and Download All button
+  const loadFilesBtn = document.getElementById('loadFilesBtn');
   const changeDocsFolderBtn = document.getElementById('changeDocsFolderBtn');
   const downloadAllBtn = document.getElementById('downloadAllBtn');
+  
+  if(loadFilesBtn) {
+    loadFilesBtn.addEventListener('click', function() {
+      loadFilesFromFolder();
+    });
+  }
   
   if(changeDocsFolderBtn) {
     changeDocsFolderBtn.addEventListener('click', function() {
@@ -687,6 +694,80 @@ document.addEventListener("DOMContentLoaded", function() {
     
     // Focus on input
     setTimeout(()=>folderInput.focus(),100);
+  }
+
+  // Load files from Documents folder using File System Access API
+  async function loadFilesFromFolder() {
+    try {
+      if (!('showDirectoryPicker' in window)) {
+        showToast('<i class="fas fa-exclamation-triangle"></i> This browser does not support folder access. Please use a modern browser like Chrome or Edge.');
+        return;
+      }
+      
+      showToast('<i class="fas fa-folder-open"></i> Opening folder picker...');
+      
+      const dirHandle = await window.showDirectoryPicker();
+      const folderPath = dirHandle.name;
+      const fileHandles = [];
+      
+      // Read all files in the directory
+      for await (const entry of dirHandle.values()) {
+        if (entry.kind === 'file') {
+          fileHandles.push(entry);
+        }
+      }
+      
+      if (fileHandles.length === 0) {
+        showToast('<i class="fas fa-info-circle"></i> No files found in the selected folder.');
+        return;
+      }
+      
+      showToast(`<i class="fas fa-sync-alt fa-spin"></i> Loading ${fileHandles.length} files...`);
+      
+      let loadedCount = 0;
+      const newDocs = [];
+      
+      for (const fileHandle of fileHandles) {
+        try {
+          const file = await fileHandle.getFile();
+          
+          if (isValidFileType(file)) {
+            const entry = {
+              name: file.name,
+              type: getFileType(file.name),
+              size: formatFileSize(file.size),
+              date: new Date().toLocaleString(),
+              folderPath: folderPath,
+              id: Date.now() + Math.random()
+            };
+            // Check if file already exists by name
+            const exists = docs.some(d => d.name === entry.name && d.size === entry.size);
+            if (!exists) {
+              newDocs.push(entry);
+              loadedCount++;
+            }
+          }
+        } catch (error) {
+          console.error(`Error loading file ${fileHandle.name}:`, error);
+        }
+      }
+      
+      if (loadedCount > 0) {
+        docs.push(...newDocs);
+        localStorage.setItem('docsList', JSON.stringify(docs));
+        renderDocs();
+        updateStats();
+        showToast(`<i class="fas fa-check-circle"></i> Successfully loaded ${loadedCount} new file(s)!`);
+      } else {
+        showToast('<i class="fas fa-info-circle"></i> No new files to add. All files are already in the list.');
+      }
+      
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Error loading files:', error);
+        showToast(`<i class="fas fa-exclamation-triangle"></i> Error loading files: ${error.message}`);
+      }
+    }
   }
 
   // Load and display Documents Path from Paths sheet
