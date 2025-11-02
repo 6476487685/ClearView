@@ -25,6 +25,10 @@
       overflow-x: auto;
       flex-wrap: nowrap;
       justify-content: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     .tab {
       padding: 8px 10px;
@@ -35,7 +39,7 @@
       font-weight: 600;
       font-size: 0.75rem;
       color: white;
-      transition: all 0.2s;
+      transition: all 0.3s ease;
       white-space: nowrap;
       flex: 0 1 auto;
       min-width: fit-content;
@@ -43,16 +47,47 @@
       text-align: center;
       overflow: hidden;
       text-overflow: ellipsis;
+      position: relative;
+    }
+    .tab * {
+      position: relative;
+      z-index: 1;
+    }
+    .tab::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.2);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      border-radius: 6px;
+      z-index: 0;
+    }
+    .tab:hover::before {
+      opacity: 1;
     }
     .tab:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     .tab.active {
       color: white;
-      border-color: transparent;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      border: 3px solid rgba(255, 255, 255, 0.8);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transform: translateY(-2px);
+      animation: pulse-active 0.5s ease, blink-border 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-active {
+      0% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-3px) scale(1.05); }
+      100% { transform: translateY(-2px) scale(1); }
+    }
+    @keyframes blink-border {
+      0%, 100% { border-color: rgba(255, 255, 255, 0.8); box-shadow: 0 4px 12px rgba(0,0,0,0.3), 0 0 0 0 rgba(255, 255, 255, 0.5); }
+      50% { border-color: rgba(255, 255, 255, 1); box-shadow: 0 4px 12px rgba(0,0,0,0.3), 0 0 0 4px rgba(255, 255, 255, 0.3); }
     }
     
     /* Individual tab colors */
@@ -1601,7 +1636,13 @@
       }
       // Format: Actual Field Name (count) <--> Mapped Field Name
       const actualFieldName = fieldKey; // Excel sheet name (e.g., Expanse_Category)
-      const mappedFieldName = fieldLabel.replace(' ↔', ''); // Display name (e.g., Expense Category)
+      let mappedFieldName = fieldLabel.replace(' ↔', ''); // Display name (e.g., Expense Category)
+      
+      // Special case: Country field should show alternative names
+      if (fieldKey === 'Country') {
+        mappedFieldName += ', Task_Tag';
+      }
+      
       header.innerHTML = `
         <span class="field-name">${actualFieldName} (${values.length}) <--> ${mappedFieldName}</span>
       `;
