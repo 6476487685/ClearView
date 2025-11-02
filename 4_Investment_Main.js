@@ -125,12 +125,33 @@ document.addEventListener("DOMContentLoaded",()=>{
     'txnstatus':{sheets:['Status_Txn'],fallback:['txnstatus']} // Check common.Status_Txn
    };
    
-   // Populate filter dropdowns from existing records (for backwards compatibility)
-   const all=getData();
-   const uniq=k=>[...new Set(all.map(x=>x[k]))];
-   uniq('cat').forEach(v=>fCategory.innerHTML+=`<option>${v}</option>`);
-   uniq('tag').forEach(v=>fTag.innerHTML+=`<option>${v}</option>`);
-   uniq('holder').forEach(v=>fHolder.innerHTML+=`<option>${v}</option>`);
+   // Populate filter dropdowns from master data (only Investment-specific data)
+   // Category filter - only Investment categories
+   if(fCategory){
+    fCategory.innerHTML='<option value="">All</option>';
+    const categories=masterData['Investment_Category']||[];
+    categories.forEach(v=>{
+     if(v&&v!=='')fCategory.innerHTML+=`<option>${v}</option>`;
+    });
+   }
+   
+   // Tag filter - only Investment tags (Investment_Ac_Tag)
+   if(fTag){
+    fTag.innerHTML='<option value="">All</option>';
+    const tags=masterData['Investment_Ac_Tag']||[];
+    tags.forEach(v=>{
+     if(v&&v!=='')fTag.innerHTML+=`<option>${v}</option>`;
+    });
+   }
+   
+   // Holder filter - from common Ac_Holder
+   if(fHolder){
+    fHolder.innerHTML='<option value="">All</option>';
+    const holders=commonData['Ac_Holder']||[];
+    holders.forEach(v=>{
+     if(v&&v!=='')fHolder.innerHTML+=`<option>${v}</option>`;
+    });
+   }
    
    // Populate modal form dropdowns from master data
    Object.entries(fieldMapping).forEach(([formId,config])=>{

@@ -174,20 +174,72 @@ document.addEventListener("DOMContentLoaded",()=>{
  filters.forEach(el=>el.oninput=applyFilters);
  clearBtn.onclick=()=>{filters.forEach(el=>el.value='');renderTable(getData());};
 
- // Dropdown populate - handle both old and new field names
- const all=getData();
- const uniq=k=>{
-  const oldField=k==='cat'?'Expense_Category':k==='tag'?'Expense_Tag':k==='holder'?'Expense_Holder':k==='cur'?'Expense_Currency':k==='mode'?'Expense_Mode':k==='freq'?'Expense_Frequency':k;
-  const values=new Set();
-  all.forEach(x=>{
-   const val=x[oldField]||x[k];
-   if(val && val!=='')values.add(val);
-  });
-  return [...values];
- };
- uniq('cat').forEach(v=>fCategory.innerHTML+=`<option>${v}</option>`);
- uniq('tag').forEach(v=>fTag.innerHTML+=`<option>${v}</option>`);
- uniq('holder').forEach(v=>fHolder.innerHTML+=`<option>${v}</option>`);
+ // Function to populate filter dropdowns from master data
+ function populateFilterDropdowns(){
+  try{
+   // Load unified master data from localStorage
+   const unifiedDataStr=localStorage.getItem('unified_master_data');
+   let masterData={};
+   let commonData={};
+   if(unifiedDataStr){
+    const unifiedData=JSON.parse(unifiedDataStr);
+    masterData=unifiedData.expense||{};
+    commonData=unifiedData.common||{};
+   }else{
+    const masterDataStr=localStorage.getItem('expense_master_data');
+    masterData=masterDataStr?JSON.parse(masterDataStr):{};
+   }
+   
+   // Populate Category filter - only Expense categories
+   if(fCategory){
+    fCategory.innerHTML='<option value="">All</option>';
+    const categories=masterData['Expanse_Category']||[];
+    categories.forEach(v=>{
+     if(v&&v!=='')fCategory.innerHTML+=`<option>${v}</option>`;
+    });
+   }
+   
+   // Populate Tag filter - only Expense tags (Expanse_Ac_Tag)
+   if(fTag){
+    fTag.innerHTML='<option value="">All</option>';
+    const tags=masterData['Expanse_Ac_Tag']||[];
+    tags.forEach(v=>{
+     if(v&&v!=='')fTag.innerHTML+=`<option>${v}</option>`;
+    });
+   }
+   
+   // Populate Holder filter - from common Ac_Holder
+   if(fHolder){
+    fHolder.innerHTML='<option value="">All</option>';
+    const holders=commonData['Ac_Holder']||[];
+    holders.forEach(v=>{
+     if(v&&v!=='')fHolder.innerHTML+=`<option>${v}</option>`;
+    });
+   }
+  }catch(e){
+   console.error('Error populating filter dropdowns:',e);
+   // Fallback to existing records
+   const all=getData();
+   const uniq=k=>{
+    const oldField=k==='cat'?'Expense_Category':k==='tag'?'Expense_Tag':k==='holder'?'Expense_Holder':k==='cur'?'Expense_Currency':k==='mode'?'Expense_Mode':k==='freq'?'Expense_Frequency':k;
+    const values=new Set();
+    all.forEach(x=>{
+     const val=x[oldField]||x[k];
+     if(val && val!=='')values.add(val);
+    });
+    return [...values];
+   };
+   if(fCategory)fCategory.innerHTML='<option value="">All</option>';
+   uniq('cat').forEach(v=>fCategory.innerHTML+=`<option>${v}</option>`);
+   if(fTag)fTag.innerHTML='<option value="">All</option>';
+   uniq('tag').forEach(v=>fTag.innerHTML+=`<option>${v}</option>`);
+   if(fHolder)fHolder.innerHTML='<option value="">All</option>';
+   uniq('holder').forEach(v=>fHolder.innerHTML+=`<option>${v}</option>`);
+  }
+ }
+ 
+ // Populate filter dropdowns on page load
+ populateFilterDropdowns();
  
  // Function to populate modal dropdowns from Excel master data
  function populateModalDropdowns(){
@@ -213,7 +265,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     'Expense_Category':['Expanse_Category','Expense_Category'],
     'Expense_Tag':['Expanse_Ac_Tag','Expense_Tag'],
     'Expense_Currency':['Currency','Expense_Currency'], // Also checks common.Currency
-   'Expense_Mode':['Mode_Txn','Txn_Mode','Expense_Mode'],
+   'Expense_Mode':['Mode'], // Check common.Mode
    'Expense_Holder':['Ac_Holder','Expense_Holder'],
    'Expense_Frequency':['Frequency','Expense_Frequency'], // Also checks common.Frequency
    'Expense_Account_Status':['Ac_Status','Expense_Account_Status'],
@@ -228,14 +280,23 @@ document.addEventListener("DOMContentLoaded",()=>{
     // Clear existing options
     select.innerHTML='';
     
-    // Try to load from master data (check both module-specific and common)
+    // Try to load from master data (check common first for common fields, then module-specific)
     let values=[];
+    const commonFieldNames=['Mode','Currency','Frequency','Ac_Status','Status_Txn','Ac_Holder'];
     for(const sheetName of sheetNames){
+     // For common fields, check commonData first
+     if(commonFieldNames.includes(sheetName)){
+      if(commonData[sheetName]&&Array.isArray(commonData[sheetName])){
+       values=commonData[sheetName].filter(v=>v&&v!=='');
+       break;
+      }
+     }
+     // Then check module-specific master data
      if(masterData[sheetName]&&Array.isArray(masterData[sheetName])){
       values=masterData[sheetName].filter(v=>v&&v!=='');
       break;
      }
-     // Also check common fields
+     // Also check common fields as fallback
      if(commonData[sheetName]&&Array.isArray(commonData[sheetName])){
       values=commonData[sheetName].filter(v=>v&&v!=='');
       break;
