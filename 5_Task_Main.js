@@ -11,6 +11,11 @@ document.addEventListener("DOMContentLoaded",()=>{
  const btnClearData=document.getElementById('btnClearData');
  const filters=document.querySelectorAll('#fCategory,#fTag,#fAssignee,#fStatus,#fPriority,#fFrom,#fTo,#globalSearch');
  const clearBtn=document.getElementById('btnClear');
+ const fCategory=document.getElementById('fCategory');
+ const fTag=document.getElementById('fTag');
+ const fAssignee=document.getElementById('fAssignee');
+ const fStatus=document.getElementById('fStatus');
+ const fPriority=document.getElementById('fPriority');
  let editIndex=null;
 
  const sample=[
@@ -294,13 +299,6 @@ function populateModalDropdowns(){
   });
  }
 }
-
-// Get filter elements
-const fCategory=document.getElementById('fCategory');
-const fTag=document.getElementById('fTag');
-const fAssignee=document.getElementById('fAssignee');
-const fStatus=document.getElementById('fStatus');
-const fPriority=document.getElementById('fPriority');
 
 // Populate dropdowns on page load
 populateModalDropdowns();

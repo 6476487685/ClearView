@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded",()=>{
  const fTo=document.getElementById('fTo');
  const globalSearch=document.getElementById('globalSearch');
  const clearBtn=document.getElementById('btnClear');
+ const btnClearData=document.getElementById('btnClearData');
  let editIndex=null;
 
  const sample=[
