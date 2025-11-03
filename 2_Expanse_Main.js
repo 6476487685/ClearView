@@ -391,9 +391,9 @@ document.addEventListener("DOMContentLoaded",()=>{
     });
    }
    
-   // Log master data counts for verification
-   const unifiedDataStr=localStorage.getItem('unified_master_data');
-   const unifiedDataFull=unifiedDataStr?JSON.parse(unifiedDataStr):{};
+  // Log master data counts for verification
+  const unifiedDataStrLog=localStorage.getItem('unified_master_data');
+  const unifiedDataFull=unifiedDataStrLog?JSON.parse(unifiedDataStrLog):{};
    const masterDataExpense=unifiedDataFull.expense||{};
    const commonDataExpense=unifiedDataFull.common||{};
    console.log('📊 Expense Dashboard Master Data Loaded:');
