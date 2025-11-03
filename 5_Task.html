@@ -70,7 +70,9 @@
     </section>
 
     <section class="table-card">
-      <div class="table-scroll-wrapper">
+      <div class="table-header-space"></div>
+      <div class="table-scroll-wrapper" id="horizontalScrollbar"></div>
+      <div class="table-data-wrapper">
         <table id="taskTable">
         <thead>
           <tr>
@@ -1515,6 +1517,34 @@
           }
         }
       });
+      
+      // Sync horizontal scrollbar at 240px with table scroll
+      const horizontalScrollbar = document.getElementById('horizontalScrollbar');
+      const tableDataWrapper = document.querySelector('.table-data-wrapper');
+      
+      if (horizontalScrollbar && tableDataWrapper) {
+        // Create a dummy div to force scrollbar
+        const scrollDummy = document.createElement('div');
+        scrollDummy.style.width = '1200px';
+        scrollDummy.style.height = '1px';
+        horizontalScrollbar.appendChild(scrollDummy);
+        
+        // Sync scrollbar scroll with table horizontal scroll
+        horizontalScrollbar.addEventListener('scroll', function() {
+          tableDataWrapper.scrollLeft = horizontalScrollbar.scrollLeft;
+        });
+        
+        // Sync table scroll with scrollbar (when scrolling via other means)
+        tableDataWrapper.addEventListener('scroll', function() {
+          horizontalScrollbar.scrollLeft = tableDataWrapper.scrollLeft;
+        });
+        
+        // Also sync when table content changes
+        const observer = new MutationObserver(function() {
+          horizontalScrollbar.scrollLeft = tableDataWrapper.scrollLeft;
+        });
+        observer.observe(tableDataWrapper, { childList: true, subtree: true });
+      }
     });
   </script>
 </body>
