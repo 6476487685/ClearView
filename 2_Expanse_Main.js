@@ -1004,7 +1004,7 @@ if (excelFileInput) {
               Expense_Paid_Date: getValue('Paid_Date', 'Expense_Paid_Date'),
               Expense_Frequency: getValue('Frequency', 'Expense_Frequency'),
               Expense_Account_Status: getValue('Ac_Status', 'Expense_Account_Status', 'Account Status'),
-              Expense_Txn_Status: getValue('Txn_Status', 'Expense_Txn_Status', 'Transaction Status')
+              Expense_Txn_Status: getValue('Status_Txn', 'Txn_Status', 'Expense_Txn_Status', 'Transaction Status')
             };
           });
 
