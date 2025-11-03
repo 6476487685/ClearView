@@ -566,7 +566,7 @@ function awaitBackupAndDownload(){
 
     // Expense
     addTxnSheet('Txn_Expense',JSON.parse(localStorage.getItem('expense_records')||'[]'),
-      ['Expanse_Description','Expanse_Category','Expanse_Ac_Tag','Currency','Amount','Paid_From','Amount_Paid','Txn_Mode','Ac_Holder','Due_Date','Paid_Date','Frequency','Ac_Status','Txn_Status'],
+      ['Expanse_Description','Expanse_Category','Expanse_Ac_Tag','Currency','Amount','Paid_From','Amount_Paid','Mode_Txn','Ac_Holder','Due_Date','Paid_Date','Frequency','Ac_Status','Txn_Status'],
       (r,headers)=>headers.map(h=>{
         const map={
           'Expanse_Description': r.Expense_Description||r.desc||'',
@@ -576,7 +576,7 @@ function awaitBackupAndDownload(){
           'Amount': r.Expense_Amount||r.Expense_Amount_Due||r.amt||'',
           'Paid_From': r.Expense_Paid_From||'',
           'Amount_Paid': r.Expense_Amount_Paid||'',
-          'Txn_Mode': r.Expense_Mode||r.mode||'',
+          'Mode_Txn': r.Expense_Mode||r.mode||'',
           'Ac_Holder': r.Expense_Holder||r.holder||'',
           'Due_Date': r.Expense_Due_Date||r.due||'',
           'Paid_Date': r.Expense_Paid_Date||r.paid||'',
@@ -998,7 +998,7 @@ if (excelFileInput) {
               Expense_Amount_Due: getValue('Amount', 'Expense_Amount_Due', 'Amount_Due'),
               Expense_Paid_From: getValue('Paid_From', 'Expense_Paid_From', ''),
               Expense_Amount_Paid: getValue('Amount_Paid', 'Amount-Paid', '0'),
-              Expense_Mode: getValue('Txn_Mode', 'Expense_Mode', 'Payment_Mode', 'Mode'),
+              Expense_Mode: getValue('Mode_Txn', 'Txn_Mode', 'Expense_Mode', 'Payment_Mode', 'Mode'),
               Expense_Holder: getValue('Ac_Holder', 'Expense_Holder', 'Holder'),
               Expense_Due_Date: getValue('Due_Date', 'Expense_Due_Date'),
               Expense_Paid_Date: getValue('Paid_Date', 'Expense_Paid_Date'),

@@ -489,7 +489,7 @@ function awaitBackupAndDownload(){
       records.forEach(r=>aoa.push(mapRow(r,headers)));
       XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(aoa),sheetName);
     };
-    addTxnSheet('Txn_Expense',JSON.parse(localStorage.getItem('expense_records')||'[]'),['Expanse_Description','Expanse_Category','Expanse_Ac_Tag','Currency','Amount','Paid_From','Amount_Paid','Txn_Mode','Ac_Holder','Due_Date','Paid_Date','Frequency','Ac_Status','Txn_Status'],(r,h)=>h.map(k=>({
+    addTxnSheet('Txn_Expense',JSON.parse(localStorage.getItem('expense_records')||'[]'),['Expanse_Description','Expanse_Category','Expanse_Ac_Tag','Currency','Amount','Paid_From','Amount_Paid','Mode_Txn','Ac_Holder','Due_Date','Paid_Date','Frequency','Ac_Status','Txn_Status'],(r,h)=>h.map(k=>({
       'Expanse_Description':r.Expense_Description||r.desc||'',
       'Expanse_Category':r.Expense_Category||r.cat||'',
       'Expanse_Ac_Tag':r.Expense_Tag||r.tag||'',
@@ -497,7 +497,7 @@ function awaitBackupAndDownload(){
       'Amount':r.Expense_Amount||r.Expense_Amount_Due||r.amt||'',
       'Paid_From':r.Expense_Paid_From||'',
       'Amount_Paid':r.Expense_Amount_Paid||'',
-      'Txn_Mode':r.Expense_Mode||r.mode||'',
+      'Mode_Txn':r.Expense_Mode||r.mode||'',
       'Ac_Holder':r.Expense_Holder||r.holder||'',
       'Due_Date':r.Expense_Due_Date||r.due||'',
       'Paid_Date':r.Expense_Paid_Date||r.paid||'',
