@@ -49,6 +49,8 @@ document.addEventListener("DOMContentLoaded",()=>{
  }
  renderTable(getData());
 
+// moved earlier in file
+
  // Event delegation
  tbody.addEventListener('click',e=>{
   if(e.target.classList.contains('del')){
