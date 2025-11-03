@@ -392,10 +392,10 @@ document.addEventListener("DOMContentLoaded",()=>{
    }
    
   // Log master data counts for verification
-  const unifiedDataStrLog=localStorage.getItem('unified_master_data');
-  const unifiedDataFull=unifiedDataStrLog?JSON.parse(unifiedDataStrLog):{};
-   const masterDataExpense=unifiedDataFull.expense||{};
-   const commonDataExpense=unifiedDataFull.common||{};
+ const unifiedDataStrLog=localStorage.getItem('unified_master_data');
+ const unifiedDataFullLog=unifiedDataStrLog?JSON.parse(unifiedDataStrLog):{};
+  const masterDataExpense=unifiedDataFullLog.expense||{};
+  const commonDataExpense=unifiedDataFullLog.common||{};
    console.log('📊 Expense Dashboard Master Data Loaded:');
    console.log(`   Expanse_Category: ${(masterDataExpense['Expanse_Category']||[]).length} records`);
    console.log(`   Expanse_Ac_Tag: ${(masterDataExpense['Expanse_Ac_Tag']||[]).length} records`);
