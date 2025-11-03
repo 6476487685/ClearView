@@ -23,7 +23,7 @@
             <button class="pdf" id="btnPDF">📘 Export PDF</button>
           </div>
         </div>
-        <button class="danger" id="btnClearData" style="background:#ea4335;color:white;">🗑️ Clear Data</button>
+        <button class="danger" id="btnClearData">🗑️ Clear Data</button>
       </div>
     </div>
     <div class="header-right">
@@ -1063,53 +1063,46 @@
       // Load snippets on page load - populate from task records only
       populateSnippets();
       
-      // Clear Data functionality
+      // Clear Data button with safety mechanism (4 clicks to enable, then double confirmation)
       const btnClearData = document.getElementById('btnClearData');
+      let clearDataClickCount = 0;
       if (btnClearData) {
-        btnClearData.addEventListener('click', function() {
-          if (confirm('Are you sure you want to clear all task data? This action cannot be undone.')) {
-            localStorage.removeItem('task_records');
-            localStorage.removeItem('task_snippets'); // Clear snippets too
-            localStorage.removeItem('task_master_data'); // Clear master data
-            
-            // Clear table
-            const tbody = document.getElementById('taskBody');
-            if (tbody) {
-              tbody.innerHTML = '';
-            }
-            
-            // Clear filter dropdowns
-            const fCategory = document.getElementById('fCategory');
-            const fTag = document.getElementById('fTag');
-            const fAssignee = document.getElementById('fAssignee');
-            const fStatus = document.getElementById('fStatus');
-            const fPriority = document.getElementById('fPriority');
-            
-            if (fCategory) fCategory.innerHTML = '<option value="">All Categories</option>';
-            if (fTag) fTag.innerHTML = '<option value="">All Tags</option>';
-            if (fAssignee) fAssignee.innerHTML = '<option value="">All Assignees</option>';
-            if (fStatus) fStatus.innerHTML = '<option value="">All Statuses</option>';
-            if (fPriority) fPriority.innerHTML = '<option value="">All Priorities</option>';
-            
-            // Clear snippets dropdown
-            const snippetsDropdown = document.getElementById('snippetsDropdown');
-            if (snippetsDropdown) {
-              snippetsDropdown.innerHTML = '<option value="">Snippets</option>';
-            }
-            
-            // Clear modal dropdowns
-            const modalCat = document.getElementById('cat');
-            const modalTag = document.getElementById('tag');
-            const modalAssignee = document.getElementById('assignee');
-            const modalPriority = document.getElementById('priority');
-            
-            if (modalCat) modalCat.innerHTML = '<option value="">Select Category</option>';
-            if (modalTag) modalTag.innerHTML = '<option value="">Select Tag</option>';
-            if (modalAssignee) modalAssignee.innerHTML = '<option value="">Select Assignee</option>';
-            if (modalPriority) modalPriority.innerHTML = '<option value="">Select Priority</option>';
-            
-            alert('All task data has been cleared.');
+        const setArmedUI = (armed) => {
+          if (armed) {
+            btnClearData.style.opacity = '1';
+            btnClearData.style.cursor = 'pointer';
+          } else {
+            btnClearData.style.opacity = '0.6';
+            btnClearData.style.cursor = 'not-allowed';
           }
+        };
+        setArmedUI(false);
+        btnClearData.title = 'Click 4 times to enable, then click to clear all data';
+        btnClearData.addEventListener('click', () => {
+          clearDataClickCount++;
+          if (clearDataClickCount < 4) {
+            btnClearData.title = `Click ${4 - clearDataClickCount} more time(s) to enable`;
+            return;
+          }
+          if (clearDataClickCount === 4) {
+            setArmedUI(true);
+            btnClearData.title = '⚠️ Enabled! Click again to clear all data';
+            return;
+          }
+          // 5th+ click - double confirmation
+          const firstConfirm = confirm('⚠️ WARNING: This will delete ALL task records!\n\nAre you sure you want to proceed?');
+          if (!firstConfirm) { clearDataClickCount = 4; return; }
+          const secondConfirm = confirm('⚠️ FINAL WARNING: This action cannot be undone!\n\nAll task records will be permanently deleted.\n\nClick OK to confirm deletion.');
+          if (!secondConfirm) { clearDataClickCount = 4; return; }
+          // Clear data
+          localStorage.removeItem('task_records');
+          localStorage.removeItem('task_snippets');
+          localStorage.removeItem('task_master_data');
+          renderTable([]);
+          clearDataClickCount = 0;
+          setArmedUI(false);
+          btnClearData.title = 'Click 4 times to enable, then click to clear all data';
+          alert('✅ All task records have been cleared successfully.');
         });
       }
       
