@@ -43,3 +43,4 @@ This ensures that all modules are properly initialized in the unified_master_dat
 7. Try adding duplicate Tenant category - should show "already exists" error
 8. Export to Excel - verify Tenant categories export correctly
 
+
