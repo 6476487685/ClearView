@@ -544,8 +544,96 @@ function awaitBackupAndDownload(){
       'Completed_On':r.Completed_On||'',
       'Task_Adhoc':r.Task_Adhoc||''
     }[k]??'')));
-    const addMasterSheets=(data)=>{ if(!data)return; Object.entries(data).forEach(([name,arr])=>{ if(Array.isArray(arr)){ const ws=XLSX.utils.aoa_to_sheet([[name],...arr.map(v=>[v])]); XLSX.utils.book_append_sheet(wb,ws,name);} }); };
-    const unifiedStr=localStorage.getItem('unified_master_data'); if(unifiedStr){ const u=JSON.parse(unifiedStr); addMasterSheets(u.task); addMasterSheets(u.expense); addMasterSheets(u.income); addMasterSheets(u.investment); addMasterSheets(u.common); }
+    // Reconstruct consolidated master sheets
+    const unifiedStr=localStorage.getItem('unified_master_data');
+    let unified={};
+    if(unifiedStr){
+      unified=JSON.parse(unifiedStr);
+    }else{
+      unified={
+        task:JSON.parse(localStorage.getItem('task_master_data')||'{}'),
+        expense:JSON.parse(localStorage.getItem('expense_master_data')||'{}'),
+        income:JSON.parse(localStorage.getItem('income_master_data')||'{}'),
+        investment:JSON.parse(localStorage.getItem('investment_master_data')||'{}'),
+        common:JSON.parse(localStorage.getItem('common_master_data')||'{}')
+      };
+    }
+    
+    // Ac_Category consolidated sheet
+    const acCategoryData=[['Ac_Category','Ac_Classification']];
+    const addToAcCategory=(values,classification)=>{
+      if(Array.isArray(values)) values.forEach(v=>{ if(v && v!=='') acCategoryData.push([v,classification]); });
+    };
+    addToAcCategory(unified.income?.Income_Category||[],'Income');
+    addToAcCategory(unified.investment?.Investment_Category||[],'Investment');
+    addToAcCategory(unified.expense?.Expanse_Category||[],'Expanse');
+    if(acCategoryData.length>1){
+      const ws=XLSX.utils.aoa_to_sheet(acCategoryData);
+      XLSX.utils.book_append_sheet(wb,ws,'Ac_Category');
+    }
+    
+    // Ac_Tag consolidated sheet
+    const acTagData=[['Ac_Tag','Ac_Classification']];
+    const addToAcTag=(values,classification)=>{
+      if(Array.isArray(values)) values.forEach(v=>{ if(v && v!=='') acTagData.push([v,classification]); });
+    };
+    addToAcTag(unified.income?.Income_Ac_Tag||[],'Income');
+    addToAcTag(unified.investment?.Investment_Ac_Tag||[],'Investment');
+    addToAcTag(unified.expense?.Expanse_Ac_Tag||[],'Expanse');
+    if(acTagData.length>1){
+      const ws=XLSX.utils.aoa_to_sheet(acTagData);
+      XLSX.utils.book_append_sheet(wb,ws,'Ac_Tag');
+    }
+    
+    // Ac_Classification standalone
+    const acClassification=unified.common?.Ac_Classification||[];
+    if(Array.isArray(acClassification) && acClassification.length>0){
+      const ws=XLSX.utils.aoa_to_sheet([['Ac_Classification'],...acClassification.map(v=>[v])]);
+      XLSX.utils.book_append_sheet(wb,ws,'Ac_Classification');
+    }
+    
+    // Other common/master sheets
+    const addMasterSheet=(sheetName,values)=>{
+      if(Array.isArray(values) && values.length>0){
+        const ws=XLSX.utils.aoa_to_sheet([[sheetName],...values.map(v=>[v])]);
+        XLSX.utils.book_append_sheet(wb,ws,sheetName);
+      }
+    };
+    if(unified.common){
+      addMasterSheet('Currency',unified.common.Currency);
+      addMasterSheet('Mode',unified.common.Mode);
+      addMasterSheet('Status_Txn',unified.common.Status_Txn);
+      addMasterSheet('Ac_Holder',unified.common.Ac_Holder);
+      addMasterSheet('Frequency',unified.common.Frequency);
+      addMasterSheet('Ac_Status',unified.common.Ac_Status);
+      addMasterSheet('Country',unified.common.Country);
+    }
+    if(unified.task){
+      Object.entries(unified.task).forEach(([name,arr])=>{
+        if(Array.isArray(arr) && arr.length>0 && !['Task_Category','Task_Ac_Tag'].includes(name)){
+          addMasterSheet(name,arr);
+        }
+      });
+    }
+    
+    // Paths sheet
+    const pathsData=[['Path Type','Path']];
+    const pathKeys={
+      'Master Data File':'project_master_data_file',
+      'Backup Path':'project_backup_path',
+      'Documents Path':'project_documents_path',
+      'Downloads Path':'project_downloads_path'
+    };
+    Object.entries(pathKeys).forEach(([type,key])=>{
+      const path=localStorage.getItem(key);
+      if(path && path.trim()!==''){
+        pathsData.push([type,path]);
+      }
+    });
+    if(pathsData.length>1){
+      const ws=XLSX.utils.aoa_to_sheet(pathsData);
+      XLSX.utils.book_append_sheet(wb,ws,'Paths');
+    }
     const now=new Date(); const pad=n=>String(n).padStart(2,'0'); const filename=`ClearView_Backup_${now.getFullYear()}_${pad(now.getMonth()+1)}_${pad(now.getDate())}_@_${pad(now.getHours())}_${pad(now.getMinutes())}_${pad(now.getSeconds())}.xlsx`;
     const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'}); const blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href);
