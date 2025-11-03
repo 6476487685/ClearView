@@ -812,6 +812,16 @@ if (excelFileInput) {
 // Clear Data button with safety mechanism (4 clicks to enable, then double confirmation)
 let clearDataClickCount=0;
 if(btnClearData){
+  const setArmedUI=(armed)=>{
+    if(armed){
+      btnClearData.style.opacity='1';
+      btnClearData.style.cursor='pointer';
+    }else{
+      btnClearData.style.opacity='0.6';
+      btnClearData.style.cursor='not-allowed';
+    }
+  };
+  setArmedUI(false);
   btnClearData.title='Click 4 times to enable, then click to clear all data';
   btnClearData.addEventListener('click',()=>{
    clearDataClickCount++;
@@ -820,6 +830,7 @@ if(btnClearData){
     return;
    }
    if(clearDataClickCount===4){
+    setArmedUI(true);
     btnClearData.title='⚠️ Enabled! Click again to clear all data';
     return;
    }
@@ -832,6 +843,7 @@ if(btnClearData){
    localStorage.removeItem('expense_records');
    renderTable([]);
    clearDataClickCount=0;
+   setArmedUI(false);
    btnClearData.title='Click 4 times to enable, then click to clear all data';
    alert('✅ All expense records have been cleared successfully.');
   });

@@ -81,15 +81,26 @@ document.addEventListener("DOMContentLoaded",()=>{
  // Clear Data button with safety mechanism (4 clicks to enable, then double confirmation)
  let clearDataClickCount=0;
  if(btnClearData){
-  btnClearData.title='Click 4 times to enable, then click to clear all data';
-  btnClearData.addEventListener('click',()=>{
+ const setArmedUI=(armed)=>{
+   if(armed){
+     btnClearData.style.opacity='1';
+     btnClearData.style.cursor='pointer';
+   }else{
+     btnClearData.style.opacity='0.6';
+     btnClearData.style.cursor='not-allowed';
+   }
+ };
+ setArmedUI(false);
+ btnClearData.title='Click 4 times to enable, then click to clear all data';
+ btnClearData.addEventListener('click',()=>{
    clearDataClickCount++;
    if(clearDataClickCount<4){
     btnClearData.title=`Click ${4-clearDataClickCount} more time(s) to enable`;
     return;
    }
    if(clearDataClickCount===4){
-    btnClearData.title='⚠️ Enabled! Click again to clear all data';
+   setArmedUI(true);
+   btnClearData.title='⚠️ Enabled! Click again to clear all data';
     return;
    }
    // 5th+ click - double confirmation
@@ -101,7 +112,8 @@ document.addEventListener("DOMContentLoaded",()=>{
    localStorage.removeItem('investment_records');
    renderTable([]);
    clearDataClickCount=0;
-   btnClearData.title='Click 4 times to enable, then click to clear all data';
+  setArmedUI(false);
+  btnClearData.title='Click 4 times to enable, then click to clear all data';
    alert('✅ All investment records have been cleared successfully.');
   });
  }
