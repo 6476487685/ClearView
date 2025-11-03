@@ -590,7 +590,7 @@ function awaitBackupAndDownload(){
 
     // Income
     addTxnSheet('Txn_Income',JSON.parse(localStorage.getItem('income_records')||'[]'),
-      ['Income_Description','Income_Category','Income_Ac_Tag','Currency','Amount','Txn_Mode','Ac_Holder','Income_Date','Frequency','Ac_Status','Status_Txn'],
+      ['Income_Description','Income_Category','Income_Ac_Tag','Currency','Amount','Mode_Txn','Ac_Holder','Income_Date','Frequency','Ac_Status','Status_Txn'],
       (r,headers)=>headers.map(h=>{
         const map={
           'Income_Description': r.desc||r.Income_Description||'',
@@ -598,7 +598,7 @@ function awaitBackupAndDownload(){
           'Income_Ac_Tag': r.tag||r.Income_Ac_Tag||'',
           'Currency': r.cur||r.Currency||'',
           'Amount': r.amt||r.Amount||'',
-          'Txn_Mode': r.mode||r.Txn_Mode||'',
+          'Mode_Txn': r.mode||r.Mode_Txn||r.Txn_Mode||'',
           'Ac_Holder': r.holder||r.Ac_Holder||'',
           'Income_Date': r.paid||r.Income_Date||'',
           'Frequency': r.freq||r.Frequency||'',

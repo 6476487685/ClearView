@@ -505,13 +505,13 @@ function awaitBackupAndDownload(){
       'Ac_Status':r.Expense_Account_Status||r.acstatus||'',
       'Txn_Status':r.Expense_Txn_Status||r.txnstatus||''
     }[k]??'')));
-    addTxnSheet('Txn_Income',JSON.parse(localStorage.getItem('income_records')||'[]'),['Income_Description','Income_Category','Income_Ac_Tag','Currency','Amount','Txn_Mode','Ac_Holder','Income_Date','Frequency','Ac_Status','Status_Txn'],(r,h)=>h.map(k=>({
+    addTxnSheet('Txn_Income',JSON.parse(localStorage.getItem('income_records')||'[]'),['Income_Description','Income_Category','Income_Ac_Tag','Currency','Amount','Mode_Txn','Ac_Holder','Income_Date','Frequency','Ac_Status','Status_Txn'],(r,h)=>h.map(k=>({
       'Income_Description':r.desc||'',
       'Income_Category':r.cat||'',
       'Income_Ac_Tag':r.tag||'',
       'Currency':r.cur||'',
       'Amount':r.amt||'',
-      'Txn_Mode':r.mode||'',
+      'Mode_Txn':r.mode||'',
       'Ac_Holder':r.holder||'',
       'Income_Date':r.paid||'',
       'Frequency':r.freq||'',
