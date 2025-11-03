@@ -41,6 +41,64 @@ document.addEventListener("DOMContentLoaded",()=>{
  }
  renderTable(getData());
 
+// Excel Import functionality (Txn_Income)
+const btnImportExcel=document.getElementById('btnImportExcel');
+const excelFileInput=document.getElementById('excelFileInput');
+if(btnImportExcel && excelFileInput){
+  excelFileInput.addEventListener('change',(e)=>{
+    const file=e.target.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        const data=new Uint8Array(ev.target.result);
+        const workbook=XLSX.read(data,{type:'array'});
+        if(!workbook.SheetNames.includes('Txn_Income')){
+          alert('Txn_Income sheet not found in the Excel file.');
+          return;
+        }
+        const sheet=workbook.Sheets['Txn_Income'];
+        const jsonData=XLSX.utils.sheet_to_json(sheet);
+        if(jsonData.length===0){
+          alert('No data found in Txn_Income sheet.');
+          return;
+        }
+        const incomes=jsonData.map(row=>{
+          const getValue=(...keys)=>{
+            for(const k of keys){
+              if(row[k]!==undefined && row[k]!==null && row[k]!=='')return row[k];
+              const trimmed=k.trim();
+              if(trimmed!==k && row[trimmed]!==undefined && row[trimmed]!==null && row[trimmed]!=='')return row[trimmed];
+            }
+            return '';
+          };
+          const amt=getValue('Amount','Income_Amount','Amt');
+          return {
+            desc:getValue('Income_Description','Description','Desc'),
+            cat:getValue('Income_Category','Category','Cat'),
+            tag:getValue('Income_Ac_Tag','Account_Tag','Tag'),
+            cur:getValue('Currency','Cur'),
+            amt:amt!==''?amt:0,
+            mode:getValue('Txn_Mode','Mode','Payment_Mode'),
+            holder:getValue('Ac_Holder','Holder'),
+            paid:getValue('Income_Date','Paid_Date','Date','Paid'),
+            freq:getValue('Frequency','Freq'),
+            acstatus:getValue('Ac_Status','Account_Status','AcStatus'),
+            txnstatus:getValue('Status_Txn','Txn_Status','Status')
+          };
+        });
+        localStorage.setItem('income_records',JSON.stringify(incomes));
+        alert(`Successfully loaded ${incomes.length} income records from Excel! Reloading page...`);
+        setTimeout(()=>window.location.reload(),800);
+      }catch(err){
+        console.error('Error reading Income Excel:',err);
+        alert('Error reading Excel: '+err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
  // Event delegation
  tbody.addEventListener('click',e=>{
   if(e.target.classList.contains('del')){
