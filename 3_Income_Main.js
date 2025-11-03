@@ -79,7 +79,7 @@ if(btnImportExcel && excelFileInput){
             tag:getValue('Income_Ac_Tag','Account_Tag','Tag'),
             cur:getValue('Currency','Cur'),
             amt:amt!==''?amt:0,
-            mode:getValue('Txn_Mode','Mode','Payment_Mode'),
+            mode:getValue('Mode_Txn','Txn_Mode','Mode','Payment_Mode'),
             holder:getValue('Ac_Holder','Holder'),
             paid:getValue('Income_Date','Paid_Date','Date','Paid'),
             freq:getValue('Frequency','Freq'),
