@@ -223,6 +223,9 @@
           
           // Convert to JSON
           const jsonData = XLSX.utils.sheet_to_json(txnTaskSheet);
+          if (jsonData[0]) {
+            localStorage.setItem('last_import_headers_Txn_Task', JSON.stringify(Object.keys(jsonData[0])));
+          }
           
           if (jsonData.length === 0) {
             alert('No data rows found in Txn_Task sheet.');

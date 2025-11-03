@@ -546,6 +546,155 @@ function showPathReminder(fileType) {
   }
 }
 
+// Create and download a full backup workbook (masters + all transactions)
+function awaitBackupAndDownload(){
+  try{
+    const wb=XLSX.utils.book_new();
+    // Add transactional sheets with best-guess headers or last-import headers
+    const addTxnSheet=(sheetName,records,defaultHeaders,mapRow)=>{
+      if(!Array.isArray(records))records=[];
+      let headers=defaultHeaders;
+      const savedHeaders=localStorage.getItem('last_import_headers_'+sheetName);
+      if(savedHeaders){
+        try{ const parsed=JSON.parse(savedHeaders); if(Array.isArray(parsed)&&parsed.length>0){ headers=parsed; } }catch(_){ }
+      }
+      const aoa=[headers];
+      records.forEach(r=>aoa.push(mapRow(r,headers)));
+      const ws=XLSX.utils.aoa_to_sheet(aoa);
+      XLSX.utils.book_append_sheet(wb,ws,sheetName);
+    };
+
+    // Expense
+    addTxnSheet('Txn_Expense',JSON.parse(localStorage.getItem('expense_records')||'[]'),
+      ['Expanse_Description','Expanse_Category','Expanse_Ac_Tag','Currency','Amount','Paid_From','Amount_Paid','Txn_Mode','Ac_Holder','Due_Date','Paid_Date','Frequency','Ac_Status','Txn_Status'],
+      (r,headers)=>headers.map(h=>{
+        const map={
+          'Expanse_Description': r.Expense_Description||r.desc||'',
+          'Expanse_Category': r.Expense_Category||r.cat||'',
+          'Expanse_Ac_Tag': r.Expense_Tag||r.tag||'',
+          'Currency': r.Expense_Currency||r.cur||'',
+          'Amount': r.Expense_Amount||r.Expense_Amount_Due||r.amt||'',
+          'Paid_From': r.Expense_Paid_From||'',
+          'Amount_Paid': r.Expense_Amount_Paid||'',
+          'Txn_Mode': r.Expense_Mode||r.mode||'',
+          'Ac_Holder': r.Expense_Holder||r.holder||'',
+          'Due_Date': r.Expense_Due_Date||r.due||'',
+          'Paid_Date': r.Expense_Paid_Date||r.paid||'',
+          'Frequency': r.Expense_Frequency||r.freq||'',
+          'Ac_Status': r.Expense_Account_Status||r.acstatus||'',
+          'Txn_Status': r.Expense_Txn_Status||r.txnstatus||''
+        };
+        return map[h]!==undefined?map[h]:'';
+      })
+    );
+
+    // Income
+    addTxnSheet('Txn_Income',JSON.parse(localStorage.getItem('income_records')||'[]'),
+      ['Income_Description','Income_Category','Income_Ac_Tag','Currency','Amount','Txn_Mode','Ac_Holder','Income_Date','Frequency','Ac_Status','Status_Txn'],
+      (r,headers)=>headers.map(h=>{
+        const map={
+          'Income_Description': r.desc||r.Income_Description||'',
+          'Income_Category': r.cat||r.Income_Category||'',
+          'Income_Ac_Tag': r.tag||r.Income_Ac_Tag||'',
+          'Currency': r.cur||r.Currency||'',
+          'Amount': r.amt||r.Amount||'',
+          'Txn_Mode': r.mode||r.Txn_Mode||'',
+          'Ac_Holder': r.holder||r.Ac_Holder||'',
+          'Income_Date': r.paid||r.Income_Date||'',
+          'Frequency': r.freq||r.Frequency||'',
+          'Ac_Status': r.acstatus||r.Ac_Status||'',
+          'Status_Txn': r.txnstatus||r.Status_Txn||''
+        };
+        return map[h]!==undefined?map[h]:'';
+      })
+    );
+
+    // Investment
+    addTxnSheet('Txn_Investment',JSON.parse(localStorage.getItem('investment_records')||'[]'),
+      ['Investment_Description','Investment_Category','Investment_Ac_Tag','Currency','Amount','Txn_Mode','Ac_Holder','Invest_Date','Maturity_Date','Frequency','Ac_Status','Status_Txn'],
+      (r,headers)=>headers.map(h=>{
+        const map={
+          'Investment_Description': r.desc||'',
+          'Investment_Category': r.cat||'',
+          'Investment_Ac_Tag': r.tag||'',
+          'Currency': r.cur||'',
+          'Amount': r.amt||'',
+          'Txn_Mode': r.mode||'',
+          'Ac_Holder': r.holder||'',
+          'Invest_Date': r.investdate||'',
+          'Maturity_Date': r.maturitydate||'',
+          'Frequency': r.freq||'',
+          'Ac_Status': r.acstatus||'',
+          'Status_Txn': r.txnstatus||''
+        };
+        return map[h]!==undefined?map[h]:'';
+      })
+    );
+
+    // Task
+    addTxnSheet('Txn_Task',JSON.parse(localStorage.getItem('task_records')||'[]'),
+      ['Task_Description','Category_Task','Task_Tag','Task_Status','Task_Assignee','Task_Priority','Due_Date','Completed_On','Task_Adhoc'],
+      (r,headers)=>headers.map(h=>{
+        const map={
+          'Task_Description': r.Task_Description||r.desc||'',
+          'Category_Task': r.Category_Task||r.cat||'',
+          'Task_Tag': r.Task_Tag||r.tag||'',
+          'Task_Status': r.Task_Status||r.status||'',
+          'Task_Assignee': r.Task_Assignee||r.assignee||'',
+          'Task_Priority': r.Task_Priority||r.priority||'',
+          'Due_Date': r.Due_Date||r.due||'',
+          'Completed_On': r.Completed_On||r.completed||'',
+          'Task_Adhoc': r.Task_Adhoc||''
+        };
+        return map[h]!==undefined?map[h]:'';
+      })
+    );
+
+    // Add master sheets from unified or legacy storage
+    const addMasterSheets=(data)=>{
+      if(!data)return;
+      Object.entries(data).forEach(([sheetName,arr])=>{
+        if(Array.isArray(arr)){
+          const aoa=[[sheetName],...arr.map(v=>[v])];
+          const ws=XLSX.utils.aoa_to_sheet(aoa);
+          XLSX.utils.book_append_sheet(wb,ws,sheetName);
+        }
+      });
+    };
+    const unifiedStr=localStorage.getItem('unified_master_data');
+    if(unifiedStr){
+      const unified=JSON.parse(unifiedStr);
+      addMasterSheets(unified.task);
+      addMasterSheets(unified.expense);
+      addMasterSheets(unified.income);
+      addMasterSheets(unified.investment);
+      addMasterSheets(unified.common);
+    }else{
+      addMasterSheets(JSON.parse(localStorage.getItem('task_master_data')||'{}'));
+      addMasterSheets(JSON.parse(localStorage.getItem('expense_master_data')||'{}'));
+      addMasterSheets(JSON.parse(localStorage.getItem('income_master_data')||'{}'));
+      addMasterSheets(JSON.parse(localStorage.getItem('investment_master_data')||'{}'));
+    }
+
+    const now=new Date();
+    const pad=n=>String(n).padStart(2,'0');
+    const filename=`ClearView_Backup_${now.getFullYear()}_${pad(now.getMonth()+1)}_${pad(now.getDate())}_@_${pad(now.getHours())}_${pad(now.getMinutes())}_${pad(now.getSeconds())}.xlsx`;
+    const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    const blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+
+    const backupPath=localStorage.getItem('project_backup_path')||'';
+    const msg=`Due to browser limitations we have backed up your data before clearing in your browser's default Downloads folder.\n\nPlease move this file to your project backup folder manually.${backupPath?`\nPath: ${backupPath}`:''}`;
+    setTimeout(()=>alert(msg),500);
+  }catch(err){
+    console.error('Backup generation failed:',err);
+  }
+}
+
 // Exports
 btnExcel.onclick=()=>{
 const data = getData();
@@ -732,6 +881,12 @@ if (excelFileInput) {
         if (workbook.SheetNames.includes('Txn_Expense')) {
           const sheet = workbook.Sheets['Txn_Expense'];
           const jsonData = XLSX.utils.sheet_to_json(sheet);
+          if(jsonData[0]){
+            localStorage.setItem('last_import_headers_Txn_Expense', JSON.stringify(Object.keys(jsonData[0])));
+          }
+          if (jsonData[0]) {
+            localStorage.setItem('last_import_headers_Txn_Expense', JSON.stringify(Object.keys(jsonData[0])));
+          }
           
           if (jsonData.length === 0) {
             alert('No data found in Txn_Expense sheet.');
@@ -842,6 +997,8 @@ if(btnClearData){
    if(!firstConfirm){clearDataClickCount=4;return;}
    const secondConfirm=confirm('⚠️ FINAL WARNING: This action cannot be undone!\n\nAll expense records will be permanently deleted.\n\nClick OK to confirm deletion.');
    if(!secondConfirm){clearDataClickCount=4;return;}
+   // Backup all master + transactional data before clearing
+   try{ awaitBackupAndDownload(); }catch(_){}
    // Clear data
    localStorage.removeItem('expense_records');
    renderTable([]);
