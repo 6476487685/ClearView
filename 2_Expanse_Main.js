@@ -324,9 +324,10 @@ document.addEventListener("DOMContentLoaded",()=>{
       'Expense_Account_Status':['Expense_Account_Status','acstatus'],
       'Expense_Txn_Status':['Expense_Txn_Status','txnstatus','Status_Txn','Txn_Status']
      };
-     const fields=fallbackFields[formId]||[];
-     const valueSet=new Set();
-     all.forEach(x=>{
+    const fields=fallbackFields[formId]||[];
+    const valueSet=new Set();
+    const all=getData();
+    all.forEach(x=>{
       fields.forEach(fn=>{
        const val=x[fn];
        if(val&&val!=='')valueSet.add(val);
