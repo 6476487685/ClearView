@@ -1523,20 +1523,43 @@
       const tableDataWrapper = document.querySelector('.table-data-wrapper');
       
       if (horizontalScrollbar && tableDataWrapper) {
-        // Create a dummy div to force scrollbar
+        // Create a dummy div to force scrollbar - make it wider than any possible container
         const scrollDummy = document.createElement('div');
         scrollDummy.style.width = '1200px';
-        scrollDummy.style.height = '1px';
+        scrollDummy.style.height = '17px';
+        scrollDummy.style.display = 'block';
+        scrollDummy.style.minWidth = '1200px';
+        scrollDummy.style.position = 'absolute';
+        scrollDummy.style.left = '0';
+        scrollDummy.style.top = '0';
         horizontalScrollbar.appendChild(scrollDummy);
+        
+        // Force scrollbar to always show by making content wider than container
+        const checkScrollbar = function() {
+          const wrapperWidth = horizontalScrollbar.offsetWidth;
+          if (scrollDummy.offsetWidth <= wrapperWidth) {
+            scrollDummy.style.width = (wrapperWidth + 1) + 'px';
+          }
+        };
+        checkScrollbar();
+        setTimeout(checkScrollbar, 200);
+        
+        // Ensure scrollbar is always visible
+        horizontalScrollbar.style.overflowX = 'scroll';
+        horizontalScrollbar.style.overflowY = 'hidden';
+        horizontalScrollbar.style.display = 'block';
+        horizontalScrollbar.style.visibility = 'visible';
         
         // Sync scrollbar scroll with table horizontal scroll
         horizontalScrollbar.addEventListener('scroll', function() {
           tableDataWrapper.scrollLeft = horizontalScrollbar.scrollLeft;
         });
         
-        // Sync table scroll with scrollbar (when scrolling via other means)
+        // Sync table scroll with scrollbar (when scrolling via other means - like touchpad)
         tableDataWrapper.addEventListener('scroll', function() {
-          horizontalScrollbar.scrollLeft = tableDataWrapper.scrollLeft;
+          if (horizontalScrollbar.scrollLeft !== tableDataWrapper.scrollLeft) {
+            horizontalScrollbar.scrollLeft = tableDataWrapper.scrollLeft;
+          }
         });
         
         // Also sync when table content changes
@@ -1544,6 +1567,15 @@
           horizontalScrollbar.scrollLeft = tableDataWrapper.scrollLeft;
         });
         observer.observe(tableDataWrapper, { childList: true, subtree: true });
+        
+        // Initial sync and ensure visibility
+        setTimeout(function() {
+          horizontalScrollbar.scrollLeft = tableDataWrapper.scrollLeft;
+          // Force scrollbar to show
+          if (horizontalScrollbar.scrollWidth <= horizontalScrollbar.clientWidth) {
+            scrollDummy.style.width = (parseInt(scrollDummy.style.width) + 1) + 'px';
+          }
+        }, 100);
       }
     });
   </script>
