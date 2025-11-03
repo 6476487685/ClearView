@@ -470,15 +470,16 @@ function awaitBackupAndDownload(){
       'Ac_Status':r.acstatus||'',
       'Status_Txn':r.txnstatus||''
     }[k]??'')));
-    addTxnSheet('Txn_Investment',JSON.parse(localStorage.getItem('investment_records')||'[]'),['Investment_Description','Investment_Category','Investment_Ac_Tag','Currency','Amount','Txn_Mode','Ac_Holder','Invest_Date','Maturity_Date','Frequency','Ac_Status','Status_Txn'],(r,h)=>h.map(k=>({
+    addTxnSheet('Txn_Investment',JSON.parse(localStorage.getItem('investment_records')||'[]'),['Investment_Description','Investment_Category','Investment_Ac_Tag','Currency','Amount','Mode_Txn','Ac_Holder','Invest_Date','Paid_From','Maturity_Date','Frequency','Ac_Status','Status_Txn'],(r,h)=>h.map(k=>({
       'Investment_Description':r.desc||'',
       'Investment_Category':r.cat||'',
       'Investment_Ac_Tag':r.tag||'',
       'Currency':r.cur||'',
       'Amount':r.amt||'',
-      'Txn_Mode':r.mode||'',
+      'Mode_Txn':r.mode||'',
       'Ac_Holder':r.holder||'',
       'Invest_Date':r.investdate||'',
+      'Paid_From':r.paidfrom||'',
       'Maturity_Date':r.maturitydate||'',
       'Frequency':r.freq||'',
       'Ac_Status':r.acstatus||'',

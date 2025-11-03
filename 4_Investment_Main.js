@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded",()=>{
    const tr=document.createElement('tr');
    tr.innerHTML=`<td>${i+1}</td><td>${r.desc}</td><td>${r.cat}</td><td>${r.tag}</td>
    <td>${r.cur}</td><td>${Number(r.amt).toFixed(2)}</td><td>${r.mode}</td><td>${r.holder}</td>
-   <td>${r.investdate}</td><td>${r.maturitydate}</td><td>${r.freq}</td><td>${r.acstatus}</td><td>${r.txnstatus}</td>
+   <td>${r.investdate}</td><td>${r.paidfrom||''}</td><td>${r.maturitydate}</td><td>${r.freq}</td><td>${r.acstatus}</td><td>${r.txnstatus}</td>
    <td><span class='del' title='Delete'>🗑️</span></td>`;
    tbody.appendChild(tr);
   });
@@ -85,6 +85,7 @@ if(btnImportExcel && excelFileInput){
             mode:getValue('Mode_Txn','Txn_Mode','Mode','Payment_Mode'),
             holder:getValue('Ac_Holder','Holder'),
             investdate:getValue('Invest_Date','Investment_Date','Date'),
+            paidfrom:getValue('Paid_From','PaidFrom',''),
             maturitydate:getValue('Maturity_Date','Maturity'),
             freq:getValue('Frequency','Freq'),
             acstatus:getValue('Ac_Status','Account_Status','AcStatus'),
@@ -114,7 +115,10 @@ if(btnImportExcel && excelFileInput){
   const row=e.target.closest('tr');if(!row)return;
   editIndex=[...tbody.children].indexOf(row);
   const d=getData()[editIndex];
-  Object.keys(d).forEach(k=>{if(form[k])form[k].value=d[k];});
+  Object.keys(d).forEach(k=>{
+    if(k==='paidfrom' && form.paidfrom) form.paidfrom.value=d.paidfrom||'';
+    else if(form[k]) form[k].value=d[k];
+  });
   title.textContent="Edit Investment";
   modal.style.display='flex';
  });
@@ -134,7 +138,7 @@ if(btnImportExcel && excelFileInput){
  form.onsubmit=e=>{
   e.preventDefault();
   const rec={desc:form.desc.value,cat:form.cat.value,tag:form.tag.value,cur:form.cur.value,amt:parseFloat(form.amt.value||0).toFixed(2),
-   mode:form.mode.value,holder:form.holder.value,investdate:form.investdate.value,maturitydate:form.maturitydate.value,freq:form.freq.value,acstatus:form.acstatus.value,txnstatus:form.txnstatus.value};
+   mode:form.mode.value,holder:form.holder.value,investdate:form.investdate.value,paidfrom:form.paidfrom.value||'',maturitydate:form.maturitydate.value,freq:form.freq.value,acstatus:form.acstatus.value,txnstatus:form.txnstatus.value};
   const d=getData();
   if(editIndex!==null)d[editIndex]=rec;else d.push(rec);
   saveData(d);renderTable(d);modal.style.display='none';
@@ -223,6 +227,7 @@ if(btnImportExcel && excelFileInput){
     'cur':{sheets:['Currency'],fallback:['cur']}, // Also checks common.Currency
     'mode':{sheets:['Mode'],fallback:['mode']}, // Check common.Mode
     'holder':{sheets:['Ac_Holder','Investment_Holder'],fallback:['holder']},
+    'paidfrom':{sheets:['Income_Ac_Tag'],fallback:['paidfrom']}, // Paid From uses Income tags
     'freq':{sheets:['Frequency'],fallback:['freq']}, // Also checks common.Frequency
     'acstatus':{sheets:['Ac_Status'],fallback:['acstatus']}, // Check common.Ac_Status
     'txnstatus':{sheets:['Status_Txn'],fallback:['txnstatus']} // Check common.Status_Txn
@@ -331,8 +336,8 @@ if(btnImportExcel && excelFileInput){
   console.error('Error populating modal dropdowns:',e);
   // Fallback to original behavior
   const all=getData();
-  const uniq=k=>[...new Set(all.map(x=>x[k]))];
-  ['cat','tag','cur','mode','holder','freq'].forEach(k=>{
+   const uniq=k=>[...new Set(all.map(x=>x[k]))];
+  ['cat','tag','cur','mode','holder','paidfrom','freq'].forEach(k=>{
    const s=form[k];
    if(s){
     s.innerHTML='';
@@ -410,7 +415,7 @@ function generateFilename(extension) {
 // Helper function to create Excel file using SheetJS
 function createExcelFile(data) {
   // Prepare worksheet data
-  const headers = ['#', 'Investment Description', 'Category Equity', 'Account Tag Equity', 'Currency', 'Amount', 'Mode', 'Holder', 'Invest Date', 'Maturity Date', 'Frequency', 'Ac Status', 'Txn Status'];
+  const headers = ['#', 'Investment Description', 'Category Equity', 'Account Tag Equity', 'Currency', 'Amount', 'Mode', 'Holder', 'Invest Date', 'Paid From', 'Maturity Date', 'Frequency', 'Ac Status', 'Txn Status'];
   const worksheetData = [headers];
   
   data.forEach((row, index) => {
@@ -424,6 +429,7 @@ function createExcelFile(data) {
       row.mode,
       row.holder,
       row.investdate,
+      row.paidfrom || '',
       row.maturitydate,
       row.freq,
       row.acstatus,
@@ -447,6 +453,7 @@ function createExcelFile(data) {
     { wch: 15 },  // Mode
     { wch: 12 },  // Holder
     { wch: 12 },  // Invest Date
+    { wch: 20 },  // Paid From
     { wch: 12 },  // Maturity Date
     { wch: 12 },  // Frequency
     { wch: 12 },  // Ac Status
@@ -519,15 +526,16 @@ function awaitBackupAndDownload(){
       'Ac_Status':r.acstatus||'',
       'Status_Txn':r.txnstatus||''
     }[k]??'')));
-    addTxnSheet('Txn_Investment',JSON.parse(localStorage.getItem('investment_records')||'[]'),['Investment_Description','Investment_Category','Investment_Ac_Tag','Currency','Amount','Txn_Mode','Ac_Holder','Invest_Date','Maturity_Date','Frequency','Ac_Status','Status_Txn'],(r,h)=>h.map(k=>({
+    addTxnSheet('Txn_Investment',JSON.parse(localStorage.getItem('investment_records')||'[]'),['Investment_Description','Investment_Category','Investment_Ac_Tag','Currency','Amount','Mode_Txn','Ac_Holder','Invest_Date','Paid_From','Maturity_Date','Frequency','Ac_Status','Status_Txn'],(r,h)=>h.map(k=>({
       'Investment_Description':r.desc||'',
       'Investment_Category':r.cat||'',
       'Investment_Ac_Tag':r.tag||'',
       'Currency':r.cur||'',
       'Amount':r.amt||'',
-      'Txn_Mode':r.mode||'',
+      'Mode_Txn':r.mode||'',
       'Ac_Holder':r.holder||'',
       'Invest_Date':r.investdate||'',
+      'Paid_From':r.paidfrom||'',
       'Maturity_Date':r.maturitydate||'',
       'Frequency':r.freq||'',
       'Ac_Status':r.acstatus||'',
@@ -701,8 +709,8 @@ showPathReminder('excel');
  doc.text(criteriaText, pageWidth / 2, 35, { align: 'center' });
  
  // Compact table layout for 20+ records per page
- const headers = ['#', 'Investment Description', 'Category Equity', 'Account Tag Equity', 'Currency', 'Amount', 'Mode', 'Holder', 'Invest Date', 'Maturity Date', 'Frequency', 'Ac Status', 'Txn Status'];
- const colWidths = [10, 40, 22, 28, 15, 20, 20, 18, 20, 20, 18, 18, 18];
+const headers = ['#', 'Investment Description', 'Category Equity', 'Account Tag Equity', 'Currency', 'Amount', 'Mode', 'Holder', 'Invest Date', 'Paid From', 'Maturity Date', 'Frequency', 'Ac Status', 'Txn Status'];
+const colWidths = [10, 40, 22, 28, 15, 20, 20, 18, 20, 30, 20, 18, 18, 18];
  const rowHeight = 5; // Compact row height
  const startY = 45;
  let currentY = startY;
@@ -774,6 +782,7 @@ showPathReminder('excel');
      row.mode,
      row.holder,
      formatDate(row.investdate),
+     row.paidfrom || '',
      formatDate(row.maturitydate),
      row.freq,
      row.acstatus,
@@ -785,7 +794,7 @@ showPathReminder('excel');
      // Truncate long text to fit columns
      let cellText = cell.toString();
      // Define max lengths based on column widths
-     const maxLengths = [3, 25, 15, 20, 10, 15, 15, 12, 15, 15, 12, 12, 12];
+     const maxLengths = [3, 25, 15, 20, 10, 15, 15, 12, 15, 25, 15, 12, 12, 12];
      const maxLength = maxLengths[i];
      if (cellText.length > maxLength) {
        cellText = cellText.substring(0, maxLength - 3) + '...';
