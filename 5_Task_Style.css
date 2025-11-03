@@ -74,15 +74,15 @@ input[type="search"]:focus,input[type="date"]:focus,select:focus{outline:none;bo
 .table-data-wrapper::-webkit-scrollbar:horizontal{display:none;}
 .table-data-wrapper::-webkit-scrollbar-track{background:var(--border-light);}
 .table-data-wrapper::-webkit-scrollbar-thumb{background:var(--text-muted);border-radius:4px;}
-table{width:1200px;border-collapse:collapse;table-layout:fixed;min-width:1200px;max-width:1200px;position:relative;}
-thead{position:sticky;top:0;left:0;right:0;z-index:15;background:#ffeaa7;display:table;width:1200px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-top:-38px;}
+table{width:1200px;border-collapse:collapse;table-layout:fixed;min-width:1200px;max-width:1200px;position:relative;border:1px solid var(--border-light);}
+thead{position:sticky;top:0;left:0;right:0;z-index:15;background:#ffeaa7;display:table-header-group;width:1200px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-top:-38px;}
 thead::before{content:'';position:absolute;top:-38px;left:0;right:0;height:38px;background:#ffeaa7;z-index:14;}
-tbody{display:block;margin-top:0;}
-tbody tr{display:table;width:1200px;table-layout:fixed;}
+tbody{display:table-row-group;margin-top:0;}
+tbody tr{display:table-row;width:1200px;table-layout:fixed;}
+thead tr{display:table-row;}
 th:last-child,td:last-child{width:80px!important;min-width:80px!important;max-width:80px!important;}
-th,td{padding:8px 12px;border-bottom:1px solid var(--border-light);font-size:12px;color:var(--text-primary);vertical-align:middle;}
-th{background:#ffeaa7;font-weight:700;font-size:12px;position:relative;user-select:none;text-align:center;color:var(--text-primary);text-transform:capitalize;letter-spacing:0.08em;padding:8px 12px;vertical-align:middle;line-height:1.4;}
-thead tr{height:38px;max-height:38px;}
+th,td{padding:8px 12px;border:1px solid var(--border-light);font-size:12px;color:var(--text-primary);vertical-align:middle;line-height:1.4;height:auto;}
+th{background:#ffeaa7;font-weight:700;position:relative;user-select:none;text-align:center;color:var(--text-primary);text-transform:capitalize;letter-spacing:0.08em;}
 th:nth-child(1),td:nth-child(1),
 th:nth-child(2),td:nth-child(2),
 th:nth-child(3),td:nth-child(3){text-align:left;}
