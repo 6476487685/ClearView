@@ -169,7 +169,8 @@ document.addEventListener("DOMContentLoaded", () => {
         name: document.getElementById(`Bank_Holder_${i}_Name`).value || '',
         emailPhone: document.getElementById(`Bank_Holder_${i}_EmailPhone`).value || '',
         loginPassword: document.getElementById(`Bank_Holder_${i}_LoginPassword`).value || '',
-        debitCard: document.getElementById(`Bank_Holder_${i}_DebitCard`).value || ''
+        debitCard: document.getElementById(`Bank_Holder_${i}_DebitCard`).value || '',
+        pins: document.getElementById(`Bank_Holder_${i}_Pins`).value || ''
       });
     }
 
@@ -178,6 +179,12 @@ document.addEventListener("DOMContentLoaded", () => {
       Bank_Ac_Type: document.getElementById('Bank_Ac_Type').value,
       Bank_Ac_Tag: document.getElementById('Bank_Ac_Tag').value,
       Bank_Country: document.getElementById('Bank_Country').value,
+      Bank_Account_Number: document.getElementById('Bank_Account_Number').value || '',
+      Bank_Transit_IFSC: document.getElementById('Bank_Transit_IFSC').value || '',
+      Bank_Institution_MICR: document.getElementById('Bank_Institution_MICR').value || '',
+      Bank_Account_Status: document.getElementById('Bank_Account_Status').value || '',
+      Bank_Min_Balance: document.getElementById('Bank_Min_Balance').value || '',
+      Bank_Branch_Address: document.getElementById('Bank_Branch_Address').value || '',
       Bank_Holders: holders,
       Bank_Nominee_Name: document.getElementById('Bank_Nominee_Name').value || '',
       Bank_Nominee_Name_Text: document.getElementById('Bank_Nominee_Name_Text').value || '',
@@ -359,10 +366,38 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Populate Account Status dropdown from Ac_Status master data
+  function populateAccountStatusDropdown() {
+    try {
+      const accountStatusSelect = document.getElementById('Bank_Account_Status');
+      if (!accountStatusSelect) return;
+
+      const unifiedDataStr = localStorage.getItem('unified_master_data');
+      let commonData = {};
+      if (unifiedDataStr) {
+        const unifiedData = JSON.parse(unifiedDataStr);
+        commonData = unifiedData.common || {};
+      }
+
+      const accountStatuses = commonData.Ac_Status || [];
+      accountStatusSelect.innerHTML = '<option value="">Select Account Status</option>';
+      if (accountStatuses.length > 0) {
+        accountStatuses.forEach(status => {
+          if (status && status !== '') {
+            accountStatusSelect.innerHTML += `<option value="${status}">${status}</option>`;
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Error populating Account Status dropdown:', e);
+    }
+  }
+
   // Populate Modal Dropdowns
   function populateModalDropdowns() {
     loadAccountTags();
     populateInstitutionAndAcType();
+    populateAccountStatusDropdown();
 
     // Populate Account Tag in modal
     const bankAcTagSelect = document.getElementById('Bank_Ac_Tag');
@@ -448,6 +483,14 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <div></div>
         </div>
+        <div class="holder-row">
+          <div>
+            <label>PIN | TPIN | MPIN</label>
+            <input type="text" id="Bank_Holder_${i}_Pins" ${!isEditMode ? 'readonly' : ''} placeholder="xxxxxx | 4567 | xxxxxx">
+            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Format: PIN | TPIN | MPIN (use xxxxxx to mask unavailable values)</small>
+          </div>
+          <div></div>
+        </div>
       `;
       holdersContainer.appendChild(holderSection);
 
@@ -473,6 +516,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const emailPhoneField = document.getElementById(`Bank_Holder_${holderNum}_EmailPhone`);
             const loginPasswordField = document.getElementById(`Bank_Holder_${holderNum}_LoginPassword`);
             const debitCardField = document.getElementById(`Bank_Holder_${holderNum}_DebitCard`);
+            const pinsField = document.getElementById(`Bank_Holder_${holderNum}_Pins`);
             
             if (holderField) holderField.value = holder.holder || '';
             if (nameField) nameField.value = holder.name || '';
@@ -483,6 +527,7 @@ document.addEventListener("DOMContentLoaded", () => {
               loginPasswordField.type = 'password';
             }
             if (debitCardField) debitCardField.value = holder.debitCard || '';
+            if (pinsField) pinsField.value = holder.pins || '';
           }
         });
       }
@@ -592,28 +637,53 @@ document.addEventListener("DOMContentLoaded", () => {
       card.classList.add('read-only');
     }
 
-    // Create beautiful card-style holders block (First is Sole, rest are Joint)
-    const holdersHtml = record.Bank_Holders.map((holder, idx) => {
-      const holderType = idx === 0 ? 'Sole Holder' : 'Joint Holder';
-      return `
-        <div class="holder-card-minimal">
-          <div class="holder-card-header-minimal">
-            <strong>Holder ${idx + 1}: ${holder.name || ''}</strong>
-            <span class="holder-type-badge">${holderType}</span>
-          </div>
-          <div class="holder-card-content">
-            <div class="holder-personal-details">
-              <div>${holder.emailPhone || ''}</div>
-              <div>${holder.holder || ''} / <span class="password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>
-            </div>
-            <div class="holder-card-separator"></div>
-            <div class="holder-debit-card">
-              ${holder.debitCard || ''}
-            </div>
+    // Create holders display - 2x2 grid for up to 4 holders
+    const holderCount = record.Bank_Holders ? record.Bank_Holders.length : 0;
+    const isSingleHolder = holderCount === 1;
+    
+    // If single holder, use Notes style; otherwise use grid cards
+    let holdersHtml = '';
+    if (isSingleHolder) {
+      // Single holder - use Notes style
+      const holder = record.Bank_Holders[0];
+      const holderType = 'Sole Holder';
+      holdersHtml = `
+        <div class="notes-card-minimal">
+          <div class="section-heading-minimal"><strong>Holders & Contacts (1)</strong></div>
+          <div class="notes-content-minimal">
+            <div><strong>Holder 1: ${holder.name || ''}</strong> <span class="holder-type-badge-inline">${holderType}</span></div>
+            <div>${holder.emailPhone || ''}</div>
+            <div>${holder.holder || ''} / <span class="password-display" data-holder="1" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>
+            <div>${holder.debitCard || ''}</div>
+            ${holder.pins ? `<div>PIN | TPIN | MPIN: ${holder.pins}</div>` : ''}
           </div>
         </div>
       `;
-    }).join('');
+    } else {
+      // Multiple holders - use 2x2 grid
+      holdersHtml = record.Bank_Holders.map((holder, idx) => {
+        const holderType = idx === 0 ? 'Sole Holder' : 'Joint Holder';
+        return `
+          <div class="holder-card-minimal">
+            <div class="holder-card-header-minimal">
+              <strong>Holder ${idx + 1}: ${holder.name || ''}</strong>
+              <span class="holder-type-badge">${holderType}</span>
+            </div>
+            <div class="holder-card-content">
+              <div class="holder-personal-details">
+                <div>${holder.emailPhone || ''}</div>
+                <div>${holder.holder || ''} / <span class="password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>
+              </div>
+              <div class="holder-card-separator"></div>
+              <div class="holder-debit-card">
+                ${holder.debitCard || ''}
+              </div>
+              ${holder.pins ? `<div class="holder-card-separator"></div><div class="holder-pins">PIN | TPIN | MPIN: ${holder.pins}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
 
     // Create beautiful helpline block
     const helplinePhones = [
@@ -716,8 +786,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="field-value-minimal">${record.Bank_Country || ''}</span>
               </div>
               <div class="field-row-minimal">
+                <span class="field-label-minimal"><strong>Branch Address:</strong></span>
+                <span class="field-value-minimal">${record.Bank_Branch_Address || ''}</span>
+              </div>
+              <div class="field-row-minimal">
                 <span class="field-label-minimal"><strong>Account Type:</strong></span>
                 <span class="field-value-minimal">${record.Bank_Ac_Type || ''}</span>
+              </div>
+              <div class="field-row-minimal">
+                <span class="field-label-minimal"><strong>Account Number:</strong></span>
+                <span class="field-value-minimal">${record.Bank_Account_Number || ''}</span>
+              </div>
+              <div class="field-row-minimal">
+                <span class="field-label-minimal"><strong>Transit / IFSC:</strong></span>
+                <span class="field-value-minimal">${record.Bank_Transit_IFSC || ''}</span>
+              </div>
+              <div class="field-row-minimal">
+                <span class="field-label-minimal"><strong>Institution / MICR:</strong></span>
+                <span class="field-value-minimal">${record.Bank_Institution_MICR || ''}</span>
+              </div>
+              <div class="field-row-minimal">
+                <span class="field-label-minimal"><strong>Account Status:</strong></span>
+                <span class="field-value-minimal">${record.Bank_Account_Status || ''}</span>
+              </div>
+              <div class="field-row-minimal">
+                <span class="field-label-minimal"><strong>Minimum Balance Required:</strong></span>
+                <span class="field-value-minimal">${record.Bank_Min_Balance || ''}</span>
               </div>
               <div class="field-row-minimal">
                 <span class="field-label-minimal"><strong>Account Tag:</strong></span>
@@ -741,18 +835,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
       <div class="two-column-layout">
         <div class="column-left">
-          <div class="holders-section-minimal">
-            <div class="section-heading-minimal"><strong>Holders & Contacts (${record.Bank_Holders ? record.Bank_Holders.length : 0})</strong></div>
-            <div class="holders-container-minimal">
-              ${holdersHtml}
+          ${isSingleHolder ? holdersHtml : `
+            <div class="holders-section-minimal">
+              <div class="section-heading-minimal"><strong>Holders & Contacts (${record.Bank_Holders ? record.Bank_Holders.length : 0})</strong></div>
+              <div class="holders-container-minimal">
+                ${holdersHtml}
+              </div>
             </div>
-          </div>
+          `}
         </div>
 
         <div class="column-right">
-          <div class="nominee-card-minimal">
+          <div class="notes-card-minimal">
             <div class="section-heading-minimal"><strong>Nomination</strong></div>
-            <div class="nominee-content-minimal">
+            <div class="notes-content-minimal">
               <div>${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</div>
               ${record.Bank_Nominee_Contact ? `<div>${record.Bank_Nominee_Contact}</div>` : ''}
             </div>
@@ -849,6 +945,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('Bank_Ac_Type').value = record.Bank_Ac_Type || '';
     document.getElementById('Bank_Ac_Tag').value = record.Bank_Ac_Tag || '';
     document.getElementById('Bank_Country').value = record.Bank_Country || '';
+    document.getElementById('Bank_Account_Number').value = record.Bank_Account_Number || '';
+    document.getElementById('Bank_Transit_IFSC').value = record.Bank_Transit_IFSC || '';
+    document.getElementById('Bank_Institution_MICR').value = record.Bank_Institution_MICR || '';
+    document.getElementById('Bank_Account_Status').value = record.Bank_Account_Status || '';
+    document.getElementById('Bank_Min_Balance').value = record.Bank_Min_Balance || '';
+    document.getElementById('Bank_Branch_Address').value = record.Bank_Branch_Address || '';
     
     // Load Nominee - it's now a dropdown from Ac_Holder
     const nomineeSelect = document.getElementById('Bank_Nominee_Name');
@@ -938,6 +1040,12 @@ document.addEventListener("DOMContentLoaded", () => {
           banksData.push(['Account Type', record.Bank_Ac_Type || '']);
           banksData.push(['Account Tag', record.Bank_Ac_Tag || '']);
           banksData.push(['Country', record.Bank_Country || '']);
+          banksData.push(['Account Number', record.Bank_Account_Number || '']);
+          banksData.push(['Transit / IFSC', record.Bank_Transit_IFSC || '']);
+          banksData.push(['Institution / MICR', record.Bank_Institution_MICR || '']);
+          banksData.push(['Account Status', record.Bank_Account_Status || '']);
+          banksData.push(['Minimum Balance Required', record.Bank_Min_Balance || '']);
+          banksData.push(['Branch Address', record.Bank_Branch_Address || '']);
           
           // Add holders
           if (record.Bank_Holders) {
@@ -947,6 +1055,7 @@ document.addEventListener("DOMContentLoaded", () => {
               banksData.push([`Holder ${hIdx + 1} Email/Phone`, holder.emailPhone || '']);
               banksData.push([`Holder ${hIdx + 1} Login/Password`, holder.loginPassword || '']);
               banksData.push([`Holder ${hIdx + 1} Debit Card`, holder.debitCard || '']);
+              banksData.push([`Holder ${hIdx + 1} PIN | TPIN | MPIN`, holder.pins || '']);
             });
           }
           
@@ -1081,7 +1190,7 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.text('Fields', margin, yPos);
       yPos += 8;
       
-      const fieldsHeight = 35;
+      const fieldsHeight = 55;
       doc.rect(margin, yPos - fieldsHeight + 5, pageWidth - 2 * margin, fieldsHeight);
       doc.setFontSize(10);
       doc.setFont(undefined, 'normal');
@@ -1089,7 +1198,19 @@ document.addEventListener("DOMContentLoaded", () => {
       yPos += 5;
       doc.text(`Country: ${record.Bank_Country || ''}`, margin + 5, yPos);
       yPos += 5;
+      doc.text(`Branch Address: ${record.Bank_Branch_Address || ''}`, margin + 5, yPos);
+      yPos += 5;
       doc.text(`Account Type: ${record.Bank_Ac_Type || ''}`, margin + 5, yPos);
+      yPos += 5;
+      doc.text(`Account Number: ${record.Bank_Account_Number || ''}`, margin + 5, yPos);
+      yPos += 5;
+      doc.text(`Transit / IFSC: ${record.Bank_Transit_IFSC || ''}`, margin + 5, yPos);
+      yPos += 5;
+      doc.text(`Institution / MICR: ${record.Bank_Institution_MICR || ''}`, margin + 5, yPos);
+      yPos += 5;
+      doc.text(`Account Status: ${record.Bank_Account_Status || ''}`, margin + 5, yPos);
+      yPos += 5;
+      doc.text(`Minimum Balance Required: ${record.Bank_Min_Balance || ''}`, margin + 5, yPos);
       yPos += 5;
       doc.text(`Account Tag: ${record.Bank_Ac_Tag || ''}`, margin + 5, yPos);
       yPos += 10;
@@ -1126,6 +1247,11 @@ document.addEventListener("DOMContentLoaded", () => {
           yPos += 6;
           
           doc.text(`${holder.debitCard || ''}`, margin + 5, yPos);
+          yPos += 5;
+          if (holder.pins) {
+            doc.text(`PIN | TPIN | MPIN: ${holder.pins}`, margin + 5, yPos);
+            yPos += 5;
+          }
           yPos += 8;
         });
       }
