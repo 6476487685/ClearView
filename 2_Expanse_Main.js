@@ -665,63 +665,65 @@ function awaitBackupAndDownload(){
       };
     }
     
-    // Ac_Category consolidated sheet (with Ac_Classification)
-    const acCategoryData=[['Ac_Category','Ac_Classification']];
-    const addToAcCategory=(values,classification)=>{
-      if(Array.isArray(values)) values.forEach(v=>{ if(v && v!=='') acCategoryData.push([v,classification]); });
-    };
-    addToAcCategory(unified.income?.Income_Category||[],'Income');
-    addToAcCategory(unified.investment?.Investment_Category||[],'Investment');
-    addToAcCategory(unified.expense?.Expanse_Category||[],'Expanse');
-    if(acCategoryData.length>1){
-      const ws=XLSX.utils.aoa_to_sheet(acCategoryData);
-      XLSX.utils.book_append_sheet(wb,ws,'Ac_Category');
-    }
-    
-    // Ac_Tag consolidated sheet (with Ac_Classification)
-    const acTagData=[['Ac_Tag','Ac_Classification']];
-    const addToAcTag=(values,classification)=>{
-      if(Array.isArray(values)) values.forEach(v=>{ if(v && v!=='') acTagData.push([v,classification]); });
-    };
-    addToAcTag(unified.income?.Income_Ac_Tag||[],'Income');
-    addToAcTag(unified.investment?.Investment_Ac_Tag||[],'Investment');
-    addToAcTag(unified.expense?.Expanse_Ac_Tag||[],'Expanse');
-    if(acTagData.length>1){
-      const ws=XLSX.utils.aoa_to_sheet(acTagData);
-      XLSX.utils.book_append_sheet(wb,ws,'Ac_Tag');
-    }
-    
-    // Ac_Classification standalone sheet
-    const acClassification=unified.common?.Ac_Classification||[];
-    if(Array.isArray(acClassification) && acClassification.length>0){
-      const ws=XLSX.utils.aoa_to_sheet([['Ac_Classification'],...acClassification.map(v=>[v])]);
-      XLSX.utils.book_append_sheet(wb,ws,'Ac_Classification');
-    }
-    
-    // Add other common/master sheets (Currency, Mode, Status_Txn, Ac_Holder, Frequency, Ac_Status, Country, etc.)
-    const addMasterSheet=(sheetName,values)=>{
-      if(Array.isArray(values) && values.length>0){
-        const ws=XLSX.utils.aoa_to_sheet([[sheetName],...values.map(v=>[v])]);
-        XLSX.utils.book_append_sheet(wb,ws,sheetName);
+    // Add consolidated master data using global function
+    if (typeof addConsolidatedMasterDataToWorkbook === 'function') {
+      addConsolidatedMasterDataToWorkbook(wb);
+    } else {
+      console.warn('Global master data export function not available, using fallback');
+      // Fallback to old method if global function not loaded
+      const acCategoryData=[['Ac_Category','Ac_Classification']];
+      const addToAcCategory=(values,classification)=>{
+        if(Array.isArray(values)) values.forEach(v=>{ if(v && v!=='') acCategoryData.push([v,classification]); });
+      };
+      addToAcCategory(unified.income?.Income_Category||[],'Income');
+      addToAcCategory(unified.investment?.Investment_Category||[],'Investment');
+      addToAcCategory(unified.expense?.Expanse_Category||[],'Expanse');
+      if(acCategoryData.length>1){
+        const ws=XLSX.utils.aoa_to_sheet(acCategoryData);
+        XLSX.utils.book_append_sheet(wb,ws,'Ac_Category');
       }
-    };
-    if(unified.common){
-      addMasterSheet('Currency',unified.common.Currency);
-      addMasterSheet('Mode',unified.common.Mode);
-      addMasterSheet('Status_Txn',unified.common.Status_Txn);
-      addMasterSheet('Ac_Holder',unified.common.Ac_Holder);
-      addMasterSheet('Frequency',unified.common.Frequency);
-      addMasterSheet('Ac_Status',unified.common.Ac_Status);
-      addMasterSheet('Country',unified.common.Country);
-    }
-    
-    // Add task-specific sheets
-    if(unified.task){
-      Object.entries(unified.task).forEach(([name,arr])=>{
-        if(Array.isArray(arr) && arr.length>0 && !['Task_Category','Task_Ac_Tag'].includes(name)){
-          addMasterSheet(name,arr);
+      
+      const acTagData=[['Ac_Tag','Ac_Classification']];
+      const addToAcTag=(values,classification)=>{
+        if(Array.isArray(values)) values.forEach(v=>{ if(v && v!=='') acTagData.push([v,classification]); });
+      };
+      addToAcTag(unified.income?.Income_Ac_Tag||[],'Income');
+      addToAcTag(unified.investment?.Investment_Ac_Tag||[],'Investment');
+      addToAcTag(unified.expense?.Expanse_Ac_Tag||[],'Expanse');
+      if(acTagData.length>1){
+        const ws=XLSX.utils.aoa_to_sheet(acTagData);
+        XLSX.utils.book_append_sheet(wb,ws,'Ac_Tag');
+      }
+      
+      const acClassification=unified.common?.Ac_Classification||[];
+      if(Array.isArray(acClassification) && acClassification.length>0){
+        const ws=XLSX.utils.aoa_to_sheet([['Ac_Classification'],...acClassification.map(v=>[v])]);
+        XLSX.utils.book_append_sheet(wb,ws,'Ac_Classification');
+      }
+      
+      const addMasterSheet=(sheetName,values)=>{
+        if(Array.isArray(values) && values.length>0){
+          const ws=XLSX.utils.aoa_to_sheet([[sheetName],...values.map(v=>[v])]);
+          XLSX.utils.book_append_sheet(wb,ws,sheetName);
         }
-      });
+      };
+      if(unified.common){
+        addMasterSheet('Currency',unified.common.Currency);
+        addMasterSheet('Mode',unified.common.Mode);
+        addMasterSheet('Status_Txn',unified.common.Status_Txn);
+        addMasterSheet('Ac_Holder',unified.common.Ac_Holder);
+        addMasterSheet('Frequency',unified.common.Frequency);
+        addMasterSheet('Ac_Status',unified.common.Ac_Status);
+        addMasterSheet('Country',unified.common.Country);
+      }
+      
+      if(unified.task){
+        Object.entries(unified.task).forEach(([name,arr])=>{
+          if(Array.isArray(arr) && arr.length>0 && !['Task_Category','Task_Ac_Tag'].includes(name)){
+            addMasterSheet(name,arr);
+          }
+        });
+      }
     }
 
     // Add Paths sheet

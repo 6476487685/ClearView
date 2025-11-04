@@ -16,7 +16,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnDisplayMode = document.getElementById('btnDisplayMode');
   const btnAddRecord = document.getElementById('btnAddRecord');
   const bankRecordsContainer = document.getElementById('bankRecordsContainer');
-  const addRecordContainer = document.getElementById('addRecordContainer');
   const accountTagSelect = document.getElementById('accountTagSelect');
   const accountTagBar = document.getElementById('accountTagBar');
   const btnExportPDF = document.getElementById('btnExportPDF');
@@ -41,7 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
     isEditMode = true;
     btnEditMode.style.display = 'none';
     btnDisplayMode.style.display = 'inline-flex';
-    addRecordContainer.style.display = 'block';
     document.querySelectorAll('.bank-record-card').forEach(card => {
       card.classList.remove('read-only');
     });
@@ -51,7 +49,6 @@ document.addEventListener("DOMContentLoaded", () => {
     isEditMode = false;
     btnEditMode.style.display = 'inline-flex';
     btnDisplayMode.style.display = 'none';
-    addRecordContainer.style.display = 'none';
     document.querySelectorAll('.bank-record-card').forEach(card => {
       card.classList.add('read-only');
     });
@@ -81,9 +78,18 @@ document.addEventListener("DOMContentLoaded", () => {
     renderHolders();
   });
 
-  // Add Record
+  // Add Record - always visible, auto-switches to Edit Mode if needed
   btnAddRecord.addEventListener('click', () => {
-    if (!isEditMode) return;
+    // If not in Edit Mode, switch to Edit Mode first
+    if (!isEditMode) {
+      isEditMode = true;
+      btnEditMode.style.display = 'none';
+      btnDisplayMode.style.display = 'inline-flex';
+      document.querySelectorAll('.bank-record-card').forEach(card => {
+        card.classList.remove('read-only');
+      });
+    }
+    
     editIndex = null;
     bankForm.reset();
     formHasChanges = false;
@@ -174,6 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
       Bank_Country: document.getElementById('Bank_Country').value,
       Bank_Holders: holders,
       Bank_Nominee_Name: document.getElementById('Bank_Nominee_Name').value || '',
+      Bank_Nominee_Name_Text: document.getElementById('Bank_Nominee_Name_Text').value || '',
       Bank_Nominee_Contact: document.getElementById('Bank_Nominee_Contact').value || '',
       Bank_Helpline_Phone1: document.getElementById('Bank_Helpline_Phone1').value || '',
       Bank_Helpline_Phone2: document.getElementById('Bank_Helpline_Phone2').value || '',
@@ -207,7 +214,6 @@ document.addEventListener("DOMContentLoaded", () => {
     isEditMode = false;
     btnEditMode.style.display = 'inline-flex';
     btnDisplayMode.style.display = 'none';
-    addRecordContainer.style.display = 'none';
 
     closeModal();
     renderRecords();
@@ -326,14 +332,28 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const holders = commonData.Ac_Holder || [];
-      nomineeSelect.innerHTML = '<option value="">Select Nominee</option>';
+      
+      // Remove any existing event listeners by cloning
+      const newSelect = nomineeSelect.cloneNode(true);
+      nomineeSelect.parentNode.replaceChild(newSelect, nomineeSelect);
+      
+      // Populate the cloned select
+      newSelect.innerHTML = '<option value="">Select Nominee</option>';
       if (holders.length > 0) {
         holders.forEach(holder => {
           if (holder && holder !== '') {
-            nomineeSelect.innerHTML += `<option value="${holder}">${holder}</option>`;
+            newSelect.innerHTML += `<option value="${holder}">${holder}</option>`;
           }
         });
       }
+      
+      // Auto-fill name field when nominee is selected
+      newSelect.addEventListener('change', () => {
+        const nomineeNameField = document.getElementById('Bank_Nominee_Name_Text');
+        if (nomineeNameField) {
+          nomineeNameField.value = newSelect.value || '';
+        }
+      });
     } catch (e) {
       console.error('Error populating Nominee dropdown:', e);
     }
@@ -572,42 +592,117 @@ document.addEventListener("DOMContentLoaded", () => {
       card.classList.add('read-only');
     }
 
+    // Create beautiful card-style holders block
     const holdersHtml = record.Bank_Holders.map((holder, idx) => `
-      <div class="holder-section">
-        <h4>Holder ${idx + 1}</h4>
-        <div class="holder-row">
-          <div><strong>Holder (Ac_Holder):</strong> ${holder.holder || ''}</div>
-          <div><strong>Name:</strong> ${holder.name || ''}</div>
+      <div class="info-card holder-card">
+        <div class="info-card-header">
+          <h4>👤 Holder ${idx + 1}</h4>
         </div>
-        <div class="holder-row">
-          <div><strong>Email/Phone:</strong> ${holder.emailPhone || ''}</div>
-          <div><strong>Login/Password:</strong> <span class="password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>
-        </div>
-        <div class="holder-row">
-          <div><strong>Debit Card:</strong> ${holder.debitCard || ''}</div>
-          <div></div>
+        <div class="info-card-body">
+          <div class="info-row">
+            <span class="info-label">Holder:</span>
+            <span class="info-value">${holder.holder || ''}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Name:</span>
+            <span class="info-value">${holder.name || ''}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Email/Phone:</span>
+            <span class="info-value">${holder.emailPhone || ''}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Login/Password:</span>
+            <span class="info-value password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Debit Card:</span>
+            <span class="info-value">${holder.debitCard || ''}</span>
+          </div>
         </div>
       </div>
     `).join('');
 
+    // Create beautiful helpline block
     const helplinePhones = [
       record.Bank_Helpline_Phone1,
       record.Bank_Helpline_Phone2,
       record.Bank_Helpline_Phone3,
       record.Bank_Helpline_Phone4
-    ].filter(p => p).join(', ');
+    ].filter(p => p);
 
     const helplineEmails = [
       record.Bank_Helpline_Email1,
       record.Bank_Helpline_Email2,
       record.Bank_Helpline_Email3,
       record.Bank_Helpline_Email4
-    ].filter(e => e).join(', ');
+    ].filter(e => e);
+
+    const helplineHtml = `
+      <div class="info-card helpline-card">
+        <div class="info-card-header">
+          <h4>📞 Helpline Information</h4>
+        </div>
+        <div class="info-card-body">
+          ${helplinePhones.length > 0 ? `
+            <div class="info-row">
+              <span class="info-label">Phones:</span>
+              <div class="info-value-list">
+                ${helplinePhones.map(phone => `<span class="info-badge">${phone}</span>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+          ${helplineEmails.length > 0 ? `
+            <div class="info-row">
+              <span class="info-label">Emails:</span>
+              <div class="info-value-list">
+                ${helplineEmails.map(email => `<span class="info-badge">${email}</span>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+          ${record.Bank_Helpline_URL ? `
+            <div class="info-row">
+              <span class="info-label">URL:</span>
+              <span class="info-value"><a href="${record.Bank_Helpline_URL}" target="_blank" class="info-link">${record.Bank_Helpline_URL}</a></span>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+
+    // Create nominee card
+    const nomineeHtml = `
+      <div class="info-card nominee-card">
+        <div class="info-card-header">
+          <h4>👥 Nomination</h4>
+        </div>
+        <div class="info-card-body">
+          <div class="info-row">
+            <span class="info-label">Nominee:</span>
+            <span class="info-value">${record.Bank_Nominee_Name || ''}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Nominee Name:</span>
+            <span class="info-value">${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</span>
+          </div>
+          ${record.Bank_Nominee_Contact ? `
+            <div class="info-row">
+              <span class="info-label">Contact:</span>
+              <span class="info-value">${record.Bank_Nominee_Contact}</span>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
 
     card.innerHTML = `
       <div class="bank-record-header">
         <div class="bank-record-title">
-          ${record.Bank_Institution || ''} - ${record.Bank_Ac_Type || ''} (${record.Bank_Ac_Tag || ''})
+          <span class="bank-icon">🏦</span>
+          <div>
+            <div class="bank-main-title">${record.Bank_Institution || ''} - ${record.Bank_Ac_Type || ''}</div>
+            <div class="bank-subtitle">${record.Bank_Ac_Tag || ''} • ${record.Bank_Country || ''}</div>
+          </div>
         </div>
         <div class="bank-record-actions">
           ${isEditMode ? `<button class="btn-edit" data-index="${index}">✏️ Edit</button>` : ''}
@@ -616,52 +711,52 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
 
-      <div class="row2">
-        <div>
-          <strong>Institution:</strong> ${record.Bank_Institution || ''}
-        </div>
-        <div>
-          <strong>Account Type:</strong> ${record.Bank_Ac_Type || ''}
-        </div>
-      </div>
-
-      <div class="row2">
-        <div>
-          <strong>Account Tag:</strong> ${record.Bank_Ac_Tag || ''}
-        </div>
-        <div>
-          <strong>Country:</strong> ${record.Bank_Country || ''}
-        </div>
-      </div>
-
-      <div class="section-divider">Holders</div>
-      ${holdersHtml}
-
-      <div class="section-divider">Nomination</div>
-      <div class="row2">
-        <div>
-          <strong>Nominee Name:</strong> ${record.Bank_Nominee_Name || ''}
-        </div>
-        <div>
-          <strong>Nominee Contact:</strong> ${record.Bank_Nominee_Contact || ''}
+      <div class="bank-info-grid">
+        <div class="info-card basic-info-card">
+          <div class="info-card-header">
+            <h4>📋 Account Information</h4>
+          </div>
+          <div class="info-card-body">
+            <div class="info-row">
+              <span class="info-label">Institution:</span>
+              <span class="info-value">${record.Bank_Institution || ''}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Account Type:</span>
+              <span class="info-value">${record.Bank_Ac_Type || ''}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Account Tag:</span>
+              <span class="info-value">${record.Bank_Ac_Tag || ''}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Country:</span>
+              <span class="info-value">${record.Bank_Country || ''}</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="section-divider">Helpline</div>
-      <div class="row2">
-        <div>
-          <strong>Phones:</strong> ${helplinePhones || 'None'}
-        </div>
-        <div>
-          <strong>Emails:</strong> ${helplineEmails || 'None'}
-        </div>
+      <div class="holders-container-display">
+        ${holdersHtml}
       </div>
-      ${record.Bank_Helpline_URL ? `<div class="row-full"><strong>URL:</strong> <a href="${record.Bank_Helpline_URL}" target="_blank">${record.Bank_Helpline_URL}</a></div>` : ''}
 
-      <div class="section-divider">Notes</div>
-      <div class="row-full">
-        ${record.Bank_Notes || ''}
+      <div class="nominee-container-display">
+        ${nomineeHtml}
       </div>
+
+      ${helplineHtml}
+
+      ${record.Bank_Notes ? `
+        <div class="info-card notes-card">
+          <div class="info-card-header">
+            <h4>📝 Notes</h4>
+          </div>
+          <div class="info-card-body">
+            <div class="notes-content">${record.Bank_Notes}</div>
+          </div>
+        </div>
+      ` : ''}
     `;
 
     // Event Listeners
@@ -746,8 +841,12 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Load Nominee - it's now a dropdown from Ac_Holder
     const nomineeSelect = document.getElementById('Bank_Nominee_Name');
+    const nomineeNameField = document.getElementById('Bank_Nominee_Name_Text');
     if (nomineeSelect) {
       nomineeSelect.value = record.Bank_Nominee_Name || '';
+    }
+    if (nomineeNameField) {
+      nomineeNameField.value = record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || '';
     }
     
     document.getElementById('Bank_Nominee_Contact').value = record.Bank_Nominee_Contact || '';
@@ -773,45 +872,23 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const wb = XLSX.utils.book_new();
 
-      // Get all master and transactional data
-      const unifiedDataStr = localStorage.getItem('unified_master_data');
-      const unifiedData = unifiedDataStr ? JSON.parse(unifiedDataStr) : {};
-
-      // Add all master data sheets
-      if (unifiedData.expense) {
-        Object.entries(unifiedData.expense).forEach(([key, values]) => {
-          if (Array.isArray(values) && values.length > 0) {
-            const ws = XLSX.utils.aoa_to_sheet([[key], ...values.map(v => [v])]);
-            XLSX.utils.book_append_sheet(wb, ws, key);
-          }
-        });
-      }
-
-      if (unifiedData.income) {
-        Object.entries(unifiedData.income).forEach(([key, values]) => {
-          if (Array.isArray(values) && values.length > 0) {
-            const ws = XLSX.utils.aoa_to_sheet([[key], ...values.map(v => [v])]);
-            XLSX.utils.book_append_sheet(wb, ws, key);
-          }
-        });
-      }
-
-      if (unifiedData.investment) {
-        Object.entries(unifiedData.investment).forEach(([key, values]) => {
-          if (Array.isArray(values) && values.length > 0) {
-            const ws = XLSX.utils.aoa_to_sheet([[key], ...values.map(v => [v])]);
-            XLSX.utils.book_append_sheet(wb, ws, key);
-          }
-        });
-      }
-
-      if (unifiedData.common) {
-        Object.entries(unifiedData.common).forEach(([key, values]) => {
-          if (Array.isArray(values) && values.length > 0) {
-            const ws = XLSX.utils.aoa_to_sheet([[key], ...values.map(v => [v])]);
-            XLSX.utils.book_append_sheet(wb, ws, key);
-          }
-        });
+      // Add consolidated master data using global function
+      if (typeof addConsolidatedMasterDataToWorkbook === 'function') {
+        addConsolidatedMasterDataToWorkbook(wb);
+      } else {
+        console.warn('Global master data export function not available, using fallback');
+        // Fallback to individual sheets if global function not loaded
+        const unifiedDataStr = localStorage.getItem('unified_master_data');
+        const unifiedData = unifiedDataStr ? JSON.parse(unifiedDataStr) : {};
+        
+        if (unifiedData.common) {
+          Object.entries(unifiedData.common).forEach(([key, values]) => {
+            if (Array.isArray(values) && values.length > 0 && key !== 'Ac_Classification') {
+              const ws = XLSX.utils.aoa_to_sheet([[key], ...values.map(v => [v])]);
+              XLSX.utils.book_append_sheet(wb, ws, key);
+            }
+          });
+        }
       }
 
       // Add transactional data
@@ -862,7 +939,8 @@ document.addEventListener("DOMContentLoaded", () => {
             });
           }
           
-          banksData.push(['Nominee Name', record.Bank_Nominee_Name || '']);
+          banksData.push(['Nominee (Ac_Holder)', record.Bank_Nominee_Name || '']);
+          banksData.push(['Nominee Name', record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || '']);
           banksData.push(['Nominee Contact', record.Bank_Nominee_Contact || '']);
           banksData.push(['Helpline Phone 1', record.Bank_Helpline_Phone1 || '']);
           banksData.push(['Helpline Phone 2', record.Bank_Helpline_Phone2 || '']);
@@ -988,56 +1066,91 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.text(`Country: ${record.Bank_Country || ''}`, margin, yPos);
       yPos += 8;
 
-      // Holders
+      // Account Information Box
+      doc.setDrawColor(66, 133, 244);
+      doc.setLineWidth(0.5);
+      doc.rect(margin, yPos, pageWidth - 2 * margin, 25);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(66, 133, 244);
+      doc.text('Account Information', margin + 5, yPos + 8);
+      yPos += 10;
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Institution: ${record.Bank_Institution || ''}`, margin + 5, yPos);
+      yPos += 5;
+      doc.text(`Account Type: ${record.Bank_Ac_Type || ''} | Tag: ${record.Bank_Ac_Tag || ''} | Country: ${record.Bank_Country || ''}`, margin + 5, yPos);
+      yPos += 10;
+
+      // Holders - Card Style
       if (record.Bank_Holders && record.Bank_Holders.length > 0) {
         record.Bank_Holders.forEach((holder, hIdx) => {
+          // Holder Card Box
+          doc.setDrawColor(66, 133, 244);
+          doc.rect(margin, yPos, pageWidth - 2 * margin, 30);
+          doc.setFillColor(66, 133, 244, 10);
+          doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'FD');
+          
           doc.setFont(undefined, 'bold');
-          doc.text(`Holder ${hIdx + 1}:`, margin, yPos);
-          yPos += 6;
+          doc.setTextColor(66, 133, 244);
+          doc.text(`👤 Holder ${hIdx + 1}`, margin + 5, yPos + 6);
+          yPos += 10;
+          
           doc.setFont(undefined, 'normal');
-          doc.text(`  Holder (Ac_Holder): ${holder.holder || ''}`, margin, yPos);
+          doc.setTextColor(0, 0, 0);
+          doc.text(`Holder: ${holder.holder || ''} | Name: ${holder.name || ''}`, margin + 5, yPos);
           yPos += 5;
-          doc.text(`  Name: ${holder.name || ''}`, margin, yPos);
+          doc.text(`Email/Phone: ${holder.emailPhone || ''}`, margin + 5, yPos);
           yPos += 5;
-          doc.text(`  Email/Phone: ${holder.emailPhone || ''}`, margin, yPos);
-          yPos += 5;
-          doc.text(`  Login/Password: ${holder.loginPassword || ''}`, margin, yPos);
-          yPos += 5;
-          doc.text(`  Debit Card: ${holder.debitCard || ''}`, margin, yPos);
-          yPos += 6;
+          doc.text(`Login/Password: ${holder.loginPassword || ''} | Debit Card: ${holder.debitCard || ''}`, margin + 5, yPos);
+          yPos += 8;
         });
       }
 
-      // Nomination
+      // Nomination - Card Style
+      doc.setDrawColor(52, 168, 83);
+      doc.rect(margin, yPos, pageWidth - 2 * margin, 25);
+      doc.setFillColor(52, 168, 83, 10);
+      doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'FD');
       doc.setFont(undefined, 'bold');
-      doc.text('Nomination:', margin, yPos);
-      yPos += 6;
+      doc.setTextColor(52, 168, 83);
+      doc.text('👥 Nomination', margin + 5, yPos + 6);
+      yPos += 10;
       doc.setFont(undefined, 'normal');
-      doc.text(`  Name: ${record.Bank_Nominee_Name || ''}`, margin, yPos);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Nominee: ${record.Bank_Nominee_Name || ''} | Name: ${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}`, margin + 5, yPos);
       yPos += 5;
-      doc.text(`  Contact: ${record.Bank_Nominee_Contact || ''}`, margin, yPos);
+      if (record.Bank_Nominee_Contact) {
+        doc.text(`Contact: ${record.Bank_Nominee_Contact}`, margin + 5, yPos);
+        yPos += 5;
+      }
       yPos += 8;
 
-      // Helpline
+      // Helpline - Card Style
+      doc.setDrawColor(251, 188, 4);
+      doc.rect(margin, yPos, pageWidth - 2 * margin, 35);
+      doc.setFillColor(251, 188, 4, 10);
+      doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'FD');
       doc.setFont(undefined, 'bold');
-      doc.text('Helpline:', margin, yPos);
-      yPos += 6;
+      doc.setTextColor(251, 188, 4);
+      doc.text('📞 Helpline Information', margin + 5, yPos + 6);
+      yPos += 10;
       doc.setFont(undefined, 'normal');
+      doc.setTextColor(0, 0, 0);
       const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4].filter(p => p);
       if (phones.length > 0) {
-        doc.text(`  Phones: ${phones.join(', ')}`, margin, yPos);
+        doc.text(`Phones: ${phones.join(' | ')}`, margin + 5, yPos);
         yPos += 5;
       }
       const emails = [record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e);
       if (emails.length > 0) {
-        doc.text(`  Emails: ${emails.join(', ')}`, margin, yPos);
+        doc.text(`Emails: ${emails.join(' | ')}`, margin + 5, yPos);
         yPos += 5;
       }
       if (record.Bank_Helpline_URL) {
-        doc.text(`  URL: ${record.Bank_Helpline_URL}`, margin, yPos);
+        doc.text(`URL: ${record.Bank_Helpline_URL}`, margin + 5, yPos);
         yPos += 5;
       }
-      yPos += 6;
+      yPos += 8;
 
       // Notes
       if (record.Bank_Notes) {

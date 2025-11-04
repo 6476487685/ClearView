@@ -1275,6 +1275,7 @@
   
   <script src="assets/xlsx.full.min.js" 
           onerror="console.error('Failed to load local XLSX library')"></script>
+  <script src="Global_Master_Data_Export.js"></script>
   <script>
     console.log('=== Main script started ===');
     // (Reverted) No inline onchange handler; main listener will process
@@ -2371,84 +2372,79 @@
         // Create a new workbook
         const wb = XLSX.utils.book_new();
         
-        // STEP 1: Create merged Ac_Category sheet
-        const acCategoryData = [['Ac_Category', 'Ac_Classification']]; // Header
-        const classifications = ['Income', 'Investment', 'Expanse', 'Tenant'];
-        const categoryMapping = {
-          'Income': 'Income_Category',
-          'Investment': 'Investment_Category',
-          'Expanse': 'Expanse_Category',
-          'Tenant': 'Tenant_Category'
-        };
-        
-        classifications.forEach(cls => {
-          const fieldKey = categoryMapping[cls];
-          const moduleMap = {'Income': 'income', 'Investment': 'investment', 'Expanse': 'expense', 'Tenant': 'tenants'};
-          const moduleName = moduleMap[cls] || '';
-          const values = (masterData[moduleName] || {})[fieldKey] || [];
-          values.forEach(value => {
-            acCategoryData.push([value, cls]);
-          });
-        });
-        
-        if (acCategoryData.length > 1) { // If we have data beyond header
-          const acCategoryWs = XLSX.utils.aoa_to_sheet(acCategoryData);
-          XLSX.utils.book_append_sheet(wb, acCategoryWs, 'Ac_Category');
-          console.log(`Added Ac_Category sheet with ${acCategoryData.length - 1} items`);
-        }
-        
-        // STEP 2: Create merged Ac_Tag sheet
-        const acTagData = [['Ac_Tag', 'Ac_Classification']]; // Header
-        const tagMapping = {
-          'Income': 'Income_Ac_Tag',
-          'Investment': 'Investment_Ac_Tag',
-          'Expanse': 'Expanse_Ac_Tag',
-          'Tenant': 'Tenant_Ac_Tag'
-        };
-        
-        classifications.forEach(cls => {
-          const fieldKey = tagMapping[cls];
-          const moduleMap = {'Income': 'income', 'Investment': 'investment', 'Expanse': 'expense', 'Tenant': 'tenants'};
-          const moduleName = moduleMap[cls] || '';
-          const values = (masterData[moduleName] || {})[fieldKey] || [];
-          values.forEach(value => {
-            acTagData.push([value, cls]);
-          });
-        });
-        
-        if (acTagData.length > 1) { // If we have data beyond header
-          const acTagWs = XLSX.utils.aoa_to_sheet(acTagData);
-          XLSX.utils.book_append_sheet(wb, acTagWs, 'Ac_Tag');
-          console.log(`Added Ac_Tag sheet with ${acTagData.length - 1} items`);
-        }
-        
-        // STEP 3: Add Ac_Classification sheet from common data
-        const acClassificationData = [['Ac_Classification']]; // Header
-        const classificationValues = (masterData.common || {})['Ac_Classification'] || ['Income', 'Investment', 'Expanse', 'Tenant'];
-        classificationValues.forEach(value => {
-          acClassificationData.push([value]);
-        });
-        
-        const acClassWs = XLSX.utils.aoa_to_sheet(acClassificationData);
-        XLSX.utils.book_append_sheet(wb, acClassWs, 'Ac_Classification');
-        console.log(`Added Ac_Classification sheet with ${classificationValues.length} items`);
-        
-        // STEP 4: Add other common fields (skip Ac_Classification as we already added it)
-        const commonData = masterData.common || {};
-        Object.keys(commonData).forEach(fieldKey => {
-          if (fieldKey === 'Ac_Classification') return; // Skip, already added
-          const values = commonData[fieldKey];
-          if (values && Array.isArray(values) && values.length > 0) {
-            const sheetData = [];
-            sheetData.push([fieldKey]); // Header row
+        // Use global consolidated master data export function
+        if (typeof addConsolidatedMasterDataToWorkbook === 'function') {
+          addConsolidatedMasterDataToWorkbook(wb);
+        } else {
+          console.warn('Global master data export function not available, using fallback');
+          // Fallback to old method if global function not loaded
+          const acCategoryData = [['Ac_Category', 'Ac_Classification']];
+          const classifications = ['Income', 'Investment', 'Expanse', 'Tenant'];
+          const categoryMapping = {
+            'Income': 'Income_Category',
+            'Investment': 'Investment_Category',
+            'Expanse': 'Expanse_Category',
+            'Tenant': 'Tenant_Category'
+          };
+          
+          classifications.forEach(cls => {
+            const fieldKey = categoryMapping[cls];
+            const moduleMap = {'Income': 'income', 'Investment': 'investment', 'Expanse': 'expense', 'Tenant': 'tenants'};
+            const moduleName = moduleMap[cls] || '';
+            const values = (masterData[moduleName] || {})[fieldKey] || [];
             values.forEach(value => {
-              sheetData.push([value]);
+              acCategoryData.push([value, cls]);
             });
-            const ws = XLSX.utils.aoa_to_sheet(sheetData);
-            XLSX.utils.book_append_sheet(wb, ws, fieldKey);
-            console.log(`Added ${fieldKey} sheet with ${values.length} items`);
+          });
+          
+          if (acCategoryData.length > 1) {
+            const acCategoryWs = XLSX.utils.aoa_to_sheet(acCategoryData);
+            XLSX.utils.book_append_sheet(wb, acCategoryWs, 'Ac_Category');
           }
-        });
+          
+          const acTagData = [['Ac_Tag', 'Ac_Classification']];
+          const tagMapping = {
+            'Income': 'Income_Ac_Tag',
+            'Investment': 'Investment_Ac_Tag',
+            'Expanse': 'Expanse_Ac_Tag',
+            'Tenant': 'Tenant_Ac_Tag'
+          };
+          
+          classifications.forEach(cls => {
+            const fieldKey = tagMapping[cls];
+            const moduleMap = {'Income': 'income', 'Investment': 'investment', 'Expanse': 'expense', 'Tenant': 'tenants'};
+            const moduleName = moduleMap[cls] || '';
+            const values = (masterData[moduleName] || {})[fieldKey] || [];
+            values.forEach(value => {
+              acTagData.push([value, cls]);
+            });
+          });
+          
+          if (acTagData.length > 1) {
+            const acTagWs = XLSX.utils.aoa_to_sheet(acTagData);
+            XLSX.utils.book_append_sheet(wb, acTagWs, 'Ac_Tag');
+          }
+          
+          const acClassificationData = [['Ac_Classification']];
+          const classificationValues = (masterData.common || {})['Ac_Classification'] || ['Income', 'Investment', 'Expanse', 'Tenant'];
+          classificationValues.forEach(value => {
+            acClassificationData.push([value]);
+          });
+          
+          const acClassWs = XLSX.utils.aoa_to_sheet(acClassificationData);
+          XLSX.utils.book_append_sheet(wb, acClassWs, 'Ac_Classification');
+          
+          const commonData = masterData.common || {};
+          Object.keys(commonData).forEach(fieldKey => {
+            if (fieldKey === 'Ac_Classification') return;
+            const values = commonData[fieldKey];
+            if (values && Array.isArray(values) && values.length > 0) {
+              const sheetData = [[fieldKey], ...values.map(v => [v])];
+              const ws = XLSX.utils.aoa_to_sheet(sheetData);
+              XLSX.utils.book_append_sheet(wb, ws, fieldKey);
+            }
+          });
+        }
         
         // STEP 5: Add Task fields
         const taskData = masterData.task || {};
