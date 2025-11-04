@@ -876,7 +876,7 @@
                 income: { Income_Category: 'Income_Category', Income_Ac_Tag: 'Income_Ac_Tag' },
                 investment: { Investment_Category: 'Investment_Category', Investment_Ac_Tag: 'Investment_Ac_Tag' },
                 task: { Task_Category: 'Task_Category', Task_Status: 'Task_Status', Task_Assignee: 'Task_Assignee', Task_Priority: 'Task_Priority', Task_Adhoc: 'Task_Adhoc' },
-                common: { Currency: 'Currency', Mode: 'Mode', Status_Txn: 'Status_Txn', Ac_Holder: 'Ac_Holder', Frequency: 'Frequency', Ac_Status: 'Ac_Status', Ac_Classification: 'Ac_Classification', Country: 'Country' }
+                common: { Currency: 'Currency', Mode: 'Mode', Status_Txn: 'Status_Txn', Ac_Holder: 'Ac_Holder', Frequency: 'Frequency', Ac_Status: 'Ac_Status', Ac_Classification: 'Ac_Classification', Country: 'Country', Institution: 'Institution', Ac_Type: 'Ac_Type' }
               };
               const VARIANTS = {
                 Mode_Txn: { module: 'common', key: 'Mode' },
@@ -961,7 +961,7 @@
                 else if (MAP.task[name]){ mod='task'; key=name; }
                 else if (MAP.common[name]){ mod='common'; key=name; }
                 else if (VARIANTS[name]){ mod=VARIANTS[name].module; key=VARIANTS[name].key; }
-                else if (name === 'Mode' || name === 'Status_Txn' || name === 'Ac_Classification'){ mod='common'; key=name; }
+                else if (name === 'Mode' || name === 'Status_Txn' || name === 'Ac_Classification' || name === 'Institution' || name === 'Ac_Type'){ mod='common'; key=name; }
                 if (!mod || !key) return;
                 const sheet = wb.Sheets[name];
                 const rows = XLSX.utils.sheet_to_json(sheet);
@@ -1381,7 +1381,9 @@
       'Ac_Status': { module: 'common', key: 'Ac_Status' },
       'Expense_Account_Status': { module: 'common', key: 'Ac_Status' }, // Map variations to Ac_Status
       'Income_Account_Status': { module: 'common', key: 'Ac_Status' },
-      'Investment_Account_Status': { module: 'common', key: 'Ac_Status' }
+      'Investment_Account_Status': { module: 'common', key: 'Ac_Status' },
+      'Institution': { module: 'common', key: 'Institution' },
+      'Ac_Type': { module: 'common', key: 'Ac_Type' }
     };
 
     // Unified master data container
