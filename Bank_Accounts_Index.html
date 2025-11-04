@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Transaction Manager — Bank Accounts Dashboard</title>
+  <link rel="stylesheet" href="Bank_Accounts_Style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+  <header class="header">
+    <div class="header-left">
+      <h1 class="header-title">Transaction Manager — Bank Accounts Dashboard</h1>
+      <div class="header-buttons">
+        <button class="excel" id="btnExportPDF">📘 Export PDF</button>
+        <button class="primary" id="btnEditMode">✏️ Edit Mode</button>
+        <button class="primary" id="btnDisplayMode" style="display:none;">👁️ Display Mode</button>
+      </div>
+    </div>
+    <div class="header-right">
+      <label class="theme-switch">
+        <input type="checkbox" id="themeSwitch">
+        <span class="slider"></span>
+      </label>
+      <button class="black" onclick="window.location.href='index.html'">← Back to Main Dashboard</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Account Tag Highlight Bar -->
+    <section class="account-tag-bar" id="accountTagBar">
+      <div class="account-tag-content">
+        <label>Account Tag:</label>
+        <select id="accountTagSelect"></select>
+      </div>
+    </section>
+
+    <!-- Bank Records Container -->
+    <section class="bank-records-container" id="bankRecordsContainer">
+      <!-- Records will be dynamically added here -->
+    </section>
+
+    <!-- Add New Record Button (only visible in Edit Mode) -->
+    <div class="add-record-container" id="addRecordContainer" style="display:none;">
+      <button class="primary" id="btnAddRecord">➕ Add Bank Account</button>
+    </div>
+  </main>
+
+  <!-- Bank Record Modal -->
+  <div id="bankModal" class="modal">
+    <div class="modal-content bank-modal-content">
+      <h3 id="modalTitle">Add Bank Account</h3>
+      <form id="bankForm">
+        <!-- Main Bank Information (Two Columns) -->
+        <div class="row2">
+          <div>
+            <label>Institution (Bank Name)</label>
+            <select id="Bank_Institution" required></select>
+          </div>
+          <div>
+            <label>Account Number (Ac_Type)</label>
+            <select id="Bank_Ac_Type" required></select>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label>Account Tag</label>
+            <select id="Bank_Ac_Tag" required></select>
+          </div>
+          <div>
+            <label>Country</label>
+            <select id="Bank_Country">
+              <option value="">Select Country</option>
+              <option value="India">India</option>
+              <option value="Canada">Canada</option>
+              <option value="US">US</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Holder Count Selection -->
+        <div class="row-full">
+          <label>Number of Holders (1-4)</label>
+          <select id="Bank_Holder_Count" required>
+            <option value="1">1 Holder</option>
+            <option value="2">2 Holders</option>
+            <option value="3">3 Holders</option>
+            <option value="4">4 Holders</option>
+          </select>
+        </div>
+
+        <!-- Dynamic Holders Section -->
+        <div id="holdersContainer"></div>
+
+        <!-- Nomination Section -->
+        <div class="section-divider">Nomination</div>
+        <div class="row2">
+          <div>
+            <label>Nominee Name</label>
+            <input type="text" id="Bank_Nominee_Name">
+          </div>
+          <div>
+            <label>Nominee Email | Phone</label>
+            <input type="text" id="Bank_Nominee_Contact">
+          </div>
+        </div>
+
+        <!-- Helpline Section -->
+        <div class="section-divider">Helpline</div>
+        <div class="row2">
+          <div>
+            <label>Phone 1</label>
+            <input type="tel" id="Bank_Helpline_Phone1">
+          </div>
+          <div>
+            <label>Phone 2</label>
+            <input type="tel" id="Bank_Helpline_Phone2">
+          </div>
+        </div>
+        <div class="row2">
+          <div>
+            <label>Phone 3</label>
+            <input type="tel" id="Bank_Helpline_Phone3">
+          </div>
+          <div>
+            <label>Phone 4</label>
+            <input type="tel" id="Bank_Helpline_Phone4">
+          </div>
+        </div>
+        <div class="row2">
+          <div>
+            <label>Email 1</label>
+            <input type="email" id="Bank_Helpline_Email1">
+          </div>
+          <div>
+            <label>Email 2</label>
+            <input type="email" id="Bank_Helpline_Email2">
+          </div>
+        </div>
+        <div class="row2">
+          <div>
+            <label>Email 3</label>
+            <input type="email" id="Bank_Helpline_Email3">
+          </div>
+          <div>
+            <label>Email 4</label>
+            <input type="email" id="Bank_Helpline_Email4">
+          </div>
+        </div>
+        <div class="row-full">
+          <label>URL</label>
+          <input type="url" id="Bank_Helpline_URL" placeholder="https://">
+        </div>
+
+        <!-- Notes Section -->
+        <div class="section-divider">Notes</div>
+        <div class="row-full">
+          <label>Notes</label>
+          <textarea id="Bank_Notes" rows="4"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelBtn">Cancel</button>
+          <button type="submit" id="saveBtn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="Bank_Accounts_Main.js"></script>
+  <script>
+    // Theme Switch
+    const themeSwitch = document.getElementById('themeSwitch');
+    const savedTheme = localStorage.getItem('bankTheme') || 'light';
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark');
+      themeSwitch.checked = true;
+    }
+    themeSwitch.addEventListener('change', () => {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('bankTheme', themeSwitch.checked ? 'dark' : 'light');
+    });
+  </script>
+</body>
+</html>
+
