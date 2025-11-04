@@ -702,54 +702,66 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
 
-      <div class="fields-card-minimal">
-        <div class="section-heading-minimal"><strong>Fields</strong></div>
-        <div class="fields-content-minimal">
-          <div class="field-row-minimal">
-            <span class="field-label-minimal"><strong>Bank Name:</strong></span>
-            <span class="field-value-minimal">${record.Bank_Institution || ''}</span>
+      <div class="two-column-layout">
+        <div class="column-left">
+          <div class="fields-card-minimal">
+            <div class="section-heading-minimal"><strong>Fields</strong></div>
+            <div class="fields-content-minimal">
+              <div class="field-row-minimal">
+                <span class="field-label-minimal"><strong>Bank Name:</strong></span>
+                <span class="field-value-minimal">${record.Bank_Institution || ''}</span>
+              </div>
+              <div class="field-row-minimal">
+                <span class="field-label-minimal"><strong>Country:</strong></span>
+                <span class="field-value-minimal">${record.Bank_Country || ''}</span>
+              </div>
+              <div class="field-row-minimal">
+                <span class="field-label-minimal"><strong>Account Type:</strong></span>
+                <span class="field-value-minimal">${record.Bank_Ac_Type || ''}</span>
+              </div>
+              <div class="field-row-minimal">
+                <span class="field-label-minimal"><strong>Account Tag:</strong></span>
+                <span class="field-value-minimal">${record.Bank_Ac_Tag || ''}</span>
+              </div>
+            </div>
           </div>
-          <div class="field-row-minimal">
-            <span class="field-label-minimal"><strong>Country:</strong></span>
-            <span class="field-value-minimal">${record.Bank_Country || ''}</span>
-          </div>
-          <div class="field-row-minimal">
-            <span class="field-label-minimal"><strong>Account Type:</strong></span>
-            <span class="field-value-minimal">${record.Bank_Ac_Type || ''}</span>
-          </div>
-          <div class="field-row-minimal">
-            <span class="field-label-minimal"><strong>Account Tag:</strong></span>
-            <span class="field-value-minimal">${record.Bank_Ac_Tag || ''}</span>
+        </div>
+
+        <div class="column-right">
+          <div class="helpline-card-minimal">
+            <div class="section-heading-minimal"><strong>Helpline</strong></div>
+            <div class="helpline-content-minimal">
+              ${helplinePhones.length > 0 ? `<div>${helplinePhones.join(' / ')}</div>` : ''}
+              ${helplineEmails.length > 0 ? `<div>${helplineEmails.join(' / ')}</div>` : ''}
+              ${record.Bank_Helpline_URL ? `<div>${record.Bank_Helpline_URL}</div>` : ''}
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="holders-section-minimal">
-        <div class="section-heading-minimal"><strong>Holders & Contacts (${record.Bank_Holders ? record.Bank_Holders.length : 0})</strong></div>
-        <div class="holders-container-minimal">
-          ${holdersHtml}
+      <div class="two-column-layout">
+        <div class="column-left">
+          <div class="holders-section-minimal">
+            <div class="section-heading-minimal"><strong>Holders & Contacts (${record.Bank_Holders ? record.Bank_Holders.length : 0})</strong></div>
+            <div class="holders-container-minimal">
+              ${holdersHtml}
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div class="nominee-card-minimal">
-        <div class="section-heading-minimal"><strong>Nomination</strong></div>
-        <div class="nominee-content-minimal">
-          <div>${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</div>
-          ${record.Bank_Nominee_Contact ? `<div>${record.Bank_Nominee_Contact}</div>` : ''}
-        </div>
-      </div>
-
-      <div class="helpline-card-minimal">
-        <div class="section-heading-minimal"><strong>Helpline</strong></div>
-        <div class="helpline-content-minimal">
-          ${helplinePhones.length > 0 ? `<div>${helplinePhones.join(' / ')}</div>` : ''}
-          ${helplineEmails.length > 0 ? `<div>${helplineEmails.join(' / ')}</div>` : ''}
-          ${record.Bank_Helpline_URL ? `<div>${record.Bank_Helpline_URL}</div>` : ''}
+        <div class="column-right">
+          <div class="nominee-card-minimal">
+            <div class="section-heading-minimal"><strong>Nomination</strong></div>
+            <div class="nominee-content-minimal">
+              <div>${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</div>
+              ${record.Bank_Nominee_Contact ? `<div>${record.Bank_Nominee_Contact}</div>` : ''}
+            </div>
+          </div>
         </div>
       </div>
 
       ${record.Bank_Notes ? `
-        <div class="notes-card-minimal">
+        <div class="notes-card-minimal full-width">
           <div class="section-heading-minimal"><strong>Notes</strong></div>
           <div class="notes-content-minimal">
             ${record.Bank_Notes.split('\n').map(line => `<div>${line}</div>`).join('')}

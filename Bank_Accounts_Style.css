@@ -407,13 +407,37 @@ body.dark{
   margin-bottom:20px;
 }
 
+/* Two Column Layout */
+.two-column-layout{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-bottom:20px;
+}
+
+.column-left,
+.column-right{
+  display:flex;
+  flex-direction:column;
+}
+
+.notes-card-minimal.full-width{
+  grid-column:1 / -1;
+}
+
+@media (max-width:768px){
+  .two-column-layout{
+    grid-template-columns:1fr;
+  }
+}
+
 /* Fields Card */
 .fields-card-minimal{
   border:1px solid #d3d3d3;
   border-radius:4px;
   padding:16px;
-  margin-bottom:20px;
   background:#ffffff;
+  height:100%;
 }
 
 .section-heading-minimal{
@@ -452,7 +476,7 @@ body.dark{
 
 /* Holders Section */
 .holders-section-minimal{
-  margin-bottom:20px;
+  height:100%;
 }
 
 .holders-container-minimal{
@@ -520,8 +544,8 @@ body.dark{
   border:1px solid #d3d3d3;
   border-radius:4px;
   padding:16px;
-  margin-bottom:20px;
   background:#ffffff;
+  height:100%;
 }
 
 .nominee-content-minimal{
@@ -539,8 +563,8 @@ body.dark{
   border:1px solid #d3d3d3;
   border-radius:4px;
   padding:16px;
-  margin-bottom:20px;
   background:#ffffff;
+  height:100%;
 }
 
 .helpline-content-minimal{
@@ -558,8 +582,11 @@ body.dark{
   border:1px solid #d3d3d3;
   border-radius:4px;
   padding:16px;
-  margin-bottom:20px;
   background:#ffffff;
+}
+
+.notes-card-minimal.full-width{
+  margin-top:0;
 }
 
 .notes-content-minimal{
