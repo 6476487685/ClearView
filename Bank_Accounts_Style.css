@@ -474,9 +474,14 @@ body.dark{
   flex:1;
 }
 
-/* Holders Section */
+/* Holders Section - Full Width */
+.holders-full-width{
+  width:100%;
+  margin-bottom:20px;
+}
+
 .holders-section-minimal{
-  height:100%;
+  width:100%;
 }
 
 .holders-container-minimal{
@@ -484,6 +489,12 @@ body.dark{
   grid-template-columns:1fr 1fr;
   gap:16px;
   margin-top:12px;
+}
+
+/* Nomination - Full Width */
+.nomination-full-width{
+  width:100%;
+  margin-bottom:20px;
 }
 
 .holder-card-minimal{

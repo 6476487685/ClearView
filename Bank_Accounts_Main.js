@@ -167,6 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
       holders.push({
         holder: document.getElementById(`Bank_Holder_${i}_Holder`).value || '',
         name: document.getElementById(`Bank_Holder_${i}_Name`).value || '',
+        userID: document.getElementById(`Bank_Holder_${i}_UserID`).value || '',
         emailPhone: document.getElementById(`Bank_Holder_${i}_EmailPhone`).value || '',
         loginPassword: document.getElementById(`Bank_Holder_${i}_LoginPassword`).value || '',
         debitCard: document.getElementById(`Bank_Holder_${i}_DebitCard`).value || '',
@@ -463,6 +464,13 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="holder-row">
           <div>
+            <label>UserID</label>
+            <input type="text" id="Bank_Holder_${i}_UserID" ${!isEditMode ? 'readonly' : ''} placeholder="username or user ID">
+          </div>
+          <div></div>
+        </div>
+        <div class="holder-row">
+          <div>
             <label>Email/Phone</label>
             <input type="text" id="Bank_Holder_${i}_EmailPhone" ${!isEditMode ? 'readonly' : ''} placeholder="email@example.com | +91 647-647-1234">
             <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Format: email | +country_code phone</small>
@@ -513,6 +521,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (holderNum <= holderCount) {
             const holderField = document.getElementById(`Bank_Holder_${holderNum}_Holder`);
             const nameField = document.getElementById(`Bank_Holder_${holderNum}_Name`);
+            const userIDField = document.getElementById(`Bank_Holder_${holderNum}_UserID`);
             const emailPhoneField = document.getElementById(`Bank_Holder_${holderNum}_EmailPhone`);
             const loginPasswordField = document.getElementById(`Bank_Holder_${holderNum}_LoginPassword`);
             const debitCardField = document.getElementById(`Bank_Holder_${holderNum}_DebitCard`);
@@ -520,6 +529,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             if (holderField) holderField.value = holder.holder || '';
             if (nameField) nameField.value = holder.name || '';
+            if (userIDField) userIDField.value = holder.userID || '';
             if (emailPhoneField) emailPhoneField.value = holder.emailPhone || '';
             if (loginPasswordField) {
               loginPasswordField.value = holder.loginPassword || '';
@@ -652,6 +662,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="section-heading-minimal"><strong>Holders & Contacts (1)</strong></div>
           <div class="notes-content-minimal">
             <div><strong>Holder 1: ${holder.name || ''}</strong> <span class="holder-type-badge-inline">${holderType}</span></div>
+            ${holder.userID ? `<div>UserID: ${holder.userID}</div>` : ''}
             <div>${holder.emailPhone || ''}</div>
             <div>${holder.holder || ''} / <span class="password-display" data-holder="1" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>
             <div>${holder.debitCard || ''}</div>
@@ -671,6 +682,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             <div class="holder-card-content">
               <div class="holder-personal-details">
+                ${holder.userID ? `<div>UserID: ${holder.userID}</div>` : ''}
                 <div>${holder.emailPhone || ''}</div>
                 <div>${holder.holder || ''} / <span class="password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>
               </div>
@@ -833,25 +845,27 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
 
-      <div class="two-column-layout">
-        <div class="column-left">
-          ${isSingleHolder ? holdersHtml : `
-            <div class="holders-section-minimal">
-              <div class="section-heading-minimal"><strong>Holders & Contacts (${record.Bank_Holders ? record.Bank_Holders.length : 0})</strong></div>
-              <div class="holders-container-minimal">
-                ${holdersHtml}
-              </div>
-            </div>
-          `}
+      ${isSingleHolder ? `
+        <div class="holders-full-width">
+          ${holdersHtml}
         </div>
-
-        <div class="column-right">
-          <div class="notes-card-minimal">
-            <div class="section-heading-minimal"><strong>Nomination</strong></div>
-            <div class="notes-content-minimal">
-              <div>${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</div>
-              ${record.Bank_Nominee_Contact ? `<div>${record.Bank_Nominee_Contact}</div>` : ''}
+      ` : `
+        <div class="holders-full-width">
+          <div class="holders-section-minimal">
+            <div class="section-heading-minimal"><strong>Holders & Contacts (${record.Bank_Holders ? record.Bank_Holders.length : 0})</strong></div>
+            <div class="holders-container-minimal">
+              ${holdersHtml}
             </div>
+          </div>
+        </div>
+      `}
+
+      <div class="nomination-full-width">
+        <div class="notes-card-minimal">
+          <div class="section-heading-minimal"><strong>Nomination</strong></div>
+          <div class="notes-content-minimal">
+            <div>${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</div>
+            ${record.Bank_Nominee_Contact ? `<div>${record.Bank_Nominee_Contact}</div>` : ''}
           </div>
         </div>
       </div>
@@ -1052,6 +1066,7 @@ document.addEventListener("DOMContentLoaded", () => {
             record.Bank_Holders.forEach((holder, hIdx) => {
               banksData.push([`Holder ${hIdx + 1} (Ac_Holder)`, holder.holder || '']);
               banksData.push([`Holder ${hIdx + 1} Name`, holder.name || '']);
+              banksData.push([`Holder ${hIdx + 1} UserID`, holder.userID || '']);
               banksData.push([`Holder ${hIdx + 1} Email/Phone`, holder.emailPhone || '']);
               banksData.push([`Holder ${hIdx + 1} Login/Password`, holder.loginPassword || '']);
               banksData.push([`Holder ${hIdx + 1} Debit Card`, holder.debitCard || '']);
@@ -1236,6 +1251,10 @@ document.addEventListener("DOMContentLoaded", () => {
           
           doc.setFont(undefined, 'normal');
           doc.setTextColor(0, 0, 0);
+          if (holder.userID) {
+            doc.text(`UserID: ${holder.userID}`, margin + 5, yPos);
+            yPos += 5;
+          }
           doc.text(`${holder.emailPhone || ''}`, margin + 5, yPos);
           yPos += 5;
           doc.text(`${holder.holder || ''} / ${holder.loginPassword || ''}`, margin + 5, yPos);
