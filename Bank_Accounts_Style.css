@@ -386,44 +386,191 @@ body.dark{
   text-decoration:underline;
 }
 
-/* Holders Container */
-.holders-container-display{
-  display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
-  gap:16px;
+/* Minimal Card Style - Matching Image */
+.account-tag-bar-minimal{
+  background:#e3f2fd;
+  padding:12px 16px;
+  margin-bottom:16px;
+  border-radius:4px;
+}
+
+.account-tag-content-minimal{
+  font-size:16px;
+  font-weight:700;
+  color:#1976d2;
+  text-align:left;
+}
+
+.bank-record-header-minimal{
+  display:flex;
+  justify-content:flex-end;
   margin-bottom:20px;
 }
 
-.holder-card{
-  border-left:4px solid var(--accent);
-}
-
-.nominee-container-display{
+/* Fields Card */
+.fields-card-minimal{
+  border:1px solid #d3d3d3;
+  border-radius:4px;
+  padding:16px;
   margin-bottom:20px;
+  background:#ffffff;
 }
 
-.nominee-card{
-  border-left:4px solid var(--success);
+.section-heading-minimal{
+  font-size:14px;
+  font-weight:700;
+  color:#000000;
+  margin-bottom:12px;
+  text-align:left;
 }
 
-.helpline-card{
-  border-left:4px solid var(--warning);
+.fields-content-minimal{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
 }
 
-.notes-card{
-  border-left:4px solid var(--accent-purple);
+.field-row-minimal{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
 }
 
-.notes-content{
-  color:var(--text-primary);
+.field-label-minimal{
+  min-width:180px;
+  font-weight:700;
+  color:#000000;
   font-size:13px;
-  line-height:1.6;
-  white-space:pre-wrap;
-  word-wrap:break-word;
 }
 
-.basic-info-card{
-  border-left:4px solid var(--accent-blue);
+.field-value-minimal{
+  color:#000000;
+  font-size:13px;
+  font-weight:400;
+  flex:1;
+}
+
+/* Holders Section */
+.holders-section-minimal{
+  margin-bottom:20px;
+}
+
+.holders-container-minimal{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  margin-top:12px;
+}
+
+.holder-card-minimal{
+  border:1px solid #d3d3d3;
+  border-radius:4px;
+  padding:16px;
+  background:#ffffff;
+}
+
+.holder-card-header-minimal{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+  font-size:14px;
+  font-weight:700;
+  color:#000000;
+}
+
+.holder-type-badge{
+  font-size:11px;
+  font-weight:600;
+  color:#1976d2;
+  background:#e3f2fd;
+  padding:2px 8px;
+  border-radius:4px;
+}
+
+.holder-card-content{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.holder-personal-details{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-size:13px;
+  color:#000000;
+  font-weight:400;
+}
+
+.holder-card-separator{
+  height:1px;
+  background:#d3d3d3;
+  margin:8px 0;
+}
+
+.holder-debit-card{
+  font-size:13px;
+  color:#000000;
+  font-weight:400;
+}
+
+/* Nominee Card */
+.nominee-card-minimal{
+  border:1px solid #d3d3d3;
+  border-radius:4px;
+  padding:16px;
+  margin-bottom:20px;
+  background:#ffffff;
+}
+
+.nominee-content-minimal{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-size:13px;
+  color:#000000;
+  font-weight:400;
+  margin-top:12px;
+}
+
+/* Helpline Card */
+.helpline-card-minimal{
+  border:1px solid #d3d3d3;
+  border-radius:4px;
+  padding:16px;
+  margin-bottom:20px;
+  background:#ffffff;
+}
+
+.helpline-content-minimal{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-size:13px;
+  color:#000000;
+  font-weight:400;
+  margin-top:12px;
+}
+
+/* Notes Card */
+.notes-card-minimal{
+  border:1px solid #d3d3d3;
+  border-radius:4px;
+  padding:16px;
+  margin-bottom:20px;
+  background:#ffffff;
+}
+
+.notes-content-minimal{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-size:13px;
+  color:#000000;
+  font-weight:400;
+  margin-top:12px;
+  line-height:1.6;
 }
 
 .bank-record-actions{

@@ -592,36 +592,28 @@ document.addEventListener("DOMContentLoaded", () => {
       card.classList.add('read-only');
     }
 
-    // Create beautiful card-style holders block
-    const holdersHtml = record.Bank_Holders.map((holder, idx) => `
-      <div class="info-card holder-card">
-        <div class="info-card-header">
-          <h4>👤 Holder ${idx + 1}</h4>
-        </div>
-        <div class="info-card-body">
-          <div class="info-row">
-            <span class="info-label">Holder:</span>
-            <span class="info-value">${holder.holder || ''}</span>
+    // Create beautiful card-style holders block (First is Sole, rest are Joint)
+    const holdersHtml = record.Bank_Holders.map((holder, idx) => {
+      const holderType = idx === 0 ? 'Sole Holder' : 'Joint Holder';
+      return `
+        <div class="holder-card-minimal">
+          <div class="holder-card-header-minimal">
+            <strong>Holder ${idx + 1}: ${holder.name || ''}</strong>
+            <span class="holder-type-badge">${holderType}</span>
           </div>
-          <div class="info-row">
-            <span class="info-label">Name:</span>
-            <span class="info-value">${holder.name || ''}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Email/Phone:</span>
-            <span class="info-value">${holder.emailPhone || ''}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Login/Password:</span>
-            <span class="info-value password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Debit Card:</span>
-            <span class="info-value">${holder.debitCard || ''}</span>
+          <div class="holder-card-content">
+            <div class="holder-personal-details">
+              <div>${holder.emailPhone || ''}</div>
+              <div>${holder.holder || ''} / <span class="password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>
+            </div>
+            <div class="holder-card-separator"></div>
+            <div class="holder-debit-card">
+              ${holder.debitCard || ''}
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     // Create beautiful helpline block
     const helplinePhones = [
@@ -696,14 +688,13 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     card.innerHTML = `
-      <div class="bank-record-header">
-        <div class="bank-record-title">
-          <span class="bank-icon">🏦</span>
-          <div>
-            <div class="bank-main-title">${record.Bank_Institution || ''} - ${record.Bank_Ac_Type || ''}</div>
-            <div class="bank-subtitle">${record.Bank_Ac_Tag || ''} • ${record.Bank_Country || ''}</div>
-          </div>
+      <div class="account-tag-bar-minimal">
+        <div class="account-tag-content-minimal">
+          ${record.Bank_Ac_Tag || 'No Account Tag'}
         </div>
+      </div>
+
+      <div class="bank-record-header-minimal">
         <div class="bank-record-actions">
           ${isEditMode ? `<button class="btn-edit" data-index="${index}">✏️ Edit</button>` : ''}
           ${isEditMode ? `<button class="btn-delete" data-index="${index}">🗑️ Delete</button>` : ''}
@@ -711,49 +702,57 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
 
-      <div class="bank-info-grid">
-        <div class="info-card basic-info-card">
-          <div class="info-card-header">
-            <h4>📋 Account Information</h4>
+      <div class="fields-card-minimal">
+        <div class="section-heading-minimal"><strong>Fields</strong></div>
+        <div class="fields-content-minimal">
+          <div class="field-row-minimal">
+            <span class="field-label-minimal"><strong>Bank Name:</strong></span>
+            <span class="field-value-minimal">${record.Bank_Institution || ''}</span>
           </div>
-          <div class="info-card-body">
-            <div class="info-row">
-              <span class="info-label">Institution:</span>
-              <span class="info-value">${record.Bank_Institution || ''}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Account Type:</span>
-              <span class="info-value">${record.Bank_Ac_Type || ''}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Account Tag:</span>
-              <span class="info-value">${record.Bank_Ac_Tag || ''}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Country:</span>
-              <span class="info-value">${record.Bank_Country || ''}</span>
-            </div>
+          <div class="field-row-minimal">
+            <span class="field-label-minimal"><strong>Country:</strong></span>
+            <span class="field-value-minimal">${record.Bank_Country || ''}</span>
+          </div>
+          <div class="field-row-minimal">
+            <span class="field-label-minimal"><strong>Account Type:</strong></span>
+            <span class="field-value-minimal">${record.Bank_Ac_Type || ''}</span>
+          </div>
+          <div class="field-row-minimal">
+            <span class="field-label-minimal"><strong>Account Tag:</strong></span>
+            <span class="field-value-minimal">${record.Bank_Ac_Tag || ''}</span>
           </div>
         </div>
       </div>
 
-      <div class="holders-container-display">
-        ${holdersHtml}
+      <div class="holders-section-minimal">
+        <div class="section-heading-minimal"><strong>Holders & Contacts (${record.Bank_Holders ? record.Bank_Holders.length : 0})</strong></div>
+        <div class="holders-container-minimal">
+          ${holdersHtml}
+        </div>
       </div>
 
-      <div class="nominee-container-display">
-        ${nomineeHtml}
+      <div class="nominee-card-minimal">
+        <div class="section-heading-minimal"><strong>Nomination</strong></div>
+        <div class="nominee-content-minimal">
+          <div>${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</div>
+          ${record.Bank_Nominee_Contact ? `<div>${record.Bank_Nominee_Contact}</div>` : ''}
+        </div>
       </div>
 
-      ${helplineHtml}
+      <div class="helpline-card-minimal">
+        <div class="section-heading-minimal"><strong>Helpline</strong></div>
+        <div class="helpline-content-minimal">
+          ${helplinePhones.length > 0 ? `<div>${helplinePhones.join(' / ')}</div>` : ''}
+          ${helplineEmails.length > 0 ? `<div>${helplineEmails.join(' / ')}</div>` : ''}
+          ${record.Bank_Helpline_URL ? `<div>${record.Bank_Helpline_URL}</div>` : ''}
+        </div>
+      </div>
 
       ${record.Bank_Notes ? `
-        <div class="info-card notes-card">
-          <div class="info-card-header">
-            <h4>📝 Notes</h4>
-          </div>
-          <div class="info-card-body">
-            <div class="notes-content">${record.Bank_Notes}</div>
+        <div class="notes-card-minimal">
+          <div class="section-heading-minimal"><strong>Notes</strong></div>
+          <div class="notes-content-minimal">
+            ${record.Bank_Notes.split('\n').map(line => `<div>${line}</div>`).join('')}
           </div>
         </div>
       ` : ''}
@@ -1052,115 +1051,135 @@ document.addEventListener("DOMContentLoaded", () => {
       // Add footer to current page
       addFooter(doc, totalRecords, currentPage, totalPages);
 
-      // Record header
+      // Account Tag Bar (light blue background)
+      doc.setFillColor(227, 242, 253); // #e3f2fd
+      doc.rect(margin, yPos, pageWidth - 2 * margin, 10, 'F');
       doc.setFontSize(14);
       doc.setFont(undefined, 'bold');
-      yPos += 10;
-      doc.text(`${record.Bank_Institution || ''} - ${record.Bank_Ac_Type || ''}`, margin, yPos);
-      yPos += 8;
+      doc.setTextColor(25, 118, 210); // #1976d2
+      doc.text(`${record.Bank_Ac_Tag || 'No Account Tag'}`, margin + 5, yPos + 7);
+      yPos += 15;
 
+      // Fields Card
+      doc.setDrawColor(211, 211, 211); // #d3d3d3
+      doc.setLineWidth(0.5);
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('Fields', margin, yPos);
+      yPos += 8;
+      
+      const fieldsHeight = 35;
+      doc.rect(margin, yPos - fieldsHeight + 5, pageWidth - 2 * margin, fieldsHeight);
       doc.setFontSize(10);
       doc.setFont(undefined, 'normal');
-      doc.text(`Account Tag: ${record.Bank_Ac_Tag || ''}`, margin, yPos);
-      yPos += 6;
-      doc.text(`Country: ${record.Bank_Country || ''}`, margin, yPos);
-      yPos += 8;
-
-      // Account Information Box
-      doc.setDrawColor(66, 133, 244);
-      doc.setLineWidth(0.5);
-      doc.rect(margin, yPos, pageWidth - 2 * margin, 25);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(66, 133, 244);
-      doc.text('Account Information', margin + 5, yPos + 8);
-      yPos += 10;
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.text(`Institution: ${record.Bank_Institution || ''}`, margin + 5, yPos);
+      doc.text(`Bank Name: ${record.Bank_Institution || ''}`, margin + 5, yPos);
       yPos += 5;
-      doc.text(`Account Type: ${record.Bank_Ac_Type || ''} | Tag: ${record.Bank_Ac_Tag || ''} | Country: ${record.Bank_Country || ''}`, margin + 5, yPos);
+      doc.text(`Country: ${record.Bank_Country || ''}`, margin + 5, yPos);
+      yPos += 5;
+      doc.text(`Account Type: ${record.Bank_Ac_Type || ''}`, margin + 5, yPos);
+      yPos += 5;
+      doc.text(`Account Tag: ${record.Bank_Ac_Tag || ''}`, margin + 5, yPos);
       yPos += 10;
 
-      // Holders - Card Style
+      // Holders - Minimal Card Style (First is Sole, rest are Joint)
       if (record.Bank_Holders && record.Bank_Holders.length > 0) {
         record.Bank_Holders.forEach((holder, hIdx) => {
-          // Holder Card Box
-          doc.setDrawColor(66, 133, 244);
-          doc.rect(margin, yPos, pageWidth - 2 * margin, 30);
-          doc.setFillColor(66, 133, 244, 10);
-          doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'FD');
+          const holderType = hIdx === 0 ? 'Sole Holder' : 'Joint Holder';
+          // Holder Card Box with gray border
+          doc.setDrawColor(211, 211, 211); // #d3d3d3
+          doc.setLineWidth(0.5);
+          const cardHeight = 35;
+          doc.rect(margin, yPos, pageWidth - 2 * margin, cardHeight);
           
           doc.setFont(undefined, 'bold');
-          doc.setTextColor(66, 133, 244);
-          doc.text(`👤 Holder ${hIdx + 1}`, margin + 5, yPos + 6);
-          yPos += 10;
+          doc.setTextColor(0, 0, 0);
+          doc.text(`Holder ${hIdx + 1}: ${holder.name || ''}`, margin + 5, yPos + 6);
+          doc.setFontSize(9);
+          doc.setTextColor(25, 118, 210); // #1976d2
+          doc.text(`(${holderType})`, pageWidth - margin - 35, yPos + 6);
+          doc.setFontSize(10);
+          yPos += 8;
           
           doc.setFont(undefined, 'normal');
           doc.setTextColor(0, 0, 0);
-          doc.text(`Holder: ${holder.holder || ''} | Name: ${holder.name || ''}`, margin + 5, yPos);
+          doc.text(`${holder.emailPhone || ''}`, margin + 5, yPos);
           yPos += 5;
-          doc.text(`Email/Phone: ${holder.emailPhone || ''}`, margin + 5, yPos);
-          yPos += 5;
-          doc.text(`Login/Password: ${holder.loginPassword || ''} | Debit Card: ${holder.debitCard || ''}`, margin + 5, yPos);
+          doc.text(`${holder.holder || ''} / ${holder.loginPassword || ''}`, margin + 5, yPos);
+          yPos += 6;
+          
+          // Separator line
+          doc.setDrawColor(211, 211, 211);
+          doc.line(margin + 5, yPos, pageWidth - margin - 5, yPos);
+          yPos += 6;
+          
+          doc.text(`${holder.debitCard || ''}`, margin + 5, yPos);
           yPos += 8;
         });
       }
 
-      // Nomination - Card Style
-      doc.setDrawColor(52, 168, 83);
-      doc.rect(margin, yPos, pageWidth - 2 * margin, 25);
-      doc.setFillColor(52, 168, 83, 10);
-      doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'FD');
+      // Nomination - Minimal Card Style
+      doc.setDrawColor(211, 211, 211);
+      doc.setLineWidth(0.5);
+      const nomineeHeight = record.Bank_Nominee_Contact ? 30 : 25;
+      doc.rect(margin, yPos, pageWidth - 2 * margin, nomineeHeight);
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(52, 168, 83);
-      doc.text('👥 Nomination', margin + 5, yPos + 6);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Nomination', margin + 5, yPos + 6);
       yPos += 10;
       doc.setFont(undefined, 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.text(`Nominee: ${record.Bank_Nominee_Name || ''} | Name: ${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}`, margin + 5, yPos);
+      doc.text(`${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}`, margin + 5, yPos);
       yPos += 5;
       if (record.Bank_Nominee_Contact) {
-        doc.text(`Contact: ${record.Bank_Nominee_Contact}`, margin + 5, yPos);
+        doc.text(`${record.Bank_Nominee_Contact}`, margin + 5, yPos);
         yPos += 5;
       }
       yPos += 8;
 
-      // Helpline - Card Style
-      doc.setDrawColor(251, 188, 4);
-      doc.rect(margin, yPos, pageWidth - 2 * margin, 35);
-      doc.setFillColor(251, 188, 4, 10);
-      doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'FD');
+      // Helpline - Minimal Card Style
+      const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4].filter(p => p);
+      const emails = [record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e);
+      const helplineHeight = 30 + (phones.length > 0 ? 5 : 0) + (emails.length > 0 ? 5 : 0) + (record.Bank_Helpline_URL ? 5 : 0);
+      
+      doc.setDrawColor(211, 211, 211);
+      doc.setLineWidth(0.5);
+      doc.rect(margin, yPos, pageWidth - 2 * margin, helplineHeight);
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(251, 188, 4);
-      doc.text('📞 Helpline Information', margin + 5, yPos + 6);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Helpline', margin + 5, yPos + 6);
       yPos += 10;
       doc.setFont(undefined, 'normal');
-      doc.setTextColor(0, 0, 0);
-      const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4].filter(p => p);
       if (phones.length > 0) {
-        doc.text(`Phones: ${phones.join(' | ')}`, margin + 5, yPos);
+        doc.text(`${phones.join(' / ')}`, margin + 5, yPos);
         yPos += 5;
       }
-      const emails = [record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e);
       if (emails.length > 0) {
-        doc.text(`Emails: ${emails.join(' | ')}`, margin + 5, yPos);
+        doc.text(`${emails.join(' / ')}`, margin + 5, yPos);
         yPos += 5;
       }
       if (record.Bank_Helpline_URL) {
-        doc.text(`URL: ${record.Bank_Helpline_URL}`, margin + 5, yPos);
+        doc.text(`${record.Bank_Helpline_URL}`, margin + 5, yPos);
         yPos += 5;
       }
       yPos += 8;
 
-      // Notes
+      // Notes - Minimal Card Style
       if (record.Bank_Notes) {
+        const notesLines = record.Bank_Notes.split('\n').filter(l => l.trim());
+        const notesHeight = 20 + (notesLines.length * 5);
+        doc.setDrawColor(211, 211, 211);
+        doc.setLineWidth(0.5);
+        doc.rect(margin, yPos, pageWidth - 2 * margin, notesHeight);
         doc.setFont(undefined, 'bold');
-        doc.text('Notes:', margin, yPos);
-        yPos += 6;
+        doc.setTextColor(0, 0, 0);
+        doc.text('Notes', margin + 5, yPos + 6);
+        yPos += 10;
         doc.setFont(undefined, 'normal');
-        const notesLines = doc.splitTextToSize(record.Bank_Notes, pageWidth - 2 * margin);
-        doc.text(notesLines, margin, yPos);
-        yPos += notesLines.length * 5;
+        notesLines.forEach(line => {
+          doc.text(line.trim(), margin + 5, yPos);
+          yPos += 5;
+        });
+        yPos += 5;
       }
 
       yPos += 10;
