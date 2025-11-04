@@ -29,10 +29,12 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem('bank_accounts', JSON.stringify(data));
   };
 
-  // Initialize
-  loadAccountTags();
-  renderRecords();
-  populateInstitutionAndAcType();
+  // Initialize - populate dropdowns after DOM is ready
+  setTimeout(() => {
+    loadAccountTags();
+    renderRecords();
+    // Don't call populateInstitutionAndAcType here - it will be called when modal opens
+  }, 100);
 
   // Edit/Display Mode Toggle
   btnEditMode.addEventListener('click', () => {
@@ -116,6 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const holderCount = parseInt(holderCountSelect.value);
     for (let i = 1; i <= holderCount; i++) {
       holders.push({
+        holder: document.getElementById(`Bank_Holder_${i}_Holder`).value || '',
         name: document.getElementById(`Bank_Holder_${i}_Name`).value || '',
         emailPhone: document.getElementById(`Bank_Holder_${i}_EmailPhone`).value || '',
         loginPassword: document.getElementById(`Bank_Holder_${i}_LoginPassword`).value || '',
@@ -206,25 +209,62 @@ document.addEventListener("DOMContentLoaded", () => {
       const institutionSelect = document.getElementById('Bank_Institution');
       const acTypeSelect = document.getElementById('Bank_Ac_Type');
 
+      if (!institutionSelect || !acTypeSelect) {
+        console.warn('Institution or Ac_Type select elements not found');
+        return;
+      }
+
       // Populate Institution
       const institutions = commonData.Institution || [];
       institutionSelect.innerHTML = '<option value="">Select Institution</option>';
-      institutions.forEach(inst => {
-        if (inst && inst !== '') {
-          institutionSelect.innerHTML += `<option value="${inst}">${inst}</option>`;
-        }
-      });
+      if (institutions.length > 0) {
+        institutions.forEach(inst => {
+          if (inst && inst !== '') {
+            institutionSelect.innerHTML += `<option value="${inst}">${inst}</option>`;
+          }
+        });
+      } else {
+        console.log('No institutions found in master data');
+      }
 
       // Populate Ac_Type
       const acTypes = commonData.Ac_Type || [];
       acTypeSelect.innerHTML = '<option value="">Select Account Type</option>';
-      acTypes.forEach(type => {
-        if (type && type !== '') {
-          acTypeSelect.innerHTML += `<option value="${type}">${type}</option>`;
-        }
-      });
+      if (acTypes.length > 0) {
+        acTypes.forEach(type => {
+          if (type && type !== '') {
+            acTypeSelect.innerHTML += `<option value="${type}">${type}</option>`;
+          }
+        });
+      } else {
+        console.log('No Ac_Type found in master data');
+      }
     } catch (e) {
       console.error('Error populating Institution and Ac_Type:', e);
+    }
+  }
+
+  // Populate Ac_Holder dropdown
+  function populateAcHolderDropdown(selectElement) {
+    try {
+      const unifiedDataStr = localStorage.getItem('unified_master_data');
+      let commonData = {};
+      if (unifiedDataStr) {
+        const unifiedData = JSON.parse(unifiedDataStr);
+        commonData = unifiedData.common || {};
+      }
+
+      const holders = commonData.Ac_Holder || [];
+      selectElement.innerHTML = '<option value="">Select Holder</option>';
+      if (holders.length > 0) {
+        holders.forEach(holder => {
+          if (holder && holder !== '') {
+            selectElement.innerHTML += `<option value="${holder}">${holder}</option>`;
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Error populating Ac_Holder:', e);
     }
   }
 
@@ -287,15 +327,19 @@ document.addEventListener("DOMContentLoaded", () => {
         <h4>Holder ${i}</h4>
         <div class="holder-row">
           <div>
+            <label>Holder (Ac_Holder)</label>
+            <select id="Bank_Holder_${i}_Holder" ${!isEditMode ? 'disabled' : ''}></select>
+          </div>
+          <div>
             <label>Name</label>
             <input type="text" id="Bank_Holder_${i}_Name" ${!isEditMode ? 'readonly' : ''}>
           </div>
+        </div>
+        <div class="holder-row">
           <div>
             <label>Email/Phone</label>
             <input type="text" id="Bank_Holder_${i}_EmailPhone" ${!isEditMode ? 'readonly' : ''}>
           </div>
-        </div>
-        <div class="holder-row">
           <div>
             <label>Login/Password</label>
             <div class="password-field">
@@ -303,13 +347,22 @@ document.addEventListener("DOMContentLoaded", () => {
               <button type="button" class="password-toggle" data-holder="${i}" style="display:none;">👁️</button>
             </div>
           </div>
+        </div>
+        <div class="holder-row">
           <div>
             <label>Debit Card Info</label>
             <input type="text" id="Bank_Holder_${i}_DebitCard" ${!isEditMode ? 'readonly' : ''}>
           </div>
+          <div></div>
         </div>
       `;
       holdersContainer.appendChild(holderSection);
+
+      // Populate Holder dropdown for this holder
+      const holderSelect = document.getElementById(`Bank_Holder_${i}_Holder`);
+      if (holderSelect) {
+        populateAcHolderDropdown(holderSelect);
+      }
 
       // Setup password reveal for this holder
       setupPasswordReveal(i);
@@ -322,11 +375,13 @@ document.addEventListener("DOMContentLoaded", () => {
         record.Bank_Holders.forEach((holder, idx) => {
           const holderNum = idx + 1;
           if (holderNum <= holderCount) {
+            const holderField = document.getElementById(`Bank_Holder_${holderNum}_Holder`);
             const nameField = document.getElementById(`Bank_Holder_${holderNum}_Name`);
             const emailPhoneField = document.getElementById(`Bank_Holder_${holderNum}_EmailPhone`);
             const loginPasswordField = document.getElementById(`Bank_Holder_${holderNum}_LoginPassword`);
             const debitCardField = document.getElementById(`Bank_Holder_${holderNum}_DebitCard`);
             
+            if (holderField) holderField.value = holder.holder || '';
             if (nameField) nameField.value = holder.name || '';
             if (emailPhoneField) emailPhoneField.value = holder.emailPhone || '';
             if (loginPasswordField) {
@@ -448,12 +503,16 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="holder-section">
         <h4>Holder ${idx + 1}</h4>
         <div class="holder-row">
+          <div><strong>Holder (Ac_Holder):</strong> ${holder.holder || ''}</div>
           <div><strong>Name:</strong> ${holder.name || ''}</div>
-          <div><strong>Email/Phone:</strong> ${holder.emailPhone || ''}</div>
         </div>
         <div class="holder-row">
+          <div><strong>Email/Phone:</strong> ${holder.emailPhone || ''}</div>
           <div><strong>Login/Password:</strong> <span class="password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>
+        </div>
+        <div class="holder-row">
           <div><strong>Debit Card:</strong> ${holder.debitCard || ''}</div>
+          <div></div>
         </div>
       </div>
     `).join('');
@@ -713,6 +772,7 @@ document.addEventListener("DOMContentLoaded", () => {
           // Add holders
           if (record.Bank_Holders) {
             record.Bank_Holders.forEach((holder, hIdx) => {
+              banksData.push([`Holder ${hIdx + 1} (Ac_Holder)`, holder.holder || '']);
               banksData.push([`Holder ${hIdx + 1} Name`, holder.name || '']);
               banksData.push([`Holder ${hIdx + 1} Email/Phone`, holder.emailPhone || '']);
               banksData.push([`Holder ${hIdx + 1} Login/Password`, holder.loginPassword || '']);
@@ -853,6 +913,8 @@ document.addEventListener("DOMContentLoaded", () => {
           doc.text(`Holder ${hIdx + 1}:`, margin, yPos);
           yPos += 6;
           doc.setFont(undefined, 'normal');
+          doc.text(`  Holder (Ac_Holder): ${holder.holder || ''}`, margin, yPos);
+          yPos += 5;
           doc.text(`  Name: ${holder.name || ''}`, margin, yPos);
           yPos += 5;
           doc.text(`  Email/Phone: ${holder.emailPhone || ''}`, margin, yPos);
@@ -938,6 +1000,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const holdersHtml = record.Bank_Holders.map((holder, idx) => `
       <div style="border:1px solid #ccc;padding:10px;margin-bottom:10px;">
         <h4>Holder ${idx + 1}</h4>
+        <p><strong>Holder (Ac_Holder):</strong> ${holder.holder || ''}</p>
         <p><strong>Name:</strong> ${holder.name || ''}</p>
         <p><strong>Email/Phone:</strong> ${holder.emailPhone || ''}</p>
         <p><strong>Login/Password:</strong> ${holder.loginPassword || ''}</p>
