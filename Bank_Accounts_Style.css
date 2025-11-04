@@ -526,3 +526,21 @@ input.password-masked{
   letter-spacing:2px;
 }
 
+/* Format hint text */
+small.format-hint{
+  display:block;
+  margin-top:4px;
+  font-size:11px;
+  color:var(--text-secondary);
+  font-style:italic;
+}
+
+/* Prevent modal from closing accidentally */
+.modal-content{
+  pointer-events:auto;
+}
+
+.modal-content *{
+  pointer-events:auto;
+}
+

@@ -86,26 +86,67 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isEditMode) return;
     editIndex = null;
     bankForm.reset();
+    formHasChanges = false;
+    originalFormData = null;
     modalTitle.textContent = 'Add Bank Account';
     populateModalDropdowns();
+    populateNomineeDropdown();
     renderHolders();
     bankModal.classList.add('show');
     setupAccountTagCheck();
   });
 
-  // Cancel
+  // Track if form has changes
+  let formHasChanges = false;
+  let originalFormData = null;
+
+  // Track form changes
+  bankForm.addEventListener('input', () => {
+    formHasChanges = true;
+  });
+
+  bankForm.addEventListener('change', () => {
+    formHasChanges = true;
+  });
+
+  // Cancel with confirmation if changes exist
   cancelBtn.addEventListener('click', () => {
+    if (formHasChanges) {
+      if (!confirm('You have unsaved changes. Are you sure you want to cancel?')) {
+        return;
+      }
+    }
+    closeModal();
+  });
+
+  // Close modal function
+  function closeModal() {
     bankModal.classList.remove('show');
     editIndex = null;
     bankForm.reset();
-  });
+    formHasChanges = false;
+    originalFormData = null;
+  }
 
-  // Close modal on outside click
+  // Prevent closing modal on outside click - require explicit cancel
   window.addEventListener('click', (e) => {
     if (e.target === bankModal) {
-      bankModal.classList.remove('show');
-      editIndex = null;
-      bankForm.reset();
+      // Don't close on outside click - user must use Cancel button
+      // This prevents accidental closing
+      return;
+    }
+  });
+
+  // Prevent ESC key from closing modal unless form is empty
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && bankModal.classList.contains('show')) {
+      if (formHasChanges) {
+        if (!confirm('You have unsaved changes. Press Cancel button to discard changes.')) {
+          e.preventDefault();
+          return;
+        }
+      }
+      closeModal();
     }
   });
 
@@ -158,15 +199,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // Trigger Excel backup
     createExcelBackup();
 
+    // Reset form change tracking
+    formHasChanges = false;
+    originalFormData = null;
+
     // Return to display mode
     isEditMode = false;
     btnEditMode.style.display = 'inline-flex';
     btnDisplayMode.style.display = 'none';
     addRecordContainer.style.display = 'none';
 
-    bankModal.classList.remove('show');
+    closeModal();
     renderRecords();
-    editIndex = null;
   });
 
   // Load Account Tags (from Income Ac_Tag)
@@ -268,6 +312,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Populate Nominee dropdown from Ac_Holder
+  function populateNomineeDropdown() {
+    try {
+      const nomineeSelect = document.getElementById('Bank_Nominee_Name');
+      if (!nomineeSelect) return;
+
+      const unifiedDataStr = localStorage.getItem('unified_master_data');
+      let commonData = {};
+      if (unifiedDataStr) {
+        const unifiedData = JSON.parse(unifiedDataStr);
+        commonData = unifiedData.common || {};
+      }
+
+      const holders = commonData.Ac_Holder || [];
+      nomineeSelect.innerHTML = '<option value="">Select Nominee</option>';
+      if (holders.length > 0) {
+        holders.forEach(holder => {
+          if (holder && holder !== '') {
+            nomineeSelect.innerHTML += `<option value="${holder}">${holder}</option>`;
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Error populating Nominee dropdown:', e);
+    }
+  }
+
   // Populate Modal Dropdowns
   function populateModalDropdowns() {
     loadAccountTags();
@@ -338,7 +409,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="holder-row">
           <div>
             <label>Email/Phone</label>
-            <input type="text" id="Bank_Holder_${i}_EmailPhone" ${!isEditMode ? 'readonly' : ''}>
+            <input type="text" id="Bank_Holder_${i}_EmailPhone" ${!isEditMode ? 'readonly' : ''} placeholder="email@example.com | +91 647-647-1234">
+            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Format: email | +country_code phone</small>
           </div>
           <div>
             <label>Login/Password</label>
@@ -351,7 +423,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="holder-row">
           <div>
             <label>Debit Card Info</label>
-            <input type="text" id="Bank_Holder_${i}_DebitCard" ${!isEditMode ? 'readonly' : ''}>
+            <input type="text" id="Bank_Holder_${i}_DebitCard" ${!isEditMode ? 'readonly' : ''} placeholder="1234-5678-0908-1456 | 05-25 To 05-28 | 123 | Master Card | 2345">
+            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Format: Card Number | Valid From To | CVV | Card Type | PIN</small>
           </div>
           <div></div>
         </div>
@@ -600,9 +673,12 @@ document.addEventListener("DOMContentLoaded", () => {
       editBtn.addEventListener('click', () => {
         if (!isEditMode) return;
         editIndex = index;
+        formHasChanges = false;
+        originalFormData = JSON.stringify(record);
         loadRecordIntoForm(record);
         modalTitle.textContent = 'Edit Bank Account';
         populateModalDropdowns();
+        populateNomineeDropdown();
         setupAccountTagCheck();
         bankModal.classList.add('show');
       });
@@ -667,7 +743,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('Bank_Ac_Type').value = record.Bank_Ac_Type || '';
     document.getElementById('Bank_Ac_Tag').value = record.Bank_Ac_Tag || '';
     document.getElementById('Bank_Country').value = record.Bank_Country || '';
-    document.getElementById('Bank_Nominee_Name').value = record.Bank_Nominee_Name || '';
+    
+    // Load Nominee - it's now a dropdown from Ac_Holder
+    const nomineeSelect = document.getElementById('Bank_Nominee_Name');
+    if (nomineeSelect) {
+      nomineeSelect.value = record.Bank_Nominee_Name || '';
+    }
+    
     document.getElementById('Bank_Nominee_Contact').value = record.Bank_Nominee_Contact || '';
     document.getElementById('Bank_Helpline_Phone1').value = record.Bank_Helpline_Phone1 || '';
     document.getElementById('Bank_Helpline_Phone2').value = record.Bank_Helpline_Phone2 || '';
