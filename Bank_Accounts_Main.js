@@ -787,7 +787,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="two-column-layout">
         <div class="column-left">
           <div class="fields-card-minimal">
-            <div class="section-heading-minimal"><strong>Fields</strong></div>
+            <div class="section-heading-minimal"><strong>Account Information</strong></div>
             <div class="fields-content-minimal">
               <div class="field-row-minimal">
                 <span class="field-label-minimal"><strong>Bank Name:</strong></span>
@@ -1202,7 +1202,7 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.setFontSize(12);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(0, 0, 0);
-      doc.text('Fields', margin, yPos);
+      doc.text('Account Information', margin, yPos);
       yPos += 8;
       
       const fieldsHeight = 55;
