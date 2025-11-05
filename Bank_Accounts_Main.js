@@ -670,8 +670,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="notes-content-minimal">
             <div><strong>Holder 1: ${holder.name || ''}</strong> <span class="holder-type-badge-inline">${holderType}</span></div>
             ${holder.clientID ? `<div>Client_ID_or_Customer_ID: ${holder.clientID}</div>` : ''}
-            ${holder.userID ? `<div>UserID_or_LoginID: ${holder.userID}</div>` : ''}
-            ${holder.userID ? `<div>Login_Password: <span class="password-display" data-holder="1" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>` : ''}
+            ${holder.userID ? `<div>UserID_or_LoginID: ${holder.userID} / Login_Password: <span class="password-display" data-holder="1" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>` : ''}
             ${holder.emailPhone ? `<div class="section-heading-minimal"><strong>Email or Phone</strong></div><div>${holder.emailPhone}</div>` : ''}
             ${holder.debitCard ? `<div class="section-heading-minimal"><strong>Debit Card Information</strong></div><div>${holder.debitCard}</div>` : ''}
             ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `<div>PIN | TPIN | MPIN: ${holder.pins}</div>` : ''}
@@ -691,8 +690,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="holder-card-content">
               <div class="holder-personal-details">
                 ${holder.clientID ? `<div>Client_ID_or_Customer_ID: ${holder.clientID}</div>` : ''}
-                ${holder.userID ? `<div>UserID_or_LoginID: ${holder.userID}</div>` : ''}
-                ${holder.userID ? `<div>Login_Password: <span class="password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>` : ''}
+                ${holder.userID ? `<div>UserID_or_LoginID: ${holder.userID} / Login_Password: <span class="password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>` : ''}
                 ${holder.emailPhone ? `<div class="section-heading-minimal"><strong>Email or Phone</strong></div><div>${holder.emailPhone}</div>` : ''}
               </div>
               ${holder.debitCard ? `<div class="holder-card-separator"></div><div class="holder-debit-card"><div class="section-heading-minimal"><strong>Debit Card Information</strong></div>${holder.debitCard}</div>` : ''}
