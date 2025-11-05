@@ -829,10 +829,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="field-label-minimal"><strong>Minimum Balance Required:</strong></span>
                 <span class="field-value-minimal">${record.Bank_Min_Balance || ''}</span>
               </div>
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>Account Tag:</strong></span>
-                <span class="field-value-minimal">${record.Bank_Ac_Tag || ''}</span>
-              </div>
             </div>
           </div>
         </div>
@@ -841,8 +837,8 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="helpline-card-minimal">
             <div class="section-heading-minimal"><strong>Helpline</strong></div>
             <div class="helpline-content-minimal">
-              ${helplinePhones.length > 0 ? `<div>${helplinePhones.join(' / ')}</div>` : ''}
-              ${helplineEmails.length > 0 ? `<div>${helplineEmails.join(' / ')}</div>` : ''}
+              ${helplinePhones.length > 0 ? `<div><strong>Phone:</strong> ${helplinePhones.join(' / ')}</div>` : ''}
+              ${helplineEmails.length > 0 ? `<div><strong>Email:</strong> ${helplineEmails.join(' / ')}</div>` : ''}
               ${record.Bank_Helpline_URL ? `<div>${record.Bank_Helpline_URL}</div>` : ''}
             </div>
           </div>
