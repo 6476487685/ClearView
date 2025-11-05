@@ -167,11 +167,12 @@ document.addEventListener("DOMContentLoaded", () => {
       holders.push({
         holder: document.getElementById(`Bank_Holder_${i}_Holder`).value || '',
         name: document.getElementById(`Bank_Holder_${i}_Name`).value || '',
+        clientID: document.getElementById(`Bank_Holder_${i}_ClientID`).value || '',
         userID: document.getElementById(`Bank_Holder_${i}_UserID`).value || '',
         emailPhone: document.getElementById(`Bank_Holder_${i}_EmailPhone`).value || '',
         loginPassword: document.getElementById(`Bank_Holder_${i}_LoginPassword`).value || '',
         debitCard: document.getElementById(`Bank_Holder_${i}_DebitCard`).value || '',
-        pins: document.getElementById(`Bank_Holder_${i}_Pins`).value || ''
+        pins: document.getElementById(`Bank_Holder_${i}_Pins`).value || 'XXXXXX | XXXXXX | XXXXXX'
       });
     }
 
@@ -189,7 +190,8 @@ document.addEventListener("DOMContentLoaded", () => {
       Bank_Holders: holders,
       Bank_Nominee_Name: document.getElementById('Bank_Nominee_Name').value || '',
       Bank_Nominee_Name_Text: document.getElementById('Bank_Nominee_Name_Text').value || '',
-      Bank_Nominee_Contact: document.getElementById('Bank_Nominee_Contact').value || '',
+      Bank_Nominee_Email: document.getElementById('Bank_Nominee_Email').value || '',
+      Bank_Nominee_Phone: document.getElementById('Bank_Nominee_Phone').value || '',
       Bank_Helpline_Phone1: document.getElementById('Bank_Helpline_Phone1').value || '',
       Bank_Helpline_Phone2: document.getElementById('Bank_Helpline_Phone2').value || '',
       Bank_Helpline_Phone3: document.getElementById('Bank_Helpline_Phone3').value || '',
@@ -464,19 +466,18 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="holder-row">
           <div>
-            <label>UserID</label>
-            <input type="text" id="Bank_Holder_${i}_UserID" ${!isEditMode ? 'readonly' : ''} placeholder="username or user ID">
+            <label>Client_ID_or_Customer_ID</label>
+            <input type="text" id="Bank_Holder_${i}_ClientID" ${!isEditMode ? 'readonly' : ''} placeholder="Client or Customer ID">
           </div>
           <div></div>
         </div>
         <div class="holder-row">
           <div>
-            <label>Email/Phone</label>
-            <input type="text" id="Bank_Holder_${i}_EmailPhone" ${!isEditMode ? 'readonly' : ''} placeholder="email@example.com | +91 647-647-1234">
-            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Format: email | +country_code phone</small>
+            <label>UserID_or_LoginID</label>
+            <input type="text" id="Bank_Holder_${i}_UserID" ${!isEditMode ? 'readonly' : ''} placeholder="UserID or LoginID">
           </div>
           <div>
-            <label>Login/Password</label>
+            <label>Login_Password</label>
             <div class="password-field">
               <input type="password" id="Bank_Holder_${i}_LoginPassword" class="password-input" data-holder="${i}" ${!isEditMode ? 'readonly' : ''}>
               <button type="button" class="password-toggle" data-holder="${i}" style="display:none;">👁️</button>
@@ -485,19 +486,23 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="holder-row">
           <div>
-            <label>Debit Card Info</label>
-            <input type="text" id="Bank_Holder_${i}_DebitCard" ${!isEditMode ? 'readonly' : ''} placeholder="1234-5678-0908-1456 | 05-25 To 05-28 | 123 | Master Card | 2345">
-            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Format: Card Number | Valid From To | CVV | Card Type | PIN</small>
+            <label>Email/Phone</label>
+            <input type="text" id="Bank_Holder_${i}_EmailPhone" ${!isEditMode ? 'readonly' : ''} placeholder="email@example.com | +91 123-456-7890">
+            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Format: email | +CountryCode Phone (e.g., +91 123-456-7890)</small>
           </div>
           <div></div>
         </div>
         <div class="holder-row">
-          <div>
-            <label>PIN | TPIN | MPIN</label>
-            <input type="text" id="Bank_Holder_${i}_Pins" ${!isEditMode ? 'readonly' : ''} placeholder="xxxxxx | 4567 | xxxxxx">
-            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Format: PIN | TPIN | MPIN (use xxxxxx to mask unavailable values)</small>
+          <div style="flex: 2.5;">
+            <label>Debit Card Info</label>
+            <input type="text" id="Bank_Holder_${i}_DebitCard" ${!isEditMode ? 'readonly' : ''} placeholder="Card Number | Valid From To | CVV | Card Type | Extra Digits | DCPIN">
+            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Format: Card Number | Valid From To | CVV | Card Type | Extra Digits | DCPIN</small>
           </div>
-          <div></div>
+          <div style="flex: 1;">
+            <label>PIN | TPIN | MPIN</label>
+            <input type="text" id="Bank_Holder_${i}_Pins" class="pins-input" ${!isEditMode ? 'readonly' : ''} value="XXXXXX | XXXXXX | XXXXXX" placeholder="XXXXXX | XXXXXX | XXXXXX" style="font-family:'Courier New',monospace;letter-spacing:2px;color:var(--text-secondary);">
+            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Default: XXXXXX | XXXXXX | XXXXXX (always masked)</small>
+          </div>
         </div>
       `;
       holdersContainer.appendChild(holderSection);
@@ -521,6 +526,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (holderNum <= holderCount) {
             const holderField = document.getElementById(`Bank_Holder_${holderNum}_Holder`);
             const nameField = document.getElementById(`Bank_Holder_${holderNum}_Name`);
+            const clientIDField = document.getElementById(`Bank_Holder_${holderNum}_ClientID`);
             const userIDField = document.getElementById(`Bank_Holder_${holderNum}_UserID`);
             const emailPhoneField = document.getElementById(`Bank_Holder_${holderNum}_EmailPhone`);
             const loginPasswordField = document.getElementById(`Bank_Holder_${holderNum}_LoginPassword`);
@@ -529,6 +535,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             if (holderField) holderField.value = holder.holder || '';
             if (nameField) nameField.value = holder.name || '';
+            if (clientIDField) clientIDField.value = holder.clientID || '';
             if (userIDField) userIDField.value = holder.userID || '';
             if (emailPhoneField) emailPhoneField.value = holder.emailPhone || '';
             if (loginPasswordField) {
@@ -537,7 +544,7 @@ document.addEventListener("DOMContentLoaded", () => {
               loginPasswordField.type = 'password';
             }
             if (debitCardField) debitCardField.value = holder.debitCard || '';
-            if (pinsField) pinsField.value = holder.pins || '';
+            if (pinsField) pinsField.value = holder.pins || 'XXXXXX | XXXXXX | XXXXXX';
           }
         });
       }
@@ -662,11 +669,12 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="section-heading-minimal"><strong>Holders & Contacts (1)</strong></div>
           <div class="notes-content-minimal">
             <div><strong>Holder 1: ${holder.name || ''}</strong> <span class="holder-type-badge-inline">${holderType}</span></div>
-            ${holder.userID ? `<div>UserID: ${holder.userID}</div>` : ''}
-            <div>${holder.emailPhone || ''}</div>
-            <div>${holder.holder || ''} / <span class="password-display" data-holder="1" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>
-            <div>${holder.debitCard || ''}</div>
-            ${holder.pins ? `<div>PIN | TPIN | MPIN: ${holder.pins}</div>` : ''}
+            ${holder.clientID ? `<div>Client_ID_or_Customer_ID: ${holder.clientID}</div>` : ''}
+            ${holder.userID ? `<div>UserID_or_LoginID: ${holder.userID}</div>` : ''}
+            ${holder.userID ? `<div>Login_Password: <span class="password-display" data-holder="1" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>` : ''}
+            ${holder.emailPhone ? `<div class="section-heading-minimal"><strong>Email or Phone</strong></div><div>${holder.emailPhone}</div>` : ''}
+            ${holder.debitCard ? `<div class="section-heading-minimal"><strong>Debit Card Information</strong></div><div>${holder.debitCard}</div>` : ''}
+            ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `<div>PIN | TPIN | MPIN: ${holder.pins}</div>` : ''}
           </div>
         </div>
       `;
@@ -682,15 +690,13 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             <div class="holder-card-content">
               <div class="holder-personal-details">
-                ${holder.userID ? `<div>UserID: ${holder.userID}</div>` : ''}
-                <div>${holder.emailPhone || ''}</div>
-                <div>${holder.holder || ''} / <span class="password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>
+                ${holder.clientID ? `<div>Client_ID_or_Customer_ID: ${holder.clientID}</div>` : ''}
+                ${holder.userID ? `<div>UserID_or_LoginID: ${holder.userID}</div>` : ''}
+                ${holder.userID ? `<div>Login_Password: <span class="password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>` : ''}
+                ${holder.emailPhone ? `<div class="section-heading-minimal"><strong>Email or Phone</strong></div><div>${holder.emailPhone}</div>` : ''}
               </div>
-              <div class="holder-card-separator"></div>
-              <div class="holder-debit-card">
-                ${holder.debitCard || ''}
-              </div>
-              ${holder.pins ? `<div class="holder-card-separator"></div><div class="holder-pins">PIN | TPIN | MPIN: ${holder.pins}</div>` : ''}
+              ${holder.debitCard ? `<div class="holder-card-separator"></div><div class="holder-debit-card"><div class="section-heading-minimal"><strong>Debit Card Information</strong></div>${holder.debitCard}</div>` : ''}
+              ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `<div class="holder-card-separator"></div><div class="holder-pins">PIN | TPIN | MPIN: ${holder.pins}</div>` : ''}
             </div>
           </div>
         `;
@@ -759,10 +765,10 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="info-label">Nominee Name:</span>
             <span class="info-value">${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</span>
           </div>
-          ${record.Bank_Nominee_Contact ? `
+          ${record.Bank_Nominee_Email || record.Bank_Nominee_Phone ? `
             <div class="info-row">
-              <span class="info-label">Contact:</span>
-              <span class="info-value">${record.Bank_Nominee_Contact}</span>
+              <span class="info-label">Email or Phone:</span>
+              <span class="info-value">${[record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ') || ''}</span>
             </div>
           ` : ''}
         </div>
@@ -861,11 +867,11 @@ document.addEventListener("DOMContentLoaded", () => {
       `}
 
       <div class="nomination-full-width">
-        <div class="notes-card-minimal">
+          <div class="notes-card-minimal">
           <div class="section-heading-minimal"><strong>Nomination</strong></div>
           <div class="notes-content-minimal">
             <div>${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</div>
-            ${record.Bank_Nominee_Contact ? `<div>${record.Bank_Nominee_Contact}</div>` : ''}
+            ${record.Bank_Nominee_Email || record.Bank_Nominee_Phone ? `<div class="section-heading-minimal"><strong>Email or Phone</strong></div><div>${[record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ') || ''}</div>` : ''}
           </div>
         </div>
       </div>
@@ -976,7 +982,8 @@ document.addEventListener("DOMContentLoaded", () => {
       nomineeNameField.value = record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || '';
     }
     
-    document.getElementById('Bank_Nominee_Contact').value = record.Bank_Nominee_Contact || '';
+    document.getElementById('Bank_Nominee_Email').value = record.Bank_Nominee_Email || '';
+    document.getElementById('Bank_Nominee_Phone').value = record.Bank_Nominee_Phone || '';
     document.getElementById('Bank_Helpline_Phone1').value = record.Bank_Helpline_Phone1 || '';
     document.getElementById('Bank_Helpline_Phone2').value = record.Bank_Helpline_Phone2 || '';
     document.getElementById('Bank_Helpline_Phone3').value = record.Bank_Helpline_Phone3 || '';
@@ -1066,9 +1073,10 @@ document.addEventListener("DOMContentLoaded", () => {
             record.Bank_Holders.forEach((holder, hIdx) => {
               banksData.push([`Holder ${hIdx + 1} (Ac_Holder)`, holder.holder || '']);
               banksData.push([`Holder ${hIdx + 1} Name`, holder.name || '']);
-              banksData.push([`Holder ${hIdx + 1} UserID`, holder.userID || '']);
+              banksData.push([`Holder ${hIdx + 1} Client_ID_or_Customer_ID`, holder.clientID || '']);
+              banksData.push([`Holder ${hIdx + 1} UserID_or_LoginID`, holder.userID || '']);
               banksData.push([`Holder ${hIdx + 1} Email/Phone`, holder.emailPhone || '']);
-              banksData.push([`Holder ${hIdx + 1} Login/Password`, holder.loginPassword || '']);
+              banksData.push([`Holder ${hIdx + 1} Login_Password`, holder.loginPassword || '']);
               banksData.push([`Holder ${hIdx + 1} Debit Card`, holder.debitCard || '']);
               banksData.push([`Holder ${hIdx + 1} PIN | TPIN | MPIN`, holder.pins || '']);
             });
@@ -1076,7 +1084,8 @@ document.addEventListener("DOMContentLoaded", () => {
           
           banksData.push(['Nominee (Ac_Holder)', record.Bank_Nominee_Name || '']);
           banksData.push(['Nominee Name', record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || '']);
-          banksData.push(['Nominee Contact', record.Bank_Nominee_Contact || '']);
+          banksData.push(['Nominee_Email', record.Bank_Nominee_Email || '']);
+          banksData.push(['Nominee_Phone', record.Bank_Nominee_Phone || '']);
           banksData.push(['Helpline Phone 1', record.Bank_Helpline_Phone1 || '']);
           banksData.push(['Helpline Phone 2', record.Bank_Helpline_Phone2 || '']);
           banksData.push(['Helpline Phone 3', record.Bank_Helpline_Phone3 || '']);
@@ -1251,23 +1260,25 @@ document.addEventListener("DOMContentLoaded", () => {
           
           doc.setFont(undefined, 'normal');
           doc.setTextColor(0, 0, 0);
-          if (holder.userID) {
-            doc.text(`UserID: ${holder.userID}`, margin + 5, yPos);
+          if (holder.clientID) {
+            doc.text(`Client_ID_or_Customer_ID: ${holder.clientID}`, margin + 5, yPos);
             yPos += 5;
           }
-          doc.text(`${holder.emailPhone || ''}`, margin + 5, yPos);
-          yPos += 5;
-          doc.text(`${holder.holder || ''} / ${holder.loginPassword || ''}`, margin + 5, yPos);
-          yPos += 6;
-          
-          // Separator line
-          doc.setDrawColor(211, 211, 211);
-          doc.line(margin + 5, yPos, pageWidth - margin - 5, yPos);
-          yPos += 6;
-          
-          doc.text(`${holder.debitCard || ''}`, margin + 5, yPos);
-          yPos += 5;
-          if (holder.pins) {
+          if (holder.userID) {
+            doc.text(`UserID_or_LoginID: ${holder.userID}`, margin + 5, yPos);
+            yPos += 5;
+            doc.text(`Login_Password: ${holder.loginPassword || ''}`, margin + 5, yPos);
+            yPos += 5;
+          }
+          if (holder.emailPhone) {
+            doc.text(`Email or Phone: ${holder.emailPhone}`, margin + 5, yPos);
+            yPos += 5;
+          }
+          if (holder.debitCard) {
+            doc.text(`Debit Card Information: ${holder.debitCard}`, margin + 5, yPos);
+            yPos += 5;
+          }
+          if (holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX') {
             doc.text(`PIN | TPIN | MPIN: ${holder.pins}`, margin + 5, yPos);
             yPos += 5;
           }
@@ -1278,7 +1289,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Nomination - Minimal Card Style
       doc.setDrawColor(211, 211, 211);
       doc.setLineWidth(0.5);
-      const nomineeHeight = record.Bank_Nominee_Contact ? 30 : 25;
+      const nomineeHeight = (record.Bank_Nominee_Email || record.Bank_Nominee_Phone) ? 30 : 25;
       doc.rect(margin, yPos, pageWidth - 2 * margin, nomineeHeight);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(0, 0, 0);
@@ -1287,8 +1298,9 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.setFont(undefined, 'normal');
       doc.text(`${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}`, margin + 5, yPos);
       yPos += 5;
-      if (record.Bank_Nominee_Contact) {
-        doc.text(`${record.Bank_Nominee_Contact}`, margin + 5, yPos);
+      if (record.Bank_Nominee_Email || record.Bank_Nominee_Phone) {
+        const emailPhone = [record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ');
+        doc.text(`Email or Phone: ${emailPhone}`, margin + 5, yPos);
         yPos += 5;
       }
       yPos += 8;
@@ -1373,9 +1385,11 @@ document.addEventListener("DOMContentLoaded", () => {
         <h4>Holder ${idx + 1}</h4>
         <p><strong>Holder (Ac_Holder):</strong> ${holder.holder || ''}</p>
         <p><strong>Name:</strong> ${holder.name || ''}</p>
-        <p><strong>Email/Phone:</strong> ${holder.emailPhone || ''}</p>
-        <p><strong>Login/Password:</strong> ${holder.loginPassword || ''}</p>
-        <p><strong>Debit Card:</strong> ${holder.debitCard || ''}</p>
+        <p><strong>Client_ID_or_Customer_ID:</strong> ${holder.clientID || ''}</p>
+        <p><strong>UserID_or_LoginID:</strong> ${holder.userID || ''}</p>
+        <p><strong>Login_Password:</strong> ${holder.loginPassword || ''}</p>
+        <p><strong>Email or Phone:</strong> ${holder.emailPhone || ''}</p>
+        <p><strong>Debit Card Information:</strong> ${holder.debitCard || ''}</p>
       </div>
     `).join('');
 
@@ -1403,7 +1417,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="section">
             <h3>Nomination</h3>
             <p><strong>Name:</strong> ${record.Bank_Nominee_Name || ''}</p>
-            <p><strong>Contact:</strong> ${record.Bank_Nominee_Contact || ''}</p>
+            <p><strong>Email or Phone:</strong> ${[record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ') || ''}</p>
           </div>
           <div class="section">
             <h3>Helpline</h3>
