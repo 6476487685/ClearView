@@ -926,13 +926,25 @@ document.addEventListener("DOMContentLoaded", () => {
           });
         }
         
-        editIndex = index;
+        // Get actual index from full data array
+        const data = getData();
+        const actualIndex = data.findIndex(r => r.id === record.id);
+        editIndex = actualIndex !== -1 ? actualIndex : index;
+        
         formHasChanges = false;
         originalFormData = JSON.stringify(record);
-        loadRecordIntoForm(record);
-        modalTitle.textContent = 'Edit Bank Account';
+        
+        // Reset form first
+        bankForm.reset();
+        
+        // Populate dropdowns first
         populateModalDropdowns();
         populateNomineeDropdown();
+        
+        // Then load the record data
+        loadRecordIntoForm(record);
+        
+        modalTitle.textContent = 'Edit Bank Account';
         setupAccountTagCheck();
         bankModal.classList.add('show');
       });
