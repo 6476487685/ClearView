@@ -469,13 +469,10 @@ document.addEventListener("DOMContentLoaded", () => {
             <label>Name</label>
             <input type="text" id="Bank_Holder_${i}_Name" ${!isEditMode ? 'readonly' : ''}>
           </div>
-        </div>
-        <div class="holder-row">
           <div>
             <label>Client_ID_or_Customer_ID</label>
             <input type="text" id="Bank_Holder_${i}_ClientID" ${!isEditMode ? 'readonly' : ''} placeholder="Client or Customer ID">
           </div>
-          <div></div>
         </div>
         <div class="holder-row">
           <div>
