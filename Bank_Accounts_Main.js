@@ -777,14 +777,16 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="account-tag-bar-minimal">
         <div class="account-tag-content-minimal">
           <span>${record.Bank_Ac_Tag || 'No Account Tag'}</span>
-          <button class="btn-print" data-index="${index}">🖨️ Print</button>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn-edit" data-index="${index}">✏️ Edit</button>
+            <button class="btn-print" data-index="${index}">🖨️ Print</button>
+          </div>
         </div>
       </div>
 
       ${isEditMode ? `
       <div class="bank-record-header-minimal">
         <div class="bank-record-actions">
-          <button class="btn-edit" data-index="${index}">✏️ Edit</button>
           <button class="btn-delete" data-index="${index}">🗑️ Delete</button>
         </div>
       </div>
@@ -888,7 +890,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (editBtn) {
       editBtn.addEventListener('click', () => {
-        if (!isEditMode) return;
+        // Auto-switch to Edit Mode if not already in Edit Mode
+        if (!isEditMode) {
+          isEditMode = true;
+          btnEditMode.style.display = 'none';
+          btnDisplayMode.style.display = 'inline-flex';
+          document.querySelectorAll('.bank-record-card').forEach(card => {
+            card.classList.remove('read-only');
+          });
+        }
+        
         editIndex = index;
         formHasChanges = false;
         originalFormData = JSON.stringify(record);
@@ -915,8 +926,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (printBtn) {
-      printBtn.addEventListener('click', () => {
-        printRecord(record);
+      printBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+          printRecord(record);
+        } catch (error) {
+          console.error('Print error:', error);
+          alert('Unable to print. Please check if popups are blocked.');
+        }
       });
     }
 
@@ -1374,61 +1392,88 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function printRecord(record) {
-    const printWindow = window.open('', '_blank');
-    const holdersHtml = record.Bank_Holders.map((holder, idx) => `
-      <div style="border:1px solid #ccc;padding:10px;margin-bottom:10px;">
-        <h4>Holder ${idx + 1}</h4>
-        <p><strong>Holder (Ac_Holder):</strong> ${holder.holder || ''}</p>
-        <p><strong>Name:</strong> ${holder.name || ''}</p>
-        <p><strong>Client_ID_or_Customer_ID:</strong> ${holder.clientID || ''}</p>
-        <p><strong>UserID_or_LoginID:</strong> ${holder.userID || ''}</p>
-        <p><strong>Login_Password:</strong> ${holder.loginPassword || ''}</p>
-        <p><strong>Email or Phone:</strong> ${holder.emailPhone || ''}</p>
-        <p><strong>Debit Card Information:</strong> ${holder.debitCard || ''}</p>
-      </div>
-    `).join('');
+    try {
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
+      if (!printWindow) {
+        alert('Please allow popups to print this record.');
+        return;
+      }
+      
+      const holdersHtml = (record.Bank_Holders || []).map((holder, idx) => `
+        <div style="border:1px solid #ccc;padding:10px;margin-bottom:10px;">
+          <h4>Holder ${idx + 1}</h4>
+          <p><strong>Holder (Ac_Holder):</strong> ${holder.holder || ''}</p>
+          <p><strong>Name:</strong> ${holder.name || ''}</p>
+          ${holder.clientID ? `<p><strong>Client_ID_or_Customer_ID:</strong> ${holder.clientID}</p>` : ''}
+          ${holder.userID ? `<p><strong>UserID_or_LoginID:</strong> ${holder.userID}</p>` : ''}
+          ${holder.userID ? `<p><strong>Login_Password:</strong> ${holder.loginPassword || ''}</p>` : ''}
+          ${holder.emailPhone ? `<p><strong>Email or Phone:</strong> ${holder.emailPhone}</p>` : ''}
+          ${holder.debitCard ? `<p><strong>Debit Card Information:</strong> ${holder.debitCard}</p>` : ''}
+          ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `<p><strong>PIN | TPIN | MPIN:</strong> ${holder.pins}</p>` : ''}
+        </div>
+      `).join('');
 
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Bank Account - ${record.Bank_Institution || ''}</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            h1 { color: #b87333; }
-            .section { margin: 20px 0; }
-            @media print { @page { size: portrait; } }
-          </style>
-        </head>
-        <body>
-          <h1>${record.Bank_Institution || ''} - ${record.Bank_Ac_Type || ''}</h1>
-          <div class="section">
-            <p><strong>Account Tag:</strong> ${record.Bank_Ac_Tag || ''}</p>
-            <p><strong>Country:</strong> ${record.Bank_Country || ''}</p>
-          </div>
-          <div class="section">
-            <h3>Holders</h3>
-            ${holdersHtml}
-          </div>
-          <div class="section">
-            <h3>Nomination</h3>
-            <p><strong>Name:</strong> ${record.Bank_Nominee_Name || ''}</p>
-            <p><strong>Email or Phone:</strong> ${[record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ') || ''}</p>
-          </div>
-          <div class="section">
-            <h3>Helpline</h3>
-            <p><strong>Phones:</strong> ${[record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4].filter(p => p).join(', ') || 'None'}</p>
-            <p><strong>Emails:</strong> ${[record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e).join(', ') || 'None'}</p>
-            ${record.Bank_Helpline_URL ? `<p><strong>URL:</strong> ${record.Bank_Helpline_URL}</p>` : ''}
-          </div>
-          <div class="section">
-            <h3>Notes</h3>
-            <p>${record.Bank_Notes || ''}</p>
-          </div>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    setTimeout(() => printWindow.print(), 250);
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Bank Account - ${record.Bank_Institution || ''}</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              h1 { color: #b87333; }
+              .section { margin: 20px 0; }
+              @media print { 
+                @page { size: portrait; margin: 1cm; }
+                body { padding: 0; }
+              }
+            </style>
+          </head>
+          <body>
+            <h1>${record.Bank_Institution || ''} - ${record.Bank_Ac_Type || ''}</h1>
+            <div class="section">
+              <p><strong>Account Tag:</strong> ${record.Bank_Ac_Tag || ''}</p>
+              <p><strong>Country:</strong> ${record.Bank_Country || ''}</p>
+              <p><strong>Account Number:</strong> ${record.Bank_Account_Number || ''}</p>
+              <p><strong>Branch Address:</strong> ${record.Bank_Branch_Address || ''}</p>
+              <p><strong>Account Status:</strong> ${record.Bank_Account_Status || ''}</p>
+              <p><strong>Minimum Balance Required:</strong> ${record.Bank_Min_Balance || ''}</p>
+            </div>
+            ${holdersHtml ? `<div class="section"><h3>Holders</h3>${holdersHtml}</div>` : ''}
+            <div class="section">
+              <h3>Nomination</h3>
+              <p><strong>Name:</strong> ${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</p>
+              ${record.Bank_Nominee_Email ? `<p><strong>Email:</strong> ${record.Bank_Nominee_Email}</p>` : ''}
+              ${record.Bank_Nominee_Phone ? `<p><strong>Phone:</strong> ${record.Bank_Nominee_Phone}</p>` : ''}
+            </div>
+            <div class="section">
+              <h3>Helpline</h3>
+              <p><strong>Phones:</strong> ${[record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4].filter(p => p).join(' / ') || 'None'}</p>
+              <p><strong>Emails:</strong> ${[record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e).join(' / ') || 'None'}</p>
+              ${record.Bank_Helpline_URL ? `<p><strong>URL:</strong> ${record.Bank_Helpline_URL}</p>` : ''}
+            </div>
+            ${record.Bank_Notes ? `<div class="section"><h3>Notes</h3><p>${record.Bank_Notes}</p></div>` : ''}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      
+      // Wait for content to load before printing
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+        }, 500);
+      };
+      
+      // Fallback if onload doesn't fire
+      setTimeout(() => {
+        if (printWindow && !printWindow.closed) {
+          printWindow.print();
+        }
+      }, 1000);
+    } catch (error) {
+      console.error('Print error:', error);
+      alert('Error printing record. Please try again.');
+    }
   }
 });
 
