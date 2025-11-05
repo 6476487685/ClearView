@@ -776,17 +776,19 @@ document.addEventListener("DOMContentLoaded", () => {
     card.innerHTML = `
       <div class="account-tag-bar-minimal">
         <div class="account-tag-content-minimal">
-          ${record.Bank_Ac_Tag || 'No Account Tag'}
-        </div>
-      </div>
-
-      <div class="bank-record-header-minimal">
-        <div class="bank-record-actions">
-          ${isEditMode ? `<button class="btn-edit" data-index="${index}">✏️ Edit</button>` : ''}
-          ${isEditMode ? `<button class="btn-delete" data-index="${index}">🗑️ Delete</button>` : ''}
+          <span>${record.Bank_Ac_Tag || 'No Account Tag'}</span>
           <button class="btn-print" data-index="${index}">🖨️ Print</button>
         </div>
       </div>
+
+      ${isEditMode ? `
+      <div class="bank-record-header-minimal">
+        <div class="bank-record-actions">
+          <button class="btn-edit" data-index="${index}">✏️ Edit</button>
+          <button class="btn-delete" data-index="${index}">🗑️ Delete</button>
+        </div>
+      </div>
+      ` : ''}
 
       <div class="two-column-layout">
         <div class="column-left">
