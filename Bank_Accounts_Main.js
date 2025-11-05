@@ -164,12 +164,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const holders = [];
     const holderCount = parseInt(holderCountSelect.value);
     for (let i = 1; i <= holderCount; i++) {
+      const email = document.getElementById(`Bank_Holder_${i}_Email`).value || '';
+      const phone = document.getElementById(`Bank_Holder_${i}_Phone`).value || '';
+      const emailPhone = email && phone ? `${email} | ${phone}` : email || phone || '';
+      
       holders.push({
         holder: document.getElementById(`Bank_Holder_${i}_Holder`).value || '',
         name: document.getElementById(`Bank_Holder_${i}_Name`).value || '',
         clientID: document.getElementById(`Bank_Holder_${i}_ClientID`).value || '',
         userID: document.getElementById(`Bank_Holder_${i}_UserID`).value || '',
-        emailPhone: document.getElementById(`Bank_Holder_${i}_EmailPhone`).value || '',
+        email: email,
+        phone: phone,
+        emailPhone: emailPhone, // Keep for backward compatibility
         loginPassword: document.getElementById(`Bank_Holder_${i}_LoginPassword`).value || '',
         debitCard: document.getElementById(`Bank_Holder_${i}_DebitCard`).value || '',
         pins: document.getElementById(`Bank_Holder_${i}_Pins`).value || 'XXXXXX | XXXXXX | XXXXXX'
@@ -486,11 +492,14 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="holder-row">
           <div>
-            <label>Email/Phone</label>
-            <input type="text" id="Bank_Holder_${i}_EmailPhone" ${!isEditMode ? 'readonly' : ''} placeholder="email@example.com | +91 123-456-7890">
-            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Format: email | +CountryCode Phone (e.g., +91 123-456-7890)</small>
+            <label>Email</label>
+            <input type="email" id="Bank_Holder_${i}_Email" ${!isEditMode ? 'readonly' : ''} placeholder="email@example.com">
           </div>
-          <div></div>
+          <div>
+            <label>Phone</label>
+            <input type="tel" id="Bank_Holder_${i}_Phone" ${!isEditMode ? 'readonly' : ''} placeholder="+91 123-456-7890">
+            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Format: +CountryCode Phone (e.g., +91 123-456-7890)</small>
+          </div>
         </div>
         <div class="holder-row">
           <div style="flex: 2.5;">
@@ -528,7 +537,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const nameField = document.getElementById(`Bank_Holder_${holderNum}_Name`);
             const clientIDField = document.getElementById(`Bank_Holder_${holderNum}_ClientID`);
             const userIDField = document.getElementById(`Bank_Holder_${holderNum}_UserID`);
-            const emailPhoneField = document.getElementById(`Bank_Holder_${holderNum}_EmailPhone`);
+            const emailField = document.getElementById(`Bank_Holder_${holderNum}_Email`);
+            const phoneField = document.getElementById(`Bank_Holder_${holderNum}_Phone`);
             const loginPasswordField = document.getElementById(`Bank_Holder_${holderNum}_LoginPassword`);
             const debitCardField = document.getElementById(`Bank_Holder_${holderNum}_DebitCard`);
             const pinsField = document.getElementById(`Bank_Holder_${holderNum}_Pins`);
@@ -537,7 +547,27 @@ document.addEventListener("DOMContentLoaded", () => {
             if (nameField) nameField.value = holder.name || '';
             if (clientIDField) clientIDField.value = holder.clientID || '';
             if (userIDField) userIDField.value = holder.userID || '';
-            if (emailPhoneField) emailPhoneField.value = holder.emailPhone || '';
+            
+            // Load email and phone separately, or parse from emailPhone for backward compatibility
+            if (emailField) {
+              if (holder.email) {
+                emailField.value = holder.email;
+              } else if (holder.emailPhone) {
+                // Parse old format: "email | phone"
+                const parts = holder.emailPhone.split(' | ');
+                emailField.value = parts[0] || '';
+              }
+            }
+            if (phoneField) {
+              if (holder.phone) {
+                phoneField.value = holder.phone;
+              } else if (holder.emailPhone) {
+                // Parse old format: "email | phone"
+                const parts = holder.emailPhone.split(' | ');
+                phoneField.value = parts.length > 1 ? parts[1] : '';
+              }
+            }
+            
             if (loginPasswordField) {
               loginPasswordField.value = holder.loginPassword || '';
               // Mask password initially
