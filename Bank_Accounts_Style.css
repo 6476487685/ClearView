@@ -199,23 +199,36 @@ body.dark{
 .account-tag-content{
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:8px;
   width:100%;
 }
 
 .account-tag-content label{
   font-weight:600;
   color:var(--text-primary);
+  font-size:13px;
+  white-space:nowrap;
+  flex-shrink:0;
 }
 
 .account-tag-content select{
-  padding:8px 12px;
+  padding:6px 10px;
   border:1px solid var(--border);
   border-radius:var(--radius);
   font-size:13px;
   background:var(--surface);
   color:var(--text-primary);
-  min-width:300px;
+  flex:1;
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.account-tag-content #btnAddRecord{
+  flex-shrink:0;
+  white-space:nowrap;
+  margin-left:8px;
 }
 
 /* Bank Records Container */
