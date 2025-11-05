@@ -866,9 +866,9 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="notes-card-minimal">
           <div class="section-heading-minimal"><strong>Nomination</strong></div>
           <div class="notes-content-minimal">
-            ${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name ? `<div><strong>Name:</strong> ${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name}</div>` : ''}
-            ${record.Bank_Nominee_Email ? `<div><strong>Email:</strong> ${record.Bank_Nominee_Email}</div>` : ''}
-            ${record.Bank_Nominee_Phone ? `<div><strong>Phone:</strong> ${record.Bank_Nominee_Phone}</div>` : ''}
+            <div><strong>Name:</strong> ${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</div>
+            <div><strong>Email:</strong> ${record.Bank_Nominee_Email || ''}</div>
+            <div><strong>Phone:</strong> ${record.Bank_Nominee_Phone || ''}</div>
           </div>
         </div>
       </div>
