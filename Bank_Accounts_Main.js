@@ -497,8 +497,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <div>
             <label>Phone</label>
-            <input type="tel" id="Bank_Holder_${i}_Phone" ${!isEditMode ? 'readonly' : ''} placeholder="+91 123-456-7890">
-            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Format: +CountryCode Phone (e.g., +91 123-456-7890)</small>
+            <input type="tel" id="Bank_Holder_${i}_Phone" ${!isEditMode ? 'readonly' : ''} placeholder="+91 123-456-7890" title="Format: +country_code phone (e.g., +91 647-647-1234)">
           </div>
         </div>
         <div class="holder-row">
