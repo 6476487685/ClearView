@@ -866,8 +866,9 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="notes-card-minimal">
           <div class="section-heading-minimal"><strong>Nomination</strong></div>
           <div class="notes-content-minimal">
-            <div>${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</div>
-            ${record.Bank_Nominee_Email || record.Bank_Nominee_Phone ? `<div class="section-heading-minimal"><strong>Email or Phone</strong></div><div>${[record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ') || ''}</div>` : ''}
+            ${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name ? `<div><strong>Name:</strong> ${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name}</div>` : ''}
+            ${record.Bank_Nominee_Email ? `<div><strong>Email:</strong> ${record.Bank_Nominee_Email}</div>` : ''}
+            ${record.Bank_Nominee_Phone ? `<div><strong>Phone:</strong> ${record.Bank_Nominee_Phone}</div>` : ''}
           </div>
         </div>
       </div>
