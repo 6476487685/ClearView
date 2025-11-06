@@ -1266,8 +1266,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 10;
-    let yPos = margin;
+    // Set margins: 1 inch = 25.4mm (left, right, top), smaller bottom for more content space
+    const marginLeft = 25.4;
+    const marginRight = 25.4;
+    const marginTop = 25.4;
+    const marginBottom = 12; // Smaller bottom margin to expand content area by ~2 inches
+    const contentWidth = pageWidth - marginLeft - marginRight;
+    const contentHeight = pageHeight - marginTop - marginBottom;
+    let yPos = marginTop;
 
     const bankRecords = getData();
     const totalRecords = bankRecords.length;
@@ -1293,62 +1299,61 @@ document.addEventListener("DOMContentLoaded", () => {
     // Summary Page (First Page)
     doc.setFontSize(20);
     doc.text('ClearView Banks Summary', pageWidth / 2, yPos, { align: 'center' });
-    yPos += 15;
+    yPos += 18;
 
     doc.setFontSize(12);
     doc.text(`Total Records: ${totalRecords}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 10;
+    yPos += 12;
 
     doc.text(`India Banks: ${countryCounts.India}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 7;
+    yPos += 8;
     doc.text(`Canada Banks: ${countryCounts.Canada}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 7;
+    yPos += 8;
     doc.text(`US Banks: ${countryCounts.US}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 10;
+    yPos += 12;
 
     Object.entries(holderCounts).forEach(([name, count]) => {
       doc.text(`Accounts for ${name}: ${count}`, pageWidth / 2, yPos, { align: 'center' });
-      yPos += 7;
+      yPos += 8;
     });
 
     // Add footer to summary page
     let currentPage = 1;
     // Total pages will be calculated dynamically as we add pages
     let totalPages = 1; // Start with summary page
-    addFooter(doc, totalRecords, currentPage, totalPages);
+    addFooter(doc, totalRecords, currentPage, totalPages, marginBottom);
     
     // Add new page for records
     doc.addPage();
     currentPage++;
     totalPages = currentPage;
-    yPos = margin;
+    yPos = marginTop;
 
     bankRecords.forEach((record, index) => {
       // Check if we need a new page before starting a new record
-      if (yPos > pageHeight - 50) {
+      if (yPos > pageHeight - marginBottom - 20) {
         doc.addPage();
         currentPage++;
         totalPages = currentPage;
-        yPos = margin;
+        yPos = marginTop;
       }
 
       // Add footer to current page (will update totalPages dynamically)
-      addFooter(doc, totalRecords, currentPage, totalPages);
+      addFooter(doc, totalRecords, currentPage, totalPages, marginBottom);
 
       // Account Tag Bar (light blue background)
       doc.setFillColor(227, 242, 253); // #e3f2fd
-      doc.rect(margin, yPos, pageWidth - 2 * margin, 10, 'F');
-      doc.setFontSize(14);
+      doc.rect(marginLeft, yPos, contentWidth, 11, 'F');
+      doc.setFontSize(13);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(25, 118, 210); // #1976d2
-      doc.text(`${record.Bank_Ac_Tag || 'No Account Tag'}`, margin + 5, yPos + 7);
-      yPos += 15;
+      doc.text(`${record.Bank_Ac_Tag || 'No Account Tag'}`, marginLeft + 5, yPos + 7.5);
+      yPos += 16;
 
       // Two Column Layout: Bank Information (Left) and Account Information (Right)
-      // Use more space in landscape mode
-      const colWidth = (pageWidth - 2 * margin - 12) / 2;
-      const leftX = margin;
-      const rightX = margin + colWidth + 12;
+      const colWidth = (contentWidth - 12) / 2;
+      const leftX = marginLeft;
+      const rightX = marginLeft + colWidth + 12;
       const startY = yPos;
 
       // Bank Information Card (Left Column)
@@ -1357,19 +1362,19 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.setFontSize(11);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(0, 0, 0);
-      doc.text('Bank Information', leftX + 3, yPos);
+      doc.text('Bank Information', leftX + 4, yPos);
       yPos += 7;
       
-      doc.setFontSize(9);
+      doc.setFontSize(9.5);
       doc.setFont(undefined, 'normal');
-      doc.text(`Bank: ${record.Bank_Institution || ''}`, leftX + 3, yPos, { maxWidth: colWidth - 6 });
-      yPos += 5;
-      doc.text(`Country: ${record.Bank_Country || ''}`, leftX + 3, yPos);
-      yPos += 5;
-      const branchText = doc.splitTextToSize(`Branch: ${record.Bank_Branch_Address || ''}`, colWidth - 6);
+      doc.text(`Bank: ${record.Bank_Institution || ''}`, leftX + 4, yPos, { maxWidth: colWidth - 8 });
+      yPos += 5.5;
+      doc.text(`Country: ${record.Bank_Country || ''}`, leftX + 4, yPos);
+      yPos += 5.5;
+      const branchText = doc.splitTextToSize(`Branch: ${record.Bank_Branch_Address || ''}`, colWidth - 8);
       branchText.forEach(line => {
-        doc.text(line, leftX + 3, yPos);
-      yPos += 5;
+        doc.text(line, leftX + 4, yPos);
+        yPos += 5.5;
       });
       
       // Helpline section
@@ -1378,29 +1383,29 @@ document.addEventListener("DOMContentLoaded", () => {
       if (phones.length > 0 || emails.length > 0 || record.Bank_Helpline_URL) {
         yPos += 3;
         doc.setFont(undefined, 'bold');
-        doc.setFontSize(9);
-        doc.text('Helpline', leftX + 3, yPos);
-      yPos += 5;
+        doc.setFontSize(9.5);
+        doc.text('Helpline', leftX + 4, yPos);
+        yPos += 5.5;
         doc.setFont(undefined, 'normal');
         if (phones.length > 0) {
-          const phoneText = doc.splitTextToSize(`Phone: ${phones.join(' / ')}`, colWidth - 6);
+          const phoneText = doc.splitTextToSize(`Phone: ${phones.join(' / ')}`, colWidth - 8);
           phoneText.forEach(line => {
-            doc.text(line, leftX + 3, yPos);
-      yPos += 5;
+            doc.text(line, leftX + 4, yPos);
+            yPos += 5.5;
           });
         }
         if (emails.length > 0) {
-          const emailText = doc.splitTextToSize(`Email: ${emails.join(' / ')}`, colWidth - 6);
+          const emailText = doc.splitTextToSize(`Email: ${emails.join(' / ')}`, colWidth - 8);
           emailText.forEach(line => {
-            doc.text(line, leftX + 3, yPos);
-      yPos += 5;
+            doc.text(line, leftX + 4, yPos);
+            yPos += 5.5;
           });
         }
         if (record.Bank_Helpline_URL) {
-          const urlText = doc.splitTextToSize(`URL: ${record.Bank_Helpline_URL}`, colWidth - 6);
+          const urlText = doc.splitTextToSize(`URL: ${record.Bank_Helpline_URL}`, colWidth - 8);
           urlText.forEach(line => {
-            doc.text(line, leftX + 3, yPos);
-      yPos += 5;
+            doc.text(line, leftX + 4, yPos);
+            yPos += 5.5;
           });
         }
       }
@@ -1411,42 +1416,42 @@ document.addEventListener("DOMContentLoaded", () => {
       yPos = startY;
       doc.setFontSize(11);
       doc.setFont(undefined, 'bold');
-      doc.text('Account Information', rightX + 3, yPos);
+      doc.text('Account Information', rightX + 4, yPos);
       yPos += 7;
       
-      doc.setFontSize(9);
+      doc.setFontSize(9.5);
       doc.setFont(undefined, 'normal');
-      doc.text(`Type: ${record.Bank_Ac_Type || ''}`, rightX + 3, yPos);
-      yPos += 5;
-      doc.text(`Number: ${record.Bank_Account_Number || ''}`, rightX + 3, yPos);
-      yPos += 5;
-      const transitText = doc.splitTextToSize(`Transit/IFSC: ${record.Bank_Transit_IFSC || ''}`, colWidth - 6);
+      doc.text(`Type: ${record.Bank_Ac_Type || ''}`, rightX + 4, yPos);
+      yPos += 5.5;
+      doc.text(`Number: ${record.Bank_Account_Number || ''}`, rightX + 4, yPos);
+      yPos += 5.5;
+      const transitText = doc.splitTextToSize(`Transit/IFSC: ${record.Bank_Transit_IFSC || ''}`, colWidth - 8);
       transitText.forEach(line => {
-        doc.text(line, rightX + 3, yPos);
-        yPos += 5;
+        doc.text(line, rightX + 4, yPos);
+        yPos += 5.5;
       });
-      const instText = doc.splitTextToSize(`Inst/MICR: ${record.Bank_Institution_MICR || ''}`, colWidth - 6);
+      const instText = doc.splitTextToSize(`Inst/MICR: ${record.Bank_Institution_MICR || ''}`, colWidth - 8);
       instText.forEach(line => {
-        doc.text(line, rightX + 3, yPos);
-        yPos += 5;
+        doc.text(line, rightX + 4, yPos);
+        yPos += 5.5;
       });
-      doc.text(`Status: ${record.Bank_Account_Status || ''}`, rightX + 3, yPos);
-      yPos += 5;
-      doc.text(`Min Balance: ${record.Bank_Min_Balance || ''}`, rightX + 3, yPos);
-      yPos += 5;
+      doc.text(`Status: ${record.Bank_Account_Status || ''}`, rightX + 4, yPos);
+      yPos += 5.5;
+      doc.text(`Min Balance: ${record.Bank_Min_Balance || ''}`, rightX + 4, yPos);
+      yPos += 5.5;
       
       // Notes in Account Information
       if (record.Bank_Notes) {
         yPos += 3;
         doc.setFont(undefined, 'bold');
-        doc.text('Notes:', rightX + 3, yPos);
-        yPos += 5;
+        doc.text('Notes:', rightX + 4, yPos);
+        yPos += 5.5;
         doc.setFont(undefined, 'normal');
         const notesLines = record.Bank_Notes.split('\n').filter(l => l.trim());
         notesLines.forEach(line => {
-          const noteText = doc.splitTextToSize(line.trim(), colWidth - 6);
+          const noteText = doc.splitTextToSize(line.trim(), colWidth - 8);
           noteText.forEach(noteLine => {
-            doc.text(noteLine, rightX + 3, yPos);
+            doc.text(noteLine, rightX + 4, yPos);
             yPos += 4.5;
           });
         });
@@ -1468,13 +1473,13 @@ document.addEventListener("DOMContentLoaded", () => {
         
         record.Bank_Holders.forEach((holder, hIdx) => {
           // Check if we need a new page for holders (check earlier to avoid cutting off)
-          const estimatedHolderHeight = 35; // Estimated height for one holder
-          if (yPos + estimatedHolderHeight > pageHeight - 40) {
+          const estimatedHolderHeight = 40; // Estimated height for one holder
+          if (yPos + estimatedHolderHeight > pageHeight - marginBottom - 20) {
             doc.addPage();
             currentPage++;
             totalPages = currentPage;
-            yPos = margin;
-            addFooter(doc, totalRecords, currentPage, totalPages);
+            yPos = marginTop;
+            addFooter(doc, totalRecords, currentPage, totalPages, marginBottom);
           }
 
           const holderType = hIdx === 0 ? 'Sole Holder' : 'Joint Holder';
@@ -1483,40 +1488,39 @@ document.addEventListener("DOMContentLoaded", () => {
           const holderColor = holderColors[colorIndex];
           
           // Holder Header with soothing colored background (matching display mode)
-          // Create gradient effect by using the header color
           doc.setFillColor(holderColor.header[0], holderColor.header[1], holderColor.header[2]);
-          doc.rect(margin, yPos, pageWidth - 2 * margin, 7, 'F');
+          doc.rect(marginLeft, yPos, contentWidth, 7, 'F');
           doc.setFontSize(10);
           doc.setFont(undefined, 'bold');
           doc.setTextColor(0, 0, 0);
-          doc.text(`Holder ${hIdx + 1}: ${holder.name || ''}`, margin + 3, yPos + 5);
-          doc.setFontSize(8);
+          doc.text(`Holder ${hIdx + 1}: ${holder.name || ''}`, marginLeft + 4, yPos + 5.5);
+          doc.setFontSize(8.5);
           doc.setTextColor(holderColor.text[0], holderColor.text[1], holderColor.text[2]);
-          doc.text(holderType, pageWidth - margin - 30, yPos + 5);
+          doc.text(holderType, pageWidth - marginRight - 35, yPos + 5.5);
           yPos += 9;
 
           // Table Header (Black background with white text)
           doc.setFillColor(0, 0, 0); // Black
-          doc.rect(margin, yPos, pageWidth - 2 * margin, 7, 'F');
-          doc.setFontSize(8);
+          doc.rect(marginLeft, yPos, contentWidth, 7, 'F');
+          doc.setFontSize(8.5);
           doc.setFont(undefined, 'bold');
           doc.setTextColor(255, 255, 255); // White
-          // Adjust column widths for landscape mode (more horizontal space)
-          const col1Width = 45;
-          const col2Width = 80;
-          const col3Width = 70;
-          const col4Width = pageWidth - 2 * margin - col1Width - col2Width - col3Width - 10;
-          doc.text('Client ID | Customer ID', margin + 2, yPos + 5.5);
-          doc.text('Debit Card Information', margin + col1Width + 2, yPos + 5.5);
-          doc.text('Email | Phone', margin + col1Width + col2Width + 2, yPos + 5.5);
-          doc.text('Interacc Email | UPI ID', margin + col1Width + col2Width + col3Width + 2, yPos + 5.5);
+          // Adjust column widths for landscape mode with new margins
+          const col1Width = 50;
+          const col2Width = 85;
+          const col3Width = 75;
+          const col4Width = contentWidth - col1Width - col2Width - col3Width - 12;
+          doc.text('Client ID | Customer ID', marginLeft + 3, yPos + 5.5);
+          doc.text('Debit Card Information', marginLeft + col1Width + 3, yPos + 5.5);
+          doc.text('Email | Phone', marginLeft + col1Width + col2Width + 3, yPos + 5.5);
+          doc.text('Interacc Email | UPI ID', marginLeft + col1Width + col2Width + col3Width + 3, yPos + 5.5);
           yPos += 8;
           
           // Reset text color to black for table data
           doc.setTextColor(0, 0, 0);
 
           // Table Data Row
-          doc.setFontSize(8);
+          doc.setFontSize(8.5);
           doc.setFont(undefined, 'normal');
           doc.setTextColor(0, 0, 0);
           const clientIDText = doc.splitTextToSize(holder.clientID || '', col1Width - 4);
@@ -1524,20 +1528,20 @@ document.addEventListener("DOMContentLoaded", () => {
           const emailPhoneText = doc.splitTextToSize(holder.emailPhone || '', col3Width - 4);
           const interaccText = doc.splitTextToSize(holder.interaccEmailOrUPIID || '', col4Width - 4);
           const maxRows = Math.max(clientIDText.length, debitCardText.length, emailPhoneText.length, interaccText.length, 1);
-          const rowHeight = 5;
+          const rowHeight = 5.5;
           
           for (let i = 0; i < maxRows; i++) {
             if (i < clientIDText.length) {
-              doc.text(clientIDText[i], margin + 2, yPos);
+              doc.text(clientIDText[i], marginLeft + 3, yPos);
             }
             if (i < debitCardText.length) {
-              doc.text(debitCardText[i], margin + col1Width + 2, yPos);
+              doc.text(debitCardText[i], marginLeft + col1Width + 3, yPos);
             }
             if (i < emailPhoneText.length) {
-              doc.text(emailPhoneText[i], margin + col1Width + col2Width + 2, yPos);
+              doc.text(emailPhoneText[i], marginLeft + col1Width + col2Width + 3, yPos);
             }
             if (i < interaccText.length) {
-              doc.text(interaccText[i], margin + col1Width + col2Width + col3Width + 2, yPos);
+              doc.text(interaccText[i], marginLeft + col1Width + col2Width + col3Width + 3, yPos);
             }
             yPos += rowHeight;
           }
@@ -1547,51 +1551,51 @@ document.addEventListener("DOMContentLoaded", () => {
           doc.setLineWidth(0.5);
           const tableHeight = 7 + (maxRows * rowHeight);
           // Draw border around entire holder section (header + table)
-          doc.rect(margin, holderStartY, pageWidth - 2 * margin, 7 + tableHeight);
+          doc.rect(marginLeft, holderStartY, contentWidth, 7 + tableHeight);
 
           // Additional info below table (UserID, PIN)
           if (holder.userID || (holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX')) {
             yPos += 3;
-            doc.setFontSize(8);
+            doc.setFontSize(8.5);
             if (holder.userID) {
-              doc.text(`UserID: ${holder.userID} / Pass: ${holder.loginPassword || ''}`, margin + 3, yPos);
-            yPos += 5;
+              doc.text(`UserID: ${holder.userID} / Pass: ${holder.loginPassword || ''}`, marginLeft + 4, yPos);
+              yPos += 5.5;
+            }
+            if (holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX') {
+              doc.text(`PIN | TPIN | MPIN: ${holder.pins}`, marginLeft + 4, yPos);
+              yPos += 5.5;
+            }
           }
-          if (holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX') {
-              doc.text(`PIN | TPIN | MPIN: ${holder.pins}`, margin + 3, yPos);
-            yPos += 5;
-          }
-          }
-          yPos += 6;
+          yPos += 7;
         });
       }
 
       // Nomination
-      if (yPos > pageHeight - 35) {
+      if (yPos > pageHeight - marginBottom - 20) {
         doc.addPage();
         currentPage++;
         totalPages = currentPage;
-        yPos = margin;
-        addFooter(doc, totalRecords, currentPage, totalPages);
+        yPos = marginTop;
+        addFooter(doc, totalRecords, currentPage, totalPages, marginBottom);
       }
       const nomineeStartY = yPos;
       doc.setDrawColor(211, 211, 211);
       doc.setLineWidth(0.5);
       doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
-      doc.text('Nomination', margin + 3, yPos + 5);
+      doc.text('Nomination', marginLeft + 4, yPos + 5.5);
       yPos += 7;
-      doc.setFontSize(9);
+      doc.setFontSize(9.5);
       doc.setFont(undefined, 'normal');
-      doc.text(`${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}`, margin + 3, yPos);
-      yPos += 5;
+      doc.text(`${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}`, marginLeft + 4, yPos);
+      yPos += 5.5;
       if (record.Bank_Nominee_Email || record.Bank_Nominee_Phone) {
         const emailPhone = [record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ');
-        doc.text(`Email | Phone: ${emailPhone}`, margin + 3, yPos);
-        yPos += 5;
+        doc.text(`Email | Phone: ${emailPhone}`, marginLeft + 4, yPos);
+        yPos += 5.5;
       }
       const nomineeHeight = yPos - nomineeStartY + 3;
-      doc.rect(margin, nomineeStartY, pageWidth - 2 * margin, nomineeHeight);
+      doc.rect(marginLeft, nomineeStartY, contentWidth, nomineeHeight);
       yPos += 8;
 
       yPos += 5; // Space between records
@@ -1612,12 +1616,12 @@ document.addEventListener("DOMContentLoaded", () => {
     doc.save(filename);
   }
 
-  function addFooter(doc, totalRecords, currentPage, totalPages) {
+  function addFooter(doc, totalRecords, currentPage, totalPages, marginBottom = 12) {
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
     const footerText = `Clearview Banks Data | Total Records: (${totalRecords}) | Page ${currentPage}/${totalPages}`;
     doc.setFontSize(8);
-    doc.text(footerText, pageWidth / 2, pageHeight - 10, { align: 'center' });
+    doc.text(footerText, pageWidth / 2, pageHeight - marginBottom + 8, { align: 'center' });
   }
 
   function printRecord(record) {
