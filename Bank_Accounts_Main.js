@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
   // State Management
-  let isEditMode = false;
   let editIndex = null;
   let passwordRevealTimers = {};
   let passwordClickCounts = {};
@@ -12,8 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalTitle = document.getElementById('modalTitle');
   const cancelBtn = document.getElementById('cancelBtn');
   const saveBtn = document.getElementById('saveBtn');
-  const btnEditMode = document.getElementById('btnEditMode');
-  const btnDisplayMode = document.getElementById('btnDisplayMode');
   const btnAddRecord = document.getElementById('btnAddRecord');
   const bankRecordsContainer = document.getElementById('bankRecordsContainer');
   const accountTagSelect = document.getElementById('accountTagSelect');
@@ -35,26 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Don't call populateInstitutionAndAcType here - it will be called when modal opens
   }, 100);
 
-  // Edit/Display Mode Toggle
-  btnEditMode.addEventListener('click', () => {
-    isEditMode = true;
-    btnEditMode.style.display = 'none';
-    btnDisplayMode.style.display = 'inline-flex';
-    document.querySelectorAll('.bank-record-card').forEach(card => {
-      card.classList.remove('read-only');
-    });
-  });
-
-  btnDisplayMode.addEventListener('click', () => {
-    isEditMode = false;
-    btnEditMode.style.display = 'inline-flex';
-    btnDisplayMode.style.display = 'none';
-    document.querySelectorAll('.bank-record-card').forEach(card => {
-      card.classList.add('read-only');
-    });
-    // Close modal if open
-    bankModal.classList.remove('show');
-  });
 
   // Account Tag Change
   accountTagSelect.addEventListener('change', () => {
@@ -78,18 +55,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderHolders();
   });
 
-  // Add Record - always visible, auto-switches to Edit Mode if needed
+  // Add Record
   btnAddRecord.addEventListener('click', () => {
-    // If not in Edit Mode, switch to Edit Mode first
-    if (!isEditMode) {
-      isEditMode = true;
-      btnEditMode.style.display = 'none';
-      btnDisplayMode.style.display = 'inline-flex';
-      document.querySelectorAll('.bank-record-card').forEach(card => {
-        card.classList.remove('read-only');
-      });
-    }
-    
     editIndex = null;
     bankForm.reset();
     formHasChanges = false;
@@ -159,7 +126,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Form Submit
   bankForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    if (!isEditMode) return;
 
     const holders = [];
     const holderCount = parseInt(holderCountSelect.value);
@@ -227,10 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
     formHasChanges = false;
     originalFormData = null;
 
-    // Return to display mode
-    isEditMode = false;
-    btnEditMode.style.display = 'inline-flex';
-    btnDisplayMode.style.display = 'none';
 
     closeModal();
     renderRecords();
@@ -464,50 +426,50 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="holder-row">
           <div>
             <label>Holder (Ac_Holder)</label>
-            <select id="Bank_Holder_${i}_Holder" ${!isEditMode ? 'disabled' : ''}></select>
+            <select id="Bank_Holder_${i}_Holder"></select>
           </div>
           <div>
             <label>Name</label>
-            <input type="text" id="Bank_Holder_${i}_Name" ${!isEditMode ? 'readonly' : ''}>
+            <input type="text" id="Bank_Holder_${i}_Name">
           </div>
           <div>
             <label>Client_ID_or_Customer_ID</label>
-            <input type="text" id="Bank_Holder_${i}_ClientID" ${!isEditMode ? 'readonly' : ''} placeholder="Client or Customer ID">
+            <input type="text" id="Bank_Holder_${i}_ClientID" placeholder="Client or Customer ID">
           </div>
         </div>
         <div class="holder-row">
           <div>
             <label>UserID_or_LoginID</label>
-            <input type="text" id="Bank_Holder_${i}_UserID" ${!isEditMode ? 'readonly' : ''} placeholder="UserID or LoginID">
+            <input type="text" id="Bank_Holder_${i}_UserID" placeholder="UserID or LoginID">
           </div>
           <div>
             <label>Login_Password</label>
             <div class="password-field">
-              <input type="password" id="Bank_Holder_${i}_LoginPassword" class="password-input" data-holder="${i}" ${!isEditMode ? 'readonly' : ''}>
+              <input type="password" id="Bank_Holder_${i}_LoginPassword" class="password-input" data-holder="${i}">
               <button type="button" class="password-toggle" data-holder="${i}" style="display:none;">👁️</button>
             </div>
           </div>
           <div>
             <label>Email</label>
-            <input type="email" id="Bank_Holder_${i}_Email" ${!isEditMode ? 'readonly' : ''} placeholder="email@example.com">
+            <input type="email" id="Bank_Holder_${i}_Email" placeholder="email@example.com">
           </div>
           <div>
             <label>Phone</label>
-            <input type="tel" id="Bank_Holder_${i}_Phone" ${!isEditMode ? 'readonly' : ''} placeholder="+91 123-456-7890" title="Format: +country_code phone (e.g., +91 647-647-1234)">
+            <input type="tel" id="Bank_Holder_${i}_Phone" placeholder="+91 123-456-7890" title="Format: +country_code phone (e.g., +91 647-647-1234)">
           </div>
         </div>
         <div class="holder-row">
           <div style="flex: 2.5;">
             <label>Debit Card Info <span style="font-size: 10px; color: #4285f4;">[Format: Card Number | Valid From To | CVV | Card Type | Extra Digits | DCPIN]</span></label>
-            <input type="text" id="Bank_Holder_${i}_DebitCard" ${!isEditMode ? 'readonly' : ''} placeholder="Card Number | Valid From To | CVV | Card Type | Extra Digits | DCPIN">
+            <input type="text" id="Bank_Holder_${i}_DebitCard" placeholder="Card Number | Valid From To | CVV | Card Type | Extra Digits | DCPIN">
           </div>
           <div style="flex: 1.4;">
             <label>PIN | TPIN | MPIN</label>
-            <input type="text" id="Bank_Holder_${i}_Pins" class="pins-input" ${!isEditMode ? 'readonly' : ''} value="XXXXXX | XXXXXX | XXXXXX" placeholder="XXXXXX | XXXXXX | XXXXXX" style="font-family:'Courier New',monospace;letter-spacing:2px;color:var(--text-secondary);">
+            <input type="text" id="Bank_Holder_${i}_Pins" class="pins-input" value="XXXXXX | XXXXXX | XXXXXX" placeholder="XXXXXX | XXXXXX | XXXXXX" style="font-family:'Courier New',monospace;letter-spacing:2px;color:var(--text-secondary);">
           </div>
           <div style="flex: 1.1;">
             <label>Interacc_Email_or_UPI_ID</label>
-            <input type="text" id="Bank_Holder_${i}_Interacc_Email_or_UPI_ID" ${!isEditMode ? 'readonly' : ''} placeholder="Email or UPI ID">
+            <input type="text" id="Bank_Holder_${i}_Interacc_Email_or_UPI_ID" placeholder="Email or UPI ID">
           </div>
         </div>
       `;
@@ -679,9 +641,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function createRecordCard(record, index) {
     const card = document.createElement('div');
     card.className = 'bank-record-card';
-    if (!isEditMode) {
-      card.classList.add('read-only');
-    }
 
     // Create holders display - 2x2 grid for up to 4 holders
     const holderCount = record.Bank_Holders ? record.Bank_Holders.length : 0;
@@ -870,14 +829,6 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
 
-      ${isEditMode ? `
-      <div class="bank-record-header-minimal">
-        <div class="bank-record-actions">
-          <button class="btn-delete" data-index="${index}">🗑️ Delete</button>
-        </div>
-      </div>
-      ` : ''}
-
       <div class="two-column-layout">
         <div class="column-left">
           <div class="fields-card-minimal">
@@ -990,16 +941,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (editBtn) {
       editBtn.addEventListener('click', () => {
-        // Auto-switch to Edit Mode if not already in Edit Mode
-        if (!isEditMode) {
-          isEditMode = true;
-          btnEditMode.style.display = 'none';
-          btnDisplayMode.style.display = 'inline-flex';
-          document.querySelectorAll('.bank-record-card').forEach(card => {
-            card.classList.remove('read-only');
-          });
-        }
-        
         // Get actual index from full data array
         const data = getData();
         const actualIndex = data.findIndex(r => r.id === record.id);
@@ -1026,7 +967,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (deleteBtn) {
       deleteBtn.addEventListener('click', () => {
-        if (!isEditMode) return;
         if (confirm('Are you sure you want to delete this bank account?')) {
           const data = getData();
           data.splice(index, 1);
@@ -1371,10 +1311,17 @@ document.addEventListener("DOMContentLoaded", () => {
       yPos += 7;
     });
 
-    // Add new page for records
+    // Add footer to summary page
     let currentPage = 1;
     // Total pages will be calculated dynamically as we add pages
     let totalPages = 1; // Start with summary page
+    addFooter(doc, totalRecords, currentPage, totalPages);
+    
+    // Add new page for records
+    doc.addPage();
+    currentPage++;
+    totalPages = currentPage;
+    yPos = margin;
 
     bankRecords.forEach((record, index) => {
       // Check if we need a new page before starting a new record
