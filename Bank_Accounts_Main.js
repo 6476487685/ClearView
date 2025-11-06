@@ -899,6 +899,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="field-label-minimal"><strong>Minimum Balance Required:</strong></span>
                 <span class="field-value-minimal">${record.Bank_Min_Balance || ''}</span>
               </div>
+              ${record.Bank_Notes ? `
+              <div class="field-row-minimal" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #d3d3d3;">
+                <span class="field-label-minimal"><strong>Notes:</strong></span>
+                <span class="field-value-minimal" style="white-space: pre-line;">${record.Bank_Notes}</span>
+              </div>
+              ` : ''}
             </div>
           </div>
         </div>
@@ -927,15 +933,6 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
       </div>
-
-      ${record.Bank_Notes ? `
-        <div class="notes-card-minimal full-width">
-          <div class="section-heading-minimal"><strong>Notes</strong></div>
-          <div class="notes-content-minimal">
-            ${record.Bank_Notes.split('\n').map(line => `<div>${line}</div>`).join('')}
-          </div>
-        </div>
-      ` : ''}
     `;
 
     // Event Listeners
