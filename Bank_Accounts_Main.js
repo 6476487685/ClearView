@@ -698,12 +698,12 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="section-heading-minimal"><strong>Holders & Contacts (1)</strong></div>
           <div class="notes-content-minimal">
             <div><strong>Holder 1: ${holder.name || ''}</strong> <span class="holder-type-badge-inline">${holderType}</span></div>
-            ${holder.clientID ? `<div>Client_ID_or_Customer_ID: ${holder.clientID}</div>` : ''}
+            <div>Client ID or Customer ID: ${holder.clientID || ''}</div>
             ${holder.userID ? `<div>UserID_or_LoginID: ${holder.userID} / Login_Password: <span class="password-display" data-holder="1" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>` : ''}
-            ${holder.emailPhone ? `<div class="section-heading-minimal"><strong>Email or Phone</strong></div><div>${holder.emailPhone}</div>` : ''}
+            ${holder.emailPhone ? `<div class="section-heading-minimal"><strong>Email | Phone</strong></div><div>${holder.emailPhone}</div>` : ''}
             ${holder.debitCard ? `<div class="section-heading-minimal"><strong>Debit Card Information</strong></div><div>${holder.debitCard}</div>` : ''}
             ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `<div>PIN | TPIN | MPIN: ${holder.pins}</div>` : ''}
-            ${holder.interaccEmailOrUPIID ? `<div>Interacc_Email_or_UPI_ID: ${holder.interaccEmailOrUPIID}</div>` : ''}
+            <div>Interacc_Email_or_UPI_ID: ${holder.interaccEmailOrUPIID || ''}</div>
           </div>
         </div>
       `;
@@ -724,13 +724,14 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             <div class="holder-accordion-content" id="${holderId}" style="display: ${isFirst ? 'block' : 'none'};">
               <div class="holder-personal-details">
-                ${holder.clientID ? `<div>Client_ID_or_Customer_ID: ${holder.clientID}</div>` : ''}
+                <div>Client ID or Customer ID: ${holder.clientID || ''}</div>
                 ${holder.userID ? `<div>UserID_or_LoginID: ${holder.userID} / Login_Password: <span class="password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>` : ''}
-                ${holder.emailPhone ? `<div class="section-heading-minimal"><strong>Email or Phone</strong></div><div>${holder.emailPhone}</div>` : ''}
+                ${holder.emailPhone ? `<div class="section-heading-minimal"><strong>Email | Phone</strong></div><div>${holder.emailPhone}</div>` : ''}
               </div>
               ${holder.debitCard ? `<div class="holder-card-separator"></div><div class="holder-debit-card"><div class="section-heading-minimal"><strong>Debit Card Information</strong></div>${holder.debitCard}</div>` : ''}
               ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `<div class="holder-card-separator"></div><div class="holder-pins">PIN | TPIN | MPIN: ${holder.pins}</div>` : ''}
-              ${holder.interaccEmailOrUPIID ? `<div class="holder-card-separator"></div><div class="holder-interacc">Interacc_Email_or_UPI_ID: ${holder.interaccEmailOrUPIID}</div>` : ''}
+              ${(holder.debitCard || (holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX')) ? `<div class="holder-card-separator"></div>` : ''}
+              <div class="holder-interacc">Interacc_Email_or_UPI_ID: ${holder.interaccEmailOrUPIID || ''}</div>
             </div>
           </div>
         `;
@@ -801,7 +802,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           ${record.Bank_Nominee_Email || record.Bank_Nominee_Phone ? `
             <div class="info-row">
-              <span class="info-label">Email or Phone:</span>
+              <span class="info-label">Email | Phone:</span>
               <span class="info-value">${[record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ') || ''}</span>
             </div>
           ` : ''}
@@ -1415,10 +1416,8 @@ document.addEventListener("DOMContentLoaded", () => {
           
           doc.setFont(undefined, 'normal');
           doc.setTextColor(0, 0, 0);
-          if (holder.clientID) {
-            doc.text(`Client_ID_or_Customer_ID: ${holder.clientID}`, margin + 5, yPos);
-            yPos += 5;
-          }
+          doc.text(`Client ID or Customer ID: ${holder.clientID || ''}`, margin + 5, yPos);
+          yPos += 5;
           if (holder.userID) {
             doc.text(`UserID_or_LoginID: ${holder.userID}`, margin + 5, yPos);
             yPos += 5;
@@ -1426,7 +1425,7 @@ document.addEventListener("DOMContentLoaded", () => {
             yPos += 5;
           }
           if (holder.emailPhone) {
-            doc.text(`Email or Phone: ${holder.emailPhone}`, margin + 5, yPos);
+            doc.text(`Email | Phone: ${holder.emailPhone}`, margin + 5, yPos);
             yPos += 5;
           }
           if (holder.debitCard) {
@@ -1459,7 +1458,7 @@ document.addEventListener("DOMContentLoaded", () => {
       yPos += 5;
       if (record.Bank_Nominee_Email || record.Bank_Nominee_Phone) {
         const emailPhone = [record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ');
-        doc.text(`Email or Phone: ${emailPhone}`, margin + 5, yPos);
+        doc.text(`Email | Phone: ${emailPhone}`, margin + 5, yPos);
         yPos += 5;
       }
       yPos += 8;
@@ -1523,10 +1522,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <h4>Holder ${idx + 1}</h4>
           <p><strong>Holder (Ac_Holder):</strong> ${holder.holder || ''}</p>
           <p><strong>Name:</strong> ${holder.name || ''}</p>
-          ${holder.clientID ? `<p><strong>Client_ID_or_Customer_ID:</strong> ${holder.clientID}</p>` : ''}
+          <p><strong>Client ID or Customer ID:</strong> ${holder.clientID || ''}</p>
           ${holder.userID ? `<p><strong>UserID_or_LoginID:</strong> ${holder.userID}</p>` : ''}
           ${holder.userID ? `<p><strong>Login_Password:</strong> ${holder.loginPassword || ''}</p>` : ''}
-          ${holder.emailPhone ? `<p><strong>Email or Phone:</strong> ${holder.emailPhone}</p>` : ''}
+          ${holder.emailPhone ? `<p><strong>Email | Phone:</strong> ${holder.emailPhone}</p>` : ''}
           ${holder.debitCard ? `<p><strong>Debit Card Information:</strong> ${holder.debitCard}</p>` : ''}
           ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `<p><strong>PIN | TPIN | MPIN:</strong> ${holder.pins}</p>` : ''}
           ${holder.interaccEmailOrUPIID ? `<p><strong>Interacc_Email_or_UPI_ID:</strong> ${holder.interaccEmailOrUPIID}</p>` : ''}
