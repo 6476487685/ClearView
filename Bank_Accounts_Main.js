@@ -498,14 +498,14 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="holder-row">
           <div style="flex: 2.5;">
-            <label>Debit Card Info [Format: Card Number | Valid From To | CVV | Card Type | Extra Digits | DCPIN]</label>
+            <label>Debit Card Info <span style="font-size: 10px; color: #4285f4;">[Format: Card Number | Valid From To | CVV | Card Type | Extra Digits | DCPIN]</span></label>
             <input type="text" id="Bank_Holder_${i}_DebitCard" ${!isEditMode ? 'readonly' : ''} placeholder="Card Number | Valid From To | CVV | Card Type | Extra Digits | DCPIN">
           </div>
-          <div style="flex: 1;">
+          <div style="flex: 1.4;">
             <label>PIN | TPIN | MPIN</label>
             <input type="text" id="Bank_Holder_${i}_Pins" class="pins-input" ${!isEditMode ? 'readonly' : ''} value="XXXXXX | XXXXXX | XXXXXX" placeholder="XXXXXX | XXXXXX | XXXXXX" style="font-family:'Courier New',monospace;letter-spacing:2px;color:var(--text-secondary);">
           </div>
-          <div style="flex: 1.5;">
+          <div style="flex: 1.1;">
             <label>Interacc_Email_or_UPI_ID</label>
             <input type="text" id="Bank_Holder_${i}_Interacc_Email_or_UPI_ID" ${!isEditMode ? 'readonly' : ''} placeholder="Email or UPI ID">
           </div>
