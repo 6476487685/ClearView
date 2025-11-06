@@ -698,16 +698,18 @@ document.addEventListener("DOMContentLoaded", () => {
       { header: '#f3e5f5', headerDark: '#e1bee7', text: '#9c27b0' }, // Soft lavender for Holder 4
     ];
     
-    const createHolderTable = (holder, holderNum, holderType, holderIndex = 0) => {
+    const createHolderTable = (holder, holderNum, holderType, holderIndex = 0, showHeader = false) => {
       const colorIndex = Math.min(holderIndex, holderColors.length - 1);
       const holderColor = holderColors[colorIndex];
       
       return `
         <div class="holder-table-container">
+          ${showHeader ? `
           <div class="holder-table-header" style="background: ${holderColor.header};">
             <strong>Holder ${holderNum}: ${holder.name || ''}</strong> 
             <span style="color: ${holderColor.text}; font-size: 12px;">${holderType}</span>
           </div>
+          ` : ''}
           <table class="holder-info-table">
             <thead>
               <tr>
@@ -741,17 +743,17 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     if (isSingleHolder) {
-      // Single holder - use compact table format
+      // Single holder - use compact table format (show header since no accordion)
       const holder = record.Bank_Holders[0];
       const holderType = 'Sole Holder';
       holdersHtml = `
         <div class="notes-card-minimal">
           <div class="section-heading-minimal"><strong>Holders & Contacts (1)</strong></div>
-          ${createHolderTable(holder, 1, holderType, 0)}
+          ${createHolderTable(holder, 1, holderType, 0, true)}
         </div>
       `;
     } else {
-      // Multiple holders - use accordion tabs with table format
+      // Multiple holders - use accordion tabs with table format (no duplicate header)
       holdersHtml = record.Bank_Holders.map((holder, idx) => {
         const holderType = idx === 0 ? 'Sole Holder' : 'Joint Holder';
         const holderId = `holder-${index}-${idx}`;
@@ -778,7 +780,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="holder-accordion-icon" style="color: ${holderColor.text};">${isFirst ? '▼' : '▶'}</span>
             </div>
             <div class="holder-accordion-content" id="${holderId}" style="display: ${isFirst ? 'block' : 'none'};">
-              ${createHolderTable(holder, idx + 1, holderType, idx)}
+              ${createHolderTable(holder, idx + 1, holderType, idx, false)}
             </div>
           </div>
         `;
@@ -1545,12 +1547,12 @@ document.addEventListener("DOMContentLoaded", () => {
           doc.text(holderType, pageWidth - margin - 30, yPos + 6);
           yPos += 10;
 
-          // Table Header (Orange background)
-          doc.setFillColor(255, 152, 0); // Orange #ff9800
+          // Table Header (Blue background with yellow text)
+          doc.setFillColor(25, 118, 210); // Blue #1976d2
           doc.rect(margin, yPos, pageWidth - 2 * margin, 7, 'F');
           doc.setFontSize(8);
           doc.setFont(undefined, 'bold');
-          doc.setTextColor(0, 0, 0);
+          doc.setTextColor(255, 235, 59); // Yellow #ffeb3b
           // Adjust column widths for landscape mode (more horizontal space)
           const col1Width = 45;
           const col2Width = 80;
@@ -1561,6 +1563,9 @@ document.addEventListener("DOMContentLoaded", () => {
           doc.text('Email | Phone', margin + col1Width + col2Width + 2, yPos + 5.5);
           doc.text('Interacc Email | UPI ID', margin + col1Width + col2Width + col3Width + 2, yPos + 5.5);
           yPos += 8;
+          
+          // Reset text color to black for table data
+          doc.setTextColor(0, 0, 0);
 
           // Table Data Row
           doc.setFontSize(8);
@@ -1813,13 +1818,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 background: #ffffff;
               }
               .holder-info-table thead {
-                background: #ff9800;
+                background: #1976d2;
               }
               .holder-info-table th {
                 padding: 8px 12px;
                 text-align: left;
                 font-weight: 700;
-                color: #000000;
+                color: #ffeb3b;
                 border: 1px solid #d3d3d3;
                 font-size: 13px;
               }
