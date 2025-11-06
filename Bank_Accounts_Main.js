@@ -1272,7 +1272,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function generatePDF() {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('portrait', 'mm', 'a4');
+    const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 10;
@@ -1347,9 +1347,10 @@ document.addEventListener("DOMContentLoaded", () => {
       yPos += 15;
 
       // Two Column Layout: Bank Information (Left) and Account Information (Right)
-      const colWidth = (pageWidth - 2 * margin - 8) / 2;
+      // Use more space in landscape mode
+      const colWidth = (pageWidth - 2 * margin - 12) / 2;
       const leftX = margin;
-      const rightX = margin + colWidth + 8;
+      const rightX = margin + colWidth + 12;
       const startY = yPos;
 
       // Bank Information Card (Left Column)
@@ -1457,11 +1458,20 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.rect(rightX, startY - 3, colWidth, accountInfoHeight);
       yPos = startY + accountInfoHeight + 8;
 
-      // Holders - Table Format
+      // Holders - Table Format with Different Colored Cards
       if (record.Bank_Holders && record.Bank_Holders.length > 0) {
+        // Define different colors for each holder
+        const holderColors = [
+          { header: [227, 242, 253], text: [25, 118, 210] }, // Light blue for Holder 1
+          { header: [232, 245, 233], text: [56, 142, 60] }, // Light green for Holder 2
+          { header: [255, 243, 224], text: [255, 152, 0] }, // Light orange for Holder 3
+          { header: [248, 187, 208], text: [233, 30, 99] }, // Light pink for Holder 4
+          { header: [225, 190, 231], text: [156, 39, 176] }, // Light purple for Holder 5+
+        ];
+        
         record.Bank_Holders.forEach((holder, hIdx) => {
           // Check if we need a new page for holders (check earlier to avoid cutting off)
-          const estimatedHolderHeight = 40; // Estimated height for one holder
+          const estimatedHolderHeight = 35; // Estimated height for one holder
           if (yPos + estimatedHolderHeight > pageHeight - 40) {
             doc.addPage();
             currentPage++;
@@ -1472,16 +1482,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
           const holderType = hIdx === 0 ? 'Sole Holder' : 'Joint Holder';
           const holderStartY = yPos;
+          const colorIndex = Math.min(hIdx, holderColors.length - 1);
+          const holderColor = holderColors[colorIndex];
           
-          // Holder Header with gradient background
-          doc.setFillColor(227, 242, 253); // Light blue
+          // Holder Header with different colored background
+          doc.setFillColor(holderColor.header[0], holderColor.header[1], holderColor.header[2]);
           doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'F');
           doc.setFontSize(10);
           doc.setFont(undefined, 'bold');
           doc.setTextColor(0, 0, 0);
           doc.text(`Holder ${hIdx + 1}: ${holder.name || ''}`, margin + 3, yPos + 6);
           doc.setFontSize(8);
-          doc.setTextColor(25, 118, 210);
+          doc.setTextColor(holderColor.text[0], holderColor.text[1], holderColor.text[2]);
           doc.text(holderType, pageWidth - margin - 30, yPos + 6);
           yPos += 10;
 
@@ -1491,10 +1503,11 @@ document.addEventListener("DOMContentLoaded", () => {
           doc.setFontSize(8);
           doc.setFont(undefined, 'bold');
           doc.setTextColor(0, 0, 0);
-          const col1Width = 38;
-          const col2Width = 65;
-          const col3Width = 55;
-          const col4Width = pageWidth - 2 * margin - col1Width - col2Width - col3Width - 8;
+          // Adjust column widths for landscape mode (more horizontal space)
+          const col1Width = 45;
+          const col2Width = 80;
+          const col3Width = 70;
+          const col4Width = pageWidth - 2 * margin - col1Width - col2Width - col3Width - 10;
           doc.text('Client ID or Customer ID:', margin + 2, yPos + 5.5);
           doc.text('Debit Card Information', margin + col1Width + 2, yPos + 5.5);
           doc.text('Email | Phone', margin + col1Width + col2Width + 2, yPos + 5.5);
