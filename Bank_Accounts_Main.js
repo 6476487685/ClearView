@@ -1326,8 +1326,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let totalPages = 1; // Start with summary page
 
     bankRecords.forEach((record, index) => {
-      // Check if we need a new page
-      if (yPos > pageHeight - 60) {
+      // Check if we need a new page before starting a new record
+      if (yPos > pageHeight - 50) {
         doc.addPage();
         currentPage++;
         totalPages = currentPage;
@@ -1337,14 +1337,14 @@ document.addEventListener("DOMContentLoaded", () => {
       // Add footer to current page (will update totalPages dynamically)
       addFooter(doc, totalRecords, currentPage, totalPages);
 
-      // Account Tag Bar (light blue background) - Compact
+      // Account Tag Bar (light blue background)
       doc.setFillColor(227, 242, 253); // #e3f2fd
-      doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'F');
-      doc.setFontSize(12);
+      doc.rect(margin, yPos, pageWidth - 2 * margin, 10, 'F');
+      doc.setFontSize(14);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(25, 118, 210); // #1976d2
-      doc.text(`${record.Bank_Ac_Tag || 'No Account Tag'}`, margin + 3, yPos + 6);
-      yPos += 12;
+      doc.text(`${record.Bank_Ac_Tag || 'No Account Tag'}`, margin + 5, yPos + 7);
+      yPos += 15;
 
       // Two Column Layout: Bank Information (Left) and Account Information (Right)
       const colWidth = (pageWidth - 2 * margin - 8) / 2;
@@ -1352,116 +1352,117 @@ document.addEventListener("DOMContentLoaded", () => {
       const rightX = margin + colWidth + 8;
       const startY = yPos;
 
-      // Bank Information Card (Left Column) - Compact
+      // Bank Information Card (Left Column)
       doc.setDrawColor(211, 211, 211);
-      doc.setLineWidth(0.3);
-      doc.setFontSize(10);
+      doc.setLineWidth(0.5);
+      doc.setFontSize(11);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(0, 0, 0);
-      doc.text('Bank Information', leftX + 2, yPos);
-      yPos += 6;
+      doc.text('Bank Information', leftX + 3, yPos);
+      yPos += 7;
       
-      doc.setFontSize(8);
+      doc.setFontSize(9);
       doc.setFont(undefined, 'normal');
-      doc.text(`Bank: ${record.Bank_Institution || ''}`, leftX + 2, yPos, { maxWidth: colWidth - 4 });
-      yPos += 4;
-      doc.text(`Country: ${record.Bank_Country || ''}`, leftX + 2, yPos);
-      yPos += 4;
-      const branchText = doc.splitTextToSize(`Branch: ${record.Bank_Branch_Address || ''}`, colWidth - 4);
+      doc.text(`Bank: ${record.Bank_Institution || ''}`, leftX + 3, yPos, { maxWidth: colWidth - 6 });
+      yPos += 5;
+      doc.text(`Country: ${record.Bank_Country || ''}`, leftX + 3, yPos);
+      yPos += 5;
+      const branchText = doc.splitTextToSize(`Branch: ${record.Bank_Branch_Address || ''}`, colWidth - 6);
       branchText.forEach(line => {
-        doc.text(line, leftX + 2, yPos);
-        yPos += 4;
+        doc.text(line, leftX + 3, yPos);
+        yPos += 5;
       });
       
       // Helpline section
       const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4].filter(p => p);
       const emails = [record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e);
       if (phones.length > 0 || emails.length > 0 || record.Bank_Helpline_URL) {
-        yPos += 2;
+        yPos += 3;
         doc.setFont(undefined, 'bold');
-        doc.setFontSize(8);
-        doc.text('Helpline', leftX + 2, yPos);
-        yPos += 4;
+        doc.setFontSize(9);
+        doc.text('Helpline', leftX + 3, yPos);
+        yPos += 5;
         doc.setFont(undefined, 'normal');
         if (phones.length > 0) {
-          const phoneText = doc.splitTextToSize(`Ph: ${phones.join(' / ')}`, colWidth - 4);
+          const phoneText = doc.splitTextToSize(`Phone: ${phones.join(' / ')}`, colWidth - 6);
           phoneText.forEach(line => {
-            doc.text(line, leftX + 2, yPos);
-            yPos += 4;
+            doc.text(line, leftX + 3, yPos);
+            yPos += 5;
           });
         }
         if (emails.length > 0) {
-          const emailText = doc.splitTextToSize(`Em: ${emails.join(' / ')}`, colWidth - 4);
+          const emailText = doc.splitTextToSize(`Email: ${emails.join(' / ')}`, colWidth - 6);
           emailText.forEach(line => {
-            doc.text(line, leftX + 2, yPos);
-            yPos += 4;
+            doc.text(line, leftX + 3, yPos);
+            yPos += 5;
           });
         }
         if (record.Bank_Helpline_URL) {
-          const urlText = doc.splitTextToSize(`URL: ${record.Bank_Helpline_URL}`, colWidth - 4);
+          const urlText = doc.splitTextToSize(`URL: ${record.Bank_Helpline_URL}`, colWidth - 6);
           urlText.forEach(line => {
-            doc.text(line, leftX + 2, yPos);
-            yPos += 4;
+            doc.text(line, leftX + 3, yPos);
+            yPos += 5;
           });
         }
       }
-      const bankInfoHeight = yPos - startY + 3;
-      doc.rect(leftX, startY - 2, colWidth, bankInfoHeight);
+      const bankInfoHeight = yPos - startY + 5;
+      doc.rect(leftX, startY - 3, colWidth, bankInfoHeight);
 
-      // Account Information Card (Right Column) - Compact
+      // Account Information Card (Right Column)
       yPos = startY;
-      doc.setFontSize(10);
+      doc.setFontSize(11);
       doc.setFont(undefined, 'bold');
-      doc.text('Account Information', rightX + 2, yPos);
-      yPos += 6;
+      doc.text('Account Information', rightX + 3, yPos);
+      yPos += 7;
       
-      doc.setFontSize(8);
+      doc.setFontSize(9);
       doc.setFont(undefined, 'normal');
-      doc.text(`Type: ${record.Bank_Ac_Type || ''}`, rightX + 2, yPos);
-      yPos += 4;
-      doc.text(`Number: ${record.Bank_Account_Number || ''}`, rightX + 2, yPos);
-      yPos += 4;
-      const transitText = doc.splitTextToSize(`Transit/IFSC: ${record.Bank_Transit_IFSC || ''}`, colWidth - 4);
+      doc.text(`Type: ${record.Bank_Ac_Type || ''}`, rightX + 3, yPos);
+      yPos += 5;
+      doc.text(`Number: ${record.Bank_Account_Number || ''}`, rightX + 3, yPos);
+      yPos += 5;
+      const transitText = doc.splitTextToSize(`Transit/IFSC: ${record.Bank_Transit_IFSC || ''}`, colWidth - 6);
       transitText.forEach(line => {
-        doc.text(line, rightX + 2, yPos);
-        yPos += 4;
+        doc.text(line, rightX + 3, yPos);
+        yPos += 5;
       });
-      const instText = doc.splitTextToSize(`Inst/MICR: ${record.Bank_Institution_MICR || ''}`, colWidth - 4);
+      const instText = doc.splitTextToSize(`Inst/MICR: ${record.Bank_Institution_MICR || ''}`, colWidth - 6);
       instText.forEach(line => {
-        doc.text(line, rightX + 2, yPos);
-        yPos += 4;
+        doc.text(line, rightX + 3, yPos);
+        yPos += 5;
       });
-      doc.text(`Status: ${record.Bank_Account_Status || ''}`, rightX + 2, yPos);
-      yPos += 4;
-      doc.text(`Min Balance: ${record.Bank_Min_Balance || ''}`, rightX + 2, yPos);
-      yPos += 4;
+      doc.text(`Status: ${record.Bank_Account_Status || ''}`, rightX + 3, yPos);
+      yPos += 5;
+      doc.text(`Min Balance: ${record.Bank_Min_Balance || ''}`, rightX + 3, yPos);
+      yPos += 5;
       
       // Notes in Account Information
       if (record.Bank_Notes) {
-        yPos += 2;
+        yPos += 3;
         doc.setFont(undefined, 'bold');
-        doc.text('Notes:', rightX + 2, yPos);
-        yPos += 4;
+        doc.text('Notes:', rightX + 3, yPos);
+        yPos += 5;
         doc.setFont(undefined, 'normal');
         const notesLines = record.Bank_Notes.split('\n').filter(l => l.trim());
         notesLines.forEach(line => {
-          const noteText = doc.splitTextToSize(line.trim(), colWidth - 4);
+          const noteText = doc.splitTextToSize(line.trim(), colWidth - 6);
           noteText.forEach(noteLine => {
-            doc.text(noteLine, rightX + 2, yPos);
-            yPos += 3.5;
+            doc.text(noteLine, rightX + 3, yPos);
+            yPos += 4.5;
           });
         });
       }
       
-      const accountInfoHeight = Math.max(bankInfoHeight, yPos - startY + 3);
-      doc.rect(rightX, startY - 2, colWidth, accountInfoHeight);
-      yPos = startY + accountInfoHeight + 5;
+      const accountInfoHeight = Math.max(bankInfoHeight, yPos - startY + 5);
+      doc.rect(rightX, startY - 3, colWidth, accountInfoHeight);
+      yPos = startY + accountInfoHeight + 8;
 
-      // Holders - Compact Table Format
+      // Holders - Table Format
       if (record.Bank_Holders && record.Bank_Holders.length > 0) {
         record.Bank_Holders.forEach((holder, hIdx) => {
-          // Check if we need a new page for holders
-          if (yPos > pageHeight - 50) {
+          // Check if we need a new page for holders (check earlier to avoid cutting off)
+          const estimatedHolderHeight = 40; // Estimated height for one holder
+          if (yPos + estimatedHolderHeight > pageHeight - 40) {
             doc.addPage();
             currentPage++;
             totalPages = currentPage;
@@ -1474,84 +1475,84 @@ document.addEventListener("DOMContentLoaded", () => {
           
           // Holder Header with gradient background
           doc.setFillColor(227, 242, 253); // Light blue
-          doc.rect(margin, yPos, pageWidth - 2 * margin, 7, 'F');
-          doc.setFontSize(9);
+          doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'F');
+          doc.setFontSize(10);
           doc.setFont(undefined, 'bold');
           doc.setTextColor(0, 0, 0);
-          doc.text(`Holder ${hIdx + 1}: ${holder.name || ''}`, margin + 2, yPos + 5);
-          doc.setFontSize(7);
+          doc.text(`Holder ${hIdx + 1}: ${holder.name || ''}`, margin + 3, yPos + 6);
+          doc.setFontSize(8);
           doc.setTextColor(25, 118, 210);
-          doc.text(holderType, pageWidth - margin - 25, yPos + 5);
-          yPos += 9;
+          doc.text(holderType, pageWidth - margin - 30, yPos + 6);
+          yPos += 10;
 
           // Table Header (Orange background)
           doc.setFillColor(255, 152, 0); // Orange #ff9800
-          doc.rect(margin, yPos, pageWidth - 2 * margin, 6, 'F');
-          doc.setFontSize(7);
+          doc.rect(margin, yPos, pageWidth - 2 * margin, 7, 'F');
+          doc.setFontSize(8);
           doc.setFont(undefined, 'bold');
           doc.setTextColor(0, 0, 0);
-          const col1Width = 35;
-          const col2Width = 60;
-          const col3Width = 50;
-          const col4Width = pageWidth - 2 * margin - col1Width - col2Width - col3Width - 6;
-          doc.text('Client ID or Customer ID:', margin + 1, yPos + 4.5);
-          doc.text('Debit Card Information', margin + col1Width + 1, yPos + 4.5);
-          doc.text('Email | Phone', margin + col1Width + col2Width + 1, yPos + 4.5);
-          doc.text('Interacc Email | UPI ID', margin + col1Width + col2Width + col3Width + 1, yPos + 4.5);
-          yPos += 7;
+          const col1Width = 38;
+          const col2Width = 65;
+          const col3Width = 55;
+          const col4Width = pageWidth - 2 * margin - col1Width - col2Width - col3Width - 8;
+          doc.text('Client ID or Customer ID:', margin + 2, yPos + 5.5);
+          doc.text('Debit Card Information', margin + col1Width + 2, yPos + 5.5);
+          doc.text('Email | Phone', margin + col1Width + col2Width + 2, yPos + 5.5);
+          doc.text('Interacc Email | UPI ID', margin + col1Width + col2Width + col3Width + 2, yPos + 5.5);
+          yPos += 8;
 
           // Table Data Row
-          doc.setFontSize(7);
+          doc.setFontSize(8);
           doc.setFont(undefined, 'normal');
           doc.setTextColor(0, 0, 0);
-          const clientIDText = doc.splitTextToSize(holder.clientID || '', col1Width - 2);
-          const debitCardText = doc.splitTextToSize(holder.debitCard || '', col2Width - 2);
-          const emailPhoneText = doc.splitTextToSize(holder.emailPhone || '', col3Width - 2);
-          const interaccText = doc.splitTextToSize(holder.interaccEmailOrUPIID || '', col4Width - 2);
+          const clientIDText = doc.splitTextToSize(holder.clientID || '', col1Width - 4);
+          const debitCardText = doc.splitTextToSize(holder.debitCard || '', col2Width - 4);
+          const emailPhoneText = doc.splitTextToSize(holder.emailPhone || '', col3Width - 4);
+          const interaccText = doc.splitTextToSize(holder.interaccEmailOrUPIID || '', col4Width - 4);
           const maxRows = Math.max(clientIDText.length, debitCardText.length, emailPhoneText.length, interaccText.length, 1);
-          const rowHeight = 4;
+          const rowHeight = 5;
           
           for (let i = 0; i < maxRows; i++) {
             if (i < clientIDText.length) {
-              doc.text(clientIDText[i], margin + 1, yPos);
+              doc.text(clientIDText[i], margin + 2, yPos);
             }
             if (i < debitCardText.length) {
-              doc.text(debitCardText[i], margin + col1Width + 1, yPos);
+              doc.text(debitCardText[i], margin + col1Width + 2, yPos);
             }
             if (i < emailPhoneText.length) {
-              doc.text(emailPhoneText[i], margin + col1Width + col2Width + 1, yPos);
+              doc.text(emailPhoneText[i], margin + col1Width + col2Width + 2, yPos);
             }
             if (i < interaccText.length) {
-              doc.text(interaccText[i], margin + col1Width + col2Width + col3Width + 1, yPos);
+              doc.text(interaccText[i], margin + col1Width + col2Width + col3Width + 2, yPos);
             }
             yPos += rowHeight;
           }
 
           // Draw table borders
           doc.setDrawColor(211, 211, 211);
-          doc.setLineWidth(0.3);
-          const tableHeight = 6 + (maxRows * rowHeight);
-          doc.rect(margin, holderStartY + 9, pageWidth - 2 * margin, tableHeight);
+          doc.setLineWidth(0.5);
+          const tableHeight = 7 + (maxRows * rowHeight);
+          doc.rect(margin, holderStartY + 10, pageWidth - 2 * margin, tableHeight);
 
           // Additional info below table (UserID, PIN)
           if (holder.userID || (holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX')) {
-            yPos += 2;
-            doc.setFontSize(7);
+            yPos += 3;
+            doc.setFontSize(8);
             if (holder.userID) {
-              doc.text(`UserID: ${holder.userID} / Pass: ${holder.loginPassword || ''}`, margin + 2, yPos);
-              yPos += 3.5;
+              doc.text(`UserID: ${holder.userID} / Pass: ${holder.loginPassword || ''}`, margin + 3, yPos);
+              yPos += 5;
             }
             if (holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX') {
-              doc.text(`PIN | TPIN | MPIN: ${holder.pins}`, margin + 2, yPos);
-              yPos += 3.5;
+              doc.text(`PIN | TPIN | MPIN: ${holder.pins}`, margin + 3, yPos);
+              yPos += 5;
             }
           }
-          yPos += 4;
+          yPos += 6;
         });
       }
 
-      // Nomination - Compact
-      if (yPos > pageHeight - 30) {
+      // Nomination
+      if (yPos > pageHeight - 35) {
         doc.addPage();
         currentPage++;
         totalPages = currentPage;
@@ -1560,26 +1561,32 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const nomineeStartY = yPos;
       doc.setDrawColor(211, 211, 211);
-      doc.setLineWidth(0.3);
-      doc.setFontSize(9);
+      doc.setLineWidth(0.5);
+      doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
-      doc.text('Nomination', margin + 2, yPos + 4);
-      yPos += 6;
-      doc.setFontSize(8);
+      doc.text('Nomination', margin + 3, yPos + 5);
+      yPos += 7;
+      doc.setFontSize(9);
       doc.setFont(undefined, 'normal');
-      doc.text(`${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}`, margin + 2, yPos);
-      yPos += 4;
+      doc.text(`${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}`, margin + 3, yPos);
+      yPos += 5;
       if (record.Bank_Nominee_Email || record.Bank_Nominee_Phone) {
         const emailPhone = [record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ');
-        doc.text(`Email | Phone: ${emailPhone}`, margin + 2, yPos);
-        yPos += 4;
+        doc.text(`Email | Phone: ${emailPhone}`, margin + 3, yPos);
+        yPos += 5;
       }
-      const nomineeHeight = yPos - nomineeStartY + 2;
+      const nomineeHeight = yPos - nomineeStartY + 3;
       doc.rect(margin, nomineeStartY, pageWidth - 2 * margin, nomineeHeight);
-      yPos += 6;
+      yPos += 8;
 
       yPos += 5; // Space between records
     });
+
+    // Update footer on all pages with final totalPages count
+    for (let page = 1; page <= totalPages; page++) {
+      doc.setPage(page);
+      addFooter(doc, totalRecords, page, totalPages);
+    }
 
     // Download PDF
     const now = new Date();
