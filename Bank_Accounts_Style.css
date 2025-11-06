@@ -549,14 +549,14 @@ body.dark .holder-table-header{
 }
 
 .holder-info-table thead{
-  background:#1976d2;
+  background:#000000;
 }
 
 .holder-info-table th{
   padding:8px 12px;
   text-align:left;
   font-weight:700;
-  color:#ffeb3b;
+  color:#ffffff;
   border:1px solid #d3d3d3;
   font-size:13px;
 }
@@ -578,12 +578,12 @@ body.dark .holder-info-table{
 }
 
 body.dark .holder-info-table thead{
-  background:#1976d2;
+  background:#000000;
 }
 
 body.dark .holder-info-table th{
   border-color:#404040;
-  color:#ffeb3b;
+  color:#ffffff;
 }
 
 body.dark .holder-info-table tbody{

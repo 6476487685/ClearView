@@ -713,7 +713,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <table class="holder-info-table">
             <thead>
               <tr>
-                <th>Client ID or Customer ID:</th>
+                <th>Client ID | Customer ID</th>
                 <th>Debit Card Information</th>
                 <th>Email | Phone</th>
                 <th>Interacc Email | UPI ID</th>
@@ -1547,18 +1547,18 @@ document.addEventListener("DOMContentLoaded", () => {
           doc.text(holderType, pageWidth - margin - 30, yPos + 6);
           yPos += 10;
 
-          // Table Header (Blue background with yellow text)
-          doc.setFillColor(25, 118, 210); // Blue #1976d2
+          // Table Header (Black background with white text)
+          doc.setFillColor(0, 0, 0); // Black
           doc.rect(margin, yPos, pageWidth - 2 * margin, 7, 'F');
           doc.setFontSize(8);
           doc.setFont(undefined, 'bold');
-          doc.setTextColor(255, 235, 59); // Yellow #ffeb3b
+          doc.setTextColor(255, 255, 255); // White
           // Adjust column widths for landscape mode (more horizontal space)
           const col1Width = 45;
           const col2Width = 80;
           const col3Width = 70;
           const col4Width = pageWidth - 2 * margin - col1Width - col2Width - col3Width - 10;
-          doc.text('Client ID or Customer ID:', margin + 2, yPos + 5.5);
+          doc.text('Client ID | Customer ID', margin + 2, yPos + 5.5);
           doc.text('Debit Card Information', margin + col1Width + 2, yPos + 5.5);
           doc.text('Email | Phone', margin + col1Width + col2Width + 2, yPos + 5.5);
           doc.text('Interacc Email | UPI ID', margin + col1Width + col2Width + col3Width + 2, yPos + 5.5);
@@ -1702,7 +1702,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <table class="holder-info-table">
               <thead>
                 <tr>
-                  <th>Client ID or Customer ID:</th>
+                  <th>Client ID | Customer ID</th>
                   <th>Debit Card Information</th>
                   <th>Email | Phone</th>
                   <th>Interacc Email | UPI ID</th>
@@ -1818,13 +1818,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 background: #ffffff;
               }
               .holder-info-table thead {
-                background: #1976d2;
+                background: #000000;
               }
               .holder-info-table th {
                 padding: 8px 12px;
                 text-align: left;
                 font-weight: 700;
-                color: #ffeb3b;
+                color: #ffffff;
                 border: 1px solid #d3d3d3;
                 font-size: 13px;
               }
