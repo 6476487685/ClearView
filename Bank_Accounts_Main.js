@@ -1697,44 +1697,44 @@ document.addEventListener("DOMContentLoaded", () => {
               * { margin: 0; padding: 0; box-sizing: border-box; }
               body { 
                 font-family: Arial, sans-serif; 
-                padding: 8px; 
+                padding: 10px; 
                 font-size: 11px;
                 background: #ffffff;
               }
               .account-tag-bar {
                 background: #e3f2fd;
-                padding: 8px 12px;
-                margin-bottom: 10px;
+                padding: 10px 14px;
+                margin-bottom: 12px;
                 border-radius: 4px;
               }
               .account-tag-content {
-                font-size: 13px;
+                font-size: 14px;
                 font-weight: 700;
                 color: #1976d2;
               }
               .two-column-layout {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 10px;
-                margin-bottom: 12px;
+                gap: 12px;
+                margin-bottom: 14px;
               }
               .fields-card {
                 border: 1px solid #d3d3d3;
                 border-radius: 4px;
                 background: #ffffff;
-                padding: 10px;
+                padding: 12px;
               }
               .section-heading {
                 font-weight: 700;
                 color: #000000;
                 font-size: 12px;
-                margin-bottom: 8px;
-                padding-bottom: 4px;
+                margin-bottom: 10px;
+                padding-bottom: 5px;
                 border-bottom: 1px solid #e0e0e0;
               }
               .field-row {
                 display: flex;
-                margin-bottom: 5px;
+                margin-bottom: 6px;
               }
               .field-label {
                 font-weight: 600;
@@ -1748,11 +1748,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 flex: 1;
               }
               .holder-table-container {
-                margin-bottom: 10px;
+                margin-bottom: 12px;
               }
               .holder-table-header {
                 background: #e3f2fd;
-                padding: 5px 8px;
+                padding: 6px 10px;
                 font-size: 11px;
                 font-weight: 600;
                 color: #000000;
@@ -1774,7 +1774,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 background: #000000;
               }
               .holder-info-table th {
-                padding: 5px 8px;
+                padding: 6px 10px;
                 text-align: left;
                 font-weight: 700;
                 color: #ffffff;
@@ -1782,7 +1782,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 font-size: 10px;
               }
               .holder-info-table td {
-                padding: 5px 8px;
+                padding: 6px 10px;
                 border: 1px solid #d3d3d3;
                 color: #000000;
                 word-wrap: break-word;
@@ -1790,7 +1790,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 font-size: 10px;
               }
               .holder-additional-info {
-                padding: 5px 8px;
+                padding: 6px 10px;
                 background: #ffffff;
                 border-left: 1px solid #d3d3d3;
                 border-right: 1px solid #d3d3d3;
@@ -1804,43 +1804,46 @@ document.addEventListener("DOMContentLoaded", () => {
               .nomination-card {
                 border: 1px solid #d3d3d3;
                 border-radius: 4px;
-                padding: 10px;
+                padding: 12px;
                 background: #ffffff;
-                margin-bottom: 10px;
+                margin-bottom: 12px;
               }
               @media print { 
                 @page { 
                   size: landscape;
-                  margin: 0.5cm; 
+                  margin-top: 2.54cm;
+                  margin-left: 2.54cm;
+                  margin-right: 2.54cm;
+                  margin-bottom: 0.5cm;
                 }
                 body { 
-                  padding: 5px;
+                  padding: 10px;
                   background: #ffffff;
                 }
                 .account-tag-bar {
-                  margin-bottom: 8px;
-                  padding: 6px 10px;
+                  margin-bottom: 10px;
+                  padding: 8px 12px;
                 }
                 .two-column-layout {
-                  gap: 8px;
-                  margin-bottom: 10px;
+                  gap: 10px;
+                  margin-bottom: 12px;
                 }
                 .fields-card {
-                  padding: 8px;
+                  padding: 10px;
                 }
                 .section-heading {
-                  margin-bottom: 6px;
+                  margin-bottom: 8px;
                   font-size: 11px;
                 }
                 .field-row {
-                  margin-bottom: 4px;
+                  margin-bottom: 5px;
                 }
                 .holder-table-container {
-                  margin-bottom: 8px;
+                  margin-bottom: 10px;
                 }
                 .nomination-card {
-                  padding: 8px;
-                  margin-bottom: 8px;
+                  padding: 10px;
+                  margin-bottom: 10px;
                 }
               }
             </style>
@@ -1918,7 +1921,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div class="field-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e0e0e0;">
                   <span class="field-label">Notes:</span>
-                  <span class="field-value" style="white-space: pre-line; max-height: 80px; overflow-y: auto; display: block; word-wrap: break-word; padding: 3px 6px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; min-height: 40px; font-size: 10px;">${record.Bank_Notes || ''}</span>
+                  <span class="field-value" style="white-space: pre-line; max-height: 120px; overflow-y: auto; display: block; word-wrap: break-word; padding: 6px 8px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; min-height: 50px; font-size: 10px;">${record.Bank_Notes || ''}</span>
                 </div>
               </div>
             </div>
