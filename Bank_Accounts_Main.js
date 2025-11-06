@@ -708,16 +708,21 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       `;
     } else {
-      // Multiple holders - use 2x2 grid
+      // Multiple holders - use accordion tabs
       holdersHtml = record.Bank_Holders.map((holder, idx) => {
         const holderType = idx === 0 ? 'Sole Holder' : 'Joint Holder';
+        const holderId = `holder-${index}-${idx}`;
+        const isFirst = idx === 0;
         return `
-          <div class="holder-card-minimal">
-            <div class="holder-card-header-minimal">
-              <strong>Holder ${idx + 1}: ${holder.name || ''}</strong>
-              <span class="holder-type-badge">${holderType}</span>
+          <div class="holder-accordion-item">
+            <div class="holder-accordion-header ${isFirst ? 'active' : ''}" data-holder-id="${holderId}">
+              <div class="holder-accordion-title">
+                <strong>Holder ${idx + 1}: ${holder.name || ''}</strong>
+                <span class="holder-type-badge">${holderType}</span>
+              </div>
+              <span class="holder-accordion-icon">${isFirst ? '▼' : '▶'}</span>
             </div>
-            <div class="holder-card-content">
+            <div class="holder-accordion-content" id="${holderId}" style="display: ${isFirst ? 'block' : 'none'};">
               <div class="holder-personal-details">
                 ${holder.clientID ? `<div>Client_ID_or_Customer_ID: ${holder.clientID}</div>` : ''}
                 ${holder.userID ? `<div>UserID_or_LoginID: ${holder.userID} / Login_Password: <span class="password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>` : ''}
@@ -907,7 +912,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="holders-full-width">
           <div class="holders-section-minimal">
             <div class="section-heading-minimal"><strong>Holders & Contacts (${record.Bank_Holders ? record.Bank_Holders.length : 0})</strong></div>
-            <div class="holders-container-minimal">
+            <div class="holders-accordion-container">
               ${holdersHtml}
             </div>
           </div>
@@ -1030,6 +1035,33 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
+
+    // Setup accordion expand/collapse for holder tabs (only in display mode)
+    if (!isEditMode && !isSingleHolder) {
+      card.querySelectorAll('.holder-accordion-header').forEach(header => {
+        header.addEventListener('click', () => {
+          const holderId = header.dataset.holderId;
+          const content = card.querySelector(`#${holderId}`);
+          const icon = header.querySelector('.holder-accordion-icon');
+          
+          if (content) {
+            const isExpanded = content.style.display === 'block';
+            
+            if (isExpanded) {
+              // Collapse
+              content.style.display = 'none';
+              header.classList.remove('active');
+              icon.textContent = '▶';
+            } else {
+              // Expand
+              content.style.display = 'block';
+              header.classList.add('active');
+              icon.textContent = '▼';
+            }
+          }
+        });
+      });
+    }
 
     return card;
   }
