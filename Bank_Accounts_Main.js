@@ -689,26 +689,58 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // If single holder, use Notes style; otherwise use grid cards
     let holdersHtml = '';
+    // Helper function to create compact table format for holder
+    const createHolderTable = (holder, holderNum, holderType) => {
+      return `
+        <div class="holder-table-container">
+          <div class="holder-table-header">
+            <strong>Holder ${holderNum}: ${holder.name || ''}</strong> ${holderType}
+          </div>
+          <table class="holder-info-table">
+            <thead>
+              <tr>
+                <th>Client ID or Customer ID:</th>
+                <th>Debit Card Information</th>
+                <th>Email | Phone</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>${holder.clientID || ''}</td>
+                <td>${holder.debitCard || ''}</td>
+                <td>${holder.emailPhone || ''}</td>
+              </tr>
+            </tbody>
+          </table>
+          ${holder.userID ? `
+          <div class="holder-additional-info">
+            <div><strong>UserID_or_LoginID:</strong> ${holder.userID} / <strong>Login_Password:</strong> <span class="password-display" data-holder="${holderNum}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>
+          </div>
+          ` : ''}
+          ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `
+          <div class="holder-additional-info">
+            <div><strong>PIN | TPIN | MPIN:</strong> ${holder.pins}</div>
+          </div>
+          ` : ''}
+          <div class="holder-additional-info">
+            <div><strong>Interacc_Email_or_UPI_ID:</strong> ${holder.interaccEmailOrUPIID || ''}</div>
+          </div>
+        </div>
+      `;
+    };
+
     if (isSingleHolder) {
-      // Single holder - use Notes style
+      // Single holder - use compact table format
       const holder = record.Bank_Holders[0];
       const holderType = 'Sole Holder';
       holdersHtml = `
         <div class="notes-card-minimal">
           <div class="section-heading-minimal"><strong>Holders & Contacts (1)</strong></div>
-          <div class="notes-content-minimal">
-            <div><strong>Holder 1: ${holder.name || ''}</strong> <span class="holder-type-badge-inline">${holderType}</span></div>
-            <div>Client ID or Customer ID: ${holder.clientID || ''}</div>
-            ${holder.userID ? `<div>UserID_or_LoginID: ${holder.userID} / Login_Password: <span class="password-display" data-holder="1" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>` : ''}
-            ${holder.emailPhone ? `<div class="section-heading-minimal"><strong>Email | Phone</strong></div><div>${holder.emailPhone}</div>` : ''}
-            ${holder.debitCard ? `<div class="section-heading-minimal"><strong>Debit Card Information</strong></div><div>${holder.debitCard}</div>` : ''}
-            ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `<div>PIN | TPIN | MPIN: ${holder.pins}</div>` : ''}
-            <div>Interacc_Email_or_UPI_ID: ${holder.interaccEmailOrUPIID || ''}</div>
-          </div>
+          ${createHolderTable(holder, 1, holderType)}
         </div>
       `;
     } else {
-      // Multiple holders - use accordion tabs
+      // Multiple holders - use accordion tabs with table format
       holdersHtml = record.Bank_Holders.map((holder, idx) => {
         const holderType = idx === 0 ? 'Sole Holder' : 'Joint Holder';
         const holderId = `holder-${index}-${idx}`;
@@ -723,15 +755,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="holder-accordion-icon">${isFirst ? '▼' : '▶'}</span>
             </div>
             <div class="holder-accordion-content" id="${holderId}" style="display: ${isFirst ? 'block' : 'none'};">
-              <div class="holder-personal-details">
-                <div>Client ID or Customer ID: ${holder.clientID || ''}</div>
-                ${holder.userID ? `<div>UserID_or_LoginID: ${holder.userID} / Login_Password: <span class="password-display" data-holder="${idx + 1}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>` : ''}
-                ${holder.emailPhone ? `<div class="section-heading-minimal"><strong>Email | Phone</strong></div><div>${holder.emailPhone}</div>` : ''}
-              </div>
-              ${holder.debitCard ? `<div class="holder-card-separator"></div><div class="holder-debit-card"><div class="section-heading-minimal"><strong>Debit Card Information</strong></div>${holder.debitCard}</div>` : ''}
-              ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `<div class="holder-card-separator"></div><div class="holder-pins">PIN | TPIN | MPIN: ${holder.pins}</div>` : ''}
-              ${(holder.debitCard || (holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX')) ? `<div class="holder-card-separator"></div>` : ''}
-              <div class="holder-interacc">Interacc_Email_or_UPI_ID: ${holder.interaccEmailOrUPIID || ''}</div>
+              ${createHolderTable(holder, idx + 1, holderType)}
             </div>
           </div>
         `;
