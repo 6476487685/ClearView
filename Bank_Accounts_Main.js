@@ -733,11 +733,11 @@ document.addEventListener("DOMContentLoaded", () => {
                  data-text-color="${holderColor.text}"
                  style="background: ${initialBg}; border-bottom-color: ${holderColor.text};">
               <div class="holder-accordion-title">
-                <strong>Holder ${idx + 1}: ${holder.name || ''}</strong>
+              <strong>Holder ${idx + 1}: ${holder.name || ''}</strong>
                 <span class="holder-type-badge" style="background: ${holderColor.header}; color: ${holderColor.text};">${holderType}</span>
-              </div>
-              <span class="holder-accordion-icon" style="color: ${holderColor.text};">${isFirst ? '▼' : '▶'}</span>
             </div>
+              <span class="holder-accordion-icon" style="color: ${holderColor.text};">${isFirst ? '▼' : '▶'}</span>
+              </div>
             <div class="holder-accordion-content" id="${holderId}" style="display: ${isFirst ? 'block' : 'none'};">
               ${createHolderTable(holder, idx + 1, holderType, idx, false)}
             </div>
@@ -903,7 +903,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="field-row-minimal" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #d3d3d3;">
                 <span class="field-label-minimal"><strong>Notes:</strong></span>
                 <span class="field-value-minimal notes-field-scrollable" style="white-space: pre-line; display: block; word-wrap: break-word;">${record.Bank_Notes || ''}</span>
-              </div>
+            </div>
             </div>
           </div>
         </div>
@@ -1369,7 +1369,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const branchText = doc.splitTextToSize(`Branch: ${record.Bank_Branch_Address || ''}`, colWidth - 6);
       branchText.forEach(line => {
         doc.text(line, leftX + 3, yPos);
-        yPos += 5;
+      yPos += 5;
       });
       
       // Helpline section
@@ -1380,27 +1380,27 @@ document.addEventListener("DOMContentLoaded", () => {
         doc.setFont(undefined, 'bold');
         doc.setFontSize(9);
         doc.text('Helpline', leftX + 3, yPos);
-        yPos += 5;
+      yPos += 5;
         doc.setFont(undefined, 'normal');
         if (phones.length > 0) {
           const phoneText = doc.splitTextToSize(`Phone: ${phones.join(' / ')}`, colWidth - 6);
           phoneText.forEach(line => {
             doc.text(line, leftX + 3, yPos);
-            yPos += 5;
+      yPos += 5;
           });
         }
         if (emails.length > 0) {
           const emailText = doc.splitTextToSize(`Email: ${emails.join(' / ')}`, colWidth - 6);
           emailText.forEach(line => {
             doc.text(line, leftX + 3, yPos);
-            yPos += 5;
+      yPos += 5;
           });
         }
         if (record.Bank_Helpline_URL) {
           const urlText = doc.splitTextToSize(`URL: ${record.Bank_Helpline_URL}`, colWidth - 6);
           urlText.forEach(line => {
             doc.text(line, leftX + 3, yPos);
-            yPos += 5;
+      yPos += 5;
           });
         }
       }
@@ -1458,12 +1458,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Holders - Table Format with Different Colored Cards
       if (record.Bank_Holders && record.Bank_Holders.length > 0) {
-        // Define different soothing colors for each holder (maximum 4 holders)
+        // Define different soothing colors for each holder (maximum 4 holders) - matching display mode
         const holderColors = [
-          { header: [225, 245, 254], text: [1, 87, 155] }, // Soft sky blue for Holder 1
-          { header: [240, 248, 255], text: [25, 118, 210] }, // Soft periwinkle for Holder 2
-          { header: [255, 245, 238], text: [255, 152, 0] }, // Soft peach for Holder 3
-          { header: [243, 229, 245], text: [156, 39, 176] }, // Soft lavender for Holder 4
+          { header: [225, 245, 254], headerDark: [179, 229, 252], text: [1, 87, 155] }, // Soft sky blue for Holder 1
+          { header: [240, 248, 255], headerDark: [227, 242, 253], text: [25, 118, 210] }, // Soft periwinkle for Holder 2
+          { header: [255, 245, 238], headerDark: [255, 224, 178], text: [255, 152, 0] }, // Soft peach for Holder 3
+          { header: [243, 229, 245], headerDark: [225, 190, 231], text: [156, 39, 176] }, // Soft lavender for Holder 4
         ];
         
         record.Bank_Holders.forEach((holder, hIdx) => {
@@ -1482,17 +1482,18 @@ document.addEventListener("DOMContentLoaded", () => {
           const colorIndex = Math.min(hIdx, holderColors.length - 1);
           const holderColor = holderColors[colorIndex];
           
-          // Holder Header with different colored background
+          // Holder Header with soothing colored background (matching display mode)
+          // Create gradient effect by using the header color
           doc.setFillColor(holderColor.header[0], holderColor.header[1], holderColor.header[2]);
-          doc.rect(margin, yPos, pageWidth - 2 * margin, 8, 'F');
+          doc.rect(margin, yPos, pageWidth - 2 * margin, 7, 'F');
           doc.setFontSize(10);
           doc.setFont(undefined, 'bold');
           doc.setTextColor(0, 0, 0);
-          doc.text(`Holder ${hIdx + 1}: ${holder.name || ''}`, margin + 3, yPos + 6);
+          doc.text(`Holder ${hIdx + 1}: ${holder.name || ''}`, margin + 3, yPos + 5);
           doc.setFontSize(8);
           doc.setTextColor(holderColor.text[0], holderColor.text[1], holderColor.text[2]);
-          doc.text(holderType, pageWidth - margin - 30, yPos + 6);
-          yPos += 10;
+          doc.text(holderType, pageWidth - margin - 30, yPos + 5);
+          yPos += 9;
 
           // Table Header (Black background with white text)
           doc.setFillColor(0, 0, 0); // Black
@@ -1541,11 +1542,12 @@ document.addEventListener("DOMContentLoaded", () => {
             yPos += rowHeight;
           }
 
-          // Draw table borders
+          // Draw table borders (including holder header)
           doc.setDrawColor(211, 211, 211);
           doc.setLineWidth(0.5);
           const tableHeight = 7 + (maxRows * rowHeight);
-          doc.rect(margin, holderStartY + 10, pageWidth - 2 * margin, tableHeight);
+          // Draw border around entire holder section (header + table)
+          doc.rect(margin, holderStartY, pageWidth - 2 * margin, 7 + tableHeight);
 
           // Additional info below table (UserID, PIN)
           if (holder.userID || (holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX')) {
@@ -1553,12 +1555,12 @@ document.addEventListener("DOMContentLoaded", () => {
             doc.setFontSize(8);
             if (holder.userID) {
               doc.text(`UserID: ${holder.userID} / Pass: ${holder.loginPassword || ''}`, margin + 3, yPos);
-              yPos += 5;
-            }
-            if (holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX') {
+            yPos += 5;
+          }
+          if (holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX') {
               doc.text(`PIN | TPIN | MPIN: ${holder.pins}`, margin + 3, yPos);
-              yPos += 5;
-            }
+            yPos += 5;
+          }
           }
           yPos += 6;
         });
@@ -1643,9 +1645,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return `
           <div class="holder-table-container">
             <div class="holder-table-header" style="background: ${holderColor.header};">
-              <strong>Holder ${idx + 1}: ${holder.name || ''}</strong> 
-              <span style="color: ${holderColor.text}; font-size: 12px;">${holderType}</span>
-            </div>
+              <strong style="font-size: 11px;">Holder ${idx + 1}: ${holder.name || ''}</strong> 
+              <span style="color: ${holderColor.text}; font-size: 10px;">${holderType}</span>
+        </div>
             <table class="holder-info-table">
               <thead>
                 <tr>
@@ -1691,63 +1693,63 @@ document.addEventListener("DOMContentLoaded", () => {
               * { margin: 0; padding: 0; box-sizing: border-box; }
               body { 
                 font-family: Arial, sans-serif; 
-                padding: 15px; 
-                font-size: 13px;
-                background: #f5f5f5;
+                padding: 8px; 
+                font-size: 11px;
+                background: #ffffff;
               }
               .account-tag-bar {
                 background: #e3f2fd;
-                padding: 12px 16px;
-                margin-bottom: 16px;
+                padding: 8px 12px;
+                margin-bottom: 10px;
                 border-radius: 4px;
               }
               .account-tag-content {
-                font-size: 16px;
+                font-size: 13px;
                 font-weight: 700;
                 color: #1976d2;
               }
               .two-column-layout {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 16px;
-                margin-bottom: 20px;
+                gap: 10px;
+                margin-bottom: 12px;
               }
               .fields-card {
                 border: 1px solid #d3d3d3;
                 border-radius: 4px;
                 background: #ffffff;
-                padding: 16px;
+                padding: 10px;
               }
               .section-heading {
                 font-weight: 700;
                 color: #000000;
-                font-size: 14px;
-                margin-bottom: 12px;
-                padding-bottom: 8px;
+                font-size: 12px;
+                margin-bottom: 8px;
+                padding-bottom: 4px;
                 border-bottom: 1px solid #e0e0e0;
               }
               .field-row {
                 display: flex;
-                margin-bottom: 8px;
+                margin-bottom: 5px;
               }
               .field-label {
                 font-weight: 600;
                 color: #666;
-                font-size: 12px;
-                min-width: 140px;
+                font-size: 10px;
+                min-width: 120px;
               }
               .field-value {
                 color: #000000;
-                font-size: 13px;
+                font-size: 11px;
                 flex: 1;
               }
               .holder-table-container {
-                margin-bottom: 16px;
+                margin-bottom: 10px;
               }
               .holder-table-header {
                 background: #e3f2fd;
-                padding: 8px 12px;
-                font-size: 14px;
+                padding: 5px 8px;
+                font-size: 11px;
                 font-weight: 600;
                 color: #000000;
                 border: 1px solid #d3d3d3;
@@ -1761,34 +1763,35 @@ document.addEventListener("DOMContentLoaded", () => {
                 width: 100%;
                 border-collapse: collapse;
                 border: 1px solid #d3d3d3;
-                font-size: 13px;
+                font-size: 10px;
                 background: #ffffff;
               }
               .holder-info-table thead {
                 background: #000000;
               }
               .holder-info-table th {
-                padding: 8px 12px;
+                padding: 5px 8px;
                 text-align: left;
                 font-weight: 700;
                 color: #ffffff;
                 border: 1px solid #d3d3d3;
-                font-size: 13px;
+                font-size: 10px;
               }
               .holder-info-table td {
-                padding: 8px 12px;
+                padding: 5px 8px;
                 border: 1px solid #d3d3d3;
                 color: #000000;
                 word-wrap: break-word;
                 vertical-align: top;
+                font-size: 10px;
               }
               .holder-additional-info {
-                padding: 8px 12px;
+                padding: 5px 8px;
                 background: #ffffff;
                 border-left: 1px solid #d3d3d3;
                 border-right: 1px solid #d3d3d3;
                 border-bottom: 1px solid #d3d3d3;
-                font-size: 13px;
+                font-size: 10px;
                 color: #000000;
               }
               .holder-additional-info:last-child {
@@ -1797,18 +1800,43 @@ document.addEventListener("DOMContentLoaded", () => {
               .nomination-card {
                 border: 1px solid #d3d3d3;
                 border-radius: 4px;
-                padding: 16px;
+                padding: 10px;
                 background: #ffffff;
-                margin-bottom: 20px;
+                margin-bottom: 10px;
               }
               @media print { 
                 @page { 
                   size: landscape;
-                  margin: 1cm; 
+                  margin: 0.5cm; 
                 }
                 body { 
-                  padding: 10px;
+                  padding: 5px;
                   background: #ffffff;
+                }
+                .account-tag-bar {
+                  margin-bottom: 8px;
+                  padding: 6px 10px;
+                }
+                .two-column-layout {
+                  gap: 8px;
+                  margin-bottom: 10px;
+                }
+                .fields-card {
+                  padding: 8px;
+                }
+                .section-heading {
+                  margin-bottom: 6px;
+                  font-size: 11px;
+                }
+                .field-row {
+                  margin-bottom: 4px;
+                }
+                .holder-table-container {
+                  margin-bottom: 8px;
+                }
+                .nomination-card {
+                  padding: 8px;
+                  margin-bottom: 8px;
                 }
               }
             </style>
@@ -1824,18 +1852,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="field-row">
                   <span class="field-label">Bank:</span>
                   <span class="field-value">${record.Bank_Institution || ''}</span>
-                </div>
+            </div>
                 <div class="field-row">
                   <span class="field-label">Country:</span>
                   <span class="field-value">${record.Bank_Country || ''}</span>
-                </div>
+            </div>
                 <div class="field-row">
                   <span class="field-label">Branch Address:</span>
                   <span class="field-value">${record.Bank_Branch_Address || ''}</span>
                 </div>
                 ${phones.length > 0 || emails.length > 0 || record.Bank_Helpline_URL ? `
-                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
-                  <div class="section-heading" style="margin-bottom: 8px;">Helpline</div>
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e0e0e0;">
+                  <div class="section-heading" style="margin-bottom: 6px; font-size: 11px;">Helpline</div>
                   ${phones.length > 0 ? `
                   <div class="field-row">
                     <span class="field-label">Phone:</span>
@@ -1884,16 +1912,16 @@ document.addEventListener("DOMContentLoaded", () => {
                   <span class="field-label">Minimum Balance Required:</span>
                   <span class="field-value">${record.Bank_Min_Balance || ''}</span>
                 </div>
-                <div class="field-row" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+                <div class="field-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e0e0e0;">
                   <span class="field-label">Notes:</span>
-                  <span class="field-value" style="white-space: pre-line; max-height: 150px; overflow-y: auto; display: block; word-wrap: break-word; padding: 4px 8px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; min-height: 72px;">${record.Bank_Notes || ''}</span>
+                  <span class="field-value" style="white-space: pre-line; max-height: 80px; overflow-y: auto; display: block; word-wrap: break-word; padding: 3px 6px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; min-height: 40px; font-size: 10px;">${record.Bank_Notes || ''}</span>
                 </div>
               </div>
             </div>
             
             ${holdersHtml ? `
-            <div style="margin-bottom: 20px;">
-              <div class="section-heading" style="margin-bottom: 12px;">Holders & Contacts (${record.Bank_Holders ? record.Bank_Holders.length : 0})</div>
+            <div style="margin-bottom: 10px;">
+              <div class="section-heading" style="margin-bottom: 8px; font-size: 12px;">Holders & Contacts (${record.Bank_Holders ? record.Bank_Holders.length : 0})</div>
               ${holdersHtml}
             </div>
             ` : ''}
