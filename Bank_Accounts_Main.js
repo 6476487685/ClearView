@@ -690,9 +690,24 @@ document.addEventListener("DOMContentLoaded", () => {
     // If single holder, use Notes style; otherwise use grid cards
     let holdersHtml = '';
     // Helper function to create compact table format for holder
-    const createHolderTable = (holder, holderNum, holderType) => {
+    // Define soothing colors for each holder (maximum 4 holders)
+    const holderColors = [
+      { header: '#e1f5fe', headerDark: '#b3e5fc', text: '#01579b' }, // Soft sky blue for Holder 1
+      { header: '#f0f8ff', headerDark: '#e3f2fd', text: '#1976d2' }, // Soft periwinkle for Holder 2
+      { header: '#fff5ee', headerDark: '#ffe0b2', text: '#ff9800' }, // Soft peach for Holder 3
+      { header: '#f3e5f5', headerDark: '#e1bee7', text: '#9c27b0' }, // Soft lavender for Holder 4
+    ];
+    
+    const createHolderTable = (holder, holderNum, holderType, holderIndex = 0) => {
+      const colorIndex = Math.min(holderIndex, holderColors.length - 1);
+      const holderColor = holderColors[colorIndex];
+      
       return `
         <div class="holder-table-container">
+          <div class="holder-table-header" style="background: ${holderColor.header};">
+            <strong>Holder ${holderNum}: ${holder.name || ''}</strong> 
+            <span style="color: ${holderColor.text}; font-size: 12px;">${holderType}</span>
+          </div>
           <table class="holder-info-table">
             <thead>
               <tr>
@@ -732,7 +747,7 @@ document.addEventListener("DOMContentLoaded", () => {
       holdersHtml = `
         <div class="notes-card-minimal">
           <div class="section-heading-minimal"><strong>Holders & Contacts (1)</strong></div>
-          ${createHolderTable(holder, 1, holderType)}
+          ${createHolderTable(holder, 1, holderType, 0)}
         </div>
       `;
     } else {
@@ -741,17 +756,29 @@ document.addEventListener("DOMContentLoaded", () => {
         const holderType = idx === 0 ? 'Sole Holder' : 'Joint Holder';
         const holderId = `holder-${index}-${idx}`;
         const isFirst = idx === 0;
+        const colorIndex = Math.min(idx, holderColors.length - 1);
+        const holderColor = holderColors[colorIndex];
+        // Use darker gradient for active (expanded) state
+        const initialBg = isFirst 
+          ? `linear-gradient(135deg, ${holderColor.headerDark} 0%, ${holderColor.header} 100%)`
+          : `linear-gradient(135deg, ${holderColor.header} 0%, ${holderColor.headerDark} 100%)`;
+        
         return `
           <div class="holder-accordion-item">
-            <div class="holder-accordion-header ${isFirst ? 'active' : ''}" data-holder-id="${holderId}">
+            <div class="holder-accordion-header ${isFirst ? 'active' : ''}" 
+                 data-holder-id="${holderId}" 
+                 data-header-color="${holderColor.header}" 
+                 data-header-dark="${holderColor.headerDark}"
+                 data-text-color="${holderColor.text}"
+                 style="background: ${initialBg}; border-bottom-color: ${holderColor.text};">
               <div class="holder-accordion-title">
                 <strong>Holder ${idx + 1}: ${holder.name || ''}</strong>
-                <span class="holder-type-badge">${holderType}</span>
+                <span class="holder-type-badge" style="background: ${holderColor.header}; color: ${holderColor.text};">${holderType}</span>
               </div>
-              <span class="holder-accordion-icon">${isFirst ? '▼' : '▶'}</span>
+              <span class="holder-accordion-icon" style="color: ${holderColor.text};">${isFirst ? '▼' : '▶'}</span>
             </div>
             <div class="holder-accordion-content" id="${holderId}" style="display: ${isFirst ? 'block' : 'none'};">
-              ${createHolderTable(holder, idx + 1, holderType)}
+              ${createHolderTable(holder, idx + 1, holderType, idx)}
             </div>
           </div>
         `;
@@ -1057,7 +1084,27 @@ document.addEventListener("DOMContentLoaded", () => {
       // Use setTimeout to ensure DOM is ready
       setTimeout(() => {
         const accordionHeaders = card.querySelectorAll('.holder-accordion-header');
-        accordionHeaders.forEach(header => {
+        accordionHeaders.forEach((header, idx) => {
+          // Get colors from data attributes
+          const headerColor = header.getAttribute('data-header-color') || '#e1f5fe';
+          const headerDark = header.getAttribute('data-header-dark') || '#b3e5fc';
+          const textColor = header.getAttribute('data-text-color') || '#01579b';
+          const normalBg = `linear-gradient(135deg, ${headerColor} 0%, ${headerDark} 100%)`;
+          const hoverBg = `linear-gradient(135deg, ${headerDark} 0%, ${headerColor} 100%)`;
+          
+          // Add hover effect
+          header.addEventListener('mouseenter', function() {
+            if (!this.classList.contains('active')) {
+              this.style.background = hoverBg;
+            }
+          });
+          
+          header.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('active')) {
+              this.style.background = normalBg;
+            }
+          });
+          
           header.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -1083,11 +1130,13 @@ document.addEventListener("DOMContentLoaded", () => {
               content.style.display = 'none';
               this.classList.remove('active');
               icon.textContent = '▶';
+              this.style.background = normalBg;
             } else {
               // Expand
               content.style.display = 'block';
               this.classList.add('active');
               icon.textContent = '▼';
+              this.style.background = hoverBg;
             }
           });
         });
@@ -1460,12 +1509,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Holders - Table Format with Different Colored Cards
       if (record.Bank_Holders && record.Bank_Holders.length > 0) {
-        // Define different colors for each holder (maximum 4 holders)
+        // Define different soothing colors for each holder (maximum 4 holders)
         const holderColors = [
-          { header: [227, 242, 253], text: [25, 118, 210] }, // Light blue for Holder 1
-          { header: [232, 245, 233], text: [56, 142, 60] }, // Light green for Holder 2
-          { header: [255, 243, 224], text: [255, 152, 0] }, // Light orange for Holder 3
-          { header: [248, 187, 208], text: [233, 30, 99] }, // Light pink for Holder 4
+          { header: [225, 245, 254], text: [1, 87, 155] }, // Soft sky blue for Holder 1
+          { header: [240, 248, 255], text: [25, 118, 210] }, // Soft periwinkle for Holder 2
+          { header: [255, 245, 238], text: [255, 152, 0] }, // Soft peach for Holder 3
+          { header: [243, 229, 245], text: [156, 39, 176] }, // Soft lavender for Holder 4
         ];
         
         record.Bank_Holders.forEach((holder, hIdx) => {
@@ -1625,12 +1674,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       
-      // Define different colors for each holder (maximum 4 holders)
+      // Define different soothing colors for each holder (maximum 4 holders)
       const holderColors = [
-        { header: '#e3f2fd', text: '#1976d2' }, // Light blue for Holder 1
-        { header: '#e8f5e9', text: '#388e3c' }, // Light green for Holder 2
-        { header: '#fff3e0', text: '#ff9800' }, // Light orange for Holder 3
-        { header: '#f8bbd0', text: '#e91e63' }, // Light pink for Holder 4
+        { header: '#e1f5fe', text: '#01579b' }, // Soft sky blue for Holder 1
+        { header: '#f0f8ff', text: '#1976d2' }, // Soft periwinkle for Holder 2
+        { header: '#fff5ee', text: '#ff9800' }, // Soft peach for Holder 3
+        { header: '#f3e5f5', text: '#9c27b0' }, // Soft lavender for Holder 4
       ];
       
       // Create holder table HTML
