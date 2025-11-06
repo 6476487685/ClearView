@@ -486,8 +486,6 @@ document.addEventListener("DOMContentLoaded", () => {
               <button type="button" class="password-toggle" data-holder="${i}" style="display:none;">👁️</button>
             </div>
           </div>
-        </div>
-        <div class="holder-row">
           <div>
             <label>Email</label>
             <input type="email" id="Bank_Holder_${i}_Email" ${!isEditMode ? 'readonly' : ''} placeholder="email@example.com">
