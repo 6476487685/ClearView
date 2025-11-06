@@ -51,7 +51,7 @@
       <h3 id="modalTitle">Add Bank Account</h3>
       <form id="bankForm">
         <!-- Row 1: Institution (Bank Name), Country, Branch Address, Account Tag -->
-        <div class="row2" style="grid-template-columns: 1fr 1fr 2fr 2fr; gap: 12px;">
+        <div class="row2" style="grid-template-columns: 0.8fr 0.8fr 2.4fr 2fr; gap: 12px;">
           <div>
             <label>Institution (Bank Name)</label>
             <select id="Bank_Institution" required></select>
@@ -75,8 +75,8 @@
           </div>
         </div>
 
-        <!-- Row 2: Account Status, Account Type -->
-        <div class="row2">
+        <!-- Row 2: Account Status, Account Type, Account Number -->
+        <div class="row2" style="grid-template-columns: 1fr 1fr 1.5fr; gap: 12px;">
           <div>
             <label>Account Status</label>
             <select id="Bank_Account_Status">
@@ -87,14 +87,14 @@
             <label>Account Type (Ac_Type)</label>
             <select id="Bank_Ac_Type" required></select>
           </div>
-        </div>
-
-        <!-- Row 3: Account Number, Transit / IFSC, Institution / MICR, Minimum Balance Required -->
-        <div class="row2" style="grid-template-columns: 1.5fr 1fr 1fr 2.5fr; gap: 12px;">
           <div>
             <label>Account Number</label>
             <input type="text" id="Bank_Account_Number" placeholder="123456789012">
           </div>
+        </div>
+
+        <!-- Row 3: Transit / IFSC, Institution / MICR, Minimum Balance Required -->
+        <div class="row2" style="grid-template-columns: 1fr 1fr 2fr; gap: 12px;">
           <div>
             <label>Transit / IFSC</label>
             <input type="text" id="Bank_Transit_IFSC" placeholder="01234 / ABCD0123456">
