@@ -1460,13 +1460,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Holders - Table Format with Different Colored Cards
       if (record.Bank_Holders && record.Bank_Holders.length > 0) {
-        // Define different colors for each holder
+        // Define different colors for each holder (maximum 4 holders)
         const holderColors = [
           { header: [227, 242, 253], text: [25, 118, 210] }, // Light blue for Holder 1
           { header: [232, 245, 233], text: [56, 142, 60] }, // Light green for Holder 2
           { header: [255, 243, 224], text: [255, 152, 0] }, // Light orange for Holder 3
           { header: [248, 187, 208], text: [233, 30, 99] }, // Light pink for Holder 4
-          { header: [225, 190, 231], text: [156, 39, 176] }, // Light purple for Holder 5+
         ];
         
         record.Bank_Holders.forEach((holder, hIdx) => {
@@ -1620,26 +1619,67 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function printRecord(record) {
     try {
-      const printWindow = window.open('', '_blank', 'width=800,height=600');
+      const printWindow = window.open('', '_blank', 'width=1200,height=800');
       if (!printWindow) {
         alert('Please allow popups to print this record.');
         return;
       }
       
-      const holdersHtml = (record.Bank_Holders || []).map((holder, idx) => `
-        <div style="border:1px solid #ccc;padding:10px;margin-bottom:10px;">
-          <h4>Holder ${idx + 1}</h4>
-          <p><strong>Holder (Ac_Holder):</strong> ${holder.holder || ''}</p>
-          <p><strong>Name:</strong> ${holder.name || ''}</p>
-          <p><strong>Client ID or Customer ID:</strong> ${holder.clientID || ''}</p>
-          ${holder.userID ? `<p><strong>UserID_or_LoginID:</strong> ${holder.userID}</p>` : ''}
-          ${holder.userID ? `<p><strong>Login_Password:</strong> ${holder.loginPassword || ''}</p>` : ''}
-          ${holder.emailPhone ? `<p><strong>Email | Phone:</strong> ${holder.emailPhone}</p>` : ''}
-          ${holder.debitCard ? `<p><strong>Debit Card Information:</strong> ${holder.debitCard}</p>` : ''}
-          ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `<p><strong>PIN | TPIN | MPIN:</strong> ${holder.pins}</p>` : ''}
-          ${holder.interaccEmailOrUPIID ? `<p><strong>Interacc_Email_or_UPI_ID:</strong> ${holder.interaccEmailOrUPIID}</p>` : ''}
-        </div>
-      `).join('');
+      // Define different colors for each holder (maximum 4 holders)
+      const holderColors = [
+        { header: '#e3f2fd', text: '#1976d2' }, // Light blue for Holder 1
+        { header: '#e8f5e9', text: '#388e3c' }, // Light green for Holder 2
+        { header: '#fff3e0', text: '#ff9800' }, // Light orange for Holder 3
+        { header: '#f8bbd0', text: '#e91e63' }, // Light pink for Holder 4
+      ];
+      
+      // Create holder table HTML
+      const holdersHtml = (record.Bank_Holders || []).map((holder, idx) => {
+        const holderType = idx === 0 ? 'Sole Holder' : 'Joint Holder';
+        const colorIndex = Math.min(idx, holderColors.length - 1);
+        const holderColor = holderColors[colorIndex];
+        
+        return `
+          <div class="holder-table-container">
+            <div class="holder-table-header" style="background: ${holderColor.header};">
+              <strong>Holder ${idx + 1}: ${holder.name || ''}</strong> 
+              <span style="color: ${holderColor.text}; font-size: 12px;">${holderType}</span>
+            </div>
+            <table class="holder-info-table">
+              <thead>
+                <tr>
+                  <th>Client ID or Customer ID:</th>
+                  <th>Debit Card Information</th>
+                  <th>Email | Phone</th>
+                  <th>Interacc Email | UPI ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>${holder.clientID || ''}</td>
+                  <td>${holder.debitCard || ''}</td>
+                  <td>${holder.emailPhone || ''}</td>
+                  <td>${holder.interaccEmailOrUPIID || ''}</td>
+                </tr>
+              </tbody>
+            </table>
+            ${holder.userID ? `
+            <div class="holder-additional-info">
+              <div><strong>UserID_or_LoginID:</strong> ${holder.userID} / <strong>Login_Password:</strong> ${holder.loginPassword || ''}</div>
+            </div>
+            ` : ''}
+            ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `
+            <div class="holder-additional-info">
+              <div><strong>PIN | TPIN | MPIN:</strong> ${holder.pins}</div>
+            </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      // Get helpline data
+      const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4].filter(p => p);
+      const emails = [record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e);
 
       printWindow.document.write(`
         <!DOCTYPE html>
@@ -1647,39 +1687,229 @@ document.addEventListener("DOMContentLoaded", () => {
           <head>
             <title>Bank Account - ${record.Bank_Institution || ''}</title>
             <style>
-              body { font-family: Arial, sans-serif; padding: 20px; }
-              h1 { color: #b87333; }
-              .section { margin: 20px 0; }
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { 
+                font-family: Arial, sans-serif; 
+                padding: 15px; 
+                font-size: 13px;
+                background: #f5f5f5;
+              }
+              .account-tag-bar {
+                background: #e3f2fd;
+                padding: 12px 16px;
+                margin-bottom: 16px;
+                border-radius: 4px;
+              }
+              .account-tag-content {
+                font-size: 16px;
+                font-weight: 700;
+                color: #1976d2;
+              }
+              .two-column-layout {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+                margin-bottom: 20px;
+              }
+              .fields-card {
+                border: 1px solid #d3d3d3;
+                border-radius: 4px;
+                background: #ffffff;
+                padding: 16px;
+              }
+              .section-heading {
+                font-weight: 700;
+                color: #000000;
+                font-size: 14px;
+                margin-bottom: 12px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid #e0e0e0;
+              }
+              .field-row {
+                display: flex;
+                margin-bottom: 8px;
+              }
+              .field-label {
+                font-weight: 600;
+                color: #666;
+                font-size: 12px;
+                min-width: 140px;
+              }
+              .field-value {
+                color: #000000;
+                font-size: 13px;
+                flex: 1;
+              }
+              .holder-table-container {
+                margin-bottom: 16px;
+              }
+              .holder-table-header {
+                background: #e3f2fd;
+                padding: 8px 12px;
+                font-size: 14px;
+                font-weight: 600;
+                color: #000000;
+                border: 1px solid #d3d3d3;
+                border-bottom: none;
+                border-radius: 4px 4px 0 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              }
+              .holder-info-table {
+                width: 100%;
+                border-collapse: collapse;
+                border: 1px solid #d3d3d3;
+                font-size: 13px;
+                background: #ffffff;
+              }
+              .holder-info-table thead {
+                background: #ff9800;
+              }
+              .holder-info-table th {
+                padding: 8px 12px;
+                text-align: left;
+                font-weight: 700;
+                color: #000000;
+                border: 1px solid #d3d3d3;
+                font-size: 13px;
+              }
+              .holder-info-table td {
+                padding: 8px 12px;
+                border: 1px solid #d3d3d3;
+                color: #000000;
+                word-wrap: break-word;
+                vertical-align: top;
+              }
+              .holder-additional-info {
+                padding: 8px 12px;
+                background: #ffffff;
+                border-left: 1px solid #d3d3d3;
+                border-right: 1px solid #d3d3d3;
+                border-bottom: 1px solid #d3d3d3;
+                font-size: 13px;
+                color: #000000;
+              }
+              .holder-additional-info:last-child {
+                border-radius: 0 0 4px 4px;
+              }
+              .nomination-card {
+                border: 1px solid #d3d3d3;
+                border-radius: 4px;
+                padding: 16px;
+                background: #ffffff;
+                margin-bottom: 20px;
+              }
               @media print { 
-                @page { size: portrait; margin: 1cm; }
-                body { padding: 0; }
+                @page { 
+                  size: landscape;
+                  margin: 1cm; 
+                }
+                body { 
+                  padding: 10px;
+                  background: #ffffff;
+                }
               }
             </style>
           </head>
           <body>
-            <h1>${record.Bank_Institution || ''} - ${record.Bank_Ac_Type || ''}</h1>
-            <div class="section">
-              <p><strong>Account Tag:</strong> ${record.Bank_Ac_Tag || ''}</p>
-              <p><strong>Country:</strong> ${record.Bank_Country || ''}</p>
-              <p><strong>Account Number:</strong> ${record.Bank_Account_Number || ''}</p>
-              <p><strong>Branch Address:</strong> ${record.Bank_Branch_Address || ''}</p>
-              <p><strong>Account Status:</strong> ${record.Bank_Account_Status || ''}</p>
-              <p><strong>Minimum Balance Required:</strong> ${record.Bank_Min_Balance || ''}</p>
+            <div class="account-tag-bar">
+              <div class="account-tag-content">${record.Bank_Ac_Tag || 'No Account Tag'}</div>
             </div>
-            ${holdersHtml ? `<div class="section"><h3>Holders</h3>${holdersHtml}</div>` : ''}
-            <div class="section">
-              <h3>Nomination</h3>
-              <p><strong>Name:</strong> ${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</p>
-              ${record.Bank_Nominee_Email ? `<p><strong>Email:</strong> ${record.Bank_Nominee_Email}</p>` : ''}
-              ${record.Bank_Nominee_Phone ? `<p><strong>Phone:</strong> ${record.Bank_Nominee_Phone}</p>` : ''}
+            
+            <div class="two-column-layout">
+              <div class="fields-card">
+                <div class="section-heading">Bank Information</div>
+                <div class="field-row">
+                  <span class="field-label">Bank:</span>
+                  <span class="field-value">${record.Bank_Institution || ''}</span>
+                </div>
+                <div class="field-row">
+                  <span class="field-label">Country:</span>
+                  <span class="field-value">${record.Bank_Country || ''}</span>
+                </div>
+                <div class="field-row">
+                  <span class="field-label">Branch Address:</span>
+                  <span class="field-value">${record.Bank_Branch_Address || ''}</span>
+                </div>
+                ${phones.length > 0 || emails.length > 0 || record.Bank_Helpline_URL ? `
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+                  <div class="section-heading" style="margin-bottom: 8px;">Helpline</div>
+                  ${phones.length > 0 ? `
+                  <div class="field-row">
+                    <span class="field-label">Phone:</span>
+                    <span class="field-value">${phones.join(' / ')}</span>
+                  </div>
+                  ` : ''}
+                  ${emails.length > 0 ? `
+                  <div class="field-row">
+                    <span class="field-label">Email:</span>
+                    <span class="field-value">${emails.join(' / ')}</span>
+                  </div>
+                  ` : ''}
+                  ${record.Bank_Helpline_URL ? `
+                  <div class="field-row">
+                    <span class="field-label">URL:</span>
+                    <span class="field-value">${record.Bank_Helpline_URL}</span>
+                  </div>
+                  ` : ''}
+                </div>
+                ` : ''}
+              </div>
+              
+              <div class="fields-card">
+                <div class="section-heading">Account Information</div>
+                <div class="field-row">
+                  <span class="field-label">Account Type:</span>
+                  <span class="field-value">${record.Bank_Ac_Type || ''}</span>
+                </div>
+                <div class="field-row">
+                  <span class="field-label">Account Number:</span>
+                  <span class="field-value">${record.Bank_Account_Number || ''}</span>
+                </div>
+                <div class="field-row">
+                  <span class="field-label">Transit / IFSC:</span>
+                  <span class="field-value">${record.Bank_Transit_IFSC || ''}</span>
+                </div>
+                <div class="field-row">
+                  <span class="field-label">Institution / MICR:</span>
+                  <span class="field-value">${record.Bank_Institution_MICR || ''}</span>
+                </div>
+                <div class="field-row">
+                  <span class="field-label">Account Status:</span>
+                  <span class="field-value">${record.Bank_Account_Status || ''}</span>
+                </div>
+                <div class="field-row">
+                  <span class="field-label">Minimum Balance Required:</span>
+                  <span class="field-value">${record.Bank_Min_Balance || ''}</span>
+                </div>
+                <div class="field-row" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
+                  <span class="field-label">Notes:</span>
+                  <span class="field-value" style="white-space: pre-line; max-height: 150px; overflow-y: auto; display: block; word-wrap: break-word; padding: 4px 8px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa; min-height: 72px;">${record.Bank_Notes || ''}</span>
+                </div>
+              </div>
             </div>
-            <div class="section">
-              <h3>Helpline</h3>
-              <p><strong>Phones:</strong> ${[record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4].filter(p => p).join(' / ') || 'None'}</p>
-              <p><strong>Emails:</strong> ${[record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e).join(' / ') || 'None'}</p>
-              ${record.Bank_Helpline_URL ? `<p><strong>URL:</strong> ${record.Bank_Helpline_URL}</p>` : ''}
+            
+            ${holdersHtml ? `
+            <div style="margin-bottom: 20px;">
+              <div class="section-heading" style="margin-bottom: 12px;">Holders & Contacts (${record.Bank_Holders ? record.Bank_Holders.length : 0})</div>
+              ${holdersHtml}
             </div>
-            ${record.Bank_Notes ? `<div class="section"><h3>Notes</h3><p>${record.Bank_Notes}</p></div>` : ''}
+            ` : ''}
+            
+            <div class="nomination-card">
+              <div class="section-heading">Nomination</div>
+              <div class="field-row">
+                <span class="field-label">Name:</span>
+                <span class="field-value">${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}</span>
+              </div>
+              ${record.Bank_Nominee_Email || record.Bank_Nominee_Phone ? `
+              <div class="field-row">
+                <span class="field-label">Email | Phone:</span>
+                <span class="field-value">${[record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ') || ''}</span>
+              </div>
+              ` : ''}
+            </div>
           </body>
         </html>
       `);
