@@ -178,7 +178,8 @@ document.addEventListener("DOMContentLoaded", () => {
         emailPhone: emailPhone, // Keep for backward compatibility
         loginPassword: document.getElementById(`Bank_Holder_${i}_LoginPassword`).value || '',
         debitCard: document.getElementById(`Bank_Holder_${i}_DebitCard`).value || '',
-        pins: document.getElementById(`Bank_Holder_${i}_Pins`).value || 'XXXXXX | XXXXXX | XXXXXX'
+        pins: document.getElementById(`Bank_Holder_${i}_Pins`).value || 'XXXXXX | XXXXXX | XXXXXX',
+        interaccEmailOrUPIID: document.getElementById(`Bank_Holder_${i}_Interacc_Email_or_UPI_ID`).value || ''
       });
     }
 
@@ -505,6 +506,10 @@ document.addEventListener("DOMContentLoaded", () => {
             <label>PIN | TPIN | MPIN</label>
             <input type="text" id="Bank_Holder_${i}_Pins" class="pins-input" ${!isEditMode ? 'readonly' : ''} value="XXXXXX | XXXXXX | XXXXXX" placeholder="XXXXXX | XXXXXX | XXXXXX" style="font-family:'Courier New',monospace;letter-spacing:2px;color:var(--text-secondary);">
           </div>
+          <div style="flex: 1.5;">
+            <label>Interacc_Email_or_UPI_ID</label>
+            <input type="text" id="Bank_Holder_${i}_Interacc_Email_or_UPI_ID" ${!isEditMode ? 'readonly' : ''} placeholder="Email or UPI ID">
+          </div>
         </div>
       `;
       holdersContainer.appendChild(holderSection);
@@ -535,6 +540,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const loginPasswordField = document.getElementById(`Bank_Holder_${holderNum}_LoginPassword`);
             const debitCardField = document.getElementById(`Bank_Holder_${holderNum}_DebitCard`);
             const pinsField = document.getElementById(`Bank_Holder_${holderNum}_Pins`);
+            const interaccEmailOrUPIIDField = document.getElementById(`Bank_Holder_${holderNum}_Interacc_Email_or_UPI_ID`);
             
             if (holderField) holderField.value = holder.holder || '';
             if (nameField) nameField.value = holder.name || '';
@@ -568,6 +574,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             if (debitCardField) debitCardField.value = holder.debitCard || '';
             if (pinsField) pinsField.value = holder.pins || 'XXXXXX | XXXXXX | XXXXXX';
+            if (interaccEmailOrUPIIDField) interaccEmailOrUPIIDField.value = holder.interaccEmailOrUPIID || '';
           }
         });
       }
@@ -697,6 +704,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ${holder.emailPhone ? `<div class="section-heading-minimal"><strong>Email or Phone</strong></div><div>${holder.emailPhone}</div>` : ''}
             ${holder.debitCard ? `<div class="section-heading-minimal"><strong>Debit Card Information</strong></div><div>${holder.debitCard}</div>` : ''}
             ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `<div>PIN | TPIN | MPIN: ${holder.pins}</div>` : ''}
+            ${holder.interaccEmailOrUPIID ? `<div>Interacc_Email_or_UPI_ID: ${holder.interaccEmailOrUPIID}</div>` : ''}
           </div>
         </div>
       `;
@@ -718,6 +726,7 @@ document.addEventListener("DOMContentLoaded", () => {
               </div>
               ${holder.debitCard ? `<div class="holder-card-separator"></div><div class="holder-debit-card"><div class="section-heading-minimal"><strong>Debit Card Information</strong></div>${holder.debitCard}</div>` : ''}
               ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `<div class="holder-card-separator"></div><div class="holder-pins">PIN | TPIN | MPIN: ${holder.pins}</div>` : ''}
+              ${holder.interaccEmailOrUPIID ? `<div class="holder-card-separator"></div><div class="holder-interacc">Interacc_Email_or_UPI_ID: ${holder.interaccEmailOrUPIID}</div>` : ''}
             </div>
           </div>
         `;
@@ -1146,6 +1155,7 @@ document.addEventListener("DOMContentLoaded", () => {
               banksData.push([`Holder ${hIdx + 1} Login_Password`, holder.loginPassword || '']);
               banksData.push([`Holder ${hIdx + 1} Debit Card`, holder.debitCard || '']);
               banksData.push([`Holder ${hIdx + 1} PIN | TPIN | MPIN`, holder.pins || '']);
+              banksData.push([`Holder ${hIdx + 1} Interacc_Email_or_UPI_ID`, holder.interaccEmailOrUPIID || '']);
             });
           }
           
@@ -1386,6 +1396,10 @@ document.addEventListener("DOMContentLoaded", () => {
             doc.text(`PIN | TPIN | MPIN: ${holder.pins}`, margin + 5, yPos);
             yPos += 5;
           }
+          if (holder.interaccEmailOrUPIID) {
+            doc.text(`Interacc_Email_or_UPI_ID: ${holder.interaccEmailOrUPIID}`, margin + 5, yPos);
+            yPos += 5;
+          }
           yPos += 8;
         });
       }
@@ -1474,6 +1488,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${holder.emailPhone ? `<p><strong>Email or Phone:</strong> ${holder.emailPhone}</p>` : ''}
           ${holder.debitCard ? `<p><strong>Debit Card Information:</strong> ${holder.debitCard}</p>` : ''}
           ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `<p><strong>PIN | TPIN | MPIN:</strong> ${holder.pins}</p>` : ''}
+          ${holder.interaccEmailOrUPIID ? `<p><strong>Interacc_Email_or_UPI_ID:</strong> ${holder.interaccEmailOrUPIID}</p>` : ''}
         </div>
       `).join('');
 
