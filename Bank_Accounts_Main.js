@@ -506,7 +506,6 @@ document.addEventListener("DOMContentLoaded", () => {
           <div style="flex: 1;">
             <label>PIN | TPIN | MPIN</label>
             <input type="text" id="Bank_Holder_${i}_Pins" class="pins-input" ${!isEditMode ? 'readonly' : ''} value="XXXXXX | XXXXXX | XXXXXX" placeholder="XXXXXX | XXXXXX | XXXXXX" style="font-family:'Courier New',monospace;letter-spacing:2px;color:var(--text-secondary);">
-            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Default: XXXXXX | XXXXXX | XXXXXX (always masked)</small>
           </div>
         </div>
       `;
