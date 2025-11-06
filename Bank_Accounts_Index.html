@@ -50,22 +50,11 @@
     <div class="modal-content bank-modal-content">
       <h3 id="modalTitle">Add Bank Account</h3>
       <form id="bankForm">
-        <!-- Main Bank Information (Two Columns) -->
-        <div class="row2">
+        <!-- Row 1: Institution (Bank Name), Country, Branch Address, Account Tag -->
+        <div class="row2" style="grid-template-columns: 1fr 1fr 2fr 2fr; gap: 12px;">
           <div>
             <label>Institution (Bank Name)</label>
             <select id="Bank_Institution" required></select>
-          </div>
-          <div>
-            <label>Account Number (Ac_Type)</label>
-            <select id="Bank_Ac_Type" required></select>
-          </div>
-        </div>
-
-        <div class="row2">
-          <div>
-            <label>Account Tag</label>
-            <select id="Bank_Ac_Tag" required></select>
           </div>
           <div>
             <label>Country</label>
@@ -76,9 +65,32 @@
               <option value="US">US</option>
             </select>
           </div>
+          <div>
+            <label>Branch Address</label>
+            <input type="text" id="Bank_Branch_Address" placeholder="123 Main St, Halifax, NS">
+          </div>
+          <div>
+            <label>Account Tag</label>
+            <select id="Bank_Ac_Tag" required></select>
+          </div>
         </div>
 
+        <!-- Row 2: Account Status, Account Type -->
         <div class="row2">
+          <div>
+            <label>Account Status</label>
+            <select id="Bank_Account_Status">
+              <option value="">Select Account Status</option>
+            </select>
+          </div>
+          <div>
+            <label>Account Type (Ac_Type)</label>
+            <select id="Bank_Ac_Type" required></select>
+          </div>
+        </div>
+
+        <!-- Row 3: Account Number, Transit / IFSC, Institution / MICR, Minimum Balance Required -->
+        <div class="row2" style="grid-template-columns: 1.5fr 1fr 1fr 2.5fr; gap: 12px;">
           <div>
             <label>Account Number</label>
             <input type="text" id="Bank_Account_Number" placeholder="123456789012">
@@ -87,29 +99,13 @@
             <label>Transit / IFSC</label>
             <input type="text" id="Bank_Transit_IFSC" placeholder="01234 / ABCD0123456">
           </div>
-        </div>
-
-        <div class="row2">
           <div>
             <label>Institution / MICR</label>
             <input type="text" id="Bank_Institution_MICR" placeholder="0003 / 123456789">
           </div>
           <div>
-            <label>Account Status</label>
-            <select id="Bank_Account_Status">
-              <option value="">Select Account Status</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="row2">
-          <div>
             <label>Minimum Balance Required</label>
             <input type="text" id="Bank_Min_Balance" placeholder="0.00">
-          </div>
-          <div>
-            <label>Branch Address</label>
-            <input type="text" id="Bank_Branch_Address" placeholder="123 Main St, Halifax, NS">
           </div>
         </div>
 
