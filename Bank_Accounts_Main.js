@@ -899,12 +899,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="field-label-minimal"><strong>Minimum Balance Required:</strong></span>
                 <span class="field-value-minimal">${record.Bank_Min_Balance || ''}</span>
               </div>
-              ${record.Bank_Notes ? `
               <div class="field-row-minimal" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #d3d3d3;">
                 <span class="field-label-minimal"><strong>Notes:</strong></span>
-                <span class="field-value-minimal" style="white-space: pre-line;">${record.Bank_Notes}</span>
+                <span class="field-value-minimal notes-field-scrollable" style="white-space: pre-line; max-height: 150px; overflow-y: auto; display: block; word-wrap: break-word;">${record.Bank_Notes || ''}</span>
               </div>
-              ` : ''}
             </div>
           </div>
         </div>

@@ -489,6 +489,22 @@ body.dark{
   flex:1;
 }
 
+/* Notes field with scrollbar */
+.notes-field-scrollable{
+  padding:4px 8px;
+  border:1px solid #e0e0e0;
+  border-radius:4px;
+  background:#fafafa;
+  max-height:150px;
+  overflow-y:auto;
+}
+
+body.dark .notes-field-scrollable{
+  border-color:#404040;
+  background:#333333;
+  color:#ffffff;
+}
+
 /* Holders Section - Full Width */
 .holders-full-width{
   width:100%;
