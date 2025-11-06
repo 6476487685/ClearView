@@ -520,22 +520,6 @@ body.dark .notes-field-scrollable{
   margin-top:12px;
 }
 
-.holder-table-header{
-  background:#f5f5f5;
-  padding:8px 12px;
-  font-size:14px;
-  font-weight:600;
-  color:#000000;
-  border:1px solid #d3d3d3;
-  border-bottom:none;
-  border-radius:4px 4px 0 0;
-}
-
-body.dark .holder-table-header{
-  background:#333333;
-  border-color:#404040;
-  color:#ffffff;
-}
 
 .holder-info-table{
   width:100%;
@@ -543,10 +527,8 @@ body.dark .holder-table-header{
   border:1px solid #d3d3d3;
   font-size:13px;
   margin:0;
-}
-
-.holder-info-table:last-of-type{
-  border-radius:0 0 4px 4px;
+  border-radius:4px 4px 0 0;
+  overflow:hidden;
 }
 
 .holder-info-table thead{
@@ -725,20 +707,23 @@ body.dark .holder-additional-info{
   align-items:center;
   padding:12px 16px;
   cursor:pointer;
-  background:#f8f9fa;
-  border-bottom:1px solid #d3d3d3;
+  background:linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-bottom:1px solid #90caf9;
   transition:background 0.2s ease;
   user-select:none;
   pointer-events:auto;
+  box-shadow:0 2px 4px rgba(0,0,0,0.05);
 }
 
 .holder-accordion-header:hover{
-  background:#e9ecef;
+  background:linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
 
 .holder-accordion-header.active{
-  background:#e3f2fd;
+  background:linear-gradient(135deg, #90caf9 0%, #64b5f6 100%);
   border-bottom-color:#1976d2;
+  box-shadow:0 2px 8px rgba(25,118,210,0.2);
 }
 
 .holder-accordion-title{
@@ -786,16 +771,16 @@ body.dark .holder-accordion-item{
 }
 
 body.dark .holder-accordion-header{
-  background:#333333;
-  border-bottom-color:#404040;
+  background:linear-gradient(135deg, #1e3a5f 0%, #2a4a6f 100%);
+  border-bottom-color:#3a5a7f;
 }
 
 body.dark .holder-accordion-header:hover{
-  background:#3a3a3a;
+  background:linear-gradient(135deg, #2a4a6f 0%, #3a5a7f 100%);
 }
 
 body.dark .holder-accordion-header.active{
-  background:#2a3a4d;
+  background:linear-gradient(135deg, #3a5a7f 0%, #4a6a9f 100%);
   border-bottom-color:#5a9fd4;
 }
 
