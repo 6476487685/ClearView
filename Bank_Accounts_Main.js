@@ -821,7 +821,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="two-column-layout">
         <div class="column-left">
           <div class="fields-card-minimal">
-            <div class="section-heading-minimal"><strong>Account Information</strong></div>
+            <div class="section-heading-minimal"><strong>Bank Information</strong></div>
             <div class="fields-content-minimal">
               <div class="field-row-minimal">
                 <span class="field-label-minimal"><strong>Bank Name:</strong></span>
@@ -835,6 +835,36 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="field-label-minimal"><strong>Branch Address:</strong></span>
                 <span class="field-value-minimal">${record.Bank_Branch_Address || ''}</span>
               </div>
+              <div class="field-row-minimal" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #d3d3d3;">
+                <span class="field-label-minimal"><strong>Helpline</strong></span>
+                <span class="field-value-minimal"></span>
+              </div>
+              ${helplinePhones.length > 0 ? `
+              <div class="field-row-minimal">
+                <span class="field-label-minimal"><strong>Phone:</strong></span>
+                <span class="field-value-minimal">${helplinePhones.join(' / ')}</span>
+              </div>
+              ` : ''}
+              ${helplineEmails.length > 0 ? `
+              <div class="field-row-minimal">
+                <span class="field-label-minimal"><strong>Email:</strong></span>
+                <span class="field-value-minimal">${helplineEmails.join(' / ')}</span>
+              </div>
+              ` : ''}
+              ${record.Bank_Helpline_URL ? `
+              <div class="field-row-minimal">
+                <span class="field-label-minimal"><strong>URL:</strong></span>
+                <span class="field-value-minimal"><a href="${record.Bank_Helpline_URL}" target="_blank" style="color: var(--accent); text-decoration: none;">${record.Bank_Helpline_URL}</a></span>
+              </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+
+        <div class="column-right">
+          <div class="fields-card-minimal">
+            <div class="section-heading-minimal"><strong>Account Information</strong></div>
+            <div class="fields-content-minimal">
               <div class="field-row-minimal">
                 <span class="field-label-minimal"><strong>Account Type:</strong></span>
                 <span class="field-value-minimal">${record.Bank_Ac_Type || ''}</span>
@@ -859,17 +889,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="field-label-minimal"><strong>Minimum Balance Required:</strong></span>
                 <span class="field-value-minimal">${record.Bank_Min_Balance || ''}</span>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="column-right">
-          <div class="helpline-card-minimal">
-            <div class="section-heading-minimal"><strong>Helpline</strong></div>
-            <div class="helpline-content-minimal">
-              ${helplinePhones.length > 0 ? `<div><strong>Phone:</strong> ${helplinePhones.join(' / ')}</div>` : ''}
-              ${helplineEmails.length > 0 ? `<div><strong>Email:</strong> ${helplineEmails.join(' / ')}</div>` : ''}
-              ${record.Bank_Helpline_URL ? `<div>${record.Bank_Helpline_URL}</div>` : ''}
             </div>
           </div>
         </div>
@@ -1256,17 +1275,16 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.text(`${record.Bank_Ac_Tag || 'No Account Tag'}`, margin + 5, yPos + 7);
       yPos += 15;
 
-      // Fields Card
+      // Bank Information Card
       doc.setDrawColor(211, 211, 211); // #d3d3d3
       doc.setLineWidth(0.5);
       doc.setFontSize(12);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(0, 0, 0);
-      doc.text('Account Information', margin, yPos);
+      doc.text('Bank Information', margin, yPos);
       yPos += 8;
       
-      const fieldsHeight = 55;
-      doc.rect(margin, yPos - fieldsHeight + 5, pageWidth - 2 * margin, fieldsHeight);
+      const bankInfoStartY = yPos;
       doc.setFontSize(10);
       doc.setFont(undefined, 'normal');
       doc.text(`Bank Name: ${record.Bank_Institution || ''}`, margin + 5, yPos);
@@ -1275,6 +1293,44 @@ document.addEventListener("DOMContentLoaded", () => {
       yPos += 5;
       doc.text(`Branch Address: ${record.Bank_Branch_Address || ''}`, margin + 5, yPos);
       yPos += 5;
+      
+      // Helpline section within Bank Information
+      const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4].filter(p => p);
+      const emails = [record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e);
+      if (phones.length > 0 || emails.length > 0 || record.Bank_Helpline_URL) {
+        doc.setFont(undefined, 'bold');
+        doc.text('Helpline', margin + 5, yPos);
+        yPos += 5;
+        doc.setFont(undefined, 'normal');
+        if (phones.length > 0) {
+          doc.text(`Phone: ${phones.join(' / ')}`, margin + 5, yPos);
+          yPos += 5;
+        }
+        if (emails.length > 0) {
+          doc.text(`Email: ${emails.join(' / ')}`, margin + 5, yPos);
+          yPos += 5;
+        }
+        if (record.Bank_Helpline_URL) {
+          doc.text(`URL: ${record.Bank_Helpline_URL}`, margin + 5, yPos);
+          yPos += 5;
+        }
+      }
+      const bankInfoHeight = yPos - bankInfoStartY + 5;
+      doc.rect(margin, bankInfoStartY - 5, pageWidth - 2 * margin, bankInfoHeight);
+      yPos += 5;
+
+      // Account Information Card
+      doc.setDrawColor(211, 211, 211); // #d3d3d3
+      doc.setLineWidth(0.5);
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('Account Information', margin, yPos);
+      yPos += 8;
+      
+      const accountInfoStartY = yPos;
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
       doc.text(`Account Type: ${record.Bank_Ac_Type || ''}`, margin + 5, yPos);
       yPos += 5;
       doc.text(`Account Number: ${record.Bank_Account_Number || ''}`, margin + 5, yPos);
@@ -1286,8 +1342,8 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.text(`Account Status: ${record.Bank_Account_Status || ''}`, margin + 5, yPos);
       yPos += 5;
       doc.text(`Minimum Balance Required: ${record.Bank_Min_Balance || ''}`, margin + 5, yPos);
-      yPos += 5;
-      doc.text(`Account Tag: ${record.Bank_Ac_Tag || ''}`, margin + 5, yPos);
+      const accountInfoHeight = yPos - accountInfoStartY + 5;
+      doc.rect(margin, accountInfoStartY - 5, pageWidth - 2 * margin, accountInfoHeight);
       yPos += 10;
 
       // Holders - Minimal Card Style (First is Sole, rest are Joint)
@@ -1352,33 +1408,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (record.Bank_Nominee_Email || record.Bank_Nominee_Phone) {
         const emailPhone = [record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ');
         doc.text(`Email or Phone: ${emailPhone}`, margin + 5, yPos);
-        yPos += 5;
-      }
-      yPos += 8;
-
-      // Helpline - Minimal Card Style
-      const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4].filter(p => p);
-      const emails = [record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e);
-      const helplineHeight = 30 + (phones.length > 0 ? 5 : 0) + (emails.length > 0 ? 5 : 0) + (record.Bank_Helpline_URL ? 5 : 0);
-      
-      doc.setDrawColor(211, 211, 211);
-      doc.setLineWidth(0.5);
-      doc.rect(margin, yPos, pageWidth - 2 * margin, helplineHeight);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text('Helpline', margin + 5, yPos + 6);
-      yPos += 10;
-      doc.setFont(undefined, 'normal');
-      if (phones.length > 0) {
-        doc.text(`${phones.join(' / ')}`, margin + 5, yPos);
-        yPos += 5;
-      }
-      if (emails.length > 0) {
-        doc.text(`${emails.join(' / ')}`, margin + 5, yPos);
-        yPos += 5;
-      }
-      if (record.Bank_Helpline_URL) {
-        doc.text(`${record.Bank_Helpline_URL}`, margin + 5, yPos);
         yPos += 5;
       }
       yPos += 8;
