@@ -495,8 +495,12 @@ body.dark{
   border:1px solid #e0e0e0;
   border-radius:4px;
   background:#fafafa;
+  min-height:72px;
   max-height:150px;
   overflow-y:auto;
+  line-height:1.5;
+  white-space:pre-line;
+  word-wrap:break-word;
 }
 
 body.dark .notes-field-scrollable{
