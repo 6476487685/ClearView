@@ -498,9 +498,8 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="holder-row">
           <div style="flex: 2.5;">
-            <label>Debit Card Info</label>
+            <label>Debit Card Info [Format: Card Number | Valid From To | CVV | Card Type | Extra Digits | DCPIN]</label>
             <input type="text" id="Bank_Holder_${i}_DebitCard" ${!isEditMode ? 'readonly' : ''} placeholder="Card Number | Valid From To | CVV | Card Type | Extra Digits | DCPIN">
-            <small style="color:var(--text-secondary);font-size:11px;display:block;margin-top:4px;">Format: Card Number | Valid From To | CVV | Card Type | Extra Digits | DCPIN</small>
           </div>
           <div style="flex: 1;">
             <label>PIN | TPIN | MPIN</label>
