@@ -1036,31 +1036,46 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    // Setup accordion expand/collapse for holder tabs (only in display mode)
-    if (!isEditMode && !isSingleHolder) {
-      card.querySelectorAll('.holder-accordion-header').forEach(header => {
-        header.addEventListener('click', () => {
-          const holderId = header.dataset.holderId;
-          const content = card.querySelector(`#${holderId}`);
-          const icon = header.querySelector('.holder-accordion-icon');
-          
-          if (content) {
-            const isExpanded = content.style.display === 'block';
+    // Setup accordion expand/collapse for holder tabs
+    if (!isSingleHolder) {
+      // Use setTimeout to ensure DOM is ready
+      setTimeout(() => {
+        const accordionHeaders = card.querySelectorAll('.holder-accordion-header');
+        accordionHeaders.forEach(header => {
+          header.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const holderId = this.getAttribute('data-holder-id');
+            if (!holderId) return;
+            
+            const content = document.getElementById(holderId);
+            const icon = this.querySelector('.holder-accordion-icon');
+            
+            if (!content || !icon) return;
+            
+            // Check if currently expanded - check inline style first, then computed style
+            let isExpanded = false;
+            if (content.style.display) {
+              isExpanded = content.style.display !== 'none';
+            } else {
+              isExpanded = window.getComputedStyle(content).display !== 'none';
+            }
             
             if (isExpanded) {
               // Collapse
               content.style.display = 'none';
-              header.classList.remove('active');
+              this.classList.remove('active');
               icon.textContent = '▶';
             } else {
               // Expand
               content.style.display = 'block';
-              header.classList.add('active');
+              this.classList.add('active');
               icon.textContent = '▼';
             }
-          }
+          });
         });
-      });
+      }, 50);
     }
 
     return card;

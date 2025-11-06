@@ -607,6 +607,7 @@ body.dark{
   border-bottom:1px solid #d3d3d3;
   transition:background 0.2s ease;
   user-select:none;
+  pointer-events:auto;
 }
 
 .holder-accordion-header:hover{
