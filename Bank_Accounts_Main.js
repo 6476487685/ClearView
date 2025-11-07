@@ -25,6 +25,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const MAX_SECURITY_QUESTIONS = 6;
 
+  const escapeHtml = (value) => {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  };
+
   let autoBackupEnabled = true;
   const storedAutoBackup = localStorage.getItem('auto_backup_enabled');
   if (storedAutoBackup !== null) {
@@ -861,39 +873,19 @@ document.addEventListener("DOMContentLoaded", () => {
       : [];
     const hasSecurityQA = securityQAData.length > 0;
 
-    const formatSecurityColumn = (items, offset) => {
-      if (!items.length) {
-        return '';
-      }
-      return items.map((qa, idx) => {
-        const questionNumber = offset + idx + 1;
-        const questionText = qa.question ? qa.question : '—';
-        const answerText = qa.answer ? qa.answer : '—';
-        return `
-          <div class="security-qa-item">
-            <span class="security-question">Q${questionNumber}: ${questionText}</span>
-            <span class="security-separator">&nbsp;•&nbsp;</span>
-            <span class="security-answer">${answerText}</span>
-          </div>
-        `;
-      }).join('');
-    };
-
     let securityHtml = '';
     if (hasSecurityQA) {
-      const leftColumn = securityQAData.slice(0, 3);
-      const rightColumn = securityQAData.slice(3, 6);
-      const columnsHtml = [`<div class="security-column">${formatSecurityColumn(leftColumn, 0)}</div>`];
-      if (rightColumn.length) {
-        columnsHtml.push(`<div class="security-column">${formatSecurityColumn(rightColumn, 3)}</div>`);
-      }
+      const securityLines = securityQAData.map((qa, idx) => {
+        const questionText = qa.question ? qa.question : '—';
+        const answerText = qa.answer ? qa.answer : '—';
+        return `Q${idx + 1}: ${questionText}\t${answerText}`;
+      });
+      const securityDisplayText = securityLines.join('\n');
 
       securityHtml = `
         <div class="security-card-minimal">
           <div class="section-heading-minimal"><strong>Security Questions</strong></div>
-          <div class="security-grid-display">
-            ${columnsHtml.join('')}
-          </div>
+          <textarea class="security-qa-text" readonly>${escapeHtml(securityDisplayText)}</textarea>
         </div>
       `;
     }
@@ -1795,26 +1787,66 @@ document.addEventListener("DOMContentLoaded", () => {
         const renderSecurityColumn = (items, x, offset) => {
           let height = 0;
           if (!items.length) return height;
+          const lineHeight = 4.5;
+          const availableWidth = columnWidth - 6;
+
           items.forEach((qa, idx) => {
-            const questionLabel = `Q${offset + idx + 1}: ${qa.question || '—'}`;
-            const questionLines = doc.splitTextToSize(questionLabel, columnWidth - 6);
+            const questionText = `Q${offset + idx + 1}: ${qa.question || '—'}`;
+            const answerText = qa.answer ? qa.answer : '—';
+
             doc.setFont(undefined, 'bold');
             doc.setTextColor(198, 40, 40);
-            questionLines.forEach(line => {
-              doc.text(line, x, columnStartY + height + 4.5);
-              height += 4.5;
-            });
 
-            const answerLabel = qa.answer ? qa.answer : '—';
-            doc.setFont(undefined, 'bold');
-            doc.setTextColor(27, 94, 32);
-            const answerLines = doc.splitTextToSize(answerLabel, columnWidth - 6);
-            answerLines.forEach(line => {
-              doc.text(line, x + 4, columnStartY + height + 4.5);
-              height += 4.5;
-            });
+            const questionWidth = doc.getTextWidth(questionText);
+            const baseY = columnStartY + height + lineHeight;
 
-            height += 4;
+            if (questionWidth <= availableWidth - 20) {
+              // Render on a single line with answer to the right when space allows
+              doc.text(questionText, x, baseY);
+
+              doc.setFont(undefined, 'bold');
+              doc.setTextColor(27, 94, 32);
+              const answerX = x + questionWidth + 6;
+              const answerWidth = Math.max(availableWidth - (answerX - x), availableWidth / 2);
+              const answerLines = doc.splitTextToSize(answerText, answerWidth);
+              doc.text(answerLines[0], answerX, baseY);
+
+              let usedLines = 1;
+              let currentY = baseY;
+              if (answerLines.length > 1) {
+                for (let i = 1; i < answerLines.length; i++) {
+                  currentY += lineHeight;
+                  doc.text(answerLines[i], x, currentY);
+                }
+                usedLines = Math.max(usedLines, answerLines.length);
+              }
+              height += usedLines * lineHeight + 4;
+            } else {
+              // Wrap question and answer on separate lines when longer
+              const questionLines = doc.splitTextToSize(questionText, availableWidth);
+              let currentY = baseY;
+              questionLines.forEach((line, qIdx) => {
+                if (qIdx > 0) {
+                  currentY += lineHeight;
+                }
+                doc.text(line, x, currentY);
+              });
+
+              doc.setFont(undefined, 'bold');
+              doc.setTextColor(27, 94, 32);
+              currentY += lineHeight;
+              const answerLines = doc.splitTextToSize(answerText, availableWidth);
+              answerLines.forEach((line, aIdx) => {
+                if (aIdx > 0) {
+                  currentY += lineHeight;
+                }
+                doc.text(line, x, currentY);
+              });
+
+              const totalLines = questionLines.length + 1 + (answerLines.length - 1);
+              height += totalLines * lineHeight + 4;
+            }
+
             doc.setTextColor(0, 0, 0);
             doc.setFont(undefined, 'normal');
           });
@@ -1937,18 +1969,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let securityHtml = '';
       if (securityQADataPrint.length > 0) {
-        const leftColumn = securityQADataPrint.slice(0, 3);
-        const rightColumn = securityQADataPrint.slice(3, 6);
-        const columns = [`<div class="security-column">${buildSecurityColumnHtml(leftColumn, 0)}</div>`];
-        if (rightColumn.length) {
-          columns.push(`<div class="security-column">${buildSecurityColumnHtml(rightColumn, 3)}</div>`);
-        }
+        const securityLinesPrint = securityQADataPrint.map((qa, idx) => {
+          const questionText = qa.question ? qa.question : '—';
+          const answerText = qa.answer ? qa.answer : '—';
+          return `Q${idx + 1}: ${questionText}\t${answerText}`;
+        });
+        const securityDisplayTextPrint = securityLinesPrint.join('\n');
         securityHtml = `
           <div class="security-card">
             <div class="section-heading">Security Questions</div>
-            <div class="security-grid">
-              ${columns.join('')}
-            </div>
+            <textarea class="security-qa-text" readonly>${escapeHtml(securityDisplayTextPrint)}</textarea>
           </div>
         `;
       }
@@ -2084,38 +2114,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 background: #ffffff;
                 margin-bottom: 12px;
               }
-              .security-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                gap: 12px;
-                margin-top: 10px;
-              }
-              .security-column {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-              }
-              .security-qa {
-                border: 1px solid #e0e0e0;
+              .security-qa-text {
+                width: 100%;
+                border: 1px solid #d3d3d3;
                 border-radius: 4px;
-                padding: 8px 10px;
                 background: #f7f9fc;
+                padding: 10px;
+                font-family: "Courier New", monospace;
                 font-size: 10px;
-                line-height: 1.5;
-              }
-              .security-question {
-                font-weight: 700;
-                color: #0a0a0a;
-                margin-bottom: 4px;
-                font-size: 10px;
-              }
-              .security-answer {
-                color: #333333;
-                font-size: 10px;
-              }
-              .security-answer span {
-                font-weight: 600;
-                margin-right: 4px;
+                line-height: 1.4;
+                white-space: pre;
+                resize: none;
               }
               @media print { 
                 @page { 
