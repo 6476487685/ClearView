@@ -249,6 +249,31 @@
       font-size: 0.95rem;
       padding-right: 10px;
     }
+    .value-row.sqa-row {
+      justify-content: flex-start;
+      gap: 8px;
+      align-items: center;
+    }
+    .value-row.sqa-row .value-actions {
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .value-text.sqa-question {
+      flex: 0 0 80%;
+      font-size: 0.82rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .value-text.sqa-answer {
+      flex: 0 0 15%;
+      font-size: 0.75rem;
+      text-align: right;
+      color: var(--text-secondary, #64748b);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .value-actions {
       display: flex;
       gap: 6px;
@@ -282,6 +307,9 @@
       padding-top: 10px;
       border-top: 1px solid var(--border-color, #e2e8f0);
     }
+    .add-form.sqa-add {
+      align-items: center;
+    }
     .add-input {
       flex: 1;
       padding: 10px 12px;
@@ -290,6 +318,14 @@
       font-size: 0.95rem;
       background: var(--card-bg, #ffffff);
       color: var(--text-primary, #1e293b);
+    }
+    .sqa-input-question {
+      flex: 0 0 80%;
+      font-size: 0.9rem;
+    }
+    .sqa-input-answer {
+      flex: 0 0 15%;
+      font-size: 0.85rem;
     }
     .add-input:focus {
       outline: none;
@@ -358,6 +394,16 @@
     .modal-body input:focus {
       outline: none;
       border-color: var(--accent-blue, #3b82f6);
+    }
+    .sqa-edit-group {
+      display: none;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .sqa-edit-group input {
+      flex: 1;
+      margin-bottom: 0;
+      font-size: 0.95rem;
     }
     .modal-actions {
       display: flex;
@@ -582,6 +628,10 @@
       <div class="modal-header" id="modalTitle">Edit Value</div>
       <div class="modal-body">
         <input type="text" id="editInput" placeholder="Enter value">
+        <div id="editSqaGroup" class="sqa-edit-group">
+          <input type="text" id="editQuestionInput" placeholder="Security question">
+          <input type="text" id="editAnswerInput" placeholder="Answer (optional)">
+        </div>
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
@@ -1698,7 +1748,8 @@
       } else {
           values.forEach((value, index) => {
           const row = document.createElement('div');
-          row.className = 'value-row';
+          const isSqaField = fieldKey === 'SQA';
+          row.className = isSqaField ? 'value-row sqa-row' : 'value-row';
           // Determine save module/key for common fields viewed from module tabs
           let saveModule = module;
           let saveKey = fieldKey;
@@ -1706,13 +1757,27 @@
             saveModule = 'common';
             saveKey = fieldKey;
           }
-          row.innerHTML = `
-            <span class="value-text">${escapeHtml(value)}</span>
-            <div class="value-actions">
-              <button class="btn-icon btn-edit" onclick="editValue('${saveModule}', '${saveKey}', ${index}, '${module}')">Edit</button>
-              <button class="btn-icon btn-delete" onclick="deleteValue('${saveModule}', '${saveKey}', ${index}, '${module}')">Delete</button>
-            </div>
-          `;
+          if (isSqaField) {
+            const parsed = parseSqaValue(value);
+            const question = escapeHtml(parsed.question || '');
+            const answer = escapeHtml(parsed.answer || '');
+            row.innerHTML = `
+              <span class="value-text sqa-question" title="${question}">${question || '—'}</span>
+              <span class="value-text sqa-answer" title="${answer}">${answer || '—'}</span>
+              <div class="value-actions">
+                <button class="btn-icon btn-edit" onclick="editValue('${saveModule}', '${saveKey}', ${index}, '${module}')">Edit</button>
+                <button class="btn-icon btn-delete" onclick="deleteValue('${saveModule}', '${saveKey}', ${index}, '${module}')">Delete</button>
+              </div>
+            `;
+          } else {
+            row.innerHTML = `
+              <span class="value-text">${escapeHtml(value)}</span>
+              <div class="value-actions">
+                <button class="btn-icon btn-edit" onclick="editValue('${saveModule}', '${saveKey}', ${index}, '${module}')">Edit</button>
+                <button class="btn-icon btn-delete" onclick="deleteValue('${saveModule}', '${saveKey}', ${index}, '${module}')">Delete</button>
+              </div>
+            `;
+          }
           valuesContainer.appendChild(row);
         });
       }
@@ -1727,24 +1792,68 @@
         saveModule = 'common';
         saveKey = fieldKey;
       }
-      addForm.innerHTML = `
-        <input type="text" class="add-input" id="add_${module}_${fieldKey}" placeholder="Add new ${fieldLabel.toLowerCase()}" onkeypress="if(event.key==='Enter') addValue('${saveModule}', '${saveKey}', '${module}', '${fieldKey}')">
-        <button class="btn-add" onclick="addValue('${saveModule}', '${saveKey}', '${module}', '${fieldKey}')">Add</button>
-      `;
+      if (fieldKey === 'SQA') {
+        addForm.classList.add('sqa-add');
+        addForm.innerHTML = `
+          <input type="text" class="add-input sqa-input-question" id="add_${module}_${fieldKey}_question" placeholder="Security question" onkeypress="if(event.key==='Enter') addValue('${saveModule}', '${saveKey}', '${module}', '${fieldKey}')">
+          <input type="text" class="add-input sqa-input-answer" id="add_${module}_${fieldKey}_answer" placeholder="Answer (optional)" onkeypress="if(event.key==='Enter') addValue('${saveModule}', '${saveKey}', '${module}', '${fieldKey}')">
+          <button class="btn-add" onclick="addValue('${saveModule}', '${saveKey}', '${module}', '${fieldKey}')">Add</button>
+        `;
+      } else {
+        addForm.innerHTML = `
+          <input type="text" class="add-input" id="add_${module}_${fieldKey}" placeholder="Add new ${fieldLabel.toLowerCase()}" onkeypress="if(event.key==='Enter') addValue('${saveModule}', '${saveKey}', '${module}', '${fieldKey}')">
+          <button class="btn-add" onclick="addValue('${saveModule}', '${saveKey}', '${module}', '${fieldKey}')">Add</button>
+        `;
+      }
       card.appendChild(addForm);
 
       return card;
     }
 
     // Add value
+    const SQA_SEPARATOR = ' — ';
+    function parseSqaValue(rawValue) {
+      const text = String(rawValue || '').trim();
+      if (!text) return { question: '', answer: '' };
+      const separatorIndex = text.indexOf('—');
+      if (separatorIndex === -1) {
+        return { question: text, answer: '' };
+      }
+      const question = text.slice(0, separatorIndex).trim();
+      const answer = text.slice(separatorIndex + 1).replace(/^[\\s—-]+/, '').trim();
+      return { question, answer };
+    }
+    function formatSqaValue(question, answer) {
+      const q = String(question || '').trim();
+      const a = String(answer || '').trim();
+      if (!q && !a) return '';
+      return a ? `${q}${SQA_SEPARATOR}${a}` : q;
+    }
+
     function addValue(saveModule, saveKey, displayModule, displayKey) {
       // displayModule and displayKey are for the input element ID when viewing common fields from module tabs
-      const inputId = displayModule ? `add_${displayModule}_${displayKey}` : `add_${saveModule}_${saveKey}`;
-      const input = document.getElementById(inputId);
-      const value = input.value.trim();
-      if (!value) {
-        alert('Please enter a value');
-        return;
+      let value = '';
+      let questionInput, answerInput;
+      if (saveKey === 'SQA') {
+        const questionInputId = displayModule ? `add_${displayModule}_${displayKey}_question` : `add_${saveModule}_${saveKey}_question`;
+        const answerInputId = displayModule ? `add_${displayModule}_${displayKey}_answer` : `add_${saveModule}_${saveKey}_answer`;
+        questionInput = document.getElementById(questionInputId);
+        answerInput = document.getElementById(answerInputId);
+        const question = questionInput ? questionInput.value.trim() : '';
+        const answer = answerInput ? answerInput.value.trim() : '';
+        if (!question) {
+          alert('Please enter a security question');
+          return;
+        }
+        value = formatSqaValue(question, answer);
+      } else {
+        const inputId = displayModule ? `add_${displayModule}_${displayKey}` : `add_${saveModule}_${saveKey}`;
+        const input = document.getElementById(inputId);
+        value = input.value.trim();
+        if (!value) {
+          alert('Please enter a value');
+          return;
+        }
       }
       if (!masterData[saveModule]) masterData[saveModule] = {};
       if (!masterData[saveModule][saveKey]) masterData[saveModule][saveKey] = [];
@@ -1758,14 +1867,35 @@
       // Re-render the currently displayed tab
       const currentTab = document.querySelector('.tab.active').getAttribute('data-tab');
       renderTab(currentTab);
-      input.value = '';
+      if (saveKey === 'SQA') {
+        if (questionInput) questionInput.value = '';
+        if (answerInput) answerInput.value = '';
+      } else {
+        const inputId = displayModule ? `add_${displayModule}_${displayKey}` : `add_${saveModule}_${saveKey}`;
+        const input = document.getElementById(inputId);
+        if (input) input.value = '';
+      }
     }
 
     // Edit value
     function editValue(module, fieldKey, index, displayModule) {
       currentEdit = { module, fieldKey, index, displayModule: displayModule || module };
       const value = masterData[module][fieldKey][index];
-      document.getElementById('editInput').value = value;
+      const editInput = document.getElementById('editInput');
+      const sqaGroup = document.getElementById('editSqaGroup');
+      const questionInput = document.getElementById('editQuestionInput');
+      const answerInput = document.getElementById('editAnswerInput');
+      if (fieldKey === 'SQA') {
+        const parsed = parseSqaValue(value);
+        editInput.style.display = 'none';
+        sqaGroup.style.display = 'flex';
+        questionInput.value = parsed.question || '';
+        answerInput.value = parsed.answer || '';
+      } else {
+        editInput.style.display = 'block';
+        sqaGroup.style.display = 'none';
+        editInput.value = value;
+      }
       // Get the display label
       let displayLabel = '';
       if (module === 'common') {
@@ -1780,13 +1910,24 @@
     // Save edited value
     function saveEditedValue() {
       if (!currentEdit) return;
-      const input = document.getElementById('editInput');
-      const newValue = input.value.trim();
-      if (!newValue) {
-        alert('Please enter a value');
-        return;
-      }
       const { module, fieldKey, index, displayModule } = currentEdit;
+      let newValue = '';
+      if (fieldKey === 'SQA') {
+        const question = document.getElementById('editQuestionInput').value.trim();
+        const answer = document.getElementById('editAnswerInput').value.trim();
+        if (!question) {
+          alert('Please enter a security question');
+          return;
+        }
+        newValue = formatSqaValue(question, answer);
+      } else {
+        const input = document.getElementById('editInput');
+        newValue = input.value.trim();
+        if (!newValue) {
+          alert('Please enter a value');
+          return;
+        }
+      }
       if (masterData[module][fieldKey].includes(newValue) && masterData[module][fieldKey][index] !== newValue) {
         alert('This value already exists');
         return;
@@ -1813,6 +1954,19 @@
     // Close edit modal
     function closeEditModal() {
       document.getElementById('editModal').classList.remove('show');
+      const editInput = document.getElementById('editInput');
+      const sqaGroup = document.getElementById('editSqaGroup');
+      const questionInput = document.getElementById('editQuestionInput');
+      const answerInput = document.getElementById('editAnswerInput');
+      if (editInput) {
+        editInput.style.display = 'block';
+        editInput.value = '';
+      }
+      if (sqaGroup) {
+        sqaGroup.style.display = 'none';
+      }
+      if (questionInput) questionInput.value = '';
+      if (answerInput) answerInput.value = '';
       currentEdit = null;
     }
 
