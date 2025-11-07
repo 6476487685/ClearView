@@ -1021,20 +1021,15 @@ document.addEventListener("DOMContentLoaded", () => {
     let securityHtml = '';
     if (hasSecurityQA) {
       const securityLines = securityQAData.map((qa, idx) => {
-        const questionText = qa.question ? qa.question : '—';
-        const answerText = qa.answer ? qa.answer : '—';
-        return {
-          display: `Q${idx + 1}: ${questionText}\t${answerText}`,
-          question: questionText,
-          answer: answerText
-        };
-      });
-      const securityDisplayText = securityLines.map(line => line.display).join('\n');
+        const questionText = escapeHtml(qa.question ? qa.question : '—');
+        const answerText = escapeHtml(qa.answer ? qa.answer : '—');
+        return `<div class="security-qa-line"><span class="security-question">Q${idx + 1}: ${questionText}</span><span class="security-answer">${answerText}</span></div>`;
+      }).join('');
 
       securityHtml = `
         <div class="security-card-minimal">
           <div class="section-heading-minimal"><strong>Security Questions</strong></div>
-          <textarea class="security-qa-text" readonly>${escapeHtml(securityDisplayText)}</textarea>
+          <div class="security-qa-block" aria-label="Security Questions and Answers">${securityLines}</div>
         </div>
       `;
     }
@@ -2146,15 +2141,14 @@ document.addEventListener("DOMContentLoaded", () => {
       let securityHtml = '';
       if (securityQADataPrint.length > 0) {
         const securityLinesPrint = securityQADataPrint.map((qa, idx) => {
-          const questionText = qa.question ? qa.question : '—';
-          const answerText = qa.answer ? qa.answer : '—';
-          return `Q${idx + 1}: ${questionText}\t${answerText}`;
-        });
-        const securityDisplayTextPrint = securityLinesPrint.join('\n');
+          const questionText = escapeHtml(qa.question ? qa.question : '—');
+          const answerText = escapeHtml(qa.answer ? qa.answer : '—');
+          return `<div class="security-qa-line"><span class="security-question">Q${idx + 1}: ${questionText}</span><span class="security-answer">${answerText}</span></div>`;
+        }).join('');
         securityHtml = `
           <div class="security-card">
             <div class="section-heading">Security Questions</div>
-            <textarea class="security-qa-text" readonly>${escapeHtml(securityDisplayTextPrint)}</textarea>
+            <div class="security-qa-block">${securityLinesPrint}</div>
           </div>
         `;
       }
@@ -2290,7 +2284,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 background: #ffffff;
                 margin-bottom: 12px;
               }
-              .security-qa-text {
+              .security-qa-block {
                 width: 100%;
                 border: 1px solid #d3d3d3;
                 border-radius: 4px;
@@ -2299,8 +2293,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 font-family: "Courier New", monospace;
                 font-size: 10px;
                 line-height: 1.4;
-                white-space: pre;
-                resize: none;
+                white-space: pre-wrap;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+              }
+              .security-qa-line {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+              }
+              .security-question {
+                color: #c62828;
+                font-weight: 700;
+              }
+              .security-answer {
+                color: #1b5e20;
+                font-weight: 700;
               }
               @media print { 
                 @page { 

@@ -386,6 +386,11 @@ body.dark{
   transition:all 0.2s ease;
 }
 
+body.dark .info-card{
+  background:#2d2d2d;
+  border-color:#404040;
+}
+
 .info-card:hover{
   box-shadow:0 2px 8px rgba(0,0,0,0.06);
 }
@@ -394,6 +399,11 @@ body.dark{
   background:linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
   padding:12px 16px;
   border-bottom:1px solid var(--border-light);
+}
+
+body.dark .info-card-header{
+  background:linear-gradient(135deg, #1f3b64 0%, #27487a 100%);
+  border-bottom:1px solid #2f4259;
 }
 
 .info-card-header h4{
@@ -434,11 +444,19 @@ body.dark{
   letter-spacing:0.5px;
 }
 
+body.dark .info-label{
+  color:#cbd7f5;
+}
+
 .info-value{
   color:var(--text-primary);
   font-size:13px;
   flex:1;
   word-break:break-word;
+}
+
+body.dark .info-value{
+  color:#f7faff;
 }
 
 .info-value-list{
@@ -538,6 +556,18 @@ body.dark .account-tag-content-minimal span{
   height:100%;
 }
 
+body.dark .fields-card-minimal,
+body.dark .notes-card-minimal,
+body.dark .info-card,
+body.dark .nominee-card,
+body.dark .helpline-card-minimal,
+body.dark .security-card-minimal{
+  background:#2d2d2d;
+  border-color:#404040;
+  color:#f5f9ff;
+  box-shadow:none;
+}
+
 .section-heading-minimal{
   font-size:14px;
   font-weight:700;
@@ -549,6 +579,7 @@ body.dark .account-tag-content-minimal span{
 body.dark .section-heading-minimal,
 body.dark .section-heading-minimal strong{
   color:#f6f9ff;
+  text-shadow:0 1px 2px rgba(0,0,0,0.45);
 }
 
 .fields-content-minimal{
@@ -575,6 +606,14 @@ body.dark .section-heading-minimal strong{
   font-size:13px;
   font-weight:400;
   flex:1;
+}
+
+body.dark .field-label-minimal{
+  color:#dfe5ff;
+}
+
+body.dark .field-value-minimal{
+  color:#f7f9ff;
 }
 
 /* Notes field with scrollbar */
@@ -1006,6 +1045,10 @@ body.dark .toast-message{
   line-height:1.6;
 }
 
+body.dark .notes-content-minimal{
+  color:#f7faff;
+}
+
 .security-full-width{
   margin-top:16px;
 }
@@ -1018,26 +1061,35 @@ body.dark .toast-message{
 }
 
 
-.security-qa-text{
+.security-qa-block{
   width:100%;
-  min-height:132px;
   border:1px solid var(--border-light);
   border-radius:var(--radius);
   background:var(--bg);
-  color:var(--text-primary);
   padding:12px;
   font-family:"Courier New",monospace;
   font-size:13px;
-  line-height:1.5;
-  white-space:pre;
-  resize:vertical;
-  tab-size:6;
-  overflow:auto;
+  line-height:1.6;
+  white-space:pre-wrap;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
 }
 
-/* Highlight questions/answers using white-space formatting */
-.security-qa-text::selection{
-  background:rgba(66,133,244,0.25);
+.security-qa-line{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.security-question{
+  color:#c62828;
+  font-weight:700;
+}
+
+.security-answer{
+  color:#1b5e20;
+  font-weight:700;
 }
 
 body.dark .security-card-minimal{
@@ -1045,11 +1097,19 @@ body.dark .security-card-minimal{
   border-color:#404040;
 }
 
-body.dark .security-qa-text{
+body.dark .security-qa-block{
   background:#333333;
   border-color:#404040;
   color:#f5faff;
   box-shadow:none;
+}
+
+body.dark .security-question{
+  color:#ff8a80;
+}
+
+body.dark .security-answer{
+  color:#9ccc65;
 }
 
 .bank-record-actions{
