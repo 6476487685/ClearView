@@ -189,14 +189,8 @@ body.dark .modal-header h4 i{color:var(--text-body);}
   <a href="#" class="nav-link" data-target="masters"><span class="icon">🧩</span>Manage Master Data</a>
   <a href="5_Task.html" class="nav-link" data-target="tasks"><span class="icon">✅</span>Manage Tasks</a>
   <a href="8_Bank_Accounts_Index.html" class="nav-link" data-target="bank-accounts"><span class="icon">🗂️</span>Manage Accounts</a>
-  <a href="#" class="nav-link" data-target="load"><span class="icon">📁</span>Load Local Data</a>
-  <a href="#" class="nav-link disabled" title="Coming soon"><span class="icon">☁️</span>Google Drive</a>
   <a href="#" class="nav-link" data-target="expense"><span class="icon">💸</span>Expense Transactions</a>
   <a href="#" class="nav-link" data-target="income"><span class="icon">💰</span>Income Transactions</a>
-  <a href="#" class="nav-link" data-target="investments"><span class="icon">📈</span>Investments</a>
-  <a href="#" class="nav-link" data-target="analytics"><span class="icon">📊</span>Analytics</a>
-  <a href="#" class="nav-link" data-target="backup"><span class="icon">💾</span>Backup & Export</a>
-  <a href="#" class="nav-link" data-target="docs"><span class="icon">📑</span>Documents</a>
 </nav>
 
 <main id="content"></main>
@@ -426,8 +420,7 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     e.preventDefault();
     const t=link.dataset.target;
     if(!t) return;
-    if(t==='load'){setupDownloadsFolder();}
-    else if(t==='docs'){openDocumentsModal();}
+    if(t==='docs'){openDocumentsModal();}
     else if(t==='expense'){
       window.location.href='2_Expanse_Index.html';
     }
