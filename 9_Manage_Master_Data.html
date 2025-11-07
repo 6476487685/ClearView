@@ -914,6 +914,25 @@
                 // Skip Txn_* except Mode/Status
                 if (name.startsWith('Txn_') && !name.includes('Mode') && !name.includes('Status')) return;
                 
+                if (name === 'SQA') {
+                  const sheet = wb.Sheets[name];
+                  if (sheet) {
+                    const rows = XLSX.utils.sheet_to_json(sheet);
+                    const items = rows.map(row => {
+                      const question = String(row['Security Question'] ?? row['Question'] ?? '').trim();
+                      const answer = String(row['Security Answer'] ?? row['Answer'] ?? '').trim();
+                      if (!question && !answer) return null;
+                      return answer ? `${question} — ${answer}` : question;
+                    }).filter(Boolean);
+                    if (items.length) {
+                      if (!unified.common.SQA) unified.common.SQA = [];
+                      unified.common.SQA = Array.from(new Set([...(unified.common.SQA || []), ...items]));
+                      console.log(`[Early] Loaded ${items.length} entries into common.SQA`);
+                    }
+                  }
+                  return;
+                }
+                
                 // NEW: Handle merged sheets (Ac_Category, Ac_Tag)
                 if (name === 'Ac_Category' || name === 'Ac_Tag') {
                   const sheet = wb.Sheets[name];
@@ -1058,7 +1077,18 @@
         income: { 'Income_Category':'Income Category', 'Income_Ac_Tag':'Income Account Tag' },
         investment: { 'Investment_Category':'Investment Category', 'Investment_Ac_Tag':'Investment Account Tag' },
         task: { 'Task_Tag':'Task Tag','Task_Status':'Task Status','Task_Assignee':'Task Assignee','Task_Priority':'Task Priority','Task_Category':'Task Category','Task_Adhoc':'Task Adhoc' },
-        common: { 'Currency':'Currency','Mode':'Mode','Status_Txn':'Transaction Status','Ac_Holder':'Account Holder','Frequency':'Frequency','Ac_Status':'Account Status','Ac_Classification':'Account Classification' },
+        common: {
+          'Currency':'Currency',
+          'Mode':'Mode',
+          'Status_Txn':'Transaction Status',
+          'Ac_Holder':'Account Holder',
+          'Frequency':'Frequency',
+          'Ac_Status':'Account Status',
+          'Ac_Classification':'Account Classification',
+          'Email':'Email Addresses',
+          'Phone':'Phone Numbers',
+          'SQA':'Security Questions & Answers'
+        },
         'bank-accounts': {},
         'trading-accounts': {},
         'properties': {},
@@ -1314,7 +1344,10 @@
         'Ac_Classification': 'Account Classification',
         'Country': 'Country',
         'Institution': 'Institution',
-        'Ac_Type': 'Account Type'
+        'Ac_Type': 'Account Type',
+        'Email': 'Email Addresses',
+        'Phone': 'Phone Numbers',
+        'SQA': 'Security Questions & Answers'
       },
       'bank-accounts': {
         // Fields will be added later from Excel
@@ -1385,7 +1418,10 @@
       'Income_Account_Status': { module: 'common', key: 'Ac_Status' },
       'Investment_Account_Status': { module: 'common', key: 'Ac_Status' },
       'Institution': { module: 'common', key: 'Institution' },
-      'Ac_Type': { module: 'common', key: 'Ac_Type' }
+      'Ac_Type': { module: 'common', key: 'Ac_Type' },
+      'Email': { module: 'common', key: 'Email' },
+      'Phone': { module: 'common', key: 'Phone' },
+      'SQA': { module: 'common', key: 'SQA' }
     };
 
     // Unified master data container
@@ -1868,6 +1904,29 @@
               return;
             }
             
+            if (sheetName === 'SQA') {
+              console.log('✓ Processing security questions sheet');
+              const sheet = workbook.Sheets[sheetName];
+              const jsonData = XLSX.utils.sheet_to_json(sheet);
+              if (jsonData.length) {
+                const entries = jsonData.map(row => {
+                  const question = String(row['Security Question'] ?? row['Question'] ?? '').trim();
+                  const answer = String(row['Security Answer'] ?? row['Answer'] ?? '').trim();
+                  if (!question && !answer) return null;
+                  return answer ? `${question} — ${answer}` : question;
+                }).filter(Boolean);
+                if (!masterData.common.SQA || !Array.isArray(masterData.common.SQA)) {
+                  masterData.common.SQA = [];
+                }
+                if (entries.length) {
+                  masterData.common.SQA = Array.from(new Set([...(masterData.common.SQA || []), ...entries]));
+                  console.log(`✓ Loaded ${entries.length} security Q&A rows`);
+                  processedSheets.push(sheetName);
+                }
+              }
+              return;
+            }
+            
             // NEW: Handle merged sheets (Ac_Category, Ac_Tag)
             if (sheetName === 'Ac_Category' || sheetName === 'Ac_Tag') {
               console.log(`✓ Processing merged sheet: ${sheetName}`);
@@ -2117,6 +2176,18 @@
                   foundModule = 'common';
                   foundKey = 'Country';
                   console.log(`✓ Matched sheet "${sheetName}" to common.Country`);
+                } else if (lowerSheet === 'email' || sheetName === 'Email' || sheetName === 'EMAIL') {
+                  foundModule = 'common';
+                  foundKey = 'Email';
+                  console.log(`✓ Matched sheet "${sheetName}" to common.Email`);
+                } else if (lowerSheet === 'phone' || sheetName === 'Phone' || sheetName === 'PHONE') {
+                  foundModule = 'common';
+                  foundKey = 'Phone';
+                  console.log(`✓ Matched sheet "${sheetName}" to common.Phone`);
+                } else if (lowerSheet === 'sqa' || sheetName === 'SQA') {
+                  foundModule = 'common';
+                  foundKey = 'SQA';
+                  console.log(`✓ Matched sheet "${sheetName}" to common.SQA`);
                 } else if (SHEET_NAME_MAP[sheetName]) {
                   // Check variations mapping
                   foundModule = SHEET_NAME_MAP[sheetName].module;
