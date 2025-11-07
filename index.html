@@ -424,6 +424,12 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     const t=link.dataset.target;
     if(!t) return;
     if(t==='docs'){openDocumentsModal();}
+    else if(t==='masters'){
+      window.location.href='9_Manage_Master_Data.html';
+    }
+    else if(t==='tasks'){
+      window.location.href='5_Task.html';
+    }
     else if(t==='expense'){
       window.location.href='2_Expanse_Index.html';
     }
