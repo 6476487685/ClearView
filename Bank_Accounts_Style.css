@@ -487,10 +487,11 @@ body.dark .info-value{
 
 /* Minimal Card Style - Matching Image */
 .account-tag-bar-minimal{
-  background:#e3f2fd;
+  background:#f39c12;
   padding:12px 16px;
   margin-bottom:16px;
   border-radius:4px;
+  border:1px solid #c97e10;
 }
 
 .account-tag-content-minimal{
@@ -499,11 +500,11 @@ body.dark .info-value{
   align-items:center;
   font-size:16px;
   font-weight:700;
-  color:#1976d2;
+  color:#1a1300;
 }
 
 .account-tag-content-minimal span{
-  color:#0b2f4a;
+  color:#1a1300;
 }
 
 body.dark .account-tag-bar-minimal{
