@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const autoBackupToggle = document.getElementById('autoBackupToggle');
   const autoBackupStatusText = document.getElementById('autoBackupStatusText');
   const btnManualBackup = document.getElementById('btnManualBackup');
+  const toastContainer = document.getElementById('toastContainer');
 
   let autoBackupEnabled = true;
   const storedAutoBackup = localStorage.getItem('auto_backup_enabled');
@@ -43,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnManualBackup.addEventListener('click', () => {
       console.info('Manual backup triggered by user.');
       createExcelBackup();
+      showToast('✅ Manual backup started. Check your downloads.', 'success');
     });
   }
 
@@ -53,6 +55,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveData = (data) => {
     localStorage.setItem('bank_accounts', JSON.stringify(data));
   };
+
+  function showToast(message, type = 'info') {
+    if (!toastContainer) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast-message ${type}`;
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+
+    requestAnimationFrame(() => {
+      toast.classList.add('visible');
+    });
+
+    setTimeout(() => {
+      toast.classList.remove('visible');
+      setTimeout(() => {
+        toast.remove();
+      }, 300);
+    }, 3600);
+  }
 
   function updateAutoBackupStatusText(logChange = false) {
     if (autoBackupStatusText) {
@@ -136,6 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     closeModal();
+    showToast('ℹ️ No changes were made. Action cancelled.', 'info');
   });
 
   // Close modal function
@@ -238,6 +261,8 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       console.info('Auto backup paused — skipping Excel backup download after save.');
     }
+
+    showToast('✅ Bank account saved successfully.', 'success');
 
     // Reset form change tracking
     formHasChanges = false;
