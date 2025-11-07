@@ -15,10 +15,18 @@
     <div class="header-left">
       <h1 class="header-title">Transaction Manager — Bank Accounts Dashboard</h1>
       <div class="header-buttons">
+        <button class="primary" id="btnManualBackup">💾 Backup Now</button>
         <button class="excel" id="btnExportPDF">📘 Export PDF</button>
       </div>
     </div>
     <div class="header-right">
+      <div class="auto-backup-control" title="Toggle automatic Excel backups">
+        <span class="status" id="autoBackupStatusText">Auto Backup: On</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="autoBackupToggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
       <label class="theme-switch">
         <input type="checkbox" id="themeSwitch">
         <span class="slider"></span>

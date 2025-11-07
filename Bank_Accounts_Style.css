@@ -92,6 +92,23 @@ button{
   gap:12px;
 }
 
+.auto-backup-control{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  color:var(--text-secondary);
+}
+
+.auto-backup-control .status{
+  font-weight:600;
+  color:var(--text-primary);
+}
+
+.auto-backup-control .status.paused{
+  color:var(--danger);
+}
+
 button.black,button.primary{
   background:var(--text-primary);
   color:var(--surface);
@@ -123,13 +140,15 @@ button.pdf:hover{
 }
 
 /* Theme Switch */
-.theme-switch{
+.theme-switch,
+.toggle-switch{
   position:relative;
   width:44px;
   height:22px;
 }
 
-.theme-switch input{
+.theme-switch input,
+.toggle-switch input{
   opacity:0;
   width:0;
   height:0;

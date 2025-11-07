@@ -18,12 +18,58 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnExportPDF = document.getElementById('btnExportPDF');
   const holderCountSelect = document.getElementById('Bank_Holder_Count');
   const holdersContainer = document.getElementById('holdersContainer');
+  const autoBackupToggle = document.getElementById('autoBackupToggle');
+  const autoBackupStatusText = document.getElementById('autoBackupStatusText');
+  const btnManualBackup = document.getElementById('btnManualBackup');
+
+  let autoBackupEnabled = true;
+  const storedAutoBackup = localStorage.getItem('auto_backup_enabled');
+  if (storedAutoBackup !== null) {
+    autoBackupEnabled = storedAutoBackup === 'true';
+  } else {
+    localStorage.setItem('auto_backup_enabled', 'true');
+  }
+
+  if (autoBackupToggle) {
+    autoBackupToggle.checked = autoBackupEnabled;
+    autoBackupToggle.addEventListener('change', () => {
+      autoBackupEnabled = autoBackupToggle.checked;
+      localStorage.setItem('auto_backup_enabled', autoBackupEnabled ? 'true' : 'false');
+      updateAutoBackupStatusText(true);
+    });
+  }
+
+  if (btnManualBackup) {
+    btnManualBackup.addEventListener('click', () => {
+      console.info('Manual backup triggered by user.');
+      createExcelBackup();
+    });
+  }
+
+  updateAutoBackupStatusText();
 
   // Data Management
   const getData = () => JSON.parse(localStorage.getItem('bank_accounts') || '[]');
   const saveData = (data) => {
     localStorage.setItem('bank_accounts', JSON.stringify(data));
   };
+
+  function updateAutoBackupStatusText(logChange = false) {
+    if (autoBackupStatusText) {
+      autoBackupStatusText.textContent = autoBackupEnabled ? 'Auto Backup: On' : 'Auto Backup: Paused';
+      autoBackupStatusText.classList.toggle('paused', !autoBackupEnabled);
+      autoBackupStatusText.title = autoBackupEnabled
+        ? 'Automatic backups are enabled. Each change will download the latest Excel backup.'
+        : 'Automatic backups are paused. Use "Backup Now" or re-enable when ready to resume downloads.';
+    }
+
+    if (logChange) {
+      const message = autoBackupEnabled
+        ? 'Automatic backups re-enabled. Future changes will download a fresh Excel backup.'
+        : 'Automatic backups paused. Use "Backup Now" or toggle back on when ready.';
+      console.info(message);
+    }
+  }
 
   // Initialize - populate dropdowns after DOM is ready
   setTimeout(() => {
@@ -186,8 +232,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     saveData(data);
 
-    // Trigger Excel backup
-    createExcelBackup();
+    // Trigger Excel backup if auto backups are enabled
+    if (autoBackupEnabled) {
+      createExcelBackup();
+    } else {
+      console.info('Auto backup paused — skipping Excel backup download after save.');
+    }
 
     // Reset form change tracking
     formHasChanges = false;
@@ -971,7 +1021,11 @@ document.addEventListener("DOMContentLoaded", () => {
           const data = getData();
           data.splice(index, 1);
           saveData(data);
-          createExcelBackup();
+          if (autoBackupEnabled) {
+            createExcelBackup();
+          } else {
+            console.info('Auto backup paused — skipping Excel backup download after delete.');
+          }
           renderRecords();
         }
       });
