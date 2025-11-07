@@ -192,7 +192,7 @@ body.dark .modal-header h4 i{color:var(--text-body);}
   <a href="4_Investment_Index.html" class="nav-link" data-target="investments"><span class="icon">📈</span>Investments</a>
   <a href="#" class="nav-link" data-target="expense"><span class="icon">💸</span>Expense Transactions</a>
   <a href="#" class="nav-link" data-target="income"><span class="icon">💰</span>Income Transactions</a>
-  <a href="6_Documents_Index.html" class="nav-link" data-target="project-docs"><span class="icon">📁</span>Manage Project Documents</a>
+  <a href="6_Manage_Project_Docs.html" class="nav-link" data-target="project-docs"><span class="icon">📁</span>Manage Project Documents</a>
 </nav>
 
 <main id="content"></main>
@@ -434,6 +434,9 @@ document.querySelectorAll('.nav-link').forEach(link=>{
     }
     else if(t==='investments'){
       window.location.href='4_Investment_Index.html';
+    }
+    else if(t==='project-docs'){
+      window.location.href='6_Manage_Project_Docs.html';
     }
     else if(['analytics','backup'].includes(t)){
       document.getElementById('genericTitle').textContent=link.textContent;
