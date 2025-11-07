@@ -23,6 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnManualBackup = document.getElementById('btnManualBackup');
   const toastContainer = document.getElementById('toastContainer');
 
+  const MAX_SECURITY_QUESTIONS = 6;
+
   let autoBackupEnabled = true;
   const storedAutoBackup = localStorage.getItem('auto_backup_enabled');
   if (storedAutoBackup !== null) {
@@ -218,6 +220,23 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
+    const securityQA = [];
+    for (let i = 1; i <= MAX_SECURITY_QUESTIONS; i++) {
+      const questionInput = document.getElementById(`Bank_Security_Q${i}`);
+      const answerInput = document.getElementById(`Bank_Security_A${i}`);
+      if (!questionInput || !answerInput) continue;
+
+      const question = (questionInput.value || '').trim();
+      const answer = (answerInput.value || '').trim();
+
+      if (question || answer) {
+        securityQA.push({
+          question,
+          answer
+        });
+      }
+    }
+
     const record = {
       Bank_Institution: document.getElementById('Bank_Institution').value,
       Bank_Ac_Type: document.getElementById('Bank_Ac_Type').value,
@@ -244,6 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
       Bank_Helpline_Email4: document.getElementById('Bank_Helpline_Email4').value || '',
       Bank_Helpline_URL: document.getElementById('Bank_Helpline_URL').value || '',
       Bank_Notes: document.getElementById('Bank_Notes').value || '',
+      Bank_Security_QA: securityQA,
       id: editIndex !== null ? getData()[editIndex].id : Date.now() + Math.random()
     };
 
@@ -836,6 +856,47 @@ document.addEventListener("DOMContentLoaded", () => {
       record.Bank_Helpline_Email4
     ].filter(e => e);
 
+    const securityQAData = Array.isArray(record.Bank_Security_QA)
+      ? record.Bank_Security_QA.filter(item => item && (item.question || item.answer))
+      : [];
+    const hasSecurityQA = securityQAData.length > 0;
+
+    const formatSecurityColumn = (items, offset) => {
+      if (!items.length) {
+        return '';
+      }
+      return items.map((qa, idx) => {
+        const questionNumber = offset + idx + 1;
+        const questionText = qa.question ? qa.question : '—';
+        const answerText = qa.answer ? qa.answer : '—';
+        return `
+          <div class="security-qa-item">
+            <div class="security-question"><strong>Q${questionNumber}.</strong> ${questionText}</div>
+            <div class="security-answer"><span>Answer:</span> ${answerText}</div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    let securityHtml = '';
+    if (hasSecurityQA) {
+      const leftColumn = securityQAData.slice(0, 3);
+      const rightColumn = securityQAData.slice(3, 6);
+      const columnsHtml = [`<div class="security-column">${formatSecurityColumn(leftColumn, 0)}</div>`];
+      if (rightColumn.length) {
+        columnsHtml.push(`<div class="security-column">${formatSecurityColumn(rightColumn, 3)}</div>`);
+      }
+
+      securityHtml = `
+        <div class="security-card-minimal">
+          <div class="section-heading-minimal"><strong>Security Questions</strong></div>
+          <div class="security-grid-display">
+            ${columnsHtml.join('')}
+          </div>
+        </div>
+      `;
+    }
+
     const helplineHtml = `
       <div class="info-card helpline-card">
         <div class="info-card-header">
@@ -1007,6 +1068,12 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
       </div>
+
+      ${hasSecurityQA ? `
+        <div class="security-full-width">
+          ${securityHtml}
+        </div>
+      ` : ''}
     `;
 
     // Event Listeners
@@ -1203,6 +1270,17 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('Bank_Helpline_URL').value = record.Bank_Helpline_URL || '';
     document.getElementById('Bank_Notes').value = record.Bank_Notes || '';
 
+    const securityQA = Array.isArray(record.Bank_Security_QA) ? record.Bank_Security_QA : [];
+    for (let i = 1; i <= MAX_SECURITY_QUESTIONS; i++) {
+      const questionInput = document.getElementById(`Bank_Security_Q${i}`);
+      const answerInput = document.getElementById(`Bank_Security_A${i}`);
+      if (!questionInput || !answerInput) continue;
+
+      const qa = securityQA[i - 1] || {};
+      questionInput.value = qa.question || '';
+      answerInput.value = qa.answer || '';
+    }
+
     // Set holder count
     const holderCount = record.Bank_Holders ? record.Bank_Holders.length : 1;
     holderCountSelect.value = holderCount;
@@ -1305,6 +1383,12 @@ document.addEventListener("DOMContentLoaded", () => {
           banksData.push(['Helpline Email 4', record.Bank_Helpline_Email4 || '']);
           banksData.push(['Helpline URL', record.Bank_Helpline_URL || '']);
           banksData.push(['Notes', record.Bank_Notes || '']);
+          if (record.Bank_Security_QA && record.Bank_Security_QA.length > 0) {
+            record.Bank_Security_QA.forEach((qa, sIdx) => {
+              banksData.push([`Security Question ${sIdx + 1}`, qa?.question || '']);
+              banksData.push([`Security Answer ${sIdx + 1}`, qa?.answer || '']);
+            });
+          }
           
           // Add page break after every 2 records (empty row for spacing)
           if ((idx + 1) % 2 === 0 && idx < bankRecords.length - 1) {
@@ -1409,6 +1493,10 @@ document.addEventListener("DOMContentLoaded", () => {
     yPos = marginTop;
 
     bankRecords.forEach((record, index) => {
+      const securityQADataPdf = Array.isArray(record.Bank_Security_QA)
+        ? record.Bank_Security_QA.filter(item => item && (item.question || item.answer))
+        : [];
+
       // Check if we need a new page before starting a new record
       if (yPos > pageHeight - marginBottom - 20) {
         doc.addPage();
@@ -1677,6 +1765,68 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.rect(marginLeft, nomineeStartY, contentWidth, nomineeHeight);
       yPos += 8;
 
+      if (securityQADataPdf.length > 0) {
+        if (yPos > pageHeight - marginBottom - 30) {
+          doc.addPage();
+          currentPage++;
+          totalPages = currentPage;
+          yPos = marginTop;
+          addFooter(doc, totalRecords, currentPage, totalPages, marginBottom);
+        }
+
+        const securityStartY = yPos;
+        doc.setDrawColor(211, 211, 211);
+        doc.setLineWidth(0.5);
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Security Questions', marginLeft + 4, yPos + 5.5);
+        yPos += 8;
+
+        doc.setFontSize(8.5);
+        doc.setFont(undefined, 'normal');
+        const columnWidth = (contentWidth - 12) / 2;
+        const colGap = 12;
+        const leftX = marginLeft + 4;
+        const rightX = marginLeft + columnWidth + colGap;
+        const columnStartY = yPos + 2;
+
+        const renderSecurityColumn = (items, x, offset) => {
+          let height = 0;
+          if (!items.length) return height;
+          items.forEach((qa, idx) => {
+            const questionLabel = `Q${offset + idx + 1}: ${qa.question || '—'}`;
+            const questionLines = doc.splitTextToSize(questionLabel, columnWidth - 6);
+            doc.setFont(undefined, 'bold');
+            questionLines.forEach(line => {
+              doc.text(line, x, columnStartY + height + 4.5);
+              height += 4.5;
+            });
+
+            const answerLabel = `Answer: ${qa.answer || '—'}`;
+            const answerLines = doc.splitTextToSize(answerLabel, columnWidth - 10);
+            doc.setFont(undefined, 'normal');
+            answerLines.forEach(line => {
+              doc.text(line, x + 2, columnStartY + height + 4.5);
+              height += 4.5;
+            });
+
+            height += 4;
+          });
+          return height;
+        };
+
+        const leftColumn = securityQADataPdf.slice(0, 3);
+        const rightColumn = securityQADataPdf.slice(3, 6);
+        const leftHeight = renderSecurityColumn(leftColumn, leftX, 0);
+        const rightHeight = rightColumn.length ? renderSecurityColumn(rightColumn, rightX, 3) : 0;
+        const columnHeight = Math.max(leftHeight, rightHeight);
+
+        const sectionHeight = (columnStartY - securityStartY) + columnHeight + 10;
+        doc.rect(marginLeft, securityStartY, contentWidth, sectionHeight);
+        yPos = securityStartY + sectionHeight + 8;
+      }
+
       yPos += 5; // Space between records
     });
 
@@ -1762,6 +1912,41 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `;
       }).join('');
+
+      const securityQADataPrint = Array.isArray(record.Bank_Security_QA)
+        ? record.Bank_Security_QA.filter(item => item && (item.question || item.answer))
+        : [];
+
+      const buildSecurityColumnHtml = (items, offset) => {
+        if (!items.length) return '';
+        return items.map((qa, idx) => {
+          const questionNumber = offset + idx + 1;
+          return `
+            <div class="security-qa">
+              <div class="security-question"><strong>Q${questionNumber}.</strong> ${qa.question || '—'}</div>
+              <div class="security-answer"><span>Answer:</span> ${qa.answer || '—'}</div>
+            </div>
+          `;
+        }).join('');
+      };
+
+      let securityHtml = '';
+      if (securityQADataPrint.length > 0) {
+        const leftColumn = securityQADataPrint.slice(0, 3);
+        const rightColumn = securityQADataPrint.slice(3, 6);
+        const columns = [`<div class="security-column">${buildSecurityColumnHtml(leftColumn, 0)}</div>`];
+        if (rightColumn.length) {
+          columns.push(`<div class="security-column">${buildSecurityColumnHtml(rightColumn, 3)}</div>`);
+        }
+        securityHtml = `
+          <div class="security-card">
+            <div class="section-heading">Security Questions</div>
+            <div class="security-grid">
+              ${columns.join('')}
+            </div>
+          </div>
+        `;
+      }
 
       // Get helpline data
       const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4].filter(p => p);
@@ -1886,6 +2071,46 @@ document.addEventListener("DOMContentLoaded", () => {
                 padding: 12px;
                 background: #ffffff;
                 margin-bottom: 12px;
+              }
+              .security-card {
+                border: 1px solid #d3d3d3;
+                border-radius: 4px;
+                padding: 12px;
+                background: #ffffff;
+                margin-bottom: 12px;
+              }
+              .security-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 12px;
+                margin-top: 10px;
+              }
+              .security-column {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+              }
+              .security-qa {
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                padding: 8px 10px;
+                background: #f7f9fc;
+                font-size: 10px;
+                line-height: 1.5;
+              }
+              .security-question {
+                font-weight: 700;
+                color: #0a0a0a;
+                margin-bottom: 4px;
+                font-size: 10px;
+              }
+              .security-answer {
+                color: #333333;
+                font-size: 10px;
+              }
+              .security-answer span {
+                font-weight: 600;
+                margin-right: 4px;
               }
               @media print { 
                 @page { 
@@ -2025,6 +2250,8 @@ document.addEventListener("DOMContentLoaded", () => {
               </div>
               ` : ''}
             </div>
+
+            ${securityHtml}
           </body>
         </html>
       `);

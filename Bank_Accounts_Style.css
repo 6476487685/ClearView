@@ -959,6 +959,68 @@ body.dark .toast-message{
   line-height:1.6;
 }
 
+.security-full-width{
+  margin-top:16px;
+}
+
+.security-card-minimal{
+  border:1px solid #d3d3d3;
+  border-radius:4px;
+  padding:16px;
+  background:#ffffff;
+}
+
+.security-grid-display{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:16px;
+  margin-top:12px;
+}
+
+.security-column{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.security-qa-item{
+  background:var(--bg);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius);
+  padding:12px;
+  box-shadow:var(--shadow-xs);
+}
+
+.security-question{
+  font-size:13px;
+  font-weight:600;
+  color:var(--text-primary);
+  margin-bottom:6px;
+}
+
+.security-answer{
+  font-size:12px;
+  color:var(--text-secondary);
+  line-height:1.5;
+}
+
+.security-answer span{
+  font-weight:600;
+  color:var(--text-primary);
+  margin-right:4px;
+}
+
+body.dark .security-card-minimal{
+  background:#2d2d2d;
+  border-color:#404040;
+}
+
+body.dark .security-qa-item{
+  background:#333333;
+  border-color:#404040;
+  box-shadow:none;
+}
+
 .bank-record-actions{
   display:flex;
   gap:8px;
@@ -996,6 +1058,46 @@ body.dark .toast-message{
   display:flex;
   flex-direction:column;
   margin-bottom:16px;
+}
+
+.security-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.security-item{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  background:var(--surface);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius);
+  padding:12px;
+  box-shadow:var(--shadow-xs);
+}
+
+.security-item label{
+  font-weight:600;
+  color:var(--text-secondary);
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+}
+
+.security-item input{
+  width:100%;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:8px 10px;
+  font-size:13px;
+}
+
+body.dark .security-item{
+  background:#2d2d2d;
+  border-color:#404040;
+  box-shadow:none;
 }
 
 .section-divider{
