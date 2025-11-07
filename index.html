@@ -74,42 +74,40 @@ input:checked + .slider:before{transform:translateX(22px);}
  width:80%;max-width:600px;border-radius:12px;animation:fadein .25s;box-shadow:var(--shadow);
 }
 @keyframes fadein{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
-.close{float:right;font-size:20px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;width:32px;height:32px;}
-.close img{width:24px;height:24px;opacity:0.7;transition:opacity 0.2s ease;}
-.close:hover img{opacity:1;}
+.close{float:right;font-size:20px;font-weight:bold;cursor:pointer;}
 .table thead{background:var(--accent-blue);color:#fff;}
 .table td,.table th{padding:6px 10px;border-bottom:1px solid var(--divider);}
 
 /* Enhanced Documents Modal Styles */
-.docs-modal{width:100%;height:100%;overflow:hidden;display:flex;flex-direction:column;position:fixed;top:0;left:0;transform:none;z-index:1001;border-radius:0;margin:0;padding:20px;box-shadow:none;border:none;}
-.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:15px 20px;background:linear-gradient(135deg, #2c3e50 0%, #34495e 100%);border-bottom:2px solid #27ae60;flex-shrink:0;border-radius:0;}
-.modal-header h4{margin:0;color:#ffffff;font-size:24px;font-weight:700;text-shadow:0 2px 4px rgba(0,0,0,0.3);}
+.docs-modal{max-width:896px;width:75%;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;position:fixed;top:calc(60px + (100vh - 60px) / 2 - 192px);left:calc(260px + (100vw - 260px) / 2);transform:translate(-50%, -50%);z-index:1001;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--divider);flex-shrink:0;}
+.modal-header h4{margin:0;color:var(--text-body);font-size:16px;font-weight:600;}
 
 .upload-section{margin-bottom:12px;flex-shrink:0;}
 .upload-area{border:2px dashed var(--accent-blue);border-radius:8px;padding:20px;text-align:center;background:linear-gradient(135deg, rgba(66,133,244,0.05) 0%, rgba(66,133,244,0.02) 100%);transition:all 0.3s ease;cursor:pointer;position:relative;height:80px;display:flex;align-items:center;justify-content:center;}
 .upload-area:hover{border-color:var(--accent-blue-hover);background:linear-gradient(135deg, rgba(66,133,244,0.1) 0%, rgba(66,133,244,0.05) 100%);transform:translateY(-1px);box-shadow:var(--shadow-xs);}
 .upload-area.dragover{border-color:var(--success);background:linear-gradient(135deg, rgba(52,168,83,0.1) 0%, rgba(52,168,83,0.05) 100%);}
 .upload-icon{font-size:24px;margin-right:10px;opacity:0.7;}
-.upload-text{font-size:16px;font-weight:600;color:var(--text-body);margin:0 8px 0 0;}
-.upload-subtext{font-size:13px;color:var(--text-secondary);margin:0 12px 0 0;}
-.upload-btn{background:var(--accent-blue);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;box-shadow:var(--shadow-xs);font-size:14px;margin-left:12px;}
+.upload-text{font-size:14px;font-weight:600;color:var(--text-body);margin:0 8px 0 0;}
+.upload-subtext{font-size:11px;color:var(--text-secondary);margin:0 12px 0 0;}
+.upload-btn{background:var(--accent-blue);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;box-shadow:var(--shadow-xs);font-size:12px;margin-left:12px;}
 .upload-btn:hover{background:var(--accent-blue-hover);transform:translateY(-1px);box-shadow:var(--shadow-sm);}
 #docUpload{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;}
 
 .documents-section{background:var(--surface);border-radius:6px;overflow:hidden;box-shadow:var(--shadow-xs);flex:1;display:flex;flex-direction:column;min-height:0;}
-.section-header{display:flex;justify-content:space-between;align-items:center;padding:10px 15px 10px 0px;background:var(--bg);border-bottom:1px solid var(--divider);flex-shrink:0;}
-.section-header h5{margin:0;color:var(--text-body);font-size:22px;font-weight:600;text-align:left;}
-.doc-stats{font-size:16px;background:var(--accent-blue);color:#fff;padding:4px 10px;border-radius:10px;font-weight:500;text-align:right;}
+.section-header{display:flex;justify-content:space-between;align-items:center;padding:10px 15px;background:var(--bg);border-bottom:1px solid var(--divider);flex-shrink:0;}
+.section-header h5{margin:0;color:var(--text-body);font-size:13px;font-weight:600;}
+.doc-stats{font-size:11px;background:var(--accent-blue);color:#fff;padding:3px 8px;border-radius:10px;font-weight:500;}
 
-.table-container{flex:1;overflow-y:auto;overflow-x:hidden;max-height:350px;}
-.docs-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;max-width:100%;overflow:hidden;}
-.docs-table th{background:var(--accent-blue);color:#fff;padding:8px 6px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;position:sticky;top:0;z-index:1;text-align:left;}
-.docs-table th:nth-child(1){width:35%;}
+.table-container{flex:1;overflow-y:auto;max-height:350px;}
+.docs-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;}
+.docs-table th{background:var(--accent-blue);color:#fff;padding:10px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;position:sticky;top:0;z-index:1;}
+.docs-table th:nth-child(1){width:30%;}
 .docs-table th:nth-child(2){width:15%;}
-.docs-table th:nth-child(3){width:12%;}
-.docs-table th:nth-child(4){width:18%;}
-.docs-table th:nth-child(5){width:20%;}
-.docs-table td{padding:8px 6px;border-bottom:1px solid var(--divider);font-size:12px;word-wrap:break-word;vertical-align:middle;text-align:left;}
+.docs-table th:nth-child(3){width:10%;}
+.docs-table th:nth-child(4){width:20%;}
+.docs-table th:nth-child(5){width:25%;}
+.docs-table td{padding:10px 12px;border-bottom:1px solid var(--divider);font-size:12px;word-wrap:break-word;}
 .docs-table tbody tr:hover{background:var(--bg);transition:background 0.2s ease;}
 .docs-table tbody tr:last-child td{border-bottom:none;}
 
@@ -119,22 +117,30 @@ input:checked + .slider:before{transform:translateX(22px);}
 .empty-message p{margin:0;font-size:12px;}
 
 .doc-actions{display:flex;gap:4px;flex-wrap:nowrap;justify-content:flex-start;align-items:center;}
-.doc-btn{background:#f8f9fa;color:#495057;border:2px solid #dee2e6;padding:6px;border-radius:6px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:40px;height:40px;min-width:40px;transition:none;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
-body.dark .doc-btn{background:#2d2d2d;color:#ffffff;border:2px solid #404040;}
+.doc-btn{background:#f8f9fa;color:#495057;border:2px solid #dee2e6;padding:8px;border-radius:6px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:36px;height:36px;min-width:36px;transition:none;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
 .doc-btn:hover{background:#e9ecef;border-color:#adb5bd;box-shadow:0 3px 6px rgba(0,0,0,0.15);transform:none;}
-body.dark .doc-btn:hover{background:#404040;border-color:#5a5a5a;}
 .doc-btn:active{background:#dee2e6;transform:none;}
 .doc-btn:disabled{opacity:0.5;cursor:not-allowed;background:#f8f9fa;border-color:#dee2e6;}
 .doc-btn:disabled:hover{background:#f8f9fa;border-color:#dee2e6;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
 
-/* Emoji Icon Styling - Dark Green */
-.doc-btn span{font-size:16px;transition:all 0.2s ease;opacity:0.8;color:#006600;filter:hue-rotate(120deg) saturate(2) brightness(0.7);}
+/* Font Awesome Icon Styling - Simple Black & White */
+.doc-btn i{color:#000;font-size:16px;transition:all 0.2s ease;}
+.doc-btn .icon-download{color:#000;}
+.doc-btn .icon-move-up,.doc-btn .icon-move-down{color:#000;}
+.doc-btn .icon-delete{color:#000;}
 
-/* Hover effects for emoji icons */
-.doc-btn.download:hover span{opacity:1;transform:scale(1.1);color:#004d00;}
-.doc-btn.move-up:hover span{opacity:1;transform:scale(1.1);color:#004d00;}
-.doc-btn.move-down:hover span{opacity:1;transform:scale(1.1);color:#004d00;}
-.doc-btn.delete:hover span{opacity:1;transform:scale(1.1);color:#004d00;}
+/* Hover effects for Font Awesome icons */
+.doc-btn.download:hover i{color:#333;transform:scale(1.1);}
+.doc-btn.move-up:hover i{color:#333;transform:scale(1.1);}
+.doc-btn.move-down:hover i{color:#333;transform:scale(1.1);}
+.doc-btn.delete:hover i{color:#333;transform:scale(1.1);}
+
+/* Dark mode Font Awesome icon colors */
+body.dark .doc-btn i{color:#fff;}
+body.dark .doc-btn.download:hover i,
+body.dark .doc-btn.move-up:hover i,
+body.dark .doc-btn.move-down:hover i,
+body.dark .doc-btn.delete:hover i{color:#ccc;}
 
 /* File type icons styling */
 .file-icon{color:#000;font-size:14px;margin-right:6px;}
@@ -144,8 +150,8 @@ body.dark .file-icon{color:#fff;}
 .docs-table th i{color:#fff;font-size:12px;margin-right:6px;}
 
 /* Upload area icon */
-.upload-icon img{color:var(--accent-blue);width:36px;height:36px;opacity:0.7;transition:all 0.3s ease;}
-.upload-area:hover .upload-icon img{opacity:1;transform:scale(1.1);}
+.upload-icon i{color:var(--accent-blue);font-size:24px;opacity:0.7;transition:all 0.3s ease;}
+.upload-area:hover .upload-icon i{opacity:1;transform:scale(1.1);}
 
 /* Empty state icon */
 .empty-icon i{color:var(--text-secondary);font-size:32px;opacity:0.5;}
@@ -160,9 +166,9 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 
 
 /* File name display and editing */
-.file-name-display{font-size:13px;font-weight:500;color:var(--text-body);cursor:pointer;transition:color 0.2s ease;display:flex;align-items:center;gap:6px;}
+.file-name-display{font-size:12px;font-weight:500;color:var(--text-body);cursor:pointer;transition:color 0.2s ease;}
 .file-name-display:hover{color:var(--accent-blue);}
-.file-name-edit{background:transparent;border:1px solid var(--accent-blue);border-radius:3px;padding:4px 6px;font-size:13px;font-weight:500;color:var(--text-body);width:100%;min-width:150px;}
+.file-name-edit{background:transparent;border:1px solid var(--accent-blue);border-radius:3px;padding:4px 6px;font-size:12px;font-weight:500;color:var(--text-body);width:100%;min-width:150px;}
 .file-name-edit:focus{outline:none;border-color:var(--accent-blue-hover);box-shadow:0 0 0 2px rgba(66,133,244,0.1);}
 
 /* Drag and drop styles */
@@ -180,19 +186,17 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 </header>
 
 <nav id="sidebar">
-  <a href="Manage_Master_Data.html" class="nav-link" id="masterDataNavLink"><span class="icon">🧩</span>Manage Master Data</a>
+  <a href="#" class="nav-link" data-target="masters"><span class="icon">🧩</span>Manage Master Data</a>
   <a href="#" class="nav-link" data-target="tasks"><span class="icon">✅</span>Manage Tasks</a>
-  <a href="#" class="nav-link" data-target="bank-accounts"><span class="icon">🏦</span>Manage Bank Accounts</a>
-  <a href="#" class="nav-link" data-target="trading-accounts"><span class="icon">📊</span>Manage Trading Accounts</a>
-  <a href="#" class="nav-link" data-target="credit-cards"><span class="icon">💳</span>Manage Credit Cards</a>
-  <a href="#" class="nav-link" data-target="tenants"><span class="icon">👥</span>Manage Tenants</a>
-  <a href="#" class="nav-link" data-target="properties"><span class="icon">🏠</span>Manage Properties</a>
-  <a href="#" class="nav-link" data-target="accounts" id="accountsNavLink"><span class="icon">🗂️</span>File Manager</a>
+  <a href="#" class="nav-link" data-target="accounts"><span class="icon">🗂️</span>Manage Accounts</a>
+  <a href="#" class="nav-link" data-target="load"><span class="icon">📁</span>Load Local Data</a>
+  <a href="#" class="nav-link disabled" title="Coming soon"><span class="icon">☁️</span>Google Drive</a>
   <a href="#" class="nav-link" data-target="expense"><span class="icon">💸</span>Expense Transactions</a>
   <a href="#" class="nav-link" data-target="income"><span class="icon">💰</span>Income Transactions</a>
-  <a href="#" class="nav-link" data-target="investments"><span class="icon">📈</span>Equity Transactions</a>
-  <a href="#" class="nav-link" data-target="docs" id="docsNavLink"><span class="icon">📑</span>Project Documents</a>
+  <a href="#" class="nav-link" data-target="investments"><span class="icon">📈</span>Investments</a>
   <a href="#" class="nav-link" data-target="analytics"><span class="icon">📊</span>Analytics</a>
+  <a href="#" class="nav-link" data-target="backup"><span class="icon">💾</span>Backup & Export</a>
+  <a href="#" class="nav-link" data-target="docs"><span class="icon">📑</span>Documents</a>
 </nav>
 
 <main id="content"></main>
@@ -202,32 +206,40 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 <!-- Documents Modal -->
 <div id="modal-docs" class="modal">
   <div class="modal-content docs-modal">
-    <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-      <h4 style="font-size: 20px; font-weight: 700; color: #b87333; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); margin:0; flex:1; min-width:200px;">Project Documents Manager</h4>
-      <div style="display:flex;gap:8px;align-items:center;">
+    <div class="modal-header">
+      <h4><i class="fas fa-folder-open"></i> Document Manager</h4>
+      <div style="display:flex;gap:10px;align-items:center;">
         <button id="downloadAllBtn" style="
-          background:linear-gradient(135deg, #8B5CF6 0%, #3B82F6 100%);color:#fff;border:none;padding:8px 14px;
-          border-radius:4px;font-size:13px;cursor:pointer;transition:all 0.1s ease;
-          display:flex;align-items:center;gap:6px;font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.15);
+          background:var(--accent-gold);color:#fff;border:none;padding:8px 12px;
+          border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
+          display:flex;align-items:center;gap:6px;font-weight:500;
         " title="Download all documents to Backup folder">
-          <img src="assets/icons/download-all.png?v=1" alt="Download All" style="width: 20px; height: 20px;">
+          <i class="fas fa-download"></i>
           <span>Download All</span>
         </button>
+        <button id="quickChangeDocsBtn" style="
+          background:var(--accent-gold);color:#fff;border:none;padding:8px 12px;
+          border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
+          display:flex;align-items:center;gap:6px;font-weight:500;
+        " title="Quick change Documents folder">
+          <i class="fas fa-sync-alt"></i>
+          <span>Quick Change</span>
+        </button>
         <button id="changeDocsFolderBtn" style="
-          background:linear-gradient(135deg, #6B46C1 0%, #8B5CF6 100%);color:#fff;border:none;padding:8px 14px;
-          border-radius:4px;font-size:13px;cursor:pointer;transition:all 0.1s ease;
-          display:flex;align-items:center;gap:6px;font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,0.15);
+          background:var(--accent-blue);color:#fff;border:none;padding:8px 12px;
+          border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
+          display:flex;align-items:center;gap:6px;font-weight:500;
         " title="Change Documents folder">
-          <img src="assets/icons/change-folder.png?v=1" alt="Change Folder" style="width: 20px; height: 20px;">
+          <i class="fas fa-folder-plus"></i>
           <span>Change Folder</span>
         </button>
+        <span class="close" data-close="modal-docs">&times;</span>
       </div>
-      <span class="close" data-close="modal-docs"><img src="assets/icons/close-interface.png?v=1" alt="Close" style="width: 20px; height: 20px;"></span>
     </div>
     
     <div class="upload-section">
       <div class="upload-area" id="uploadArea">
-        <div class="upload-icon"><img src="assets/icons/Drag-and-Drop.png?v=1" alt="Drag and Drop" style="width: 36px; height: 36px;"></div>
+        <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
         <p class="upload-text">Drag & drop files here or click to browse</p>
         <p class="upload-subtext">Supports: PDF, DOC, DOCX, XLS, XLSX, TXT, Images</p>
         <button class="upload-btn" id="uploadBtn">Choose Files</button>
@@ -266,23 +278,100 @@ body.dark .modal-header h4 i{color:var(--text-body);}
   </div>
 </div>
 
-
 <!-- Backup & Export Modal -->
 <div id="modal-backup" class="modal">
   <div class="modal-content docs-modal">
     <div class="modal-header">
       <h4><i class="fas fa-database"></i> Backup & Export</h4>
       <div style="display:flex;gap:10px;align-items:center;">
-        <span class="close" data-close="modal-backup"><img src="assets/icons/close-interface.png?v=1" alt="Close" style="width: 16px; height: 16px;"></span>
+        <button id="changeBackupFolderBtn" style="
+          background:var(--accent-blue);color:#fff;border:none;padding:8px 12px;
+          border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
+          display:flex;align-items:center;gap:6px;font-weight:500;
+        " title="Change Backup folder">
+          <i class="fas fa-folder-plus"></i>
+          <span>Change Folder</span>
+        </button>
+        <span class="close" data-close="modal-backup">&times;</span>
       </div>
     </div>
+    
     <div style="padding:20px;">
-      <div style="background:var(--primary-bg);padding:15px;border-radius:8px;border-left:4px solid var(--accent-blue);">
-        <p style="margin:0 0 8px 0;font-size:14px;color:var(--text-body);">
-          <strong>Backup Folder:</strong> <span id="backupFolderDisplay">Not set</span>
-        </p>
+      <div style="margin-bottom:20px;">
+        <h5 style="margin:0 0 10px 0;color:var(--text-body);font-size:16px;display:flex;align-items:center;gap:8px;">
+          <i class="fas fa-info-circle"></i>
+          Backup Information
+        </h5>
+        <div style="background:var(--primary-bg);padding:15px;border-radius:8px;border-left:4px solid var(--accent-blue);">
+          <p style="margin:0 0 8px 0;font-size:14px;color:var(--text-body);">
+            <strong>Backup Folder:</strong> <span id="backupFolderDisplay">Not set</span>
+          </p>
+          <p style="margin:0;font-size:12px;color:var(--text-secondary);">
+            All backup files will be saved directly to this folder
+          </p>
+        </div>
+      </div>
+      
+      <div style="margin-bottom:20px;">
+        <h5 style="margin:0 0 15px 0;color:var(--text-body);font-size:16px;display:flex;align-items:center;gap:8px;">
+          <i class="fas fa-download"></i>
+          Export Options
+        </h5>
+        
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:15px;">
+          <!-- Documents Export -->
+          <div style="background:var(--content-bg);border:2px solid var(--divider);border-radius:8px;padding:15px;text-align:center;cursor:pointer;transition:all 0.3s ease;" 
+               onclick="exportDocuments()" onmouseover="this.style.borderColor='var(--accent-blue)';this.style.transform='translateY(-2px)'" 
+               onmouseout="this.style.borderColor='var(--divider)';this.style.transform='translateY(0)'">
+            <div style="font-size:32px;margin-bottom:10px;color:var(--accent-blue);">
+              <i class="fas fa-file-export"></i>
+            </div>
+            <h6 style="margin:0 0 8px 0;color:var(--text-body);font-size:14px;">Export Documents</h6>
+            <p style="margin:0;font-size:12px;color:var(--text-secondary);">Export all documents to Backup folder</p>
+          </div>
+          
+          <!-- Data Export -->
+          <div style="background:var(--content-bg);border:2px solid var(--divider);border-radius:8px;padding:15px;text-align:center;cursor:pointer;transition:all 0.3s ease;" 
+               onclick="exportData()" onmouseover="this.style.borderColor='var(--accent-gold)';this.style.transform='translateY(-2px)'" 
+               onmouseout="this.style.borderColor='var(--divider)';this.style.transform='translateY(0)'">
+            <div style="font-size:32px;margin-bottom:10px;color:var(--accent-gold);">
+              <i class="fas fa-table"></i>
+            </div>
+            <h6 style="margin:0 0 8px 0;color:var(--text-body);font-size:14px;">Export Data</h6>
+            <p style="margin:0;font-size:12px;color:var(--text-secondary);">Export transaction data (JSON/CSV)</p>
+          </div>
+          
+          <!-- Full Backup -->
+          <div style="background:var(--content-bg);border:2px solid var(--divider);border-radius:8px;padding:15px;text-align:center;cursor:pointer;transition:all 0.3s ease;" 
+               onclick="createFullBackup()" onmouseover="this.style.borderColor='var(--accent-purple)';this.style.transform='translateY(-2px)'" 
+               onmouseout="this.style.borderColor='var(--divider)';this.style.transform='translateY(0)'">
+            <div style="font-size:32px;margin-bottom:10px;color:var(--accent-purple);">
+              <i class="fas fa-archive"></i>
+            </div>
+            <h6 style="margin:0 0 8px 0;color:var(--text-body);font-size:14px;">Full Backup</h6>
+            <p style="margin:0;font-size:12px;color:var(--text-secondary);">Complete application backup</p>
+          </div>
+          
+          <!-- Settings Export -->
+          <div style="background:var(--content-bg);border:2px solid var(--divider);border-radius:8px;padding:15px;text-align:center;cursor:pointer;transition:all 0.3s ease;" 
+               onclick="exportSettings()" onmouseover="this.style.borderColor='var(--success)';this.style.transform='translateY(-2px)'" 
+               onmouseout="this.style.borderColor='var(--divider)';this.style.transform='translateY(0)'">
+            <div style="font-size:32px;margin-bottom:10px;color:var(--success);">
+              <i class="fas fa-cog"></i>
+            </div>
+            <h6 style="margin:0 0 8px 0;color:var(--text-body);font-size:14px;">Export Settings</h6>
+            <p style="margin:0;font-size:12px;color:var(--text-secondary);">Export application settings</p>
+          </div>
+        </div>
+      </div>
+      
+      <div style="background:var(--primary-bg);padding:15px;border-radius:8px;border-left:4px solid var(--success);">
+        <h6 style="margin:0 0 8px 0;color:var(--text-body);font-size:14px;display:flex;align-items:center;gap:8px;">
+          <i class="fas fa-lightbulb"></i>
+          Pro Tip
+        </h6>
         <p style="margin:0;font-size:12px;color:var(--text-secondary);">
-          Exports will save to this folder.
+          All exports are saved directly to your Backup folder. Set your Backup folder first to ensure files are saved to the correct location.
         </p>
       </div>
     </div>
@@ -292,7 +381,7 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 <!-- Placeholder Modal (used for other menu items) -->
 <div id="modal-generic" class="modal">
   <div class="modal-content">
-    <span class="close" data-close="modal-generic"><img src="assets/icons/close-interface.png?v=1" alt="Close" style="width: 16px; height: 16px;"></span>
+    <span class="close" data-close="modal-generic">&times;</span>
     <h4 id="genericTitle"></h4>
     <p>Coming soon…</p>
   </div>
@@ -317,6 +406,11 @@ document.getElementById('logoutBtn').addEventListener('click',()=>{
 /* ---------- Modal Logic ---------- */
 function openModal(id){
   document.getElementById(id).style.display='block';
+  
+  // Update document stats when Documents modal is opened
+  if(id === 'modal-docs'){
+    updateStats();
+  }
 }
 function closeModal(id){
   document.getElementById(id).style.display='none';
@@ -329,53 +423,26 @@ window.onclick=function(e){
 /* ---------- Sidebar Clicks ---------- */
 document.querySelectorAll('.nav-link').forEach(link=>{
   link.addEventListener('click',e=>{
-    // Only prevent default if there's a data-target attribute (not for direct links)
-    if(link.dataset.target){
-      e.preventDefault();
-      const t=link.dataset.target;
-      if(t==='load'){
-        setupDownloadsFolder();
-      }
-      else if(t==='backup'){
-        openModal('modal-backup');
-      }
-      else if(t==='docs'){
-        window.location.href='6_Documents_Index.html';
-      }
-      else if(t==='expense'){
-        window.location.href='2_Expanse_Index.html';
-      }
-      else if(t==='income'){
-        window.location.href='3_Income_Index.html';
-      }
-      else if(t==='accounts'){
-        window.location.href='7_File_Manager_Index.html';
-      }
-      else if(t==='investments'){
-        window.location.href='4_Investment_Index.html';
-      }
-      else if(t==='tasks'){
-        window.location.href='5_Task.html';
-      }
-      else if(t==='bank-accounts'){
-        window.location.href='Bank_Accounts_Index.html';
-      }
-      else if(t==='trading-accounts'){
-        document.getElementById('genericTitle').textContent='Manage Trading Accounts';
-        openModal('modal-generic');
-      }
-      else if(t==='credit-cards'){
-        document.getElementById('genericTitle').textContent='Manage Credit Cards';
-        openModal('modal-generic');
-      }
-      else if(t==='tenants'){
-        document.getElementById('genericTitle').textContent='Manage Tenants';
-        openModal('modal-generic');
-      }
-      else if(t==='properties'){
-        document.getElementById('genericTitle').textContent='Manage Properties';
-        openModal('modal-generic');
-      }
+    e.preventDefault();
+    const t=link.dataset.target;
+    if(!t) return;
+    if(t==='load'){setupDownloadsFolder();}
+    else if(t==='docs'){openDocumentsModal();}
+    else if(t==='expense'){
+      window.location.href='2_Expanse_Index.html';
+    }
+    else if(t==='income'){
+      window.location.href='3_Income_Index.html';
+    }
+    else if(t==='bank-accounts'){
+      window.location.href='8_Bank_Accounts_Index.html';
+    }
+    else if(t==='masters'){
+      window.location.href='9_Manage_Master_Data.html';
+    }
+    else if(['tasks','investments','analytics','backup'].includes(t)){
+      document.getElementById('genericTitle').textContent=link.textContent;
+      openModal('modal-generic');
     }
   });
 });
@@ -440,6 +507,12 @@ function processFile(file){
     showToast('✅ Data loaded successfully!');
     
     // Update tooltip
+    updateLoadLocalTooltip();
+    
+    // Step 4: Backup Folder Setup
+    setTimeout(()=>{
+      setupBackupFolder();
+    },1000);
     
   }catch(error){
     alert('❌ Error loading file: '+error.message);
@@ -561,6 +634,7 @@ function showSimpleBackupDialog(){
       
       // Update tooltip immediately
       setTimeout(()=>{
+        updateBackupTooltip();
       },100);
       
       document.body.removeChild(overlay);
@@ -958,6 +1032,7 @@ function showFolderPicker(){
       
       // Update tooltip immediately
       setTimeout(()=>{
+        updateBackupTooltip();
       },100);
       
       document.body.removeChild(overlay);
@@ -980,8 +1055,26 @@ function showFolderPicker(){
 }
 
 // Step 5 & 6: Tooltip Update Functions
+function updateLoadLocalTooltip(){
+  const loadLocalLink=document.querySelector('nav a[data-target="load"]');
+  if(loadLocalLink){
+    const dataPath=localStorage.getItem('localDataPath');
+    loadLocalLink.title=dataPath?`Current data: ${dataPath}`:'Click to load local data files';
+  }
+}
+
+function updateBackupTooltip(){
+  const backupLink=document.querySelector('nav a[data-target="backup"]');
+  if(backupLink){
+    const backupPath=localStorage.getItem('backupFolderPath');
+    backupLink.title=backupPath?`Backup folder: ${backupPath}`:'Click to set backup folder';
+  }
+}
+
 // Initialize tooltips on page load
 document.addEventListener('DOMContentLoaded',()=>{
+  updateLoadLocalTooltip();
+  updateBackupTooltip();
 });
 
 // Toast notification function
@@ -1329,60 +1422,12 @@ function showDownloadsFolderSetup(){
   setTimeout(()=>folderInput.focus(),100);
 }
 
-// Update Project Documents tooltip with path from Manage Master Data
-function updateProjectDocumentsTooltip(){
-  const docsNavLink=document.getElementById('docsNavLink');
-  if(docsNavLink){
-    const documentsPath=localStorage.getItem('project_documents_path')||'';
-    docsNavLink.title=documentsPath?`Project Documents Path: ${documentsPath}`:'Click to manage project documents';
-  }
-}
-
-// Update Manage Master Data tooltip with last loaded Excel file path
-function updateManageMasterDataTooltip(){
-  const masterDataLink=document.getElementById('masterDataNavLink');
-  if(masterDataLink){
-    const lastExcelFile=localStorage.getItem('last_excel_file_loaded')||'';
-    const lastExcelSource=localStorage.getItem('last_excel_file_source')||'';
-    const lastExcelPath=localStorage.getItem('last_excel_file_path')||'';
-    const displayPath = lastExcelPath || lastExcelFile;
-    if(lastExcelFile || lastExcelPath){
-      let sourceLabel = lastExcelSource === 'D:' ? 'Local Drive D:' : (lastExcelSource || 'Unknown source');
-      if(lastExcelSource === 'Google Drive') sourceLabel = 'Google Drive';
-      masterDataLink.title=`Current Excel file: ${displayPath} (from ${sourceLabel})`;
-    }else{
-      masterDataLink.title='Click to manage master data and load Excel file';
-    }
-  }
-}
-
-// New: File Manager tooltip with last opened folder path
-function updateAccountsTooltip(){
-  const accountsLink=document.getElementById('accountsNavLink');
-  if(accountsLink){
-    const defaultPath='D:\\Personal_Docs';
-    // Check for both possible localStorage keys (legacy and new)
-    const currentPath=localStorage.getItem('file_manager_folder_path')||localStorage.getItem('selectedFolderPath')||defaultPath;
-    accountsLink.title=`Last opened folder: ${currentPath}`;
-  }
-}
-
-// Initialize tooltips on page load and keep them in sync across tabs
+// Initialize tooltips on page load
 document.addEventListener('DOMContentLoaded',()=>{
-  updateProjectDocumentsTooltip();
-  updateManageMasterDataTooltip();
-  updateAccountsTooltip();
-  if(typeof updateLoadLocalTooltip==='function') updateLoadLocalTooltip();
-  if(typeof updateBackupTooltip==='function') updateBackupTooltip();
-});
-
-// Listen for cross-tab/local updates
-window.addEventListener('storage',(e)=>{
-  if(e.key && (e.key.includes('last_excel_file_') || e.key === 'project_documents_path' || e.key === 'file_manager_folder_path' || e.key === 'selectedFolderPath')){
-    updateManageMasterDataTooltip();
-    updateProjectDocumentsTooltip();
-    updateAccountsTooltip();
-  }
+  updateLoadLocalTooltip();
+  updateBackupTooltip();
+  updateDocsTooltip();
+  updateDownloadsTooltip();
 });
 
 /* ---------- Enhanced Documents ---------- */
@@ -1401,7 +1446,19 @@ updateStats();
 // Change Documents folder button and Download All button
 document.addEventListener('DOMContentLoaded', function() {
   const changeDocsFolderBtn = document.getElementById('changeDocsFolderBtn');
+  const quickChangeDocsBtn = document.getElementById('quickChangeDocsBtn');
   const downloadAllBtn = document.getElementById('downloadAllBtn');
+  
+  if(quickChangeDocsBtn) {
+    quickChangeDocsBtn.addEventListener('click', async function() {
+      const docsFolderPath = localStorage.getItem('docsFolderPath');
+      if(docsFolderPath) {
+        await showFolderChoiceDialog(docsFolderPath, 'Documents');
+      } else {
+        showToast(`<i class="fas fa-exclamation-triangle"></i> No Documents folder set. Please set up Documents folder first.`);
+      }
+    });
+  }
   
   if(changeDocsFolderBtn) {
     changeDocsFolderBtn.addEventListener('click', function() {
@@ -1606,16 +1663,16 @@ function renderDocs(){
     <td>
       <div class="doc-actions">
         <button class="doc-btn download" data-i="${i}" title="Download">
-          <span style="font-size: 16px;">⬇️</span>
+          <i class="fas fa-download icon-download"></i>
         </button>
         <button class="doc-btn move-up" data-i="${i}" title="Move Up" ${i === 0 ? 'disabled' : ''}>
-          <span style="font-size: 16px;">⬆️</span>
+          <i class="fas fa-arrow-up icon-move-up"></i>
         </button>
         <button class="doc-btn move-down" data-i="${i}" title="Move Down" ${i === docs.length - 1 ? 'disabled' : ''}>
-          <span style="font-size: 16px;">⬇️</span>
+          <i class="fas fa-arrow-down icon-move-down"></i>
         </button>
         <button class="doc-btn delete" data-i="${i}" title="Delete">
-          <span style="font-size: 16px;">🗑️</span>
+          <i class="fas fa-trash icon-delete"></i>
         </button>
       </div>
     </td>`;
