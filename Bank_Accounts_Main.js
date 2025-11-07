@@ -890,10 +890,21 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const holderPalette = holderColorPalettes[isDarkMode ? 'dark' : 'light'];
+
+    const ensurePaletteLength = (palette, count) => {
+      const result = [...palette];
+      let idx = 0;
+      while (result.length < count) {
+        result.push({...palette[idx % palette.length]});
+        idx++;
+      }
+      return result;
+    };
     
     const createHolderTable = (holder, holderNum, holderType, holderIndex = 0, showHeader = false) => {
-      const colorIndex = Math.min(holderIndex, holderPalette.length - 1);
-      const holderColor = holderPalette[colorIndex];
+      const palette = ensurePaletteLength(holderPalette, holderCount);
+      const colorIndex = Math.min(holderIndex, palette.length - 1);
+      const holderColor = palette[colorIndex];
       const headerStyle = `background: ${holderColor.tableHeaderBg}; color: ${holderColor.tableHeaderText}; border-bottom: 1px solid ${holderColor.border};`;
       
       return `
@@ -937,6 +948,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     if (isSingleHolder) {
+      const palette = ensurePaletteLength(holderPalette, holderCount);
       // Single holder - use compact table format (show header since no accordion)
       const holder = record.Bank_Holders[0];
       const holderType = 'Sole Holder';
@@ -948,12 +960,13 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
     } else {
       // Multiple holders - use accordion tabs with table format (no duplicate header)
+      const palette = ensurePaletteLength(holderPalette, holderCount);
       holdersHtml = record.Bank_Holders.map((holder, idx) => {
         const holderType = idx === 0 ? 'Sole Holder' : 'Joint Holder';
         const holderId = `holder-${index}-${idx}`;
         const isFirst = idx === 0;
-        const colorIndex = Math.min(idx, holderPalette.length - 1);
-        const holderColor = holderPalette[colorIndex];
+        const colorIndex = Math.min(idx, palette.length - 1);
+        const holderColor = palette[colorIndex];
         const normalBg = `linear-gradient(135deg, ${holderColor.gradientStart} 0%, ${holderColor.gradientEnd} 100%)`;
         const hoverBg = `linear-gradient(135deg, ${holderColor.hoverStart} 0%, ${holderColor.hoverEnd} 100%)`;
         const activeBg = `linear-gradient(135deg, ${holderColor.activeStart} 0%, ${holderColor.activeEnd} 100%)`;
@@ -1010,9 +1023,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const securityLines = securityQAData.map((qa, idx) => {
         const questionText = qa.question ? qa.question : '—';
         const answerText = qa.answer ? qa.answer : '—';
-        return `Q${idx + 1}: ${questionText}\t${answerText}`;
+        return {
+          display: `Q${idx + 1}: ${questionText}\t${answerText}`,
+          question: questionText,
+          answer: answerText
+        };
       });
-      const securityDisplayText = securityLines.join('\n');
+      const securityDisplayText = securityLines.map(line => line.display).join('\n');
 
       securityHtml = `
         <div class="security-card-minimal">
