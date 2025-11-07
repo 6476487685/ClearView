@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const autoBackupStatusText = document.getElementById('autoBackupStatusText');
   const btnManualBackup = document.getElementById('btnManualBackup');
   const toastContainer = document.getElementById('toastContainer');
+  const themeSwitchControl = document.getElementById('themeSwitch');
 
   const MAX_SECURITY_QUESTIONS = 6;
 
@@ -59,6 +60,14 @@ document.addEventListener("DOMContentLoaded", () => {
       console.info('Manual backup triggered by user.');
       createExcelBackup();
       showToast('✅ Manual backup started. Check your downloads.', 'success');
+    });
+  }
+
+  if (themeSwitchControl) {
+    themeSwitchControl.addEventListener('change', () => {
+      setTimeout(() => {
+        renderRecords();
+      }, 0);
     });
   }
 
@@ -289,7 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Trigger Excel backup if auto backups are enabled
     if (autoBackupEnabled) {
-      createExcelBackup();
+    createExcelBackup();
     } else {
       console.info('Auto backup paused — skipping Excel backup download after save.');
     }
@@ -504,10 +513,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const bankAcTagSelect = document.getElementById('Bank_Ac_Tag');
     // Remove any existing listeners
     const newSelect = bankAcTagSelect.cloneNode(true);
+    const currentValue = bankAcTagSelect.value;
     bankAcTagSelect.parentNode.replaceChild(newSelect, bankAcTagSelect);
     
     // Re-get the element after replacement
     const updatedSelect = document.getElementById('Bank_Ac_Tag');
+    if (currentValue) {
+      updatedSelect.value = currentValue;
+    }
     updatedSelect.addEventListener('change', function() {
       if (this.value) {
         const optionExists = Array.from(this.options).some(opt => opt.value === this.value && opt.value !== '');
@@ -756,24 +769,139 @@ document.addEventListener("DOMContentLoaded", () => {
     // If single holder, use Notes style; otherwise use grid cards
     let holdersHtml = '';
     // Helper function to create compact table format for holder
-    // Define soothing colors for each holder (maximum 4 holders)
-    const holderColors = [
-      { header: '#e1f5fe', headerDark: '#b3e5fc', text: '#01579b' }, // Soft sky blue for Holder 1
-      { header: '#f0f8ff', headerDark: '#e3f2fd', text: '#1976d2' }, // Soft periwinkle for Holder 2
-      { header: '#fff5ee', headerDark: '#ffe0b2', text: '#ff9800' }, // Soft peach for Holder 3
-      { header: '#f3e5f5', headerDark: '#e1bee7', text: '#9c27b0' }, // Soft lavender for Holder 4
-    ];
+    const isDarkMode = document.body.classList.contains('dark');
+    const holderColorPalettes = {
+      light: [
+        {
+          gradientStart: '#dff1fb',
+          gradientEnd: '#9bd5fb',
+          hoverStart: '#bde4ff',
+          hoverEnd: '#8cccf6',
+          activeStart: '#8cccf6',
+          activeEnd: '#5fb5eb',
+          badgeBg: '#e6f4ff',
+          badgeText: '#0b2f4a',
+          border: '#7ec7f0',
+          tableHeaderBg: '#dff1fb',
+          tableHeaderText: '#0b2f4a',
+          icon: '#0b2f4a'
+        },
+        {
+          gradientStart: '#e8f1ff',
+          gradientEnd: '#bed9ff',
+          hoverStart: '#cfe3ff',
+          hoverEnd: '#a8c8ff',
+          activeStart: '#a8c8ff',
+          activeEnd: '#7ba8f3',
+          badgeBg: '#edf3ff',
+          badgeText: '#12305b',
+          border: '#96bfff',
+          tableHeaderBg: '#e8f1ff',
+          tableHeaderText: '#12305b',
+          icon: '#12305b'
+        },
+        {
+          gradientStart: '#fff2e5',
+          gradientEnd: '#ffd4a8',
+          hoverStart: '#ffe2c7',
+          hoverEnd: '#ffc48f',
+          activeStart: '#ffc48f',
+          activeEnd: '#ffad6b',
+          badgeBg: '#fff0de',
+          badgeText: '#8a4c05',
+          border: '#ffb26d',
+          tableHeaderBg: '#fff2e5',
+          tableHeaderText: '#8a4c05',
+          icon: '#8a4c05'
+        },
+        {
+          gradientStart: '#f2e6f6',
+          gradientEnd: '#dabdf2',
+          hoverStart: '#e4cdf7',
+          hoverEnd: '#cba4ee',
+          activeStart: '#cba4ee',
+          activeEnd: '#b386e3',
+          badgeBg: '#efe0f8',
+          badgeText: '#5b1f7a',
+          border: '#c196e5',
+          tableHeaderBg: '#f2e6f6',
+          tableHeaderText: '#5b1f7a',
+          icon: '#5b1f7a'
+        }
+      ],
+      dark: [
+        {
+          gradientStart: '#1f2a3b',
+          gradientEnd: '#2c3d55',
+          hoverStart: '#2c3d55',
+          hoverEnd: '#3b5273',
+          activeStart: '#3b5273',
+          activeEnd: '#4a648c',
+          badgeBg: '#2d405b',
+          badgeText: '#eaf2ff',
+          border: '#4a6a9f',
+          tableHeaderBg: '#2a3a4f',
+          tableHeaderText: '#eaf2ff',
+          icon: '#eaf2ff'
+        },
+        {
+          gradientStart: '#272744',
+          gradientEnd: '#3a3a61',
+          hoverStart: '#3a3a61',
+          hoverEnd: '#4c4c7e',
+          activeStart: '#4c4c7e',
+          activeEnd: '#5c5c90',
+          badgeBg: '#34345f',
+          badgeText: '#f2f2ff',
+          border: '#5c5c90',
+          tableHeaderBg: '#323259',
+          tableHeaderText: '#f2f2ff',
+          icon: '#f2f2ff'
+        },
+        {
+          gradientStart: '#2b2e35',
+          gradientEnd: '#3d424b',
+          hoverStart: '#3d424b',
+          hoverEnd: '#4f5560',
+          activeStart: '#4f5560',
+          activeEnd: '#606874',
+          badgeBg: '#3b4048',
+          badgeText: '#f2f4f8',
+          border: '#6b7684',
+          tableHeaderBg: '#383d46',
+          tableHeaderText: '#f2f4f8',
+          icon: '#f2f4f8'
+        },
+        {
+          gradientStart: '#2b2738',
+          gradientEnd: '#403756',
+          hoverStart: '#403756',
+          hoverEnd: '#53496f',
+          activeStart: '#53496f',
+          activeEnd: '#665b86',
+          badgeBg: '#3a3150',
+          badgeText: '#f2ecff',
+          border: '#6f5f9a',
+          tableHeaderBg: '#372f4b',
+          tableHeaderText: '#f2ecff',
+          icon: '#f2ecff'
+        }
+      ]
+    };
+
+    const holderPalette = holderColorPalettes[isDarkMode ? 'dark' : 'light'];
     
     const createHolderTable = (holder, holderNum, holderType, holderIndex = 0, showHeader = false) => {
-      const colorIndex = Math.min(holderIndex, holderColors.length - 1);
-      const holderColor = holderColors[colorIndex];
+      const colorIndex = Math.min(holderIndex, holderPalette.length - 1);
+      const holderColor = holderPalette[colorIndex];
+      const headerStyle = `background: ${holderColor.tableHeaderBg}; color: ${holderColor.tableHeaderText}; border-bottom: 1px solid ${holderColor.border};`;
       
       return `
         <div class="holder-table-container">
           ${showHeader ? `
-          <div class="holder-table-header" style="background: ${holderColor.header};">
-            <strong>Holder ${holderNum}: ${holder.name || ''}</strong> 
-            <span style="color: ${holderColor.text}; font-size: 12px;">${holderType}</span>
+          <div class="holder-table-header" style="${headerStyle}">
+            <strong style="color:${holderColor.tableHeaderText};">Holder ${holderNum}: ${holder.name || ''}</strong> 
+            <span style="background:${holderColor.badgeBg}; color: ${holderColor.badgeText}; border:1px solid ${holderColor.border}; border-radius:12px; padding:2px 8px; font-size: 12px;">${holderType}</span>
           </div>
           ` : ''}
           <table class="holder-info-table">
@@ -824,26 +952,30 @@ document.addEventListener("DOMContentLoaded", () => {
         const holderType = idx === 0 ? 'Sole Holder' : 'Joint Holder';
         const holderId = `holder-${index}-${idx}`;
         const isFirst = idx === 0;
-        const colorIndex = Math.min(idx, holderColors.length - 1);
-        const holderColor = holderColors[colorIndex];
-        // Use darker gradient for active (expanded) state
-        const initialBg = isFirst 
-          ? `linear-gradient(135deg, ${holderColor.headerDark} 0%, ${holderColor.header} 100%)`
-          : `linear-gradient(135deg, ${holderColor.header} 0%, ${holderColor.headerDark} 100%)`;
+        const colorIndex = Math.min(idx, holderPalette.length - 1);
+        const holderColor = holderPalette[colorIndex];
+        const normalBg = `linear-gradient(135deg, ${holderColor.gradientStart} 0%, ${holderColor.gradientEnd} 100%)`;
+        const hoverBg = `linear-gradient(135deg, ${holderColor.hoverStart} 0%, ${holderColor.hoverEnd} 100%)`;
+        const activeBg = `linear-gradient(135deg, ${holderColor.activeStart} 0%, ${holderColor.activeEnd} 100%)`;
         
         return `
           <div class="holder-accordion-item">
             <div class="holder-accordion-header ${isFirst ? 'active' : ''}" 
                  data-holder-id="${holderId}" 
-                 data-header-color="${holderColor.header}" 
-                 data-header-dark="${holderColor.headerDark}"
-                 data-text-color="${holderColor.text}"
-                 style="background: ${initialBg}; border-bottom-color: ${holderColor.text};">
-              <div class="holder-accordion-title">
-              <strong>Holder ${idx + 1}: ${holder.name || ''}</strong>
-                <span class="holder-type-badge" style="background: ${holderColor.header}; color: ${holderColor.text};">${holderType}</span>
+                 data-bg-normal="${normalBg}" 
+                 data-bg-hover="${hoverBg}"
+                 data-bg-active="${activeBg}"
+                 data-text-color="${holderColor.badgeText}"
+                 data-icon-color="${holderColor.icon}"
+                 data-badge-text="${holderColor.badgeText}"
+                 data-badge-bg="${holderColor.badgeBg}"
+                 data-badge-border="${holderColor.border}"
+                 style="background: ${isFirst ? activeBg : normalBg}; border-bottom-color: ${holderColor.border}; color: ${holderColor.badgeText};">
+              <div class="holder-accordion-title" style="color:${holderColor.badgeText};">
+              <strong style="color:${holderColor.badgeText};">Holder ${idx + 1}: ${holder.name || ''}</strong>
+                <span class="holder-type-badge" style="background: ${holderColor.badgeBg}; color: ${holderColor.badgeText}; border:1px solid ${holderColor.border};">${holderType}</span>
             </div>
-              <span class="holder-accordion-icon" style="color: ${holderColor.text};">${isFirst ? '▼' : '▶'}</span>
+              <span class="holder-accordion-icon" style="color: ${holderColor.icon};">${isFirst ? '▼' : '▶'}</span>
               </div>
             <div class="holder-accordion-content" id="${holderId}" style="display: ${isFirst ? 'block' : 'none'};">
               ${createHolderTable(holder, idx + 1, holderType, idx, false)}
@@ -1107,7 +1239,7 @@ document.addEventListener("DOMContentLoaded", () => {
           data.splice(index, 1);
           saveData(data);
           if (autoBackupEnabled) {
-            createExcelBackup();
+          createExcelBackup();
           } else {
             console.info('Auto backup paused — skipping Excel backup download after delete.');
           }
@@ -1166,24 +1298,51 @@ document.addEventListener("DOMContentLoaded", () => {
       setTimeout(() => {
         const accordionHeaders = card.querySelectorAll('.holder-accordion-header');
         accordionHeaders.forEach((header, idx) => {
-          // Get colors from data attributes
-          const headerColor = header.getAttribute('data-header-color') || '#e1f5fe';
-          const headerDark = header.getAttribute('data-header-dark') || '#b3e5fc';
-          const textColor = header.getAttribute('data-text-color') || '#01579b';
-          const normalBg = `linear-gradient(135deg, ${headerColor} 0%, ${headerDark} 100%)`;
-          const hoverBg = `linear-gradient(135deg, ${headerDark} 0%, ${headerColor} 100%)`;
-          
-          // Add hover effect
+          const normalBg = header.getAttribute('data-bg-normal');
+          const hoverBg = header.getAttribute('data-bg-hover') || normalBg;
+          const activeBg = header.getAttribute('data-bg-active') || normalBg;
+          const textColor = header.getAttribute('data-text-color') || '#ffffff';
+          const iconColor = header.getAttribute('data-icon-color') || textColor;
+          const badgeBg = header.getAttribute('data-badge-bg') || '#2d405b';
+          const badgeText = header.getAttribute('data-badge-text') || textColor;
+          const badgeBorder = header.getAttribute('data-badge-border') || badgeBg;
+
+          const applyHeaderStyle = (headerEl, background) => {
+            headerEl.style.background = background;
+            headerEl.style.color = textColor;
+
+            const titleEl = headerEl.querySelector('.holder-accordion-title');
+            const strongEl = titleEl ? titleEl.querySelector('strong') : null;
+            if (titleEl) {
+              titleEl.style.color = textColor;
+            }
+            if (strongEl) {
+              strongEl.style.color = textColor;
+            }
+
+            const badgeEl = headerEl.querySelector('.holder-type-badge');
+            if (badgeEl) {
+              badgeEl.style.background = badgeBg;
+              badgeEl.style.color = badgeText;
+              badgeEl.style.borderColor = badgeBorder;
+            }
+
+            const iconEl = headerEl.querySelector('.holder-accordion-icon');
+            if (iconEl) {
+              iconEl.style.color = iconColor;
+            }
+          };
+
+          applyHeaderStyle(header, header.classList.contains('active') ? activeBg : normalBg);
+
           header.addEventListener('mouseenter', function() {
             if (!this.classList.contains('active')) {
-              this.style.background = hoverBg;
+              applyHeaderStyle(this, hoverBg);
             }
           });
           
           header.addEventListener('mouseleave', function() {
-            if (!this.classList.contains('active')) {
-              this.style.background = normalBg;
-            }
+            applyHeaderStyle(this, this.classList.contains('active') ? activeBg : normalBg);
           });
           
           header.addEventListener('click', function(e) {
@@ -1211,13 +1370,13 @@ document.addEventListener("DOMContentLoaded", () => {
               content.style.display = 'none';
               this.classList.remove('active');
               icon.textContent = '▶';
-              this.style.background = normalBg;
+              applyHeaderStyle(this, normalBg);
             } else {
               // Expand
               content.style.display = 'block';
               this.classList.add('active');
               icon.textContent = '▼';
-              this.style.background = hoverBg;
+              applyHeaderStyle(this, activeBg);
             }
           });
         });

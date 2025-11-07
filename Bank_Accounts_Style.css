@@ -484,6 +484,20 @@ body.dark{
   color:#1976d2;
 }
 
+.account-tag-content-minimal span{
+  color:#0b2f4a;
+}
+
+body.dark .account-tag-bar-minimal{
+  background:#1f2d3d;
+  border:1px solid #2f4259;
+}
+
+body.dark .account-tag-content-minimal,
+body.dark .account-tag-content-minimal span{
+  color:#f1f6ff;
+}
+
 .bank-record-header-minimal{
   display:flex;
   justify-content:flex-end;
@@ -871,12 +885,12 @@ body.dark .holder-accordion-header.active{
 
 body.dark .holder-accordion-title,
 body.dark .holder-accordion-title strong{
-  color:#ffffff !important;
+  color:#ffffff;
   text-shadow:0 1px 2px rgba(0,0,0,0.35);
 }
 
 body.dark .holder-accordion-header strong{
-  color:#f5faff !important;
+  color:#f5faff;
   text-shadow:0 1px 2px rgba(0,0,0,0.35);
 }
 
