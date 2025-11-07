@@ -2184,45 +2184,45 @@ document.addEventListener("DOMContentLoaded", () => {
               .two-column-layout {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 12px;
-                margin-bottom: 14px;
+                gap: 11px;
+                margin-bottom: 13px;
               }
               .fields-card {
                 border: 1px solid #d3d3d3;
                 border-radius: 4px;
                 background: #ffffff;
-                padding: 12px;
+                padding: 11px;
               }
               .section-heading {
                 font-weight: 700;
                 color: #000000;
-                font-size: 12px;
-                margin-bottom: 10px;
-                padding-bottom: 5px;
+                font-size: 11.5px;
+                margin-bottom: 8px;
+                padding-bottom: 4px;
                 border-bottom: 1px solid #e0e0e0;
               }
               .field-row {
                 display: flex;
-                margin-bottom: 6px;
+                margin-bottom: 5px;
               }
               .field-label {
                 font-weight: 600;
                 color: #666;
-                font-size: 10px;
-                min-width: 120px;
+                font-size: 9.5px;
+                min-width: 110px;
               }
               .field-value {
                 color: #000000;
-                font-size: 11px;
+                font-size: 10.5px;
                 flex: 1;
               }
               .holder-table-container {
-                margin-bottom: 12px;
+                margin-bottom: 10px;
               }
               .holder-table-header {
                 background: #e3f2fd;
                 padding: 6px 10px;
-                font-size: 11px;
+                font-size: 10.5px;
                 font-weight: 600;
                 color: #000000;
                 border: 1px solid #d3d3d3;
@@ -2236,27 +2236,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 width: 100%;
                 border-collapse: collapse;
                 border: 1px solid #d3d3d3;
-                font-size: 10px;
+                font-size: 9.5px;
                 background: #ffffff;
               }
               .holder-info-table thead {
                 background: #000000;
               }
               .holder-info-table th {
-                padding: 6px 10px;
+                padding: 6px 9px;
                 text-align: left;
                 font-weight: 700;
                 color: #ffffff;
                 border: 1px solid #d3d3d3;
-                font-size: 10px;
+                font-size: 9.5px;
               }
               .holder-info-table td {
-                padding: 6px 10px;
+                padding: 6px 9px;
                 border: 1px solid #d3d3d3;
                 color: #000000;
                 word-wrap: break-word;
                 vertical-align: top;
-                font-size: 10px;
+                font-size: 9.5px;
               }
               .holder-additional-info {
                 padding: 6px 10px;
@@ -2273,30 +2273,32 @@ document.addEventListener("DOMContentLoaded", () => {
               .nomination-card {
                 border: 1px solid #d3d3d3;
                 border-radius: 4px;
-                padding: 12px;
+                padding: 11px;
                 background: #ffffff;
-                margin-bottom: 12px;
+                margin-bottom: 11px;
               }
               .security-card {
                 border: 1px solid #d3d3d3;
                 border-radius: 4px;
-                padding: 12px;
+                padding: 11px;
                 background: #ffffff;
-                margin-bottom: 12px;
+                margin-bottom: 11px;
               }
               .security-qa-block {
                 width: 100%;
                 border: 1px solid #d3d3d3;
                 border-radius: 4px;
                 background: #f7f9fc;
-                padding: 10px;
+                padding: 9px 10px;
                 font-family: "Courier New", monospace;
-                font-size: 10px;
+                font-size: 9.5px;
                 line-height: 1.4;
                 white-space: pre-wrap;
                 display: flex;
                 flex-direction: column;
-                gap: 6px;
+                gap: 5px;
+                height: 108px;
+                max-height: 108px;
               }
               .security-qa-line {
                 display: flex;
