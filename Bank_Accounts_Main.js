@@ -61,6 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
       createExcelBackup();
       showToast('✅ Manual backup started. Check your downloads.', 'success');
     });
+    btnManualBackup.title = 'Download consolidated master data and all transactional records';
   }
 
   if (themeSwitchControl) {
