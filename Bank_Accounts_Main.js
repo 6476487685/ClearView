@@ -2148,7 +2148,7 @@ document.addEventListener("DOMContentLoaded", () => {
         securityHtml = `
           <div class="security-card">
             <div class="section-heading">Security Questions</div>
-            <div class="security-qa-block">${securityLinesPrint}</div>
+            <div class="security-qa-block" style="height: 140px; max-height: 140px;">${securityLinesPrint}</div>
           </div>
         `;
       }
