@@ -571,14 +571,14 @@ body.dark .security-card-minimal{
 .section-heading-minimal{
   font-size:13px;
   font-weight:700;
-  color:#000000;
+  color:#c62828;
   margin-bottom:10px;
   text-align:left;
 }
 
 body.dark .section-heading-minimal,
 body.dark .section-heading-minimal strong{
-  color:#f6f9ff;
+  color:#ff8a80;
   text-shadow:0 1px 2px rgba(0,0,0,0.45);
 }
 

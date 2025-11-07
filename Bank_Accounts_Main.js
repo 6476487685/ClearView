@@ -2195,7 +2195,7 @@ document.addEventListener("DOMContentLoaded", () => {
               }
               .section-heading {
                 font-weight: 700;
-                color: #000000;
+                color: #c62828;
                 font-size: 11.5px;
                 margin-bottom: 8px;
                 padding-bottom: 4px;
