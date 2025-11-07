@@ -1596,7 +1596,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Set margins: 1 inch = 25.4mm (left, right, top), smaller bottom for more content space
     const marginLeft = 25.4;
     const marginRight = 25.4;
-    const marginTop = 25.4;
+    const marginTop = 12.7;
     const marginBottom = 12; // Smaller bottom margin to expand content area by ~2 inches
     const contentWidth = pageWidth - marginLeft - marginRight;
     const contentHeight = pageHeight - marginTop - marginBottom;
@@ -2316,7 +2316,7 @@ document.addEventListener("DOMContentLoaded", () => {
               @media print { 
                 @page { 
                   size: landscape;
-                  margin-top: 2.54cm;
+                  margin-top: 1.27cm;
                   margin-left: 2.54cm;
                   margin-right: 2.54cm;
                   margin-bottom: 0.5cm;
