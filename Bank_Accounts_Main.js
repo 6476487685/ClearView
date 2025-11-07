@@ -871,8 +871,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const answerText = qa.answer ? qa.answer : '—';
         return `
           <div class="security-qa-item">
-            <div class="security-question"><strong>Q${questionNumber}.</strong> ${questionText}</div>
-            <div class="security-answer"><span>Answer:</span> ${answerText}</div>
+            <span class="security-question">Q${questionNumber}: ${questionText}</span>
+            <span class="security-separator">&nbsp;•&nbsp;</span>
+            <span class="security-answer">${answerText}</span>
           </div>
         `;
       }).join('');
@@ -1798,20 +1799,24 @@ document.addEventListener("DOMContentLoaded", () => {
             const questionLabel = `Q${offset + idx + 1}: ${qa.question || '—'}`;
             const questionLines = doc.splitTextToSize(questionLabel, columnWidth - 6);
             doc.setFont(undefined, 'bold');
+            doc.setTextColor(198, 40, 40);
             questionLines.forEach(line => {
               doc.text(line, x, columnStartY + height + 4.5);
               height += 4.5;
             });
 
-            const answerLabel = `Answer: ${qa.answer || '—'}`;
-            const answerLines = doc.splitTextToSize(answerLabel, columnWidth - 10);
-            doc.setFont(undefined, 'normal');
+            const answerLabel = qa.answer ? qa.answer : '—';
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(27, 94, 32);
+            const answerLines = doc.splitTextToSize(answerLabel, columnWidth - 6);
             answerLines.forEach(line => {
-              doc.text(line, x + 2, columnStartY + height + 4.5);
+              doc.text(line, x + 4, columnStartY + height + 4.5);
               height += 4.5;
             });
 
             height += 4;
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined, 'normal');
           });
           return height;
         };
@@ -1923,8 +1928,8 @@ document.addEventListener("DOMContentLoaded", () => {
           const questionNumber = offset + idx + 1;
           return `
             <div class="security-qa">
-              <div class="security-question"><strong>Q${questionNumber}.</strong> ${qa.question || '—'}</div>
-              <div class="security-answer"><span>Answer:</span> ${qa.answer || '—'}</div>
+              <span class="security-question">Q${questionNumber}: ${qa.question || '—'}</span>
+              <span class="security-answer">${qa.answer || '—'}</span>
             </div>
           `;
         }).join('');
