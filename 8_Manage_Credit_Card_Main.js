@@ -1631,9 +1631,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const right = rows[i + 1] || { label: '', value: '' };
       pairs.push({ left, right });
     }
-
+ 
     return `
       <table class="holder-info-table holder-info-table-modern credit-info-table resizable-table">
+        <colgroup>
+          <col data-col-index="0" style="width: 22%;">
+          <col data-col-index="1" style="width: 28%;">
+          <col data-col-index="2" style="width: 22%;">
+          <col data-col-index="3" style="width: 28%;">
+        </colgroup>
         <tbody>
           ${pairs.map(pair => `
             <tr>
@@ -1646,7 +1652,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </tbody>
       </table>
     `;
-  };
+  }
 
   /* -------------------- Initialization -------------------- */
   populateInstitutionSelect();
@@ -1661,51 +1667,59 @@ document.addEventListener('DOMContentLoaded', () => {
   function initializeResizableTables(scope) {
     const target = scope instanceof Element ? scope : document;
     const tables = target.querySelectorAll('.resizable-table');
-
+ 
     tables.forEach(table => {
       if (table.dataset.resizableApplied === 'true') return;
       table.dataset.resizableApplied = 'true';
-
+ 
       const firstRow = table.querySelector('tr');
-      if (!firstRow) return;
-
+      const cols = Array.from(table.querySelectorAll('colgroup col'));
+      if (!firstRow || cols.length === 0) return;
+ 
       const cells = Array.from(firstRow.children);
       cells.forEach((cell, index) => {
         if (index === cells.length - 1) return;
-
+ 
+        const existingHandle = cell.querySelector('.column-resizer');
+        if (existingHandle) return;
+ 
         const handle = document.createElement('div');
         handle.className = 'column-resizer';
         handle.dataset.resizerIndex = index;
-
+ 
         const columnCells = Array.from(table.querySelectorAll(`tr > *:nth-child(${index + 1})`));
-
+        const colElement = cols[index];
+ 
         let startX = 0;
-        let startWidth = columnCells[0] ? columnCells[0].offsetWidth : 0;
-
+        let startWidth = columnCells[0] ? columnCells[0].getBoundingClientRect().width : 0;
+ 
         const onMouseMove = (event) => {
           const delta = event.pageX - startX;
           const newWidth = Math.max(80, startWidth + delta);
+          if (colElement) {
+            colElement.style.width = `${newWidth}px`;
+          }
           columnCells.forEach(colCell => {
             colCell.style.width = `${newWidth}px`;
             colCell.style.minWidth = `${newWidth}px`;
           });
         };
-
+ 
         const onMouseUp = () => {
           document.removeEventListener('mousemove', onMouseMove);
           document.removeEventListener('mouseup', onMouseUp);
           document.body.classList.remove('table-resizing');
         };
-
+ 
         handle.addEventListener('mousedown', (event) => {
           event.preventDefault();
           startX = event.pageX;
-          startWidth = columnCells[0] ? columnCells[0].offsetWidth : 0;
+          startWidth = columnCells[0] ? columnCells[0].getBoundingClientRect().width : 0;
           document.body.classList.add('table-resizing');
           document.addEventListener('mousemove', onMouseMove);
-          document.addEventListener('mouseup', onMouseUp, { once: true });
+          document.addEventListener('mouseup', onMouseUp);
         });
-
+ 
         cell.style.position = 'relative';
         cell.appendChild(handle);
       });
