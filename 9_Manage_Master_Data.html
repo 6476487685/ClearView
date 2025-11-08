@@ -271,18 +271,8 @@
       overflow: hidden;
       text-overflow: ellipsis;
       color: #b91c1c;
-      padding-right: 12px;
-      position: relative;
-    }
-    .value-text.sqa-question::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      right: 0;
-      transform: translateY(-50%);
-      width: 2px;
-      height: 60%;
-      background: rgba(0,0,0,0.08);
+      padding-right: 14px;
+      border-right: 2px solid rgba(0,0,0,0.12);
     }
     .value-text.sqa-answer {
       flex: 0 0 15%;
@@ -292,6 +282,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      padding-left: 12px;
     }
     .value-actions {
       display: flex;
@@ -332,6 +323,7 @@
     .add-form.sqa-add {
       align-items: center;
       gap: 12px;
+      justify-content: space-between;
     }
     .add-input {
       flex: 1;
@@ -363,6 +355,9 @@
       border-color: var(--accent-blue, #3b82f6);
     }
     .btn-add {
+      flex: 1;
+      display: inline-flex;
+      justify-content: center;
       padding: 10px 20px;
       background: #10b981;
       color: white;
@@ -372,7 +367,6 @@
       font-weight: 600;
       font-size: 0.95rem;
       transition: all 0.2s;
-      flex: 0 0 20%;
     }
     .btn-add:hover {
       background: #059669;
