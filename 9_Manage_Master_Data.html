@@ -1891,6 +1891,31 @@
       }
       return '';
     }
+    function normalizeSqaValues(data){
+      if (!data || !data.common) return;
+      let entries = data.common.SQA;
+      if (!entries) return;
+      if (Array.isArray(entries)) {
+        // use as-is
+      } else if (typeof entries === 'object') {
+        entries = Object.values(entries);
+      } else {
+        entries = [entries];
+      }
+      const normalized = [];
+      entries.forEach(item => {
+        const parsed = parseSqaValue(item);
+        let question = (parsed.question || '').trim();
+        let answer = (parsed.answer || '').trim();
+        if (!question && answer) {
+          question = answer;
+          answer = '';
+        }
+        const formatted = formatSqaValue(question, answer);
+        if (formatted) normalized.push(formatted);
+      });
+      data.common.SQA = Array.from(new Set(normalized));
+    }
     const SQA_SEPARATOR = ' — ';
     function parseSqaValue(rawValue) {
       const text = String(rawValue || '').trim();
