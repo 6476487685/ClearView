@@ -1544,6 +1544,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const buildInfoTable = (rows) => `
+    <table class="holder-info-table holder-info-table-modern credit-info-table">
+      <tbody>
+        ${rows.map(row => {
+          const value = row.html ? row.value : escapeHtml(row.value || '—');
+          return `<tr><td>${escapeHtml(row.label)}</td><td>${value || '—'}</td></tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  `;
+
+  const buildInfoCard = (title, rows) => `
+    <div class="fields-card-minimal">
+      <div class="section-heading-minimal"><strong>${title}</strong></div>
+      ${buildInfoTable(rows)}
+    </div>
+  `;
+
+  const buildHolderTable = (title, row) => {
+    return `
+      <div class="holder-table-container">
+        <table class="holder-info-table holder-info-table-modern">
+          <thead>
+            <tr>
+              <th colspan="8">${escapeHtml(title)}</th>
+            </tr>
+            <tr>
+              <th>Holder</th>
+              <th>Card Number</th>
+              <th>Valid From</th>
+              <th>Valid To</th>
+              <th>CVV</th>
+              <th>Extra Codes</th>
+              <th>Txn_PIN</th>
+              <th>Tele_PIN</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="holder-secondary-row">
+              ${row.map(value => `<td>${escapeHtml(value || '—')}</td>`).join('')}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  };
+
   /* -------------------- Initialization -------------------- */
   populateInstitutionSelect();
   populateAccountTagSelect();
