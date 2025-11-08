@@ -1014,8 +1014,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const palette = ensurePaletteLength(holderPalette, holderCount);
       const colorIndex = Math.min(holderIndex, palette.length - 1);
       const holderColor = palette[colorIndex];
-      const headerGradient = `linear-gradient(135deg, ${holderColor.gradientStart} 0%, ${holderColor.gradientEnd} 100%)`;
-      const headerStyle = `background: ${headerGradient}; color: ${holderColor.tableHeaderText}; border-bottom: 1px solid ${holderColor.border};`;
 
       const { pin, tpin, mpin } = extractPinValues(holder);
       let email = holder.email || '';
@@ -1030,10 +1028,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       return `
         <div class="holder-table-container">
-          <div class="holder-table-header" style="${headerStyle}">
-            <div class="holder-table-title">Holder ${holderNum}: ${escapeHtml(holder.name || '')}</div>
-            <span class="holder-type-badge-inline">${escapeHtml(holderType)}</span>
-          </div>
           <table class="holder-info-table holder-info-table-modern">
             <thead>
               <tr>
