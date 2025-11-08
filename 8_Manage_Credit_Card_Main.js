@@ -462,6 +462,28 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const populateHolderSelect = (selectElement, selectedValue = '') => {
+  const populateCardStatusSelect = () => {
+    try {
+      const statusSelect = document.getElementById('Credit_Account_Status');
+      if (!statusSelect) return;
+
+      const unifiedDataStr = localStorage.getItem('unified_master_data');
+      let statuses = [];
+      if (unifiedDataStr) {
+        const unifiedData = JSON.parse(unifiedDataStr);
+        statuses = unifiedData.common?.Ac_Status || [];
+      }
+
+      statusSelect.innerHTML = '<option value="">Select account status</option>';
+      statuses.forEach(status => {
+        if (status && status !== '') {
+          statusSelect.innerHTML += `<option value="${escapeHtml(status)}">${escapeHtml(status)}</option>`;
+        }
+      });
+    } catch (e) {
+      console.error('Error populating card status:', e);
+    }
+  };
     try {
       const unifiedDataStr = localStorage.getItem('unified_master_data');
       let commonData = {};
@@ -663,9 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
         originalFormData = JSON.stringify(record);
 
         creditForm.reset();
-        populateInstitutionSelect();
-        populateAccountTagSelect();
-        populatePrimaryHolderDropdown();
+        populateModalDropdowns();
         populateEmailSelect(document.getElementById('Credit_Helpline_Email1'), record.Credit_Helpline_Email1 || '');
         populateEmailSelect(document.getElementById('Credit_Helpline_Email2'), record.Credit_Helpline_Email2 || '');
         populateEmailSelect(document.getElementById('Credit_Helpline_Email3'), record.Credit_Helpline_Email3 || '');
@@ -727,6 +747,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('Credit_Institution').value = record.Credit_Institution || '';
     document.getElementById('Credit_Ac_Tag').value = record.Credit_Ac_Tag || '';
     document.getElementById('Credit_Primary_Holder').value = record.Credit_Primary_Holder || '';
+    document.getElementById('Credit_Account_Status').value = record.Credit_Account_Status || '';
     document.getElementById('Credit_Card_Number').value = record.Credit_Card_Number || '';
     document.getElementById('Credit_Valid_From').value = record.Credit_Valid_From || '';
     document.getElementById('Credit_Valid_To').value = record.Credit_Valid_To || '';
@@ -776,6 +797,7 @@ document.addEventListener('DOMContentLoaded', () => {
       Credit_Login_Password: getValueSafe('Credit_Login_Password'),
       Credit_Account_Number: getValueSafe('Credit_Account_Number'),
       Credit_URL: getValueSafe('Credit_URL'),
+      Credit_Account_Status: getValueSafe('Credit_Account_Status'),
       Credit_Helpline_Phone1: cleanPhone(getValueSafe('Credit_Helpline_Phone1')),
       Credit_Helpline_Phone2: cleanPhone(getValueSafe('Credit_Helpline_Phone2')),
       Credit_Helpline_Phone3: cleanPhone(getValueSafe('Credit_Helpline_Phone3')),
@@ -826,9 +848,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnAddRecord.addEventListener('click', () => {
     editIndex = null;
     resetForm();
-    populateInstitutionSelect();
-    populateAccountTagSelect();
-    populatePrimaryHolderDropdown();
+    populateModalDropdowns();
     populateEmailSelect(document.getElementById('Credit_Helpline_Email1'));
     populateEmailSelect(document.getElementById('Credit_Helpline_Email2'));
     populateEmailSelect(document.getElementById('Credit_Helpline_Email3'));
@@ -1067,6 +1087,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ccData.push(['Helpline Email 1', record.Credit_Helpline_Email1 || '']);
           ccData.push(['Helpline Email 2', record.Credit_Helpline_Email2 || '']);
           ccData.push(['Helpline Email 3', record.Credit_Helpline_Email3 || '']);
+          ccData.push(['Card Status', record.Credit_Account_Status || '']);
 
           (record.AddOnCards || []).forEach((card, addIdx) => {
             ccData.push([`Add-On Card #${addIdx + 1} Holder`, card.holder || '']);
@@ -1312,9 +1333,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const leftEntries = [
         { label: 'Institution', value: record.Credit_Institution || '—' },
-        { label: 'Helpline Phone', value: helplinePhones || '—' },
-        { label: 'Helpline Email', value: helplineEmails || '—' },
-        { label: 'Portal', value: record.Credit_URL || '—' }
+        { label: 'Helpline phone', value: helplinePhones || '—' },
+        { label: 'Helpline email', value: helplineEmails || '—' },
+        { label: 'Portal', value: record.Credit_URL || '—' },
+        { label: 'Card status', value: record.Credit_Account_Status || '—' }
       ];
 
       renderInfoColumns(leftEntries, [
@@ -1350,9 +1372,10 @@ document.addEventListener('DOMContentLoaded', () => {
         yPos += 5;
         const addOnRow = [
           card.holder || '—',
-          card.cardNumber || '—',
+          formatCardNumber(card.cardNumber || '') || '—',
           card.validFrom || '—',
           card.validTo || '—',
+          card.cvv || '—',
           [card.amexCode, card.extraDigits].filter(Boolean).join(' | ') || '—',
           card.txnPin || '—',
           card.telePin || '—'
@@ -1429,18 +1452,61 @@ document.addEventListener('DOMContentLoaded', () => {
       const primaryTable = buildHolderTable('Primary Card Details', primaryRow, 'print-primary-card');
 
       const addOnTables = (record.AddOnCards || []).map((card, idx) => {
-        const row = [{
-          holder: card.holder || '—',
-          cardNumber: formatCardNumber(card.cardNumber || '') || '—',
-          validFrom: card.validFrom || '—',
-          validTo: card.validTo || '—',
-          cvv: card.cvv || '—',
-          extraCodes: [card.amexCode, card.extraDigits].filter(Boolean).join(' | ') || '—',
-          txnPin: card.txnPin || '—',
-          telePin: card.telePin || '—'
-        }];
-        return buildHolderTable(`Add-On Card #${idx + 1}`, row, `print-addon-card-${idx + 1}`);
-      }).join('');
+        const row = [
+          card.holder || '—',
+          formatCardNumber(card.cardNumber || '') || '—',
+          card.validFrom || '—',
+          card.validTo || '—',
+          card.cvv || '—',
+          [card.amexCode, card.extraDigits].filter(Boolean).join(' | ') || '—',
+          card.txnPin || '—',
+          card.telePin || '—'
+        ];
+        return `
+          <h3 class="section-heading">Add-On Card #${idx + 1}</h3>
+          <div class="holder-table-container">
+            <div class="holder-table-header">
+              <h3 class="section-heading">Add-On Card #${idx + 1}</h3>
+            </div>
+            <table class="holder-info-table holder-info-table-modern resizable-table" data-resize-key="add-on-card-${idx + 1}">
+              <colgroup>
+                <col data-col-index="0" style="width: 16%;">
+                <col data-col-index="1" style="width: 18%;">
+                <col data-col-index="2" style="width: 12%;">
+                <col data-col-index="3" style="width: 12%;">
+                <col data-col-index="4" style="width: 10%;">
+                <col data-col-index="5" style="width: 12%;">
+                <col data-col-index="6" style="width: 10%;">
+                <col data-col-index="7" style="width: 10%;">
+              </colgroup>
+            <thead>
+              <tr>
+                <th>Holder</th>
+                <th>Card Number</th>
+                <th>Valid From</th>
+                <th>Valid To</th>
+                <th>CVV</th>
+                <th>Extra Codes</th>
+                  <th>Txn_PIN</th>
+                  <th>Tele_PIN</th>
+              </tr>
+            </thead>
+            <tbody>
+                <tr class="holder-secondary-row">
+                  <td>${row[0]}</td>
+                  <td>${row[1]}</td>
+                  <td>${row[2]}</td>
+                  <td>${row[3]}</td>
+                  <td>${row[4]}</td>
+                  <td>${row[5]}</td>
+                  <td>${row[6]}</td>
+                  <td>${row[7]}</td>
+                </tr>
+            </tbody>
+          </table>
+          </div>
+        `;
+      });
 
       const securityHtml = renderSecuritySummary(record.Credit_Security_QA || []);
 
@@ -1602,7 +1668,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </tr>
           <tr>
             <td class="contact-label-cell">Card status</td>
-            <td class="contact-value-cell">${displayValue(record.Credit_Card_Status || record.Credit_Status)}</td>
+            <td class="contact-value-cell">${displayValue(record.Credit_Account_Status || record.Credit_Card_Status || record.Credit_Status)}</td>
           </tr>
         </tbody>
       </table>
@@ -1768,9 +1834,13 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   /* -------------------- Initialization -------------------- */
+  function populateModalDropdowns() {
   populateInstitutionSelect();
   populateAccountTagSelect();
   populatePrimaryHolderDropdown();
+    populateCardStatusSelect();
+  }
+
   populateFilterOptions();
   populateSecurityDropdowns();
   renderRecords();
