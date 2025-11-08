@@ -132,6 +132,11 @@ body.table-resizing {
   color: #0b1a33;
 }
 
+.general-info-table .contact-label-cell,
+.general-info-table .contact-value-cell {
+  text-align: left !important;
+}
+
 .card-details-table .snapshot-header td {
   background: #000000;
   color: #ffffff;
