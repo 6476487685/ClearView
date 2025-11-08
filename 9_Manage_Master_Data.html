@@ -282,7 +282,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-left: 12px;
+      padding-left: 2px;
     }
     .value-actions {
       display: flex;
@@ -335,17 +335,21 @@
       color: var(--text-primary, #1e293b);
     }
     .sqa-input-question {
-      flex: 0 0 50%;
+      width: 7cm;
+      max-width: 7cm;
       font-size: 0.9rem;
       color: #b91c1c;
+      margin-right: 0.2cm;
     }
     .sqa-input-question::placeholder {
       color: #dc2626;
     }
     .sqa-input-answer {
-      flex: 0 0 18%;
+      width: 4cm;
+      max-width: 4cm;
       font-size: 0.85rem;
       color: #15803d;
+      margin-right: 0.2cm;
     }
     .sqa-input-answer::placeholder {
       color: #16a34a;
@@ -355,7 +359,7 @@
       border-color: var(--accent-blue, #3b82f6);
     }
     .btn-add {
-      flex: 0 0 20%;
+      flex: 1;
       display: inline-flex;
       justify-content: center;
       padding: 10px 20px;
