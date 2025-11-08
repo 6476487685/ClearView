@@ -1509,13 +1509,21 @@ document.addEventListener('DOMContentLoaded', () => {
             .info-card h3{margin:0 0 8px 0;font-size:13px;color:#c62828;text-transform:uppercase;letter-spacing:0.5px;}
             .holder-info-table{width:100%;border-collapse:collapse;table-layout:fixed;border-radius:10px;overflow:hidden;border:1px solid #1a4fb0;box-shadow:0 2px 6px rgba(26,79,176,0.18);}
             .holder-info-table thead th{background:#0d47a1;color:#fff;font-weight:700;padding:7px 10px;text-align:center;font-size:11.5px;border-right:1px solid rgba(255,255,255,0.25);}
+            .holder-info-table thead th:nth-child(1){width:22%;}
+            .holder-info-table thead th:nth-child(2){width:14%;}
+            .holder-info-table thead th:nth-child(3){width:18%;}
+            .holder-info-table thead th:nth-child(4){width:18%;}
+            .holder-info-table thead th:nth-child(5){width:8%;}
+            .holder-info-table thead th:nth-child(6){width:12%;}
+            .holder-info-table thead th:nth-child(7){width:8%;}
+            .holder-info-table thead th:nth-child(8){width:8%;}
             .holder-info-table thead th:last-child{border-right:none;}
-            .holder-info-table tbody td{padding:7px 10px;font-size:11.5px;border:1px solid rgba(13,71,161,0.2);text-align:center;}
+            .holder-info-table tbody td{padding:7px 10px;font-size:11.5px;border:1px solid rgba(13,71,161,0.2);text-align:center;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
             .holder-info-table tbody tr:last-child td:first-child{border-bottom-left-radius:10px;}
             .holder-info-table tbody tr:last-child td:last-child{border-bottom-right-radius:10px;}
             .credit-info-table tbody td:first-child{font-weight:700;color:#1a237e;white-space:nowrap;}
-            .credit-info-table tbody td:nth-child(2){text-align:left;}
-            .credit-info-table tbody td:nth-child(4){text-align:left;}
+            .credit-info-table tbody td:nth-child(2),
+            .credit-info-table tbody td:nth-child(4){text-align:left;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}
             .section-heading{margin:14px 0 6px 0;font-size:12.5px;font-weight:700;color:#c62828;text-transform:uppercase;letter-spacing:0.5px;}
             .security-card-minimal{margin-top:12px;padding:12px;border:1px solid #e0e0e0;border-radius:8px;background:#fdfdfd;}
             .security-qa-block{font-size:11px;line-height:1.25;}
