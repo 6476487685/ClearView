@@ -245,16 +245,14 @@
       border-color: var(--accent-blue, #3b82f6);
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+    .value-row.sqa-row {
+      gap: 10px;
+    }
     .value-text {
       flex: 1;
       color: var(--text-primary, #1e293b);
       font-size: 0.95rem;
       padding-right: 10px;
-    }
-    .value-row.sqa-row {
-      justify-content: flex-start;
-      gap: 8px;
-      align-items: center;
     }
     .value-row.sqa-row .value-actions {
       margin-left: auto;
@@ -273,6 +271,15 @@
       overflow: hidden;
       text-overflow: ellipsis;
       color: #b91c1c;
+    }
+    .value-text.sqa-question::after {
+      content: '';
+      display: inline-block;
+      width: 1px;
+      height: 18px;
+      background: var(--border-color, #e2e8f0);
+      margin-left: 10px;
+      vertical-align: middle;
     }
     .value-text.sqa-answer {
       flex: 0 0 15%;
@@ -320,6 +327,7 @@
     }
     .add-form.sqa-add {
       align-items: center;
+      gap: 12px;
     }
     .add-input {
       flex: 1;
@@ -333,10 +341,18 @@
     .sqa-input-question {
       flex: 0 0 50%;
       font-size: 0.9rem;
+      color: #b91c1c;
+    }
+    .sqa-input-question::placeholder {
+      color: #dc2626;
     }
     .sqa-input-answer {
       flex: 0 0 15%;
       font-size: 0.85rem;
+      color: #15803d;
+    }
+    .sqa-input-answer::placeholder {
+      color: #16a34a;
     }
     .add-input:focus {
       outline: none;
