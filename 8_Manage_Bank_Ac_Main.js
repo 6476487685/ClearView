@@ -1059,16 +1059,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${display(holder.interaccEmailOrUPIID)}</td>
               </tr>
               <tr class="holder-subhead">
+                <td colspan="8">Debit Card Information</td>
+              </tr>
+              <tr class="holder-subtext">
+                <td colspan="8">Format: Card Number | Expiry: MM/YY | CVV | Card Type | Extra Digits</td>
+              </tr>
+              <tr>
+                <td colspan="8">${display(holder.debitCard)}</td>
+              </tr>
+              <tr class="holder-subhead">
                 <td colspan="2">User ID</td>
-                <td colspan="2">Login Password</td>
-                <td colspan="2">Transaction Password</td>
-                <td colspan="2">Security Email / UPI</td>
+                <td colspan="3">Login Password</td>
+                <td colspan="3">Transaction Password</td>
               </tr>
               <tr>
                 <td colspan="2">${display(holder.userID)}</td>
-                <td colspan="2">${display(holder.loginPassword)}</td>
-                <td colspan="2">${display(holder.txnPassword)}</td>
-                <td colspan="2">${display(holder.interaccEmailOrUPIID)}</td>
+                <td colspan="3">${display(holder.loginPassword)}</td>
+                <td colspan="3">${display(holder.txnPassword)}</td>
               </tr>
             </tbody>
           </table>
@@ -2031,8 +2038,8 @@ document.addEventListener("DOMContentLoaded", () => {
           doc.setFillColor(0, 0, 0);
           doc.setTextColor(255, 202, 40);
           doc.setFont(undefined, 'bold');
-          const credentialHeaders = ['User ID', 'Login Password', 'Transaction Password', 'Security Email / UPI'];
-          const credentialWidths = [58, 60, 70, contentWidth - 188];
+          const credentialHeaders = ['User ID', 'Login Password', 'Transaction Password'];
+          const credentialWidths = [70, 90, contentWidth - 160];
           currentX = marginLeft;
           credentialHeaders.forEach((header, idx) => {
             const width = credentialWidths[idx];
@@ -2045,8 +2052,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const credentialValues = [
             holder.userID || '—',
             holder.loginPassword || '—',
-            holder.txnPassword || '—',
-            holder.interaccEmailOrUPIID || '—'
+            holder.txnPassword || '—'
           ];
           const credentialLines = credentialValues.map((value, idx) => doc.splitTextToSize(value, credentialWidths[idx] - 4));
           const credentialRowHeight = Math.max(8, Math.max(...credentialLines.map(lines => lines.length)) * 4.6);
