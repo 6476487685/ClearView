@@ -1633,7 +1633,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     return `
-      <table class="holder-info-table holder-info-table-modern credit-info-table">
+      <table class="holder-info-table holder-info-table-modern credit-info-table resizable-table">
         <tbody>
           ${pairs.map(pair => `
             <tr>
@@ -1657,4 +1657,62 @@ document.addEventListener('DOMContentLoaded', () => {
   renderRecords();
   updateAutoBackupStatusText();
   attachPasswordToggle();
+
+  function initializeResizableTables(scope) {
+    const target = scope instanceof Element ? scope : document;
+    const tables = target.querySelectorAll('.resizable-table');
+
+    tables.forEach(table => {
+      if (table.dataset.resizableApplied === 'true') return;
+      table.dataset.resizableApplied = 'true';
+
+      const firstRow = table.querySelector('tr');
+      if (!firstRow) return;
+
+      const cells = Array.from(firstRow.children);
+      cells.forEach((cell, index) => {
+        if (index === cells.length - 1) return;
+
+        const handle = document.createElement('div');
+        handle.className = 'column-resizer';
+        handle.dataset.resizerIndex = index;
+
+        const columnCells = Array.from(table.querySelectorAll(`tr > *:nth-child(${index + 1})`));
+
+        let startX = 0;
+        let startWidth = columnCells[0] ? columnCells[0].offsetWidth : 0;
+
+        const onMouseMove = (event) => {
+          const delta = event.pageX - startX;
+          const newWidth = Math.max(80, startWidth + delta);
+          columnCells.forEach(colCell => {
+            colCell.style.width = `${newWidth}px`;
+            colCell.style.minWidth = `${newWidth}px`;
+          });
+        };
+
+        const onMouseUp = () => {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          document.body.classList.remove('table-resizing');
+        };
+
+        handle.addEventListener('mousedown', (event) => {
+          event.preventDefault();
+          startX = event.pageX;
+          startWidth = columnCells[0] ? columnCells[0].offsetWidth : 0;
+          document.body.classList.add('table-resizing');
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp, { once: true });
+        });
+
+        cell.style.position = 'relative';
+        cell.appendChild(handle);
+      });
+    });
+  }
+
+  populateModalDropdowns();
+  renderRecords();
+  initializeResizableTables(document);
 });

@@ -26,3 +26,41 @@ body.dark .credit-info-table tbody td:first-child{
 .info-card-grid .info-value {
   color: var(--text-primary);
 }
+
+.resizable-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.resizable-table td,
+.resizable-table th {
+  position: relative;
+  padding: 12px 16px;
+}
+
+.column-resizer {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  cursor: col-resize;
+  user-select: none;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.column-resizer::after {
+  content: '';
+  width: 2px;
+  height: 60%;
+  background: var(--border-light);
+  border-radius: 1px;
+}
+
+body.table-resizing {
+  cursor: col-resize !important;
+  user-select: none;
+}
