@@ -1589,11 +1589,11 @@ document.addEventListener('DOMContentLoaded', () => {
       <table class="${tableClasses.join(' ')}">
         <tbody>
           <tr>
-            <td class="contact-label-cell">Helpline Email</td>
+            <td class="contact-label-cell">Helpline email</td>
             <td class="contact-value-cell">${emailText}</td>
           </tr>
           <tr>
-            <td class="contact-label-cell">Helpline Phone</td>
+            <td class="contact-label-cell">Helpline phone</td>
             <td class="contact-value-cell">${phoneText}</td>
           </tr>
           <tr>
@@ -1601,7 +1601,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="contact-value-cell">${record.Credit_URL ? `<a href="${escapeHtml(record.Credit_URL)}" target="_blank" class="info-link">${escapeHtml(record.Credit_URL)}</a>` : '—'}</td>
           </tr>
           <tr>
-            <td class="contact-label-cell">Card Status</td>
+            <td class="contact-label-cell">Card status</td>
             <td class="contact-value-cell">${displayValue(record.Credit_Card_Status || record.Credit_Status)}</td>
           </tr>
         </tbody>
@@ -1644,8 +1644,8 @@ document.addEventListener('DOMContentLoaded', () => {
           </tr>
           <tr class="snapshot-header">
             <td>Extra codes</td>
-            <td>Txn PIN</td>
-            <td>Tele PIN</td>
+            <td>Txn pin</td>
+            <td>Tele pin</td>
             <td>Card limit</td>
             <td>Billing cycle</td>
             <td>Statement date</td>
