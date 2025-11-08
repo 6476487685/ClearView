@@ -2387,7 +2387,7 @@ document.addEventListener("DOMContentLoaded", () => {
               }
               .holder-info-table thead th {
                 padding: 7px 9px;
-                text-align: left;
+                text-align: center;
                 font-weight: 700;
                 color: #ffca28;
                 border: 1px solid rgba(255,255,255,0.12);
@@ -2406,6 +2406,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 border: 1px solid rgba(13,71,161,0.2);
                 color: #0b1a33;
                 font-size: 9.5px;
+                text-align: center;
               }
               .holder-info-table .holder-subhead td {
                 background: #000000;
