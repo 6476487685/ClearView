@@ -2728,24 +2728,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const updateSqaAnswerDropdown = (index, questionValue, presetAnswer = '') => {
-    const answerSelect = document.getElementById(`Bank_Security_A${index}`);
-    if (!answerSelect) return;
+  const updateSqaAnswerInput = (index, questionValue, presetAnswer = '') => {
+    const answerInput = document.getElementById(`Bank_Security_A${index}`);
+    if (!answerInput) return;
     const answerFromMaster = masterSqaMap.get(questionValue) || '';
     const finalAnswer = answerFromMaster || presetAnswer;
-    const newAnswerSelect = answerSelect.cloneNode(false);
-    newAnswerSelect.id = answerSelect.id;
-    newAnswerSelect.className = answerSelect.className;
-    newAnswerSelect.innerHTML = '<option value="">Select Answer</option>';
-    if (answerFromMaster) {
-      newAnswerSelect.innerHTML += `<option value="${escapeHtml(answerFromMaster)}">${escapeHtml(answerFromMaster)}</option>`;
-    }
-    if (finalAnswer && finalAnswer !== answerFromMaster) {
-      newAnswerSelect.innerHTML += `<option value="${escapeHtml(finalAnswer)}">${escapeHtml(finalAnswer)}</option>`;
-    }
-    newAnswerSelect.value = finalAnswer || '';
-    newAnswerSelect.disabled = !questionValue;
-    answerSelect.parentNode.replaceChild(newAnswerSelect, answerSelect);
+    answerInput.value = finalAnswer || '';
+    answerInput.readOnly = true;
   };
 
   const setupSqaDropdown = (index, selectedQuestion = '', selectedAnswer = '') => {
@@ -2765,10 +2754,10 @@ document.addEventListener("DOMContentLoaded", () => {
     newQuestionSelect.value = currentQuestion || '';
     questionSelect.parentNode.replaceChild(newQuestionSelect, questionSelect);
 
-    updateSqaAnswerDropdown(index, currentQuestion, selectedAnswer);
+    updateSqaAnswerInput(index, currentQuestion, selectedAnswer);
 
     newQuestionSelect.addEventListener('change', (event) => {
-      updateSqaAnswerDropdown(index, event.target.value);
+      updateSqaAnswerInput(index, event.target.value);
     });
   };
 

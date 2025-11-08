@@ -1220,6 +1220,12 @@ body.dark .security-answer{
   font-size:13px;
 }
 
+.security-item input.sqa-answer{
+  background:var(--bg);
+  color:var(--text-secondary);
+  cursor:not-allowed;
+}
+
 body.dark .security-item{
   background:#2d2d2d;
   border-color:#404040;
