@@ -554,17 +554,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
 
-    const contactRows = [
+    const contactCells = [
       { label: 'Institution', value: record.Credit_Institution || '—' },
-      { label: 'Helpline Phone', value: helplinePhones || '—' },
-      { label: 'Helpline Email', value: helplineEmails || '—' },
       {
         label: 'Portal',
         value: record.Credit_URL
           ? `<a href="${escapeHtml(record.Credit_URL)}" target="_blank" class="info-link">${escapeHtml(record.Credit_URL)}</a>`
           : '—',
         html: true
-      }
+      },
+      { label: 'Helpline Phone', value: helplinePhones || '—' },
+      { label: 'Helpline Email', value: helplineEmails || '—' }
     ];
 
     const accountRows = [
@@ -615,7 +615,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="two-column-layout">
         <div class="column-left">
-          ${buildInfoCard('Contact & Institution', contactRows)}
+          <div class="fields-card-minimal info-card">
+            <div class="section-heading-minimal info-card-header"><strong>Contact & Institution</strong></div>
+            ${buildContactGrid(contactCells)}
+          </div>
         </div>
         <div class="column-right">
           <div class="fields-card-minimal">
@@ -1643,6 +1646,17 @@ document.addEventListener('DOMContentLoaded', () => {
       </table>
     `;
   };
+
+  const buildContactGrid = (cells = []) => `
+    <div class="fields-content-minimal info-card-body info-card-body-grid">
+      ${cells.map(cell => `
+        <div class="info-grid-cell">
+          <span class="info-grid-label">${escapeHtml(cell.label)}:</span>
+          <span class="info-grid-value">${cell.html ? cell.value : escapeHtml(cell.value)}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
 
   /* -------------------- Initialization -------------------- */
   populateInstitutionSelect();
