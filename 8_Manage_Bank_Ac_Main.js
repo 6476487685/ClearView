@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const toastContainer = document.getElementById('toastContainer');
   const themeSwitchControl = document.getElementById('themeSwitch');
   let masterEmails = [];
-  let masterPhones = [];
+  let masterPhoneOptions = [];
 
   const MAX_SECURITY_QUESTIONS = 6;
 
@@ -226,7 +226,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const holderCount = parseInt(holderCountSelect.value);
     for (let i = 1; i <= holderCount; i++) {
       const email = document.getElementById(`Bank_Holder_${i}_Email`).value || '';
-      const phone = document.getElementById(`Bank_Holder_${i}_Phone`).value || '';
+      const phoneRaw = document.getElementById(`Bank_Holder_${i}_Phone`).value || '';
+      const phone = cleanPhone(phoneRaw);
       const emailPhone = email && phone ? `${email} | ${phone}` : email || phone || '';
       
       holders.push({
@@ -276,11 +277,11 @@ document.addEventListener("DOMContentLoaded", () => {
       Bank_Nominee_Name: document.getElementById('Bank_Nominee_Name').value || '',
       Bank_Nominee_Name_Text: document.getElementById('Bank_Nominee_Name_Text').value || '',
       Bank_Nominee_Email: document.getElementById('Bank_Nominee_Email').value || '',
-      Bank_Nominee_Phone: document.getElementById('Bank_Nominee_Phone').value || '',
-      Bank_Helpline_Phone1: document.getElementById('Bank_Helpline_Phone1').value || '',
-      Bank_Helpline_Phone2: document.getElementById('Bank_Helpline_Phone2').value || '',
-      Bank_Helpline_Phone3: document.getElementById('Bank_Helpline_Phone3').value || '',
-      Bank_Helpline_Phone4: document.getElementById('Bank_Helpline_Phone4').value || '',
+      Bank_Nominee_Phone: cleanPhone(document.getElementById('Bank_Nominee_Phone').value || ''),
+      Bank_Helpline_Phone1: cleanPhone(document.getElementById('Bank_Helpline_Phone1').value || ''),
+      Bank_Helpline_Phone2: cleanPhone(document.getElementById('Bank_Helpline_Phone2').value || ''),
+      Bank_Helpline_Phone3: cleanPhone(document.getElementById('Bank_Helpline_Phone3').value || ''),
+      Bank_Helpline_Phone4: cleanPhone(document.getElementById('Bank_Helpline_Phone4').value || ''),
       Bank_Helpline_Email1: document.getElementById('Bank_Helpline_Email1').value || '',
       Bank_Helpline_Email2: document.getElementById('Bank_Helpline_Email2').value || '',
       Bank_Helpline_Email3: document.getElementById('Bank_Helpline_Email3').value || '',
@@ -1091,7 +1092,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${record.Bank_Nominee_Email || record.Bank_Nominee_Phone ? `
             <div class="info-row">
               <span class="info-label">Email | Phone:</span>
-              <span class="info-value">${[record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ') || ''}</span>
+              <span class="info-value">${[record.Bank_Nominee_Email, cleanPhone(record.Bank_Nominee_Phone)].filter(v => v).join(' | ') || ''}</span>
             </div>
           ` : ''}
         </div>
@@ -1208,7 +1209,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="notes-card-minimal">
           <div class="section-heading-minimal"><strong>Nomination</strong></div>
           <div class="notes-content-minimal">
-            <div><strong>Name:</strong> ${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''} | <strong>Email:</strong> ${record.Bank_Nominee_Email || ''} | <strong>Phone:</strong> ${record.Bank_Nominee_Phone || ''}</div>
+            <div><strong>Name:</strong> ${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''} | <strong>Email:</strong> ${record.Bank_Nominee_Email || ''} | <strong>Phone:</strong> ${cleanPhone(record.Bank_Nominee_Phone) || ''}</div>
           </div>
         </div>
       </div>
@@ -1863,7 +1864,7 @@ document.addEventListener("DOMContentLoaded", () => {
           doc.setTextColor(0, 0, 0);
           const clientIDText = doc.splitTextToSize(holder.clientID || '', col1Width - 4);
           const debitCardText = doc.splitTextToSize(holder.debitCard || '', col2Width - 4);
-          const emailPhoneText = doc.splitTextToSize(holder.emailPhone || '', col3Width - 4);
+          const emailPhoneText = doc.splitTextToSize(formatEmailPhone(holder), col3Width - 4);
           const interaccText = doc.splitTextToSize(holder.interaccEmailOrUPIID || '', col4Width - 4);
           const maxRows = Math.max(clientIDText.length, debitCardText.length, emailPhoneText.length, interaccText.length, 1);
           const rowHeight = 5.5;
@@ -2454,7 +2455,7 @@ document.addEventListener("DOMContentLoaded", () => {
               ${record.Bank_Nominee_Email || record.Bank_Nominee_Phone ? `
               <div class="field-row">
                 <span class="field-label">Email | Phone:</span>
-                <span class="field-value">${[record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ') || ''}</span>
+                <span class="field-value">${[record.Bank_Nominee_Email, cleanPhone(record.Bank_Nominee_Phone)].filter(v => v).join(' | ') || ''}</span>
               </div>
               ` : ''}
             </div>
@@ -2485,7 +2486,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function loadContactOptions(forceRefresh = false) {
-    if (!forceRefresh && masterEmails.length && masterPhones.length) return;
+    if (!forceRefresh && masterEmails.length && masterPhoneOptions.length) return;
     try {
       const unifiedDataStr = localStorage.getItem('unified_master_data');
       let commonData = {};
@@ -2494,7 +2495,17 @@ document.addEventListener("DOMContentLoaded", () => {
         commonData = unifiedData.common || {};
       }
       masterEmails = Array.from(new Set((commonData.Email || []).filter(email => email && email.trim() !== '')));
-      masterPhones = Array.from(new Set((commonData.Phone || []).filter(phone => phone && phone.trim() !== '')));
+      const phoneSet = new Map();
+      (commonData.Phone || []).forEach(entry => {
+        const label = (entry || '').trim();
+        if (!label) return;
+        const value = cleanPhone(label);
+        if (!value) return;
+        if (!phoneSet.has(value)) {
+          phoneSet.set(value, label);
+        }
+      });
+      masterPhoneOptions = Array.from(phoneSet.entries()).map(([value, label]) => ({ value, label }));
     } catch (e) {
       console.error('Error loading shared email/phone options:', e);
     }
@@ -2515,13 +2526,38 @@ document.addEventListener("DOMContentLoaded", () => {
   function populatePhoneSelect(select, selectedValue = '') {
     if (!select) return;
     loadContactOptions();
-    const options = new Set(masterPhones.map(phone => phone.trim()).filter(Boolean));
-    if (selectedValue) options.add(selectedValue);
+    const cleanSelected = cleanPhone(selectedValue);
     select.innerHTML = '<option value="">Select Phone</option>';
-    Array.from(options).sort().forEach(phone => {
-      select.innerHTML += `<option value="${escapeHtml(phone)}">${escapeHtml(phone)}</option>`;
+    masterPhoneOptions.forEach(opt => {
+      const isSelected = cleanSelected && opt.value === cleanSelected;
+      select.innerHTML += `<option value="${escapeHtml(opt.value)}"${isSelected ? ' selected' : ''}>${escapeHtml(opt.label)}</option>`;
     });
-    select.value = selectedValue || '';
+    if (cleanSelected && !masterPhoneOptions.some(opt => opt.value === cleanSelected)) {
+      select.innerHTML += `<option value="${escapeHtml(cleanSelected)}" selected>${escapeHtml(cleanSelected)}</option>`;
+    }
+    select.value = cleanSelected || '';
   }
+
+  const cleanPhone = (value) => {
+    if (!value) return '';
+    const str = String(value).trim();
+    if (!str) return '';
+    const parts = str.split(':');
+    return parts[parts.length - 1].trim();
+  };
+
+  const formatEmailPhone = (holder) => {
+    if (!holder) return '';
+    const email = holder.email || '';
+    const phone = cleanPhone(holder.phone || '');
+    if (email || phone) return [email, phone].filter(Boolean).join(' | ');
+    if (holder.emailPhone) {
+      const parts = holder.emailPhone.split(' | ');
+      const legacyEmail = parts[0] || '';
+      const legacyPhone = cleanPhone(parts.length > 1 ? parts[1] : '');
+      return [legacyEmail, legacyPhone].filter(Boolean).join(' | ');
+    }
+    return '';
+  };
 });
 
