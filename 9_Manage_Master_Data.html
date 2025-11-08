@@ -969,8 +969,8 @@
                   if (sheet) {
                     const rows = XLSX.utils.sheet_to_json(sheet);
                     const items = rows.map(row => {
-                      const question = String(row['Security Question'] ?? row['Question'] ?? '').trim();
-                      const answer = String(row['Security Answer'] ?? row['Answer'] ?? '').trim();
+                      const question = extractSqaQuestion(row);
+                      const answer = extractSqaAnswer(row);
                       if (!question && !answer) return null;
                       return answer ? `${question} — ${answer}` : question;
                     }).filter(Boolean);
@@ -1044,6 +1044,7 @@
                 unified[mod][key] = Array.from(new Set([...(unified[mod][key]||[]), ...values])).sort();
                 console.log(`[Early] Loaded ${values.length} into ${mod}.${key}`);
               });
+              normalizeSqaValues(unified);
               localStorage.setItem('unified_master_data', JSON.stringify(unified));
               localStorage.setItem('last_excel_file_loaded', f.name);
               localStorage.setItem('last_excel_file_source', 'D:');
@@ -1151,6 +1152,7 @@
           if (!data[m]) data[m] = {};
           Object.keys(FB_STRUCTURE[m] || {}).forEach(k => { if (!Array.isArray(data[m][k])) data[m][k] = []; });
         });
+        normalizeSqaValues(data);
         window.masterData = data;
       };
       window.saveMasterData = function(){
@@ -1170,24 +1172,46 @@
           valuesContainer.innerHTML = '<div class="empty-field">No entries yet</div>';
         } else {
           values.forEach((v, idx) => {
+            const isSqa = fieldKey === 'SQA';
             const row = document.createElement('div');
-            row.className = 'value-row';
-            row.innerHTML = `
-              <span class=\"value-text\">${v}</span>
-              <div class=\"value-actions\">
-                <button class=\"btn-icon btn-edit\" onclick=\"(window.editValue||window.__fb_editValue)('${module}','${fieldKey}',${idx})\">Edit</button>
-                <button class=\"btn-icon btn-delete\" onclick=\"(window.deleteValue||window.__fb_deleteValue)('${module}','${fieldKey}',${idx})\">Delete</button>
-              </div>`;
+            row.className = isSqa ? 'value-row sqa-row' : 'value-row';
+            if (isSqa) {
+              const parsed = (window.parseSqaValue||defaultParseSqaValue)(v);
+              const q = escapeHtml(parsed.question||'');
+              const a = escapeHtml(parsed.answer||'');
+              row.innerHTML = `
+                <span class="value-text sqa-question" title="${q}">${q || '—'}</span>
+                <span class="value-text sqa-answer" title="${a}">${a || '—'}</span>
+                <div class="value-actions">
+                  <button class="btn-icon btn-edit" onclick="(window.editValue||window.__fb_editValue)('${module}','${fieldKey}',${idx})">Edit</button>
+                  <button class="btn-icon btn-delete" onclick="(window.deleteValue||window.__fb_deleteValue)('${module}','${fieldKey}',${idx})">Delete</button>
+                </div>`;
+            } else {
+              row.innerHTML = `
+                <span class="value-text">${escapeHtml(v)}</span>
+                <div class="value-actions">
+                  <button class="btn-icon btn-edit" onclick="(window.editValue||window.__fb_editValue)('${module}','${fieldKey}',${idx})">Edit</button>
+                  <button class="btn-icon btn-delete" onclick="(window.deleteValue||window.__fb_deleteValue)('${module}','${fieldKey}',${idx})">Delete</button>
+                </div>`;
+            }
             valuesContainer.appendChild(row);
           });
         }
         card.appendChild(valuesContainer);
         // Add form
         const addForm = document.createElement('div');
-        addForm.className = 'add-form';
-        addForm.innerHTML = `
-          <input type=\"text\" class=\"add-input\" id=\"add_${module}_${fieldKey}\" placeholder=\"Add new ${label.toLowerCase()}\" onkeypress=\"if(event.key==='Enter')(window.addValue||window.__fb_addValue)('${module}','${fieldKey}')\">
-          <button class=\"btn-add\" onclick=\"(window.addValue||window.__fb_addValue)('${module}','${fieldKey}')\">Add</button>`;
+        if (fieldKey === 'SQA') {
+          addForm.className = 'add-form sqa-add';
+          addForm.innerHTML = `
+            <input type="text" class="add-input sqa-input-question" id="add_${module}_${fieldKey}_question" placeholder="Security question" onkeypress="if(event.key==='Enter')(window.addValue||window.__fb_addValue)('${module}','${fieldKey}')">
+            <input type="text" class="add-input sqa-input-answer" id="add_${module}_${fieldKey}_answer" placeholder="Answer (optional)" onkeypress="if(event.key==='Enter')(window.addValue||window.__fb_addValue)('${module}','${fieldKey}')">
+            <button class="btn-add" onclick="(window.addValue||window.__fb_addValue)('${module}','${fieldKey}')">Add</button>`;
+        } else {
+          addForm.className = 'add-form';
+          addForm.innerHTML = `
+            <input type="text" class="add-input" id="add_${module}_${fieldKey}" placeholder="Add new ${label.toLowerCase()}" onkeypress="if(event.key==='Enter')(window.addValue||window.__fb_addValue)('${module}','${fieldKey}')">
+            <button class="btn-add" onclick="(window.addValue||window.__fb_addValue)('${module}','${fieldKey}')">Add</button>`;
+        }
         card.appendChild(addForm);
         return card;
       }
@@ -1196,8 +1220,20 @@
         window.__fb_editValue = function(module, fieldKey, index){
           const arr = ((window.masterData||{})[module]||{})[fieldKey]||[];
           const curr = arr[index] || '';
-          const nv = prompt('Edit value', curr);
-          if (nv===null) return; const val = String(nv).trim(); if (!val) return;
+          let val = '';
+          if (fieldKey === 'SQA') {
+            const parsed = (window.parseSqaValue||defaultParseSqaValue)(curr);
+            const question = prompt('Edit security question', parsed.question||'');
+            if (question === null) return;
+            const trimmedQuestion = String(question).trim();
+            if (!trimmedQuestion) { alert('Question cannot be empty'); return; }
+            const answer = prompt('Edit answer (optional)', parsed.answer||'');
+            if (answer === null) return;
+            val = formatSqaValue(trimmedQuestion, String(answer).trim());
+          } else {
+            const nv = prompt('Edit value', curr);
+            if (nv===null) return; val = String(nv).trim(); if (!val) return;
+          }
           if (arr.includes(val) && arr[index] !== val) { alert('This value already exists'); return; }
           arr[index] = val; arr.sort();
           if (!window.masterData[module]) window.masterData[module] = {};
@@ -1219,8 +1255,18 @@
       }
       if (typeof window.addValue !== 'function') {
         window.__fb_addValue = function(module, fieldKey){
-          const input = document.getElementById(`add_${module}_${fieldKey}`);
-          if (!input) return; const v = String(input.value||'').trim(); if (!v) { alert('Please enter a value'); return; }
+          let v = '';
+          if (fieldKey === 'SQA') {
+            const qInput = document.getElementById(`add_${module}_${fieldKey}_question`);
+            const aInput = document.getElementById(`add_${module}_${fieldKey}_answer`);
+            const question = qInput ? qInput.value.trim() : '';
+            const answer = aInput ? aInput.value.trim() : '';
+            if (!question) { alert('Please enter a security question'); return; }
+            v = formatSqaValue(question, answer);
+          } else {
+            const input = document.getElementById(`add_${module}_${fieldKey}`);
+            if (!input) return; v = String(input.value||'').trim(); if (!v) { alert('Please enter a value'); return; }
+          }
           if (!window.masterData[module]) window.masterData[module] = {};
           if (!Array.isArray(window.masterData[module][fieldKey])) window.masterData[module][fieldKey] = [];
           if (window.masterData[module][fieldKey].includes(v)) { alert('This value already exists'); return; }
@@ -1228,7 +1274,15 @@
           window.masterData[module][fieldKey].sort();
           saveMasterData();
           window.renderTab((document.querySelector('.tab.active')||{getAttribute:()=>module}).getAttribute('data-tab')||module);
-          input.value='';
+          if (fieldKey === 'SQA') {
+            const qInput = document.getElementById(`add_${module}_${fieldKey}_question`);
+            const aInput = document.getElementById(`add_${module}_${fieldKey}_answer`);
+            if (qInput) qInput.value='';
+            if (aInput) aInput.value='';
+          } else {
+            const input = document.getElementById(`add_${module}_${fieldKey}`);
+            if (input) input.value='';
+          }
         };
       }
       window.renderTab = function(module){
@@ -1301,7 +1355,7 @@
       // If we already have data, render immediately
       try{
         const data = JSON.parse(localStorage.getItem('unified_master_data')||'null');
-        if (data){ window.masterData = data; initializeMasterData(); saveMasterData(); }
+        if (data){ window.masterData = data; normalizeSqaValues(window.masterData); initializeMasterData(); saveMasterData(); }
       }catch(_){ }
       // Render all tabs once then default to task
       ['task','expense','income','investment','common','credit-cards','bank-accounts','trading-accounts','properties','tenants'].forEach(m => window.renderTab(m));
@@ -1811,6 +1865,32 @@
     }
 
     // Add value
+    function extractSqaQuestion(row){
+      const keys = ['Security Question','Security Questions','Security Question(s)','Question','Questions','Security_Q'];
+      return extractColumnValue(row, keys, true);
+    }
+    function extractSqaAnswer(row){
+      const keys = ['Security Answer','Security Answers','Security Answer(s)','Answer','Answers','Security_A'];
+      return extractColumnValue(row, keys, false);
+    }
+    function extractColumnValue(row, keyCandidates, fallbackToFirst){
+      if (!row) return '';
+      const lowerMap = {};
+      Object.keys(row).forEach(k=>{
+        lowerMap[k.toLowerCase().trim()] = row[k];
+      });
+      for (const candidate of keyCandidates){
+        const val = lowerMap[candidate.toLowerCase().trim()];
+        if (val !== undefined && val !== null && String(val).trim() !== '') {
+          return String(val).trim();
+        }
+      }
+      if (fallbackToFirst) {
+        const firstNonEmpty = Object.values(row).find(v=>String(v||'').trim()!== '');
+        return firstNonEmpty ? String(firstNonEmpty).trim() : '';
+      }
+      return '';
+    }
     const SQA_SEPARATOR = ' — ';
     function parseSqaValue(rawValue) {
       const text = String(rawValue || '').trim();
@@ -1823,6 +1903,10 @@
       const answer = text.slice(separatorIndex + 1).replace(/^[\\s—-]+/, '').trim();
       return { question, answer };
     }
+    function defaultParseSqaValue(rawValue){
+      return parseSqaValue(rawValue);
+    }
+
     function formatSqaValue(question, answer) {
       const q = String(question || '').trim();
       const a = String(answer || '').trim();
@@ -2064,8 +2148,8 @@
               const jsonData = XLSX.utils.sheet_to_json(sheet);
               if (jsonData.length) {
                 const entries = jsonData.map(row => {
-                  const question = String(row['Security Question'] ?? row['Question'] ?? '').trim();
-                  const answer = String(row['Security Answer'] ?? row['Answer'] ?? '').trim();
+                  const question = extractSqaQuestion(row);
+                  const answer = extractSqaAnswer(row);
                   if (!question && !answer) return null;
                   return answer ? `${question} — ${answer}` : question;
                 }).filter(Boolean);
@@ -2399,7 +2483,8 @@
             }
           });
 
-          saveMasterData();
+          normalizeSqaValues(masterData);
+          localStorage.setItem('unified_master_data', JSON.stringify(masterData));
           
           // Save the Excel file name for tooltip
           localStorage.setItem('last_excel_file_loaded', file.name);
