@@ -516,7 +516,9 @@ document.addEventListener('DOMContentLoaded', () => {
   /* -------------------- Rendering -------------------- */
   const renderRecords = () => {
     const data = getData();
-    const selectedTag = filterSelect ? filterSelect.value : '';
+    const currentFilter = filterSelect ? filterSelect.value : '';
+    populateFilterOptions();
+    const selectedTag = filterSelect ? filterSelect.value || currentFilter : '';
     let filteredData = data;
     if (selectedTag) {
       filteredData = data.filter(record => record.Credit_Ac_Tag === selectedTag);
