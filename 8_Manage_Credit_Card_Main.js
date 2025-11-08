@@ -1411,22 +1411,31 @@ document.addEventListener('DOMContentLoaded', () => {
       const helplineEmailList = [record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3]
         .filter(value => value && value.trim() !== '');
       const formatListForPrint = (list) => list.length
-        ? list.map(item => `<div>${escapeHtml(item)}</div>`).join('')
+        ? list.map(item => escapeHtml(item)).join('<br>')
         : '—';
-      const helplinePhoneHtml = formatListForPrint(helplinePhoneList);
-      const helplineEmailHtml = formatListForPrint(helplineEmailList);
       const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
 
-      const contactTable = `
-        <table class="info-table">
-          <tbody>
-            <tr><td>Institution</td><td>${escapeHtml(record.Credit_Institution || '—')}</td></tr>
-            <tr><td>Helpline Phone</td><td>${helplinePhoneHtml}</td></tr>
-            <tr><td>Helpline Email</td><td>${helplineEmailHtml}</td></tr>
-            <tr><td>Portal</td><td>${record.Credit_URL ? `<a href="${escapeHtml(record.Credit_URL)}" target="_blank">${escapeHtml(record.Credit_URL)}</a>` : '—'}</td></tr>
-          </tbody>
-        </table>
-      `;
+      const contactCells = [
+        { label: 'Institution', value: record.Credit_Institution || '—' },
+        {
+          label: 'Portal',
+          value: record.Credit_URL
+            ? `<a href="${escapeHtml(record.Credit_URL)}" target="_blank" class="info-link">${escapeHtml(record.Credit_URL)}</a>`
+            : '—',
+          html: true
+        },
+        {
+          label: 'Helpline Phone',
+          value: formatListForPrint(helplinePhoneList),
+          html: helplinePhoneList.length > 0
+        },
+        {
+          label: 'Helpline Email',
+          value: formatListForPrint(helplineEmailList),
+          html: helplineEmailList.length > 0
+        }
+      ];
+      const contactGridHtml = buildAccountDetailsGrid(contactCells, 'print-contact-details');
 
       const accountRows = [
         { label: 'Account #', value: record.Credit_Account_Number || '—' },
@@ -1436,84 +1445,33 @@ document.addEventListener('DOMContentLoaded', () => {
         { label: 'Login', value: record.Credit_Login_ID || '—' },
         { label: 'Password', value: record.Credit_Login_Password ? '••••••••' : '—' }
       ];
+      const accountGridHtml = buildAccountDetailsGrid(accountRows, 'print-account-details');
 
-      const accountGridHtml = `
-        <table class="holder-info-table holder-info-table-modern credit-info-table">
-          <tbody>
-            ${[0, 2, 4].map(i => `
-              <tr>
-                <td>${escapeHtml(accountRows[i].label)}</td>
-                <td>${escapeHtml(accountRows[i].value)}</td>
-                <td>${escapeHtml(accountRows[i + 1].label)}</td>
-                <td>${escapeHtml(accountRows[i + 1].value)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
+      const primaryRow = [{
+        holder: record.Credit_Primary_Holder || '—',
+        cardNumber: record.Credit_Card_Number || '—',
+        validFrom: record.Credit_Valid_From || '—',
+        validTo: record.Credit_Valid_To || '—',
+        cvv: record.Credit_CVV || '—',
+        extraCodes: extraCodes || '—',
+        txnPin: record.Credit_Transaction_Pin || '—',
+        telePin: record.Credit_Tele_Pin || '—'
+      }];
 
-      const primaryRow = [
-        record.Credit_Primary_Holder || '—',
-        record.Credit_Card_Number || '—',
-        record.Credit_Valid_From || '—',
-        record.Credit_Valid_To || '—',
-        record.Credit_CVV || '—',
-        extraCodes || '—',
-        record.Credit_Transaction_Pin || '—',
-        record.Credit_Tele_Pin || '—'
-      ];
-
-      const primaryTable = `
-        <table class="holder-table">
-          <thead>
-            <tr>
-              <th>Holder</th>
-              <th>Card Number</th>
-              <th>Valid From</th>
-              <th>Valid To</th>
-              <th>CVV</th>
-              <th>Extra Codes</th>
-              <th>Txn PIN</th>
-              <th>Tele PIN</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>${primaryRow.map(value => `<td>${escapeHtml(value || '—')}</td>`).join('')}</tr>
-          </tbody>
-        </table>
-      `;
+      const primaryTable = buildHolderTable('Primary Card Details', primaryRow, 'print-primary-card');
 
       const addOnTables = (record.AddOnCards || []).map((card, idx) => {
-        const row = [
-          card.holder || '—',
-          card.cardNumber || '—',
-          card.validFrom || '—',
-          card.validTo || '—',
-          card.cvv || '—',
-          [card.amexCode, card.extraDigits].filter(Boolean).join(' | ') || '—',
-          card.txnPin || '—',
-          card.telePin || '—'
-        ];
-        return `
-          <h3 class="section-heading">Add-On Card #${idx + 1}</h3>
-          <table class="holder-table">
-            <thead>
-              <tr>
-                <th>Holder</th>
-                <th>Card Number</th>
-                <th>Valid From</th>
-                <th>Valid To</th>
-                <th>CVV</th>
-                <th>Extra Codes</th>
-                <th>Txn PIN</th>
-                <th>Tele PIN</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>${row.map(value => `<td>${escapeHtml(value || '—')}</td>`).join('')}</tr>
-            </tbody>
-          </table>
-        `;
+        const row = [{
+          holder: card.holder || '—',
+          cardNumber: card.cardNumber || '—',
+          validFrom: card.validFrom || '—',
+          validTo: card.validTo || '—',
+          cvv: card.cvv || '—',
+          extraCodes: [card.amexCode, card.extraDigits].filter(Boolean).join(' | ') || '—',
+          txnPin: card.txnPin || '—',
+          telePin: card.telePin || '—'
+        }];
+        return buildHolderTable(`Add-On Card #${idx + 1}`, row, `print-addon-card-${idx + 1}`);
       }).join('');
 
       const securityHtml = renderSecuritySummary(record.Credit_Security_QA || []);
@@ -1571,7 +1529,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="info-split">
               <div class="info-card">
                 <h3>Contact & Institution</h3>
-                ${contactTable}
+              ${contactGridHtml}
               </div>
               <div class="info-card">
                 <h3>Account Details</h3>
@@ -1579,7 +1537,6 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
 
-            <h3 class="section-heading">Primary Card Details</h3>
             ${primaryTable}
             ${addOnTables}
             ${securityHtml}
