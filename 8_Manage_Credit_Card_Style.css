@@ -146,3 +146,10 @@ body.table-resizing {
   color: #0b1a33;
   font-weight: 500;
 }
+
+.helpline-grid select,
+.helpline-grid input,
+#Credit_Account_Status,
+#Credit_URL {
+  text-align: left;
+}
