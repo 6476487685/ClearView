@@ -1638,9 +1638,9 @@ document.addEventListener('DOMContentLoaded', () => {
           ${pairs.map(pair => `
             <tr>
               <td>${escapeHtml(pair.left.label || '')}</td>
-              <td>${escapeHtml(pair.left.value || '—')}</td>
+              <td>${pair.left.html ? pair.left.value || '—' : escapeHtml(pair.left.value || '—')}</td>
               <td>${escapeHtml(pair.right.label || '')}</td>
-              <td>${escapeHtml(pair.right.value || '—')}</td>
+              <td>${pair.right.html ? pair.right.value || '—' : escapeHtml(pair.right.value || '—')}</td>
             </tr>
           `).join('')}
         </tbody>
