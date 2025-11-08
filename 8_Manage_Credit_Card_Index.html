@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Credit Cards</title>
+  <link rel="stylesheet" href="8_Manage_Credit_Card_Style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="10_Global_Master_Data_Export.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <h1 class="header-title">Manage Credit Cards</h1>
+      <div class="header-buttons">
+        <button class="primary" id="btnManualBackup">💾 Backup Now</button>
+        <button class="excel" id="btnExportPDF">📘 Export All Records</button>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="auto-backup-control" title="Toggle automatic Excel backups">
+        <span class="status" id="autoBackupStatusText">Auto Backup: On</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="autoBackupToggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+      <button class="black" onclick="window.location.href='index.html'">← Back to Main Dashboard</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="account-tag-bar" id="accountTagBar">
+      <div class="account-tag-content">
+        <label>Account Tag:</label>
+        <select id="Credit_Account_Tag"></select>
+        <button class="primary" id="btnAddRecord">➕ Add Credit Card</button>
+      </div>
+    </section>
+
+    <section class="bank-records-container" id="creditCardRecordsContainer"></section>
+  </main>
+
+  <div id="creditCardModal" class="modal">
+    <div class="modal-content bank-modal-content">
+      <h3 id="modalTitle">Add Credit Card</h3>
+      <form id="creditCardForm">
+        <div class="row2" style="grid-template-columns: 1.2fr 1fr 1fr; gap: 12px;">
+          <div>
+            <label>Institution</label>
+            <select id="Credit_Institution" required></select>
+          </div>
+          <div>
+            <label>Account Tag</label>
+            <select id="Credit_Ac_Tag" required></select>
+          </div>
+          <div>
+            <label>Primary Holder</label>
+            <select id="Credit_Primary_Holder" required></select>
+          </div>
+        </div>
+
+        <div class="row2" style="grid-template-columns: repeat(6, 1fr); gap: 12px;">
+          <div>
+            <label>Credit Card Number</label>
+            <input type="text" id="Credit_Card_Number" placeholder="XXXX XXXX XXXX XXXX" required>
+          </div>
+          <div>
+            <label>Valid From (MMYY)</label>
+            <input type="text" id="Credit_Valid_From" placeholder="MMYY">
+          </div>
+          <div>
+            <label>Valid To (MMYY)</label>
+            <input type="text" id="Credit_Valid_To" placeholder="MMYY">
+          </div>
+          <div>
+            <label>CVV</label>
+            <input type="text" id="Credit_CVV" placeholder="123">
+          </div>
+          <div>
+            <label>AmEx 4-Digit Code</label>
+            <input type="text" id="Credit_Amex_Code" placeholder="1234">
+          </div>
+          <div>
+            <label>Extra Digits</label>
+            <input type="text" id="Credit_Extra_Digits" placeholder="Optional">
+          </div>
+        </div>
+
+        <div class="row2" style="grid-template-columns: repeat(5, 1fr); gap: 12px;">
+          <div>
+            <label>Transaction PIN</label>
+            <input type="text" id="Credit_Transaction_Pin" placeholder="XXXX">
+          </div>
+          <div>
+            <label>Tele-Banking PIN</label>
+            <input type="text" id="Credit_Tele_Pin" placeholder="XXXX">
+          </div>
+          <div>
+            <label>Billing Cycle</label>
+            <input type="text" id="Credit_Billing_Cycle" placeholder="Monthly">
+          </div>
+          <div>
+            <label>Statement Day</label>
+            <input type="text" id="Credit_Statement_Day" placeholder="DD">
+          </div>
+          <div>
+            <label>Payment Due Day</label>
+            <input type="text" id="Credit_Payment_Due_Day" placeholder="DD">
+          </div>
+        </div>
+
+        <div class="row2" style="grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px;">
+          <div>
+            <label>Login ID</label>
+            <input type="text" id="Credit_Login_ID" placeholder="Username">
+          </div>
+          <div>
+            <label>Login Password</label>
+            <div class="password-field">
+              <input type="password" id="Credit_Login_Password" class="password-input" data-cc="primary">
+              <button type="button" class="password-toggle" data-cc="primary" style="display:none;">👁️</button>
+            </div>
+          </div>
+          <div>
+            <label>Account Number</label>
+            <input type="text" id="Credit_Account_Number" placeholder="Optional">
+          </div>
+          <div>
+            <label>Portal URL</label>
+            <input type="text" id="Credit_URL" placeholder="https://">
+          </div>
+        </div>
+
+        <div class="section-divider">Helpline & Contact</div>
+        <div class="helpline-grid">
+          <div>
+            <label>Helpline Phone 1</label>
+            <select id="Credit_Helpline_Phone1"></select>
+          </div>
+          <div>
+            <label>Helpline Phone 2</label>
+            <select id="Credit_Helpline_Phone2"></select>
+          </div>
+          <div>
+            <label>Helpline Phone 3</label>
+            <select id="Credit_Helpline_Phone3"></select>
+          </div>
+          <div>
+            <label>Helpline Email 1</label>
+            <select id="Credit_Helpline_Email1"></select>
+          </div>
+          <div>
+            <label>Helpline Email 2</label>
+            <select id="Credit_Helpline_Email2"></select>
+          </div>
+          <div>
+            <label>Helpline Email 3</label>
+            <select id="Credit_Helpline_Email3"></select>
+          </div>
+        </div>
+
+        <div class="section-divider">Add-On Cards</div>
+        <div class="row-full">
+          <label style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="Credit_AddOn_Enable">
+            Enable Add-On Cards
+          </label>
+          <div id="addOnCardsContainer" style="margin-top:12px;display:none;">
+            <button type="button" id="btnAddAddOnCard" class="primary" style="margin-bottom:12px;">➕ Add Add-On Card</button>
+            <div id="addOnCardsList"></div>
+          </div>
+        </div>
+
+        <div class="section-divider">Security Questions (Password Recovery)</div>
+        <div class="security-grid">
+          <div class="security-item">
+            <label>Question 1</label>
+            <select id="Credit_Security_Q1"></select>
+            <label>Answer 1</label>
+            <input type="text" id="Credit_Security_A1" class="sqa-answer" readonly>
+          </div>
+          <div class="security-item">
+            <label>Question 2</label>
+            <select id="Credit_Security_Q2"></select>
+            <label>Answer 2</label>
+            <input type="text" id="Credit_Security_A2" class="sqa-answer" readonly>
+          </div>
+          <div class="security-item">
+            <label>Question 3</label>
+            <select id="Credit_Security_Q3"></select>
+            <label>Answer 3</label>
+            <input type="text" id="Credit_Security_A3" class="sqa-answer" readonly>
+          </div>
+          <div class="security-item">
+            <label>Question 4</label>
+            <select id="Credit_Security_Q4"></select>
+            <label>Answer 4</label>
+            <input type="text" id="Credit_Security_A4" class="sqa-answer" readonly>
+          </div>
+          <div class="security-item">
+            <label>Question 5</label>
+            <select id="Credit_Security_Q5"></select>
+            <label>Answer 5</label>
+            <input type="text" id="Credit_Security_A5" class="sqa-answer" readonly>
+          </div>
+          <div class="security-item">
+            <label>Question 6</label>
+            <select id="Credit_Security_Q6"></select>
+            <label>Answer 6</label>
+            <input type="text" id="Credit_Security_A6" class="sqa-answer" readonly>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelBtn">Cancel</button>
+          <button type="submit" id="saveBtn">Save Credit Card</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="8_Manage_Credit_Card_Main.js"></script>
+</body>
+</html>
