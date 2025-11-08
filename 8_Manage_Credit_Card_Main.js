@@ -187,6 +187,36 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, '&#39;');
   };
 
+  const formatCardNumber = (value = '') => {
+    const digits = String(value || '').replace(/\D+/g, '');
+    if (!digits) return '';
+    const parts = [];
+    if (digits.length > 0) parts.push(digits.slice(0, 4));
+    if (digits.length > 4) parts.push(digits.slice(4, 8));
+    if (digits.length > 8) parts.push(digits.slice(8, 12));
+    if (digits.length > 12) parts.push(digits.slice(12));
+    return parts.filter(Boolean).join('-');
+  };
+
+  const formatBillingCycle = (value = '') => {
+    const str = String(value || '').trim();
+    if (!str) return '';
+    const numbers = str.match(/\d+/g);
+    if (!numbers) return str;
+    if (numbers.length >= 2) {
+      const first = numbers[0].slice(-2).padStart(2, '0');
+      const second = numbers[1].slice(-2).padStart(2, '0');
+      return `${first} - ${second}`;
+    }
+    if (numbers.length === 1) {
+      const digits = numbers[0].padStart(4, '0');
+      if (digits.length >= 4) {
+        return `${digits.slice(0, 2)} - ${digits.slice(2, 4)}`;
+      }
+    }
+    return numbers.join(' - ');
+  };
+
   const slugifyKey = (value = '') => {
     return String(value || '')
       .toLowerCase()
@@ -564,11 +594,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
 
     const generalInfoTable = buildContactInstitutionTable(record, helplinePhoneList, helplineEmailList);
+    const formattedCardNumber = formatCardNumber(record.Credit_Card_Number);
     const cardSnapshotTable = buildCardSnapshotTable(record, extraCodes);
 
     const primaryRow = [{
       holder: record.Credit_Primary_Holder || '—',
-      cardNumber: record.Credit_Card_Number || '—',
+      cardNumber: formattedCardNumber || '—',
       validFrom: record.Credit_Valid_From || '—',
       validTo: record.Credit_Valid_To || '—',
       cvv: record.Credit_CVV || '—',
@@ -580,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addOnTables = (record.AddOnCards || []).map((cardData, idx) => {
       const row = [{
         holder: cardData.holder || '—',
-        cardNumber: cardData.cardNumber || '—',
+        cardNumber: formatCardNumber(cardData.cardNumber || '') || '—',
         validFrom: cardData.validFrom || '—',
         validTo: cardData.validTo || '—',
         cvv: cardData.cvv || '—',
@@ -605,11 +636,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="card-info-section">
         <div class="info-card">
-            <div class="section-heading-minimal"><strong>Contact & Institution</strong></div>
+          <div class="section-heading-minimal"><strong>Contact & institution</strong></div>
           ${generalInfoTable}
           </div>
         <div class="info-card">
-          <div class="section-heading-minimal"><strong>Card Snapshot</strong></div>
+          <div class="section-heading-minimal"><strong>Card snapshot</strong></div>
           ${cardSnapshotTable}
         </div>
       </div>
@@ -1386,7 +1417,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const primaryRow = [{
         holder: record.Credit_Primary_Holder || '—',
-        cardNumber: record.Credit_Card_Number || '—',
+        cardNumber: formatCardNumber(record.Credit_Card_Number || '') || '—',
         validFrom: record.Credit_Valid_From || '—',
         validTo: record.Credit_Valid_To || '—',
         cvv: record.Credit_CVV || '—',
@@ -1400,7 +1431,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const addOnTables = (record.AddOnCards || []).map((card, idx) => {
         const row = [{
           holder: card.holder || '—',
-          cardNumber: card.cardNumber || '—',
+          cardNumber: formatCardNumber(card.cardNumber || '') || '—',
           validFrom: card.validFrom || '—',
           validTo: card.validTo || '—',
           cvv: card.cvv || '—',
@@ -1443,7 +1474,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .record-header h2{margin:0;font-size:20px;color:#1a237e;}
             .info-split{display:flex;gap:12px;margin-bottom:14px;align-items:stretch;}
             .info-card{flex:1;background:#f9fafb;border:1px solid #e0e0e0;border-radius:8px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}            
-            .info-card h3{margin:0 0 8px 0;font-size:13px;color:#c62828;text-transform:uppercase;letter-spacing:0.5px;}
+            .info-card h3{margin:0 0 8px 0;font-size:13px;color:#c62828;letter-spacing:0.5px;}
             .holder-info-table{width:100%;border-collapse:collapse;table-layout:auto;border-radius:10px;overflow:hidden;border:1px solid #1a4fb0;box-shadow:0 2px 6px rgba(26,79,176,0.18);}
             .holder-info-table thead th{background:#0d47a1;color:#fff;font-weight:700;padding:7px 10px;text-align:center;font-size:11.5px;border-right:1px solid rgba(255,255,255,0.25);white-space:nowrap;}
             .holder-info-table thead th:last-child{border-right:none;}
@@ -1458,7 +1489,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .general-info-table .contact-value-cell{background:#e6f0ff;color:#0b1a33;white-space:normal;word-break:break-word;}
             .card-details-table{width:100%;border-collapse:collapse;border:1px solid rgba(13,71,161,0.25);border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(13,71,161,0.12);}
             .card-details-table td{padding:8px 10px;border:1px solid rgba(13,71,161,0.18);}
-            .card-details-table .snapshot-header td{background:#000000;color:#ffffff;font-weight:700;text-transform:uppercase;letter-spacing:0.35px;text-align:center;}
+            .card-details-table .snapshot-header td{background:#000000;color:#ffffff;font-weight:700;letter-spacing:0.35px;text-align:center;}
             .card-details-table .snapshot-values td{background:#eef4ff;text-align:center;color:#0b1a33;font-weight:500;}
             .section-heading{margin:14px 0 6px 0;font-size:12.5px;font-weight:700;color:#c62828;text-transform:uppercase;letter-spacing:0.5px;}
             .security-card-minimal{margin-top:12px;padding:12px;border:1px solid #e0e0e0;border-radius:8px;background:#fdfdfd;}
@@ -1478,11 +1509,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <div class="info-split">
               <div class="info-card">
-                <h3>Contact & Institution</h3>
+              <h3>Contact & institution</h3>
               ${contactGridHtml}
               </div>
               <div class="info-card">
-              <h3>Card Snapshot</h3>
+              <h3>Card snapshot</h3>
               ${cardSnapshotTable}
               </div>
             </div>
@@ -1587,6 +1618,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const cardLimit = record.Credit_Card_Limit || record.Credit_Limit || record.Credit_Limit_Amount || '';
     const passwordDisplay = record.Credit_Login_Password ? '••••••••' : '—';
+    const formattedCardNumber = formatCardNumber(record.Credit_Card_Number);
+    const formattedBillingCycle = formatBillingCycle(record.Credit_Billing_Cycle);
 
     return `
       <table class="${tableClasses.join(' ')}">
@@ -1595,35 +1628,35 @@ document.addEventListener('DOMContentLoaded', () => {
             <td>Institution</td>
             <td>Holder</td>
             <td>Account #</td>
-            <td>Card Number</td>
-            <td>Valid From</td>
-            <td>Valid To</td>
+            <td>Card number</td>
+            <td>Valid from</td>
+            <td>Valid to</td>
             <td>CVV</td>
           </tr>
           <tr class="snapshot-values">
             <td>${display(record.Credit_Institution)}</td>
             <td>${display(record.Credit_Primary_Holder)}</td>
             <td>${display(record.Credit_Account_Number)}</td>
-            <td>${display(record.Credit_Card_Number)}</td>
+            <td>${display(formattedCardNumber)}</td>
             <td>${display(record.Credit_Valid_From)}</td>
             <td>${display(record.Credit_Valid_To)}</td>
             <td>${display(record.Credit_CVV)}</td>
           </tr>
           <tr class="snapshot-header">
-            <td>Extra Codes</td>
-            <td>Txn_PIN</td>
-            <td>Tele_PIN</td>
-            <td>Card Limit</td>
-            <td>Billing Cycle</td>
-            <td>Statement Date</td>
-            <td>Payment Due By</td>
+            <td>Extra codes</td>
+            <td>Txn PIN</td>
+            <td>Tele PIN</td>
+            <td>Card limit</td>
+            <td>Billing cycle</td>
+            <td>Statement date</td>
+            <td>Payment due by</td>
           </tr>
           <tr class="snapshot-values">
             <td>${display(extraCodes)}</td>
             <td>${display(record.Credit_Transaction_Pin)}</td>
             <td>${display(record.Credit_Tele_Pin)}</td>
             <td>${display(cardLimit)}</td>
-            <td>${display(record.Credit_Billing_Cycle)}</td>
+            <td>${display(formattedBillingCycle)}</td>
             <td>${display(record.Credit_Statement_Day)}</td>
             <td>${display(record.Credit_Payment_Due_Day)}</td>
           </tr>
