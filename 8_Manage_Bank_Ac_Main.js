@@ -145,6 +145,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return '';
   };
 
+  const getValueSafe = (id) => {
+    const el = document.getElementById(id);
+    return el ? el.value || '' : '';
+  };
+
   function showToast(message, type = 'info') {
     if (!toastContainer) return;
 
@@ -288,33 +293,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const holders = [];
     const holderCount = parseInt(holderCountSelect.value);
     for (let i = 1; i <= holderCount; i++) {
-      const email = document.getElementById(`Bank_Holder_${i}_Email`).value || '';
-      const phoneRaw = document.getElementById(`Bank_Holder_${i}_Phone`).value || '';
+      const email = getValueSafe(`Bank_Holder_${i}_Email`);
+      const phoneRaw = getValueSafe(`Bank_Holder_${i}_Phone`);
       const phone = cleanPhone(phoneRaw);
-      const dcPin = document.getElementById(`Bank_Holder_${i}_Dcpin`).value || '';
-      const pinRaw = document.getElementById(`Bank_Holder_${i}_Pin`).value || '';
-      const tpinRaw = document.getElementById(`Bank_Holder_${i}_Tpin`).value || '';
-      const mpinRaw = document.getElementById(`Bank_Holder_${i}_Mpin`).value || '';
+      const dcPin = getValueSafe(`Bank_Holder_${i}_Dcpin`);
+      const pinRaw = getValueSafe(`Bank_Holder_${i}_Pin`);
+      const tpinRaw = getValueSafe(`Bank_Holder_${i}_Tpin`);
+      const mpinRaw = getValueSafe(`Bank_Holder_${i}_Mpin`);
       const pinValues = extractPinValues({ pin: pinRaw, tpin: tpinRaw, mpin: mpinRaw });
       const emailPhone = [email, phone].filter(Boolean).join(' | ');
       
       holders.push({
-        holder: document.getElementById(`Bank_Holder_${i}_Holder`).value || '',
-        name: document.getElementById(`Bank_Holder_${i}_Name`).value || '',
-        clientID: document.getElementById(`Bank_Holder_${i}_ClientID`).value || '',
-        userID: document.getElementById(`Bank_Holder_${i}_UserID`).value || '',
+        holder: getValueSafe(`Bank_Holder_${i}_Holder`),
+        name: getValueSafe(`Bank_Holder_${i}_Name`),
+        clientID: getValueSafe(`Bank_Holder_${i}_ClientID`),
+        userID: getValueSafe(`Bank_Holder_${i}_UserID`),
         email: email,
         phone: phone,
         emailPhone: emailPhone, // Keep for backward compatibility
-        loginPassword: document.getElementById(`Bank_Holder_${i}_LoginPassword`).value || '',
-        txnPassword: document.getElementById(`Bank_Holder_${i}_TxnPassword`).value || '',
-        debitCard: document.getElementById(`Bank_Holder_${i}_DebitCard`).value || '',
+        loginPassword: getValueSafe(`Bank_Holder_${i}_LoginPassword`),
+        txnPassword: getValueSafe(`Bank_Holder_${i}_TxnPassword`),
+        debitCard: getValueSafe(`Bank_Holder_${i}_DebitCard`),
         dcPin: dcPin,
         pin: pinValues.pin,
         tpin: pinValues.tpin,
         mpin: pinValues.mpin,
         pins: formatPins(pinValues),
-        interaccEmailOrUPIID: document.getElementById(`Bank_Holder_${i}_Interacc_Email_or_UPI_ID`).value || ''
+        interaccEmailOrUPIID: getValueSafe(`Bank_Holder_${i}_Interacc_Email_or_UPI_ID`)
       });
     }
 
@@ -336,31 +341,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const record = {
-      Bank_Institution: document.getElementById('Bank_Institution').value,
-      Bank_Ac_Type: document.getElementById('Bank_Ac_Type').value,
-      Bank_Ac_Tag: document.getElementById('Bank_Ac_Tag').value,
-      Bank_Country: document.getElementById('Bank_Country').value,
-      Bank_Account_Number: document.getElementById('Bank_Account_Number').value || '',
-      Bank_Transit_IFSC: document.getElementById('Bank_Transit_IFSC').value || '',
-      Bank_Institution_MICR: document.getElementById('Bank_Institution_MICR').value || '',
-      Bank_Account_Status: document.getElementById('Bank_Account_Status').value || '',
-      Bank_Min_Balance: document.getElementById('Bank_Min_Balance').value || '',
-      Bank_Branch_Address: document.getElementById('Bank_Branch_Address').value || '',
+      Bank_Institution: getValueSafe('Bank_Institution'),
+      Bank_Ac_Type: getValueSafe('Bank_Ac_Type'),
+      Bank_Ac_Tag: getValueSafe('Bank_Ac_Tag'),
+      Bank_Country: getValueSafe('Bank_Country'),
+      Bank_Account_Number: getValueSafe('Bank_Account_Number'),
+      Bank_Transit_IFSC: getValueSafe('Bank_Transit_IFSC'),
+      Bank_Institution_MICR: getValueSafe('Bank_Institution_MICR'),
+      Bank_Account_Status: getValueSafe('Bank_Account_Status'),
+      Bank_Min_Balance: getValueSafe('Bank_Min_Balance'),
+      Bank_Branch_Address: getValueSafe('Bank_Branch_Address'),
       Bank_Holders: holders,
-      Bank_Nominee_Name: document.getElementById('Bank_Nominee_Name').value || '',
-      Bank_Nominee_Name_Text: document.getElementById('Bank_Nominee_Name_Text').value || '',
-      Bank_Nominee_Email: document.getElementById('Bank_Nominee_Email').value || '',
-      Bank_Nominee_Phone: cleanPhone(document.getElementById('Bank_Nominee_Phone').value || ''),
-      Bank_Helpline_Phone1: cleanPhone(document.getElementById('Bank_Helpline_Phone1').value || ''),
-      Bank_Helpline_Phone2: cleanPhone(document.getElementById('Bank_Helpline_Phone2').value || ''),
-      Bank_Helpline_Phone3: cleanPhone(document.getElementById('Bank_Helpline_Phone3').value || ''),
-      Bank_Helpline_Phone4: cleanPhone(document.getElementById('Bank_Helpline_Phone4').value || ''),
-      Bank_Helpline_Email1: document.getElementById('Bank_Helpline_Email1').value || '',
-      Bank_Helpline_Email2: document.getElementById('Bank_Helpline_Email2').value || '',
-      Bank_Helpline_Email3: document.getElementById('Bank_Helpline_Email3').value || '',
-      Bank_Helpline_Email4: document.getElementById('Bank_Helpline_Email4').value || '',
-      Bank_Helpline_URL: document.getElementById('Bank_Helpline_URL').value || '',
-      Bank_Notes: document.getElementById('Bank_Notes').value || '',
+      Bank_Nominee_Name: getValueSafe('Bank_Nominee_Name'),
+      Bank_Nominee_Name_Text: getValueSafe('Bank_Nominee_Name_Text'),
+      Bank_Nominee_Email: getValueSafe('Bank_Nominee_Email'),
+      Bank_Nominee_Phone: cleanPhone(getValueSafe('Bank_Nominee_Phone')),
+      Bank_Helpline_Phone1: cleanPhone(getValueSafe('Bank_Helpline_Phone1')),
+      Bank_Helpline_Phone2: cleanPhone(getValueSafe('Bank_Helpline_Phone2')),
+      Bank_Helpline_Phone3: cleanPhone(getValueSafe('Bank_Helpline_Phone3')),
+      Bank_Helpline_Phone4: cleanPhone(getValueSafe('Bank_Helpline_Phone4')),
+      Bank_Helpline_Email1: getValueSafe('Bank_Helpline_Email1'),
+      Bank_Helpline_Email2: getValueSafe('Bank_Helpline_Email2'),
+      Bank_Helpline_Email3: getValueSafe('Bank_Helpline_Email3'),
+      Bank_Helpline_Email4: getValueSafe('Bank_Helpline_Email4'),
+      Bank_Helpline_URL: getValueSafe('Bank_Helpline_URL'),
+      Bank_Notes: getValueSafe('Bank_Notes'),
       Bank_Security_QA: securityQA,
       id: editIndex !== null ? getData()[editIndex].id : Date.now() + Math.random()
     };
