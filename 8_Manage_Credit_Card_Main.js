@@ -620,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="column-right">
           <div class="fields-card-minimal">
             <div class="section-heading-minimal"><strong>Account Details</strong></div>
-            ${accountGridHtml}
+            ${buildAccountDetailsGrid(accountRows)}
           </div>
         </div>
       </div>
@@ -1568,20 +1568,28 @@ document.addEventListener('DOMContentLoaded', () => {
   `;
 
   const buildInfoCard = (title, rows) => `
-    <div class="fields-card-minimal">
-      <div class="section-heading-minimal"><strong>${title}</strong></div>
-      ${buildInfoTable(rows)}
+    <div class="fields-card-minimal info-card">
+      <div class="section-heading-minimal info-card-header"><strong>${title}</strong></div>
+      <div class="fields-content-minimal info-card-body">
+        ${rows.map(row => `
+          <div class="field-row-minimal info-row">
+            <span class="field-label-minimal info-label">${row.label}:</span>
+            <span class="field-value-minimal info-value">${row.html ? row.value : escapeHtml(row.value)}</span>
+          </div>
+        `).join('')}
+      </div>
     </div>
   `;
 
-  const buildHolderTable = (title, row) => {
+  const buildHolderTable = (title, rowData) => {
+    const display = (value) => escapeHtml(value && value.trim() !== '' ? value : '—');
     return `
       <div class="holder-table-container">
+        <div class="holder-table-header">
+          <h3 class="section-heading">${title}</h3>
+        </div>
         <table class="holder-info-table holder-info-table-modern">
           <thead>
-            <tr>
-              <th colspan="8">${escapeHtml(title)}</th>
-            </tr>
             <tr>
               <th>Holder</th>
               <th>Card Number</th>
@@ -1594,12 +1602,45 @@ document.addEventListener('DOMContentLoaded', () => {
             </tr>
           </thead>
           <tbody>
-            <tr class="holder-secondary-row">
-              ${row.map(value => `<td>${escapeHtml(value || '—')}</td>`).join('')}
-            </tr>
+            ${rowData.map(row => `
+              <tr class="holder-secondary-row">
+                <td>${display(row.holder)}</td>
+                <td>${display(row.cardNumber)}</td>
+                <td>${display(row.validFrom)}</td>
+                <td>${display(row.validTo)}</td>
+                <td>${display(row.cvv)}</td>
+                <td>${display(row.extraCodes)}</td>
+                <td>${display(row.txnPin)}</td>
+                <td>${display(row.telePin)}</td>
+              </tr>
+            `).join('')}
           </tbody>
         </table>
       </div>
+    `;
+  };
+
+  const buildAccountDetailsGrid = (rows = []) => {
+    const pairs = [];
+    for (let i = 0; i < rows.length; i += 2) {
+      const left = rows[i] || { label: '', value: '' };
+      const right = rows[i + 1] || { label: '', value: '' };
+      pairs.push({ left, right });
+    }
+
+    return `
+      <table class="holder-info-table holder-info-table-modern credit-info-table">
+        <tbody>
+          ${pairs.map(pair => `
+            <tr>
+              <td>${escapeHtml(pair.left.label || '')}</td>
+              <td>${escapeHtml(pair.left.value || '—')}</td>
+              <td>${escapeHtml(pair.right.label || '')}</td>
+              <td>${escapeHtml(pair.right.value || '—')}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
     `;
   };
 
