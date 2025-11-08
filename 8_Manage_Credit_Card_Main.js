@@ -187,6 +187,15 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, '&#39;');
   };
 
+  const slugifyKey = (value = '') => {
+    return String(value || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      || 'table';
+  };
+
   const updateAutoBackupStatusText = (logChange = false) => {
     if (autoBackupStatus) {
       autoBackupStatus.textContent = autoBackupEnabled ? 'Auto Backup: On' : 'Auto Backup: Paused';
@@ -534,6 +543,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const card = createRecordCard(record, index);
       recordsContainer.appendChild(card);
     });
+
+    initializeResizableTables(recordsContainer);
   };
 
   const createRecordCard = (record, index) => {
@@ -544,13 +555,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayTag = record.Credit_Ac_Tag || 'No Account Tag';
     const recordLabel = `Record #${recordNumber}: ${displayTag}`;
 
-    const helplinePhones = [record.Credit_Helpline_Phone1, record.Credit_Helpline_Phone2, record.Credit_Helpline_Phone3]
+    const helplinePhoneList = [record.Credit_Helpline_Phone1, record.Credit_Helpline_Phone2, record.Credit_Helpline_Phone3]
       .map(cleanPhone)
-      .filter(Boolean)
-      .join(' / ');
-    const helplineEmails = [record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3]
-      .filter(Boolean)
-      .join(' / ');
+      .filter(Boolean);
+    const helplineEmailList = [record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3]
+      .filter(value => value && value.trim() !== '');
 
     const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
 
@@ -562,11 +571,21 @@ document.addEventListener('DOMContentLoaded', () => {
           ? `<a href="${escapeHtml(record.Credit_URL)}" target="_blank" class="info-link">${escapeHtml(record.Credit_URL)}</a>`
           : '—',
         html: true
-      },
-      { label: 'Helpline Phone', value: helplinePhones || '—' },
-      { label: 'Helpline Email', value: helplineEmails || '—' }
+      }
     ];
-    const contactGridHtml = buildAccountDetailsGrid(contactCells);
+    const formatListAsLines = (list) => list.map(item => escapeHtml(item)).join('<br>');
+    contactCells.push({
+      label: 'Helpline Phone',
+      value: helplinePhoneList.length ? formatListAsLines(helplinePhoneList) : '—',
+      html: helplinePhoneList.length > 0
+    });
+    contactCells.push({
+      label: 'Helpline Email',
+      value: helplineEmailList.length ? formatListAsLines(helplineEmailList) : '—',
+      html: helplineEmailList.length > 0
+    });
+
+    const contactGridHtml = buildAccountDetailsGrid(contactCells, 'credit-contact-details');
 
     const accountRows = [
       { label: 'Account #', value: record.Credit_Account_Number || '—' },
@@ -577,29 +596,29 @@ document.addEventListener('DOMContentLoaded', () => {
       { label: 'Password', value: record.Credit_Login_Password ? '••••••••' : '—' }
     ];
 
-    const primaryRow = [
-      record.Credit_Primary_Holder || '—',
-      record.Credit_Card_Number || '—',
-      record.Credit_Valid_From || '—',
-      record.Credit_Valid_To || '—',
-      record.Credit_CVV || '—',
-      extraCodes || '—',
-      record.Credit_Transaction_Pin || '—',
-      record.Credit_Tele_Pin || '—'
-    ];
+    const primaryRow = [{
+      holder: record.Credit_Primary_Holder || '—',
+      cardNumber: record.Credit_Card_Number || '—',
+      validFrom: record.Credit_Valid_From || '—',
+      validTo: record.Credit_Valid_To || '—',
+      cvv: record.Credit_CVV || '—',
+      extraCodes: extraCodes || '—',
+      txnPin: record.Credit_Transaction_Pin || '—',
+      telePin: record.Credit_Tele_Pin || '—'
+    }];
 
     const addOnTables = (record.AddOnCards || []).map((cardData, idx) => {
-      const row = [
-        cardData.holder || '—',
-        cardData.cardNumber || '—',
-        cardData.validFrom || '—',
-        cardData.validTo || '—',
-        cardData.cvv || '—',
-        [cardData.amexCode, cardData.extraDigits].filter(Boolean).join(' | ') || '—',
-        cardData.txnPin || '—',
-        cardData.telePin || '—'
-      ];
-      return buildHolderTable(`Add-On Card #${idx + 1}`, row);
+      const row = [{
+        holder: cardData.holder || '—',
+        cardNumber: cardData.cardNumber || '—',
+        validFrom: cardData.validFrom || '—',
+        validTo: cardData.validTo || '—',
+        cvv: cardData.cvv || '—',
+        extraCodes: [cardData.amexCode, cardData.extraDigits].filter(Boolean).join(' | ') || '—',
+        txnPin: cardData.txnPin || '—',
+        telePin: cardData.telePin || '—'
+      }];
+      return buildHolderTable(`Add-On Card #${idx + 1}`, row, 'credit-holder-addon');
     }).join('');
 
     card.innerHTML = `
@@ -624,12 +643,12 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="column-right">
           <div class="fields-card-minimal">
             <div class="section-heading-minimal"><strong>Account Details</strong></div>
-            ${buildAccountDetailsGrid(accountRows)}
+            ${buildAccountDetailsGrid(accountRows, 'credit-account-details')}
           </div>
         </div>
       </div>
 
-      ${buildHolderTable('Primary Card Details', primaryRow)}
+      ${buildHolderTable('Primary Card Details', primaryRow, 'credit-holder-primary')}
       ${addOnTables}
       ${renderSecuritySummary(record.Credit_Security_QA || [])}
     `;
@@ -1386,21 +1405,24 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const helplinePhones = [record.Credit_Helpline_Phone1, record.Credit_Helpline_Phone2, record.Credit_Helpline_Phone3]
+      const helplinePhoneList = [record.Credit_Helpline_Phone1, record.Credit_Helpline_Phone2, record.Credit_Helpline_Phone3]
         .map(cleanPhone)
-        .filter(Boolean)
-        .join(' / ');
-      const helplineEmails = [record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3]
-        .filter(Boolean)
-        .join(' / ');
+        .filter(Boolean);
+      const helplineEmailList = [record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3]
+        .filter(value => value && value.trim() !== '');
+      const formatListForPrint = (list) => list.length
+        ? list.map(item => `<div>${escapeHtml(item)}</div>`).join('')
+        : '—';
+      const helplinePhoneHtml = formatListForPrint(helplinePhoneList);
+      const helplineEmailHtml = formatListForPrint(helplineEmailList);
       const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
 
       const contactTable = `
         <table class="info-table">
           <tbody>
             <tr><td>Institution</td><td>${escapeHtml(record.Credit_Institution || '—')}</td></tr>
-            <tr><td>Helpline Phone</td><td>${escapeHtml(helplinePhones || '—')}</td></tr>
-            <tr><td>Helpline Email</td><td>${escapeHtml(helplineEmails || '—')}</td></tr>
+            <tr><td>Helpline Phone</td><td>${helplinePhoneHtml}</td></tr>
+            <tr><td>Helpline Email</td><td>${helplineEmailHtml}</td></tr>
             <tr><td>Portal</td><td>${record.Credit_URL ? `<a href="${escapeHtml(record.Credit_URL)}" target="_blank">${escapeHtml(record.Credit_URL)}</a>` : '—'}</td></tr>
           </tbody>
         </table>
@@ -1503,6 +1525,16 @@ document.addEventListener('DOMContentLoaded', () => {
           <title>Credit Card Record</title>
           <link rel="stylesheet" href="8_Manage_Credit_Card_Style.css">
           <style>
+            @page {
+              size: A4 landscape;
+              margin: 12mm;
+            }
+            @media print {
+              body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+            }
             body{padding:24px;font-family:'Segoe UI',sans-serif;background:#fff;color:#222;}
             .print-container{max-width:900px;margin:0 auto;}
             .record-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
@@ -1511,8 +1543,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .info-card{flex:1;background:#f9fafb;border:1px solid #e0e0e0;border-radius:8px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}            
             .info-card h3{margin:0 0 12px 0;font-size:14px;color:#c62828;text-transform:uppercase;letter-spacing:0.5px;}
             .info-table{width:100%;border-collapse:collapse;}
-            .info-table td{padding:8px 10px;border-bottom:1px solid #e0e0e0;font-size:12.5px;}
-            .info-table td:first-child{font-weight:600;color:#1a237e;width:40%;}
+            .info-table td{padding:8px 10px;border-bottom:1px solid #e0e0e0;font-size:12.5px;vertical-align:top;}
+            .info-table td:first-child{font-weight:600;color:#1a237e;width:35%;white-space:nowrap;}
             .info-table tr:last-child td{border-bottom:none;}
             .holder-table{width:100%;border-collapse:collapse;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.05);}            
             .holder-table th{background:#0d47a1;color:#fff;font-weight:700;padding:8px 10px;text-align:center;font-size:12px;}
@@ -1585,14 +1617,69 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   `;
 
-  const buildHolderTable = (title, rowData) => {
+  const buildHolderTable = (title, rowData, resizeKey = '') => {
     const display = (value) => escapeHtml(value && value.trim() !== '' ? value : '—');
+    const tableKey = slugifyKey(resizeKey || title || 'holder');
+    const normalizeRow = (row) => {
+      if (!row) {
+        return {
+          holder: '—',
+          cardNumber: '—',
+          validFrom: '—',
+          validTo: '—',
+          cvv: '—',
+          extraCodes: '—',
+          txnPin: '—',
+          telePin: '—'
+        };
+      }
+      if (Array.isArray(row)) {
+        const [holder, cardNumber, validFrom, validTo, cvv, extraCodes, txnPin, telePin] = row;
+        return {
+          holder: holder || '—',
+          cardNumber: cardNumber || '—',
+          validFrom: validFrom || '—',
+          validTo: validTo || '—',
+          cvv: cvv || '—',
+          extraCodes: extraCodes || '—',
+          txnPin: txnPin || '—',
+          telePin: telePin || '—'
+        };
+      }
+      return {
+        holder: row.holder || '—',
+        cardNumber: row.cardNumber || '—',
+        validFrom: row.validFrom || '—',
+        validTo: row.validTo || '—',
+        cvv: row.cvv || '—',
+        extraCodes: row.extraCodes || '—',
+        txnPin: row.txnPin || '—',
+        telePin: row.telePin || '—'
+      };
+    };
+
+    const rowsArray = Array.isArray(rowData)
+      ? (rowData.length > 0 && !Array.isArray(rowData[0]) && typeof rowData[0] === 'object'
+          ? rowData
+          : [normalizeRow(rowData)])
+      : [normalizeRow(rowData)];
+
     return `
       <div class="holder-table-container">
         <div class="holder-table-header">
           <h3 class="section-heading">${title}</h3>
         </div>
-        <table class="holder-info-table holder-info-table-modern">
+        <table class="holder-info-table holder-info-table-modern resizable-table" data-resize-key="${tableKey}">
+          <colgroup>
+            <col data-col-index="0" style="width: 16%;">
+            <col data-col-index="1" style="width: 18%;">
+            <col data-col-index="2" style="width: 12%;">
+            <col data-col-index="3" style="width: 12%;">
+            <col data-col-index="4" style="width: 10%;">
+            <col data-col-index="5" style="width: 12%;">
+            <col data-col-index="6" style="width: 10%;">
+            <col data-col-index="7" style="width: 10%;">
+          </colgroup>
           <thead>
             <tr>
               <th>Holder</th>
@@ -1606,7 +1693,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </tr>
           </thead>
           <tbody>
-            ${rowData.map(row => `
+            ${rowsArray.map(row => `
               <tr class="holder-secondary-row">
                 <td>${display(row.holder)}</td>
                 <td>${display(row.cardNumber)}</td>
@@ -1624,7 +1711,8 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   };
 
-  const buildAccountDetailsGrid = (rows = []) => {
+  const buildAccountDetailsGrid = (rows = [], resizeKey = '') => {
+    const tableKey = slugifyKey(resizeKey || 'account-grid');
     const pairs = [];
     for (let i = 0; i < rows.length; i += 2) {
       const left = rows[i] || { label: '', value: '' };
@@ -1633,7 +1721,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
  
     return `
-      <table class="holder-info-table holder-info-table-modern credit-info-table resizable-table">
+      <table class="holder-info-table holder-info-table-modern credit-info-table resizable-table" data-resize-key="${tableKey}">
         <colgroup>
           <col data-col-index="0" style="width: 22%;">
           <col data-col-index="1" style="width: 28%;">
@@ -1652,7 +1740,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </tbody>
       </table>
     `;
-  }
+  };
 
   /* -------------------- Initialization -------------------- */
   populateInstitutionSelect();
@@ -1672,43 +1760,81 @@ document.addEventListener('DOMContentLoaded', () => {
       if (table.dataset.resizableApplied === 'true') return;
       table.dataset.resizableApplied = 'true';
  
-      const firstRow = table.querySelector('tr');
       const cols = Array.from(table.querySelectorAll('colgroup col'));
-      if (!firstRow || cols.length === 0) return;
+      if (!cols.length) return;
  
+      const storageKey = table.dataset.resizeKey ? `tableResize:${table.dataset.resizeKey}` : null;
+      let storedWidths = [];
+      if (storageKey) {
+        try {
+          storedWidths = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        } catch (error) {
+          console.warn('Unable to parse stored column widths', error);
+          storedWidths = [];
+        }
+      }
+ 
+      const applyWidthToColumn = (index, width) => {
+        if (!width || typeof width !== 'number') return;
+        const columnCells = Array.from(table.querySelectorAll(`tr > *:nth-child(${index + 1})`));
+        const colElement = cols[index];
+        if (colElement) {
+          colElement.style.width = `${width}px`;
+        }
+        columnCells.forEach(colCell => {
+          colCell.style.width = `${width}px`;
+          colCell.style.minWidth = `${width}px`;
+        });
+      };
+ 
+      const saveWidths = () => {
+        if (!storageKey) return;
+        try {
+          const currentWidths = cols.map((_, idx) => {
+            const cell = table.querySelector(`tr > *:nth-child(${idx + 1})`);
+            if (!cell) return null;
+            const rect = cell.getBoundingClientRect();
+            return rect.width ? Math.round(rect.width) : null;
+          });
+          localStorage.setItem(storageKey, JSON.stringify(currentWidths));
+        } catch (error) {
+          console.warn('Unable to persist column widths', error);
+        }
+      };
+ 
+      const firstRow = table.querySelector('tr');
+      if (!firstRow) return;
       const cells = Array.from(firstRow.children);
       cells.forEach((cell, index) => {
         if (index === cells.length - 1) return;
- 
+
         const existingHandle = cell.querySelector('.column-resizer');
         if (existingHandle) return;
- 
+
         const handle = document.createElement('div');
         handle.className = 'column-resizer';
         handle.dataset.resizerIndex = index;
- 
+
         const columnCells = Array.from(table.querySelectorAll(`tr > *:nth-child(${index + 1})`));
         const colElement = cols[index];
  
         let startX = 0;
         let startWidth = columnCells[0] ? columnCells[0].getBoundingClientRect().width : 0;
+        if (storedWidths && typeof storedWidths[index] === 'number') {
+          applyWidthToColumn(index, storedWidths[index]);
+        }
  
         const onMouseMove = (event) => {
           const delta = event.pageX - startX;
           const newWidth = Math.max(80, startWidth + delta);
-          if (colElement) {
-            colElement.style.width = `${newWidth}px`;
-          }
-          columnCells.forEach(colCell => {
-            colCell.style.width = `${newWidth}px`;
-            colCell.style.minWidth = `${newWidth}px`;
-          });
+          applyWidthToColumn(index, newWidth);
         };
  
         const onMouseUp = () => {
           document.removeEventListener('mousemove', onMouseMove);
           document.removeEventListener('mouseup', onMouseUp);
           document.body.classList.remove('table-resizing');
+          saveWidths();
         };
  
         handle.addEventListener('mousedown', (event) => {
@@ -1723,6 +1849,10 @@ document.addEventListener('DOMContentLoaded', () => {
         cell.style.position = 'relative';
         cell.appendChild(handle);
       });
+
+      if (!storedWidths.length) {
+        saveWidths();
+      }
     });
   }
 
