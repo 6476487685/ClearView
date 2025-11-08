@@ -1603,9 +1603,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const bankRecords = getData();
       if (bankRecords.length > 0) {
         const banksData = [];
+        const recordSections = [];
         bankRecords.forEach((record, idx) => {
-          // Add record header
-          banksData.push(['Record ' + (idx + 1)]);
+          const recordStart = banksData.length;
+          const recordNumber = idx + 1;
+          const recordLabel = record.Bank_Ac_Tag ? `Record #${recordNumber}: ${record.Bank_Ac_Tag}` : `Record #${recordNumber}`;
+          banksData.push([recordLabel, ' ']);
           banksData.push(['Institution', record.Bank_Institution || '']);
           banksData.push(['Account Type', record.Bank_Ac_Type || '']);
           banksData.push(['Account Tag', record.Bank_Ac_Tag || '']);
@@ -1617,7 +1620,6 @@ document.addEventListener("DOMContentLoaded", () => {
           banksData.push(['Minimum Balance Required', record.Bank_Min_Balance || '']);
           banksData.push(['Branch Address', record.Bank_Branch_Address || '']);
           
-          // Add holders
           if (record.Bank_Holders) {
             record.Bank_Holders.forEach((holder, hIdx) => {
               banksData.push([`Holder ${hIdx + 1} (Ac_Holder)`, holder.holder || '']);
@@ -1633,7 +1635,7 @@ document.addEventListener("DOMContentLoaded", () => {
               banksData.push([`Holder ${hIdx + 1} Interacc_Email_or_UPI_ID`, holder.interaccEmailOrUPIID || '']);
             });
           }
-          
+
           banksData.push(['Nominee (Ac_Holder)', record.Bank_Nominee_Name || '']);
           banksData.push(['Nominee Name', record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || '']);
           banksData.push(['Nominee_Email', record.Bank_Nominee_Email || '']);
@@ -1654,14 +1656,54 @@ document.addEventListener("DOMContentLoaded", () => {
               banksData.push([`Security Answer ${sIdx + 1}`, qa?.answer || '']);
             });
           }
-          
-          // Add page break after every 2 records (empty row for spacing)
-          if ((idx + 1) % 2 === 0 && idx < bankRecords.length - 1) {
-            banksData.push([]);
+
+          const recordEnd = banksData.length - 1;
+          recordSections.push({ start: recordStart, end: recordEnd, recordNumber });
+          banksData.push(['', '']);
+        });
+
+        if (banksData.length && banksData[banksData.length - 1].every(val => val === '' || val === ' ')) {
+          banksData.pop();
+        }
+
+        const ws = XLSX.utils.aoa_to_sheet(banksData);
+        ws['!cols'] = [{ wch: 26 }, { wch: 70 }];
+
+        const setCellStyle = (worksheet, row, col, style) => {
+          const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+          if (!worksheet[cellAddress]) {
+            worksheet[cellAddress] = { t: 's', v: '' };
+          }
+          worksheet[cellAddress].s = Object.assign({}, worksheet[cellAddress].s || {}, style);
+        };
+
+        const headerOdd = 'FBC02D';
+        const headerEven = '64B5F6';
+        const bodyOdd = 'FFF8E1';
+        const bodyEven = 'E3F2FD';
+
+        recordSections.forEach((section, idx) => {
+          const headerColor = idx % 2 === 0 ? headerOdd : headerEven;
+          const bodyColor = idx % 2 === 0 ? bodyOdd : bodyEven;
+          const headerStyle = {
+            fill: { patternType: 'solid', fgColor: { rgb: headerColor } },
+            font: { bold: true, color: { rgb: '1A237E' } }
+          };
+          const bodyStyle = {
+            fill: { patternType: 'solid', fgColor: { rgb: bodyColor } }
+          };
+
+          for (let col = 0; col <= 1; col++) {
+            setCellStyle(ws, section.start, col, headerStyle);
+          }
+
+          for (let row = section.start + 1; row <= section.end; row++) {
+            for (let col = 0; col <= 1; col++) {
+              setCellStyle(ws, row, col, bodyStyle);
+            }
           }
         });
 
-        const ws = XLSX.utils.aoa_to_sheet(banksData);
         XLSX.utils.book_append_sheet(wb, ws, 'Banks_Data');
       }
 
