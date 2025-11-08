@@ -25,6 +25,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeSwitchControl = document.getElementById('themeSwitch');
   let masterEmails = [];
   let masterPhoneOptions = [];
+  let masterSqaOptions = [];
+  let masterSqaMap = new Map();
 
   const MAX_SECURITY_QUESTIONS = 6;
 
@@ -562,6 +564,7 @@ document.addEventListener("DOMContentLoaded", () => {
     populateInstitutionAndAcType();
     populateAccountStatusDropdown();
     loadContactOptions();
+    populateSecurityDropdowns();
 
     // Populate Account Tag in modal
     const bankAcTagSelect = document.getElementById('Bank_Ac_Tag');
@@ -733,7 +736,7 @@ document.addEventListener("DOMContentLoaded", () => {
             let holderEmail = holder.email || '';
             let holderPhone = cleanPhone(holder.phone || '');
             if (holder.emailPhone) {
-              const parts = holder.emailPhone.split(' | ');
+                const parts = holder.emailPhone.split(' | ');
               if (!holderEmail) holderEmail = parts[0] || '';
               if (!holderPhone && parts.length > 1) holderPhone = cleanPhone(parts[1]);
             }
@@ -780,46 +783,46 @@ document.addEventListener("DOMContentLoaded", () => {
     configs.forEach(({ type, inputId, toggleSelector }) => {
       const passwordInput = document.getElementById(inputId);
       const toggleBtn = document.querySelector(toggleSelector);
-      if (!passwordInput || !toggleBtn) return;
+    if (!passwordInput || !toggleBtn) return;
 
       const holderId = `${type}_${holderNum}`;
-      passwordClickCounts[holderId] = 0;
+    passwordClickCounts[holderId] = 0;
+    
+    passwordInput.addEventListener('focus', () => {
+      toggleBtn.style.display = 'block';
+    });
 
-      passwordInput.addEventListener('focus', () => {
-        toggleBtn.style.display = 'block';
-      });
-
-      passwordInput.addEventListener('blur', () => {
-        setTimeout(() => {
-          if (document.activeElement !== passwordInput) {
-            maskPassword(holderId, passwordInput, toggleBtn);
-            toggleBtn.style.display = 'none';
-          }
-        }, 300);
-      });
-
-      passwordInput.addEventListener('click', (e) => {
-        e.preventDefault();
-        passwordClickCounts[holderId]++;
-
-        clearTimeout(passwordRevealTimeouts[holderId]);
-        passwordRevealTimeouts[holderId] = setTimeout(() => {
-          passwordClickCounts[holderId] = 0;
-        }, 2000);
-
-        if (passwordClickCounts[holderId] >= 4) {
-          revealPassword(holderId, passwordInput, toggleBtn);
-          passwordClickCounts[holderId] = 0;
-        }
-      });
-
-      toggleBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (passwordInput.type === 'password') {
-          revealPassword(holderId, passwordInput, toggleBtn);
-        } else {
+    passwordInput.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (document.activeElement !== passwordInput) {
           maskPassword(holderId, passwordInput, toggleBtn);
+          toggleBtn.style.display = 'none';
         }
+      }, 300);
+    });
+
+    passwordInput.addEventListener('click', (e) => {
+      e.preventDefault();
+      passwordClickCounts[holderId]++;
+      
+      clearTimeout(passwordRevealTimeouts[holderId]);
+      passwordRevealTimeouts[holderId] = setTimeout(() => {
+        passwordClickCounts[holderId] = 0;
+      }, 2000);
+
+      if (passwordClickCounts[holderId] >= 4) {
+        revealPassword(holderId, passwordInput, toggleBtn);
+        passwordClickCounts[holderId] = 0;
+      }
+    });
+
+    toggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (passwordInput.type === 'password') {
+        revealPassword(holderId, passwordInput, toggleBtn);
+      } else {
+        maskPassword(holderId, passwordInput, toggleBtn);
+      }
       });
     });
   }
@@ -1014,7 +1017,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const { pin, tpin, mpin } = extractPinValues(holder);
 
       const display = (value) => escapeHtml(value && value.trim() !== '' ? value : '—');
-
+      
       return `
         <div class="holder-table-container">
           <table class="holder-info-table holder-info-table-modern">
@@ -1544,20 +1547,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('Bank_Notes').value = record.Bank_Notes || '';
 
     const securityQA = Array.isArray(record.Bank_Security_QA) ? record.Bank_Security_QA : [];
-    for (let i = 1; i <= MAX_SECURITY_QUESTIONS; i++) {
-      const questionInput = document.getElementById(`Bank_Security_Q${i}`);
-      const answerInput = document.getElementById(`Bank_Security_A${i}`);
-      if (!questionInput || !answerInput) continue;
+    populateSecurityDropdowns(securityQA);
 
-      const qa = securityQA[i - 1] || {};
-      questionInput.value = qa.question || '';
-      answerInput.value = qa.answer || '';
-    }
-
-    // Set holder count
-    const holderCount = record.Bank_Holders ? record.Bank_Holders.length : 1;
-    holderCountSelect.value = holderCount;
-    renderHolders();
+    const tags = Array.isArray(record.Bank_Tags) ? record.Bank_Tags.join(', ') : (record.Bank_Tags || '');
+    if (document.getElementById('Bank_Tags')) document.getElementById('Bank_Tags').value = tags;
   }
 
   // Create Excel Backup
@@ -2223,7 +2216,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const display = (value) => escapeHtml(value && value.trim() !== '' ? value : '—');
-
+        
         return `
           <div class="holder-table-container">
             <table class="holder-info-table holder-info-table-modern">
@@ -2695,5 +2688,96 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     select.value = cleanSelected || '';
   }
+
+  const parseSqaValue = (rawValue) => {
+    const text = String(rawValue || '').trim();
+    if (!text) return { question: '', answer: '' };
+    const separatorIndex = text.indexOf('—');
+    if (separatorIndex === -1) {
+      return { question: text, answer: '' };
+    }
+    const question = text.slice(0, separatorIndex).trim();
+    const answer = text.slice(separatorIndex + 1).replace(/^[\s—-]+/, '').trim();
+    return { question, answer };
+  };
+
+  const loadSqaOptions = (forceRefresh = false) => {
+    if (!forceRefresh && masterSqaOptions.length) return;
+    masterSqaOptions = [];
+    masterSqaMap = new Map();
+    try {
+      const unifiedDataStr = localStorage.getItem('unified_master_data');
+      if (!unifiedDataStr) return;
+      const unifiedData = JSON.parse(unifiedDataStr) || {};
+      let entries = unifiedData.common?.SQA || [];
+      if (!Array.isArray(entries)) {
+        entries = Object.values(entries || {});
+      }
+      const unique = new Map();
+      entries.forEach(entry => {
+        const { question, answer } = parseSqaValue(entry);
+        if (!question) return;
+        if (!unique.has(question)) {
+          unique.set(question, answer || '');
+        }
+      });
+      masterSqaMap = unique;
+      masterSqaOptions = Array.from(unique.keys()).sort((a, b) => a.localeCompare(b));
+    } catch (error) {
+      console.error('Error loading SQA master data:', error);
+    }
+  };
+
+  const updateSqaAnswerDropdown = (index, questionValue, presetAnswer = '') => {
+    const answerSelect = document.getElementById(`Bank_Security_A${index}`);
+    if (!answerSelect) return;
+    const answerFromMaster = masterSqaMap.get(questionValue) || '';
+    const finalAnswer = answerFromMaster || presetAnswer;
+    const newAnswerSelect = answerSelect.cloneNode(false);
+    newAnswerSelect.id = answerSelect.id;
+    newAnswerSelect.className = answerSelect.className;
+    newAnswerSelect.innerHTML = '<option value="">Select Answer</option>';
+    if (answerFromMaster) {
+      newAnswerSelect.innerHTML += `<option value="${escapeHtml(answerFromMaster)}">${escapeHtml(answerFromMaster)}</option>`;
+    }
+    if (finalAnswer && finalAnswer !== answerFromMaster) {
+      newAnswerSelect.innerHTML += `<option value="${escapeHtml(finalAnswer)}">${escapeHtml(finalAnswer)}</option>`;
+    }
+    newAnswerSelect.value = finalAnswer || '';
+    newAnswerSelect.disabled = !questionValue;
+    answerSelect.parentNode.replaceChild(newAnswerSelect, answerSelect);
+  };
+
+  const setupSqaDropdown = (index, selectedQuestion = '', selectedAnswer = '') => {
+    const questionSelect = document.getElementById(`Bank_Security_Q${index}`);
+    if (!questionSelect) return;
+    const currentQuestion = selectedQuestion || questionSelect.value || '';
+    const newQuestionSelect = questionSelect.cloneNode(false);
+    newQuestionSelect.id = questionSelect.id;
+    newQuestionSelect.className = questionSelect.className;
+    newQuestionSelect.innerHTML = '<option value="">Select Question</option>';
+    masterSqaOptions.forEach(question => {
+      newQuestionSelect.innerHTML += `<option value="${escapeHtml(question)}">${escapeHtml(question)}</option>`;
+    });
+    if (currentQuestion && !masterSqaMap.has(currentQuestion)) {
+      newQuestionSelect.innerHTML += `<option value="${escapeHtml(currentQuestion)}">${escapeHtml(currentQuestion)}</option>`;
+    }
+    newQuestionSelect.value = currentQuestion || '';
+    questionSelect.parentNode.replaceChild(newQuestionSelect, questionSelect);
+
+    updateSqaAnswerDropdown(index, currentQuestion, selectedAnswer);
+
+    newQuestionSelect.addEventListener('change', (event) => {
+      updateSqaAnswerDropdown(index, event.target.value);
+    });
+  };
+
+  const populateSecurityDropdowns = (selectedSecurityQa = []) => {
+    loadSqaOptions(true);
+    for (let i = 1; i <= MAX_SECURITY_QUESTIONS; i++) {
+      const qa = selectedSecurityQa[i - 1] || {};
+      setupSqaDropdown(i, qa.question || '', qa.answer || '');
+    }
+  };
 
 });

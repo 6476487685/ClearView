@@ -1211,7 +1211,8 @@ body.dark .security-answer{
   letter-spacing:0.5px;
 }
 
-.security-item input{
+.security-item input,
+.security-item select{
   width:100%;
   border:1px solid var(--border);
   border-radius:var(--radius);
