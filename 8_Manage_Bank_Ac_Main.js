@@ -23,6 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnManualBackup = document.getElementById('btnManualBackup');
   const toastContainer = document.getElementById('toastContainer');
   const themeSwitchControl = document.getElementById('themeSwitch');
+  const masterEmailDatalist = document.getElementById('masterEmailOptions');
+  const masterPhoneDatalist = document.getElementById('masterPhoneOptions');
 
   const MAX_SECURITY_QUESTIONS = 6;
 
@@ -487,6 +489,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadAccountTags();
     populateInstitutionAndAcType();
     populateAccountStatusDropdown();
+    populateContactDatalists();
 
     // Populate Account Tag in modal
     const bankAcTagSelect = document.getElementById('Bank_Ac_Tag');
@@ -572,11 +575,11 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <div>
             <label>Email</label>
-            <input type="email" id="Bank_Holder_${i}_Email" placeholder="email@example.com">
+            <input type="email" id="Bank_Holder_${i}_Email" placeholder="email@example.com" list="masterEmailOptions">
           </div>
           <div>
             <label>Phone</label>
-            <input type="tel" id="Bank_Holder_${i}_Phone" placeholder="+91 123-456-7890" title="Format: +country_code phone (e.g., +91 647-647-1234)">
+            <input type="tel" id="Bank_Holder_${i}_Phone" placeholder="+91 123-456-7890" title="Format: +country_code phone (e.g., +91 647-647-1234)" list="masterPhoneOptions">
           </div>
         </div>
         <div class="holder-row">
@@ -2475,6 +2478,26 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error('Print error:', error);
       alert('Error printing record. Please try again.');
+    }
+  }
+
+  function populateContactDatalists() {
+    if (!masterEmailDatalist || !masterPhoneDatalist) return;
+    try {
+      const unifiedDataStr = localStorage.getItem('unified_master_data');
+      let commonData = {};
+      if (unifiedDataStr) {
+        const unifiedData = JSON.parse(unifiedDataStr);
+        commonData = unifiedData.common || {};
+      }
+
+      const emails = Array.from(new Set((commonData.Email || []).filter(email => email && email.trim() !== '')));
+      masterEmailDatalist.innerHTML = emails.map(email => `<option value="${escapeHtml(email)}"></option>`).join('');
+
+      const phones = Array.from(new Set((commonData.Phone || []).filter(phone => phone && phone.trim() !== '')));
+      masterPhoneDatalist.innerHTML = phones.map(phone => `<option value="${escapeHtml(phone)}"></option>`).join('');
+    } catch (e) {
+      console.error('Error populating shared email/phone options:', e);
     }
   }
 });

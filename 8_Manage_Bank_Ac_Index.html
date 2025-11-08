@@ -144,11 +144,11 @@
             </div>
             <div>
               <label>Nominee_Email</label>
-              <input type="email" id="Bank_Nominee_Email" placeholder="aashie@gmail.com">
+              <input type="email" id="Bank_Nominee_Email" placeholder="aashie@gmail.com" list="masterEmailOptions">
             </div>
             <div>
               <label>Nominee_Phone</label>
-              <input type="tel" id="Bank_Nominee_Phone" placeholder="+91 123-456-7890" title="Format: +country_code phone (e.g., +91 647-647-1234)">
+              <input type="tel" id="Bank_Nominee_Phone" placeholder="+91 123-456-7890" title="Format: +country_code phone (e.g., +91 647-647-1234)" list="masterPhoneOptions">
             </div>
           </div>
         </div>
@@ -249,6 +249,8 @@
           <button type="submit" id="saveBtn">Save</button>
         </div>
       </form>
+      <datalist id="masterEmailOptions"></datalist>
+      <datalist id="masterPhoneOptions"></datalist>
     </div>
   </div>
 
