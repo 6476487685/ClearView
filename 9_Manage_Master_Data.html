@@ -256,7 +256,8 @@
     }
     .value-row.sqa-row .value-actions {
       margin-left: auto;
-      flex-shrink: 0;
+      flex: 0 0 35%;
+      justify-content: flex-end;
     }
     .value-text.sqa-question {
       flex: 0 0 50%;
@@ -287,7 +288,6 @@
     .value-actions {
       display: flex;
       gap: 8px;
-      flex: 1;
       justify-content: flex-end;
     }
     .btn-icon {
@@ -343,7 +343,7 @@
       color: #dc2626;
     }
     .sqa-input-answer {
-      flex: 0 0 18%;
+      flex: 0 0 15%;
       font-size: 0.85rem;
       color: #15803d;
     }
@@ -355,7 +355,7 @@
       border-color: var(--accent-blue, #3b82f6);
     }
     .btn-add {
-      flex: 0 0 20%;
+      flex: 0 0 35%;
       display: inline-flex;
       justify-content: center;
       padding: 10px 20px;
@@ -1283,8 +1283,8 @@
         window.__fb_addValue = function(module, fieldKey){
           let v = '';
           if (fieldKey === 'SQA') {
-            const qInput = document.getElementById(`add_${module}_${fieldKey}_question`);
-            const aInput = document.getElementById(`add_${module}_${fieldKey}_answer`);
+            const questionInput = document.getElementById(`add_${module}_${fieldKey}_question`);
+            const answerInput = document.getElementById(`add_${module}_${fieldKey}_answer`);
             const question = qInput ? qInput.value.trim() : '';
             const answer = aInput ? aInput.value.trim() : '';
             if (!question) { alert('Please enter a security question'); return; }
