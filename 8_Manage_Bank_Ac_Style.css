@@ -655,78 +655,124 @@ body.dark .notes-field-scrollable{
 }
 
 .holder-table-header{
-  padding:8px 12px;
-  font-size:14px;
-  font-weight:600;
-  color:#000000;
-  border:1px solid #d3d3d3;
+  padding:10px 14px;
+  font-size:15px;
+  font-weight:700;
+  color:#ffffff;
+  border:1px solid #0d47a1;
   border-bottom:none;
-  border-radius:4px 4px 0 0;
+  border-radius:8px 8px 0 0;
   display:flex;
   justify-content:space-between;
   align-items:center;
+  background:linear-gradient(135deg,#1e88e5 0%,#1565c0 100%);
+  box-shadow:inset 0 -2px 0 rgba(255,255,255,0.2);
+}
+
+.holder-table-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  letter-spacing:0.5px;
 }
 
 body.dark .holder-table-header{
-  border-color:#404040;
+  border-color:#0b2f4a;
+  background:linear-gradient(135deg,#0d47a1 0%,#0b2f4a 100%);
+  box-shadow:inset 0 -2px 0 rgba(255,255,255,0.12);
 }
-
 
 .holder-info-table{
   width:100%;
   border-collapse:collapse;
-  border:1px solid #d3d3d3;
+  border:1px solid #0d47a1;
   font-size:13px;
   margin:0;
-  border-radius:4px 4px 0 0;
+  border-radius:0 0 8px 8px;
   overflow:hidden;
+  box-shadow:0 4px 12px rgba(21,101,192,0.15);
 }
 
-.holder-info-table thead{
+.holder-info-table-modern thead{
   background:#000000;
 }
 
-.holder-info-table th{
-  padding:8px 12px;
+.holder-info-table-modern thead th{
+  padding:10px 12px;
   text-align:left;
   font-weight:700;
-  color:#ffffff;
-  border:1px solid #d3d3d3;
-  font-size:13px;
+  color:#ffca28;
+  border:1px solid rgba(255,255,255,0.12);
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:0.6px;
 }
 
-.holder-info-table tbody{
+.holder-info-table-modern tbody{
   background:#ffffff;
 }
 
-.holder-info-table td{
+.holder-info-table-modern tbody td{
+  padding:9px 12px;
+  border:1px solid rgba(13,71,161,0.2);
+  color:#0b1a33;
+  font-size:12.5px;
+  font-weight:500;
+}
+
+.holder-info-table-modern .holder-subhead td{
+  background:#000000;
+  color:#ffca28;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  font-size:11.5px;
   padding:8px 12px;
-  border:1px solid #d3d3d3;
-  color:#000000;
-  word-wrap:break-word;
-  vertical-align:top;
+}
+
+.holder-info-table-modern .holder-subtext td{
+  background:#1f1f1f;
+  color:#ffe082;
+  font-style:italic;
+  font-size:11px;
+  padding:6px 12px;
+}
+
+.holder-info-table-modern tbody tr:last-child td{
+  border-bottom-left-radius:8px;
+  border-bottom-right-radius:8px;
 }
 
 body.dark .holder-info-table{
-  border-color:#404040;
+  border-color:#0b2f4a;
+  box-shadow:none;
 }
 
-body.dark .holder-info-table thead{
+body.dark .holder-info-table-modern thead{
   background:#000000;
 }
 
-body.dark .holder-info-table th{
-  border-color:#404040;
-  color:#ffffff;
+body.dark .holder-info-table-modern thead th{
+  border-color:rgba(255,255,255,0.25);
 }
 
-body.dark .holder-info-table tbody{
-  background:#2d2d2d;
+body.dark .holder-info-table-modern tbody{
+  background:#1a1a1a;
 }
 
-body.dark .holder-info-table td{
-  border-color:#404040;
-  color:#ffffff;
+body.dark .holder-info-table-modern tbody td{
+  border:1px solid rgba(255,255,255,0.12);
+  color:#f5f9ff;
+}
+
+body.dark .holder-info-table-modern .holder-subhead td{
+  background:#000000;
+  color:#ffeb3b;
+}
+
+body.dark .holder-info-table-modern .holder-subtext td{
+  background:#111111;
+  color:#ffe082;
 }
 
 .holder-additional-info{
@@ -982,13 +1028,16 @@ body.dark .toast-message{
 }
 
 .holder-type-badge-inline{
-  font-size:11px;
-  font-weight:600;
-  color:#1976d2;
-  background:#e3f2fd;
-  padding:2px 8px;
+  font-size:10px;
+  font-weight:700;
+  color:#ffe082;
+  background:rgba(255,255,255,0.12);
+  padding:2px 10px;
   border-radius:4px;
-  margin-left:8px;
+  margin-left:12px;
+  border:1px solid rgba(255,255,255,0.3);
+  text-transform:uppercase;
+  letter-spacing:0.6px;
 }
 
 /* Nominee Card */

@@ -305,6 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
         phone: phone,
         emailPhone: emailPhone, // Keep for backward compatibility
         loginPassword: document.getElementById(`Bank_Holder_${i}_LoginPassword`).value || '',
+        txnPassword: document.getElementById(`Bank_Holder_${i}_TxnPassword`).value || '',
         debitCard: document.getElementById(`Bank_Holder_${i}_DebitCard`).value || '',
         dcPin: dcPin,
         pin: pinValues.pin,
@@ -645,6 +646,13 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
           </div>
           <div>
+            <label>Transaction Password</label>
+            <div class="password-field">
+              <input type="password" id="Bank_Holder_${i}_TxnPassword" class="password-input" data-holder="txn-${i}">
+              <button type="button" class="password-toggle" data-holder="txn-${i}" style="display:none;">👁️</button>
+            </div>
+          </div>
+          <div>
             <label>Email</label>
             <select id="Bank_Holder_${i}_Email"></select>
           </div>
@@ -709,6 +717,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const emailField = document.getElementById(`Bank_Holder_${holderNum}_Email`);
             const phoneField = document.getElementById(`Bank_Holder_${holderNum}_Phone`);
             const loginPasswordField = document.getElementById(`Bank_Holder_${holderNum}_LoginPassword`);
+            const txnPasswordField = document.getElementById(`Bank_Holder_${holderNum}_TxnPassword`);
             const debitCardField = document.getElementById(`Bank_Holder_${holderNum}_DebitCard`);
             const dcpinField = document.getElementById(`Bank_Holder_${holderNum}_Dcpin`);
             const pinField = document.getElementById(`Bank_Holder_${holderNum}_Pin`);
@@ -736,6 +745,10 @@ document.addEventListener("DOMContentLoaded", () => {
               // Mask password initially
               loginPasswordField.type = 'password';
             }
+            if (txnPasswordField) {
+              txnPasswordField.value = holder.txnPassword || '';
+              txnPasswordField.type = 'password';
+            }
             if (debitCardField) debitCardField.value = holder.debitCard || '';
             if (dcpinField) dcpinField.value = holder.dcPin || '';
             const pinValues = extractPinValues(holder);
@@ -751,54 +764,63 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Password Reveal with 4 Rapid Clicks
   function setupPasswordReveal(holderNum) {
-    const passwordInput = document.getElementById(`Bank_Holder_${holderNum}_LoginPassword`);
-    const toggleBtn = document.querySelector(`.password-toggle[data-holder="${holderNum}"]`);
-    
-    if (!passwordInput || !toggleBtn) return;
+    const configs = [
+      {
+        type: 'login',
+        inputId: `Bank_Holder_${holderNum}_LoginPassword`,
+        toggleSelector: `.password-toggle[data-holder="${holderNum}"]`
+      },
+      {
+        type: 'txn',
+        inputId: `Bank_Holder_${holderNum}_TxnPassword`,
+        toggleSelector: `.password-toggle[data-holder="txn-${holderNum}"]`
+      }
+    ];
 
-    const holderId = `holder_${holderNum}`;
-    passwordClickCounts[holderId] = 0;
-    
-    // Show toggle button on focus
-    passwordInput.addEventListener('focus', () => {
-      toggleBtn.style.display = 'block';
-    });
+    configs.forEach(({ type, inputId, toggleSelector }) => {
+      const passwordInput = document.getElementById(inputId);
+      const toggleBtn = document.querySelector(toggleSelector);
+      if (!passwordInput || !toggleBtn) return;
 
-    // Hide toggle button on blur (after timeout)
-    passwordInput.addEventListener('blur', () => {
-      setTimeout(() => {
-        if (document.activeElement !== passwordInput) {
-          maskPassword(holderId, passwordInput, toggleBtn);
-          toggleBtn.style.display = 'none';
+      const holderId = `${type}_${holderNum}`;
+      passwordClickCounts[holderId] = 0;
+
+      passwordInput.addEventListener('focus', () => {
+        toggleBtn.style.display = 'block';
+      });
+
+      passwordInput.addEventListener('blur', () => {
+        setTimeout(() => {
+          if (document.activeElement !== passwordInput) {
+            maskPassword(holderId, passwordInput, toggleBtn);
+            toggleBtn.style.display = 'none';
+          }
+        }, 300);
+      });
+
+      passwordInput.addEventListener('click', (e) => {
+        e.preventDefault();
+        passwordClickCounts[holderId]++;
+
+        clearTimeout(passwordRevealTimeouts[holderId]);
+        passwordRevealTimeouts[holderId] = setTimeout(() => {
+          passwordClickCounts[holderId] = 0;
+        }, 2000);
+
+        if (passwordClickCounts[holderId] >= 4) {
+          revealPassword(holderId, passwordInput, toggleBtn);
+          passwordClickCounts[holderId] = 0;
         }
-      }, 300);
-    });
+      });
 
-    // 4 rapid clicks to reveal
-    passwordInput.addEventListener('click', (e) => {
-      e.preventDefault();
-      passwordClickCounts[holderId]++;
-      
-      // Reset counter after 2 seconds
-      clearTimeout(passwordRevealTimeouts[holderId]);
-      passwordRevealTimeouts[holderId] = setTimeout(() => {
-        passwordClickCounts[holderId] = 0;
-      }, 2000);
-
-      if (passwordClickCounts[holderId] >= 4) {
-        revealPassword(holderId, passwordInput, toggleBtn);
-        passwordClickCounts[holderId] = 0;
-      }
-    });
-
-    // Toggle button click
-    toggleBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (passwordInput.type === 'password') {
-        revealPassword(holderId, passwordInput, toggleBtn);
-      } else {
-        maskPassword(holderId, passwordInput, toggleBtn);
-      }
+      toggleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (passwordInput.type === 'password') {
+          revealPassword(holderId, passwordInput, toggleBtn);
+        } else {
+          maskPassword(holderId, passwordInput, toggleBtn);
+        }
+      });
     });
   }
 
@@ -992,61 +1014,72 @@ document.addEventListener("DOMContentLoaded", () => {
       const palette = ensurePaletteLength(holderPalette, holderCount);
       const colorIndex = Math.min(holderIndex, palette.length - 1);
       const holderColor = palette[colorIndex];
-      const headerStyle = `background: ${holderColor.tableHeaderBg}; color: ${holderColor.tableHeaderText}; border-bottom: 1px solid ${holderColor.border};`;
-      
+      const headerGradient = `linear-gradient(135deg, ${holderColor.gradientStart} 0%, ${holderColor.gradientEnd} 100%)`;
+      const headerStyle = `background: ${headerGradient}; color: ${holderColor.tableHeaderText}; border-bottom: 1px solid ${holderColor.border};`;
+
+      const { pin, tpin, mpin } = extractPinValues(holder);
+      let email = holder.email || '';
+      let phone = cleanPhone(holder.phone || '');
+      if (!email || !phone) {
+        const parts = (holder.emailPhone || '').split(' | ');
+        if (!email && parts[0]) email = parts[0];
+        if (!phone && parts[1]) phone = cleanPhone(parts[1]);
+      }
+
+      const display = (value) => escapeHtml(value && value.trim() !== '' ? value : '—');
+
       return `
         <div class="holder-table-container">
-          ${showHeader ? `
           <div class="holder-table-header" style="${headerStyle}">
-            <strong style="color:${holderColor.tableHeaderText};">Holder ${holderNum}: ${holder.name || ''}</strong> 
-            <span style="background:${holderColor.badgeBg}; color: ${holderColor.badgeText}; border:1px solid ${holderColor.border}; border-radius:12px; padding:2px 8px; font-size: 12px;">${holderType}</span>
+            <div class="holder-table-title">Holder ${holderNum}: ${escapeHtml(holder.name || '')}</div>
+            <span class="holder-type-badge-inline">${escapeHtml(holderType)}</span>
           </div>
-          ` : ''}
-          <table class="holder-info-table">
+          <table class="holder-info-table holder-info-table-modern">
             <thead>
               <tr>
-                <th>Client ID | Customer ID</th>
-                <th>Debit Card Information</th>
-                <th>Email | Phone</th>
-                <th>Interacc Email | UPI ID</th>
+                <th>Client_ID</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>DCPIN</th>
+                <th>PIN</th>
+                <th>TPIN</th>
+                <th>MPIN</th>
+                <th>Interacc_Email/UPI</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>${holder.clientID || ''}</td>
-                <td>${holder.debitCard || ''}</td>
-                <td>${formatEmailPhone(holder)}</td>
-                <td>${holder.interaccEmailOrUPIID || ''}</td>
+                <td>${display(holder.clientID)}</td>
+                <td>${display(email)}</td>
+                <td>${display(phone)}</td>
+                <td>${display(holder.dcPin)}</td>
+                <td>${display(pin)}</td>
+                <td>${display(tpin)}</td>
+                <td>${display(mpin)}</td>
+                <td>${display(holder.interaccEmailOrUPIID)}</td>
+              </tr>
+              <tr class="holder-subhead">
+                <td colspan="2">User ID</td>
+                <td colspan="2">Login Password</td>
+                <td colspan="2">Transaction Password</td>
+                <td colspan="2">Security Email / UPI</td>
+              </tr>
+              <tr>
+                <td colspan="2">${display(holder.userID)}</td>
+                <td colspan="2">${display(holder.loginPassword)}</td>
+                <td colspan="2">${display(holder.txnPassword)}</td>
+                <td colspan="2">${display(holder.interaccEmailOrUPIID)}</td>
               </tr>
             </tbody>
           </table>
-          <div class="holder-additional-info">
-            ${holder.userID ? `<div><strong>UserID_or_LoginID:</strong> ${holder.userID} / <strong>Login_Password:</strong> ${holder.loginPassword || ''}</div>` : ''}
-            <div><strong>DCPIN:</strong> ${holder.dcPin || ''}</div>
-            <div><strong>PIN | TPIN | MPIN:</strong> ${formatPins(holder)}</div>
-          </div>
         </div>
       `;
     };
 
     if (isSingleHolder) {
-      const palette = ensurePaletteLength(holderPalette, holderCount);
-      // Single holder - use compact table format (show header since no accordion)
       const holder = record.Bank_Holders[0];
       const holderType = 'Sole Holder';
-      holdersHtml = `
-        <div class="notes-card-minimal">
-          <div class="notes-content-minimal">
-            <div><strong>Client ID:</strong> ${holder.clientID || ''}</div>
-            <div><strong>User ID:</strong> ${holder.userID || ''}</div>
-            <div><strong>Email | Phone:</strong> ${formatEmailPhone(holder)}</div>
-            <div><strong>PIN | TPIN | MPIN:</strong> ${formatPins(holder)}</div>
-            <div><strong>Debit Card:</strong> ${holder.debitCard || ''}</div>
-            <div><strong>DCPIN:</strong> ${holder.dcPin || ''}</div>
-            <div><strong>Interacc Email / UPI ID:</strong> ${holder.interaccEmailOrUPIID || ''}</div>
-          </div>
-        </div>
-      `;
+      holdersHtml = createHolderTable(holder, 1, holderType, 0, true);
     } else {
       // Multiple holders - use accordion tabs with table format (no duplicate header)
       const palette = ensurePaletteLength(holderPalette, holderCount);
@@ -1616,6 +1649,7 @@ document.addEventListener("DOMContentLoaded", () => {
               banksData.push([`Holder ${hIdx + 1} UserID_or_LoginID`, holder.userID || '']);
               banksData.push([`Holder ${hIdx + 1} Email/Phone`, formatEmailPhone(holder)]);
               banksData.push([`Holder ${hIdx + 1} Login_Password`, holder.loginPassword || '']);
+              banksData.push([`Holder ${hIdx + 1} Transaction_Password`, holder.txnPassword || '']);
               banksData.push([`Holder ${hIdx + 1} Debit Card`, holder.debitCard || '']);
               banksData.push([`Holder ${hIdx + 1} DCPIN`, holder.dcPin || '']);
               banksData.push([`Holder ${hIdx + 1} PIN | TPIN | MPIN`, formatPins(holder)]);
@@ -1896,7 +1930,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         record.Bank_Holders.forEach((holder, hIdx) => {
           // Check if we need a new page for holders (check earlier to avoid cutting off)
-          const estimatedHolderHeight = 40; // Estimated height for one holder
+          const estimatedHolderHeight = 75;
           if (yPos + estimatedHolderHeight > pageHeight - marginBottom - 20) {
             doc.addPage();
             currentPage++;
@@ -1906,68 +1940,128 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
           const holderType = hIdx === 0 ? 'Sole Holder' : 'Joint Holder';
-          const holderStartY = yPos;
           const colorIndex = Math.min(hIdx, holderColors.length - 1);
           const holderColor = holderColors[colorIndex];
           
           // Holder Header with soothing colored background (matching display mode)
           doc.setFillColor(holderColor.header[0], holderColor.header[1], holderColor.header[2]);
-          doc.rect(marginLeft, yPos, contentWidth, 7, 'F');
+          doc.rect(marginLeft, yPos, contentWidth, 8, 'F');
           doc.setFontSize(10);
           doc.setFont(undefined, 'bold');
           doc.setTextColor(0, 0, 0);
-          doc.text(`Holder ${hIdx + 1}: ${holder.name || ''}`, marginLeft + 4, yPos + 5.5);
+          doc.text(`Holder ${hIdx + 1}: ${holder.name || ''}`, marginLeft + 3, yPos + 5.5);
           doc.setFontSize(8.5);
           doc.setTextColor(holderColor.text[0], holderColor.text[1], holderColor.text[2]);
           doc.text(holderType, pageWidth - marginRight - 35, yPos + 5.5);
-          yPos += 9;
+          yPos += 9.5;
 
-          // Table Header (Black background with white text)
-          doc.setFillColor(0, 0, 0); // Black
-          doc.rect(marginLeft, yPos, contentWidth, 7, 'F');
-          doc.setFontSize(8.5);
+          const { pin, tpin, mpin } = extractPinValues(holder);
+          let holderEmail = holder.email || '';
+          let holderPhone = cleanPhone(holder.phone || '');
+          if (!holderEmail || !holderPhone) {
+            const parts = (holder.emailPhone || '').split(' | ');
+            if (!holderEmail && parts[0]) holderEmail = parts[0];
+            if (!holderPhone && parts[1]) holderPhone = cleanPhone(parts[1]);
+          }
+
+          const primaryHeaders = ['Client_ID', 'Email', 'Phone', 'DCPIN', 'PIN', 'TPIN', 'MPIN', 'Interacc_Email/UPI'];
+          const primaryValues = [
+            holder.clientID || '—',
+            holderEmail || '—',
+            holderPhone || '—',
+            holder.dcPin || '—',
+            pin || '—',
+            tpin || '—',
+            mpin || '—',
+            holder.interaccEmailOrUPIID || '—'
+          ];
+          const primaryWidths = [32, 45, 38, 24, 22, 22, 22, contentWidth - 205];
+
+          doc.setDrawColor(13, 71, 161);
+          doc.setFillColor(0, 0, 0);
+          doc.setTextColor(255, 202, 40);
           doc.setFont(undefined, 'bold');
-          doc.setTextColor(255, 255, 255); // White
-          // Adjust column widths for landscape mode with new margins
-          const col1Width = 50;
-          const col2Width = 85;
-          const col3Width = 75;
-          const col4Width = contentWidth - col1Width - col2Width - col3Width - 12;
-          doc.text('Client ID | Customer ID', marginLeft + 3, yPos + 5.5);
-          doc.text('Debit Card Information', marginLeft + col1Width + 3, yPos + 5.5);
-          doc.text('Email | Phone', marginLeft + col1Width + col2Width + 3, yPos + 5.5);
-          doc.text('Interacc Email | UPI ID', marginLeft + col1Width + col2Width + col3Width + 3, yPos + 5.5);
-          yPos += 8;
-          
-          // Reset text color to black for table data
-          doc.setTextColor(0, 0, 0);
+          doc.setFontSize(8.8);
+          let currentX = marginLeft;
+          primaryHeaders.forEach((header, idx) => {
+            const width = primaryWidths[idx];
+            doc.rect(currentX, yPos, width, 6.5, 'F');
+            doc.text(header, currentX + 2, yPos + 4.6);
+            currentX += width;
+          });
+          yPos += 6.5;
 
-          // Table Data Row
-          doc.setFontSize(8.5);
           doc.setFont(undefined, 'normal');
           doc.setTextColor(0, 0, 0);
-          const clientIDText = doc.splitTextToSize(holder.clientID || '', col1Width - 4);
-          const debitCardText = doc.splitTextToSize(holder.debitCard || '', col2Width - 4);
-          const emailPhoneText = doc.splitTextToSize(formatEmailPhone(holder), col3Width - 4);
-          const interaccText = doc.splitTextToSize(holder.interaccEmailOrUPIID || '', col4Width - 4);
-          const maxRows = Math.max(clientIDText.length, debitCardText.length, emailPhoneText.length, interaccText.length, 1);
-          const rowHeight = 5.5;
-          
-          for (let i = 0; i < maxRows; i++) {
-            if (i < clientIDText.length) {
-              doc.text(clientIDText[i], marginLeft + 3, yPos);
-            }
-            if (i < debitCardText.length) {
-              doc.text(debitCardText[i], marginLeft + col1Width + 3, yPos);
-            }
-            if (i < emailPhoneText.length) {
-              doc.text(emailPhoneText[i], marginLeft + col1Width + col2Width + 3, yPos);
-            }
-            if (i < interaccText.length) {
-              doc.text(interaccText[i], marginLeft + col1Width + col2Width + col3Width + 3, yPos);
-            }
-            yPos += rowHeight;
-          }
+          currentX = marginLeft;
+          const valueLines = primaryValues.map((value, idx) => doc.splitTextToSize(value, primaryWidths[idx] - 4));
+          const primaryRowHeight = Math.max(8, Math.max(...valueLines.map(lines => lines.length)) * 4.6);
+          primaryValues.forEach((value, idx) => {
+            const width = primaryWidths[idx];
+            const lines = valueLines[idx];
+            doc.rect(currentX, yPos, width, primaryRowHeight);
+            doc.text(lines, currentX + 2, yPos + 4.6);
+            currentX += width;
+          });
+          yPos += primaryRowHeight;
+
+          doc.setFillColor(0, 0, 0);
+          doc.setTextColor(255, 202, 40);
+          doc.setFont(undefined, 'bold');
+          doc.rect(marginLeft, yPos, contentWidth, 6, 'F');
+          doc.text('Debit Card Info', marginLeft + 2, yPos + 4.4);
+          yPos += 6;
+
+          doc.setFillColor(31, 31, 31);
+          doc.setTextColor(255, 224, 130);
+          doc.setFont(undefined, 'italic');
+          doc.rect(marginLeft, yPos, contentWidth, 5.5, 'F');
+          doc.text('Format: Card Number | Expiry: MM/YY | CVV | Card Type | Extra Digits', marginLeft + 2, yPos + 4);
+          yPos += 5.5;
+
+          const debitLines = doc.splitTextToSize(holder.debitCard || '—', contentWidth - 4);
+          const debitHeight = Math.max(8, debitLines.length * 4.6 + 1.5);
+          doc.setFillColor(255, 255, 255);
+          doc.setTextColor(0, 0, 0);
+          doc.setFont(undefined, 'normal');
+          doc.rect(marginLeft, yPos, contentWidth, debitHeight);
+          doc.text(debitLines, marginLeft + 2, yPos + 4.6);
+          yPos += debitHeight;
+
+          doc.setFillColor(0, 0, 0);
+          doc.setTextColor(255, 202, 40);
+          doc.setFont(undefined, 'bold');
+          const credentialHeaders = ['User ID', 'Login Password', 'Transaction Password', 'Security Email / UPI'];
+          const credentialWidths = [58, 60, 70, contentWidth - 188];
+          currentX = marginLeft;
+          credentialHeaders.forEach((header, idx) => {
+            const width = credentialWidths[idx];
+            doc.rect(currentX, yPos, width, 6, 'F');
+            doc.text(header, currentX + 2, yPos + 4.4);
+            currentX += width;
+          });
+          yPos += 6;
+
+          const credentialValues = [
+            holder.userID || '—',
+            holder.loginPassword || '—',
+            holder.txnPassword || '—',
+            holder.interaccEmailOrUPIID || '—'
+          ];
+          const credentialLines = credentialValues.map((value, idx) => doc.splitTextToSize(value, credentialWidths[idx] - 4));
+          const credentialRowHeight = Math.max(8, Math.max(...credentialLines.map(lines => lines.length)) * 4.6);
+          doc.setFillColor(255, 255, 255);
+          doc.setTextColor(0, 0, 0);
+          doc.setFont(undefined, 'normal');
+          currentX = marginLeft;
+          credentialValues.forEach((value, idx) => {
+            const width = credentialWidths[idx];
+            const lines = credentialLines[idx];
+            doc.rect(currentX, yPos, width, credentialRowHeight);
+            doc.text(lines, currentX + 2, yPos + 4.6);
+            currentX += width;
+          });
+          yPos += credentialRowHeight + 6;
 
           // Draw table borders (including holder header)
           doc.setDrawColor(211, 211, 211);
@@ -1986,6 +2080,8 @@ document.addEventListener("DOMContentLoaded", () => {
             doc.text(`UserID: ${holder.userID}`, marginLeft + 4, yPos);
             yPos += 5.5;
           }
+          doc.text(`Transaction Password: ${holder.txnPassword || ''}`, marginLeft + 4, yPos);
+          yPos += 5.5;
           doc.text(`DCPIN: ${holder.dcPin || ''}`, marginLeft + 4, yPos);
           yPos += 5.5;
           doc.text(`PIN | TPIN | MPIN: ${formatPins(holder)}`, marginLeft + 4, yPos);
@@ -2203,6 +2299,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </table>
             <div class="holder-additional-info">
               ${holder.userID ? `<div><strong>UserID_or_LoginID:</strong> ${holder.userID} / <strong>Login_Password:</strong> ${holder.loginPassword || ''}</div>` : ''}
+              <div><strong>Transaction Password:</strong> ${holder.txnPassword || ''}</div>
               <div><strong>DCPIN:</strong> ${holder.dcPin || ''}</div>
               <div><strong>PIN | TPIN | MPIN:</strong> ${formatPins(holder)}</div>
             </div>
@@ -2311,43 +2408,83 @@ document.addEventListener("DOMContentLoaded", () => {
                 margin-bottom: 10px;
               }
               .holder-table-header {
-                background: #e3f2fd;
-                padding: 6px 10px;
-                font-size: 10.5px;
-                font-weight: 600;
-                color: #000000;
-                border: 1px solid #d3d3d3;
+                background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+                padding: 9px 12px;
+                font-size: 13px;
+                font-weight: 700;
+                color: #ffffff;
+                border: 1px solid #0d47a1;
                 border-bottom: none;
-                border-radius: 4px 4px 0 0;
+                border-radius: 8px 8px 0 0;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                box-shadow: inset 0 -2px 0 rgba(255,255,255,0.2);
+              }
+              .holder-table-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                letter-spacing: 0.4px;
+              }
+              .holder-type-badge-inline {
+                font-size: 8.5px;
+                font-weight: 600;
+                color: #ffe082;
+                background: rgba(255, 255, 255, 0.12);
+                border: 1px solid rgba(255, 255, 255, 0.25);
+                padding: 1px 6px;
+                border-radius: 4px;
+                text-transform: uppercase;
+                letter-spacing: 0.6px;
               }
               .holder-info-table {
                 width: 100%;
                 border-collapse: collapse;
-                border: 1px solid #d3d3d3;
+                border: 1px solid #0d47a1;
                 font-size: 9.5px;
                 background: #ffffff;
+                border-radius: 0 0 8px 8px;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(21,101,192,0.12);
               }
               .holder-info-table thead {
                 background: #000000;
               }
-              .holder-info-table th {
-                padding: 6px 9px;
+              .holder-info-table thead th {
+                padding: 7px 9px;
                 text-align: left;
                 font-weight: 700;
-                color: #ffffff;
-                border: 1px solid #d3d3d3;
+                color: #ffca28;
+                border: 1px solid rgba(255,255,255,0.12);
+                font-size: 9.5px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              }
+              .holder-info-table tbody {
+                background: #ffffff;
+              }
+              .holder-info-table tbody td {
+                padding: 7px 9px;
+                border: 1px solid rgba(13,71,161,0.2);
+                color: #0b1a33;
                 font-size: 9.5px;
               }
-              .holder-info-table td {
+              .holder-info-table .holder-subhead td {
+                background: #000000;
+                color: #ffca28;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.45px;
+                font-size: 9px;
                 padding: 6px 9px;
-                border: 1px solid #d3d3d3;
-                color: #000000;
-                word-wrap: break-word;
-                vertical-align: top;
-                font-size: 9.5px;
+              }
+              .holder-info-table .holder-subtext td {
+                background: #1f1f1f;
+                color: #ffe082;
+                font-style: italic;
+                font-size: 8.5px;
+                padding: 5px 9px;
               }
               .holder-additional-info {
                 padding: 6px 10px;
