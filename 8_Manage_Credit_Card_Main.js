@@ -618,7 +618,10 @@ document.addEventListener('DOMContentLoaded', () => {
           ${buildInfoCard('Contact & Institution', contactRows)}
         </div>
         <div class="column-right">
-          ${buildInfoCard('Account Details', accountRows)}
+          <div class="fields-card-minimal">
+            <div class="section-heading-minimal"><strong>Account Details</strong></div>
+            ${accountGridHtml}
+          </div>
         </div>
       </div>
 
@@ -1295,16 +1298,14 @@ document.addEventListener('DOMContentLoaded', () => {
         { label: 'Portal', value: record.Credit_URL || '—' }
       ];
 
-      const rightEntries = [
+      renderInfoColumns(leftEntries, [
         { label: 'Account #', value: record.Credit_Account_Number || '—' },
         { label: 'Billing Cycle', value: record.Credit_Billing_Cycle || '—' },
         { label: 'Statement Date', value: record.Credit_Statement_Day || '—' },
         { label: 'Payment Due By', value: record.Credit_Payment_Due_Day || '—' },
         { label: 'Login', value: record.Credit_Login_ID || '—' },
         { label: 'Password', value: record.Credit_Login_Password ? '••••••••' : '—' }
-      ];
-
-      renderInfoColumns(leftEntries, rightEntries);
+      ]);
 
       const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
       const primaryRow = [
@@ -1401,15 +1402,26 @@ document.addEventListener('DOMContentLoaded', () => {
         </table>
       `;
 
-      const accountTable = `
-        <table class="info-table">
+      const accountRows = [
+        { label: 'Account #', value: record.Credit_Account_Number || '—' },
+        { label: 'Billing Cycle', value: record.Credit_Billing_Cycle || '—' },
+        { label: 'Statement Date', value: record.Credit_Statement_Day || '—' },
+        { label: 'Payment Due By', value: record.Credit_Payment_Due_Day || '—' },
+        { label: 'Login', value: record.Credit_Login_ID || '—' },
+        { label: 'Password', value: record.Credit_Login_Password ? '••••••••' : '—' }
+      ];
+
+      const accountGridHtml = `
+        <table class="holder-info-table holder-info-table-modern credit-info-table">
           <tbody>
-            <tr><td>Account #</td><td>${escapeHtml(record.Credit_Account_Number || '—')}</td></tr>
-            <tr><td>Billing Cycle</td><td>${escapeHtml(record.Credit_Billing_Cycle || '—')}</td></tr>
-            <tr><td>Statement Date</td><td>${escapeHtml(record.Credit_Statement_Day || '—')}</td></tr>
-            <tr><td>Payment Due By</td><td>${escapeHtml(record.Credit_Payment_Due_Day || '—')}</td></tr>
-            <tr><td>Login</td><td>${escapeHtml(record.Credit_Login_ID || '—')}</td></tr>
-            <tr><td>Password</td><td>${record.Credit_Login_Password ? '••••••••' : '—'}</td></tr>
+            ${[0, 2, 4].map(i => `
+              <tr>
+                <td>${escapeHtml(accountRows[i].label)}</td>
+                <td>${escapeHtml(accountRows[i].value)}</td>
+                <td>${escapeHtml(accountRows[i + 1].label)}</td>
+                <td>${escapeHtml(accountRows[i + 1].value)}</td>
+              </tr>
+            `).join('')}
           </tbody>
         </table>
       `;
@@ -1520,7 +1532,7 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
               <div class="info-card">
                 <h3>Account Details</h3>
-                ${accountTable}
+                ${accountGridHtml}
               </div>
             </div>
 
