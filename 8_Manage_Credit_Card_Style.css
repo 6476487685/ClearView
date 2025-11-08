@@ -1,1 +1,17 @@
 @import url('8_Manage_Bank_Ac_Style.css');
+
+.credit-info-table tbody td{
+  text-align:left;
+  font-size:12.5px;
+  padding:8px 12px;
+}
+
+.credit-info-table tbody td:first-child{
+  font-weight:700;
+  color:#1a237e;
+  width:40%;
+}
+
+body.dark .credit-info-table tbody td:first-child{
+  color:#ffeb3b;
+}

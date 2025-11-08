@@ -253,6 +253,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <label>Extra Digits</label>
           <input type="text" class="add-on-extra" placeholder="Optional">
         </div>
+        <div>
+          <label>Txn PIN</label>
+          <input type="text" class="add-on-txn-pin" placeholder="XXXX">
+        </div>
+        <div>
+          <label>Tele PIN</label>
+          <input type="text" class="add-on-tele-pin" placeholder="XXXX">
+        </div>
         <div style="display:flex;align-items:flex-end;">
           <button type="button" class="btn-delete" style="width:100%;">Remove</button>
         </div>
@@ -267,6 +275,8 @@ document.addEventListener('DOMContentLoaded', () => {
     addOnWrapper.querySelector('.add-on-cvv').value = data.cvv || '';
     addOnWrapper.querySelector('.add-on-amex').value = data.amexCode || '';
     addOnWrapper.querySelector('.add-on-extra').value = data.extraDigits || '';
+    addOnWrapper.querySelector('.add-on-txn-pin').value = data.txnPin || '';
+    addOnWrapper.querySelector('.add-on-tele-pin').value = data.telePin || '';
 
     addOnWrapper.querySelector('.btn-delete').addEventListener('click', () => {
       addOnWrapper.remove();
@@ -286,8 +296,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const cvv = row.querySelector('.add-on-cvv')?.value || '';
       const amexCode = row.querySelector('.add-on-amex')?.value || '';
       const extraDigits = row.querySelector('.add-on-extra')?.value || '';
-      if (holder || cardNumber || validFrom || validTo || cvv || amexCode || extraDigits) {
-        cards.push({ holder, cardNumber, validFrom, validTo, cvv, amexCode, extraDigits });
+      const txnPin = row.querySelector('.add-on-txn-pin')?.value || '';
+      const telePin = row.querySelector('.add-on-tele-pin')?.value || '';
+      if (holder || cardNumber || validFrom || validTo || cvv || amexCode || extraDigits || txnPin || telePin) {
+        cards.push({ holder, cardNumber, validFrom, validTo, cvv, amexCode, extraDigits, txnPin, telePin });
       }
     });
     return cards;
@@ -514,39 +526,62 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayTag = record.Credit_Ac_Tag || 'No Account Tag';
     const recordLabel = `Record #${recordNumber}: ${displayTag}`;
 
-    const cardNumberDisplay = record.Credit_Card_Number ? record.Credit_Card_Number.replace(/\s+/g, '') : '';
-    const helplinePhones = [record.Credit_Helpline_Phone1, record.Credit_Helpline_Phone2, record.Credit_Helpline_Phone3].filter(p => p);
-    const helplineEmails = [record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3].filter(e => e);
+    const helplinePhones = [record.Credit_Helpline_Phone1, record.Credit_Helpline_Phone2, record.Credit_Helpline_Phone3]
+      .map(cleanPhone)
+      .filter(Boolean)
+      .join(' / ');
+    const helplineEmails = [record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3]
+      .filter(Boolean)
+      .join(' / ');
 
-    const addOnHtml = (record.AddOnCards || []).map((card, idx) => `
-      <div class="holder-table-container">
-        <table class="holder-info-table holder-info-table-modern">
-          <thead>
-            <tr>
-              <th colspan="6">Add-On Card #${idx + 1}</th>
-            </tr>
-            <tr>
-              <th>Holder</th>
-              <th>Card Number</th>
-              <th>Valid From</th>
-              <th>Valid To</th>
-              <th>CVV</th>
-              <th>Extra Codes</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>${escapeHtml(card.holder || '—')}</td>
-              <td>${escapeHtml(card.cardNumber || '—')}</td>
-              <td>${escapeHtml(card.validFrom || '—')}</td>
-              <td>${escapeHtml(card.validTo || '—')}</td>
-              <td>${escapeHtml(card.cvv || '—')}</td>
-              <td>${escapeHtml([card.amexCode, card.extraDigits].filter(Boolean).join(' | ') || '—')}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    `).join('');
+    const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
+
+    const contactRows = [
+      { label: 'Institution', value: record.Credit_Institution || '—' },
+      { label: 'Helpline Phone', value: helplinePhones || '—' },
+      { label: 'Helpline Email', value: helplineEmails || '—' },
+      {
+        label: 'Portal',
+        value: record.Credit_URL
+          ? `<a href="${escapeHtml(record.Credit_URL)}" target="_blank" class="info-link">${escapeHtml(record.Credit_URL)}</a>`
+          : '—',
+        html: true
+      }
+    ];
+
+    const accountRows = [
+      { label: 'Account #', value: record.Credit_Account_Number || '—' },
+      { label: 'Billing Cycle', value: record.Credit_Billing_Cycle || '—' },
+      { label: 'Statement Date', value: record.Credit_Statement_Day || '—' },
+      { label: 'Payment Due By', value: record.Credit_Payment_Due_Day || '—' },
+      { label: 'Login', value: record.Credit_Login_ID || '—' },
+      { label: 'Password', value: record.Credit_Login_Password ? '••••••••' : '—' }
+    ];
+
+    const primaryRow = [
+      record.Credit_Primary_Holder || '—',
+      record.Credit_Card_Number || '—',
+      record.Credit_Valid_From || '—',
+      record.Credit_Valid_To || '—',
+      record.Credit_CVV || '—',
+      extraCodes || '—',
+      record.Credit_Transaction_Pin || '—',
+      record.Credit_Tele_Pin || '—'
+    ];
+
+    const addOnTables = (record.AddOnCards || []).map((cardData, idx) => {
+      const row = [
+        cardData.holder || '—',
+        cardData.cardNumber || '—',
+        cardData.validFrom || '—',
+        cardData.validTo || '—',
+        cardData.cvv || '—',
+        [cardData.amexCode, cardData.extraDigits].filter(Boolean).join(' | ') || '—',
+        cardData.txnPin || '—',
+        cardData.telePin || '—'
+      ];
+      return buildHolderTable(`Add-On Card #${idx + 1}`, row);
+    }).join('');
 
     card.innerHTML = `
       <div class="account-tag-bar-minimal">
@@ -562,79 +597,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="two-column-layout">
         <div class="column-left">
-          <div class="fields-card-minimal">
-            <div class="section-heading-minimal"><strong>Primary Card Details</strong></div>
-            <div class="fields-content-minimal">
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>Institution:</strong></span>
-                <span class="field-value-minimal">${escapeHtml(record.Credit_Institution || '')}</span>
-              </div>
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>Primary Holder:</strong></span>
-                <span class="field-value-minimal">${escapeHtml(record.Credit_Primary_Holder || '')}</span>
-              </div>
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>Card Number:</strong></span>
-                <span class="field-value-minimal">${escapeHtml(cardNumberDisplay || '—')}</span>
-              </div>
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>Validity:</strong></span>
-                <span class="field-value-minimal">${escapeHtml([record.Credit_Valid_From, record.Credit_Valid_To].filter(Boolean).join(' ➝ ') || '—')}</span>
-              </div>
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>CVV / Extra:</strong></span>
-                <span class="field-value-minimal">${escapeHtml([record.Credit_CVV, record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ') || '—')}</span>
-              </div>
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>PINs:</strong></span>
-                <span class="field-value-minimal">Txn: ${escapeHtml(record.Credit_Transaction_Pin || '—')} | Tele: ${escapeHtml(record.Credit_Tele_Pin || '—')}</span>
-              </div>
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>Billing Cycle:</strong></span>
-                <span class="field-value-minimal">${escapeHtml(record.Credit_Billing_Cycle || '—')}</span>
-              </div>
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>Dates:</strong></span>
-                <span class="field-value-minimal">Statement: ${escapeHtml(record.Credit_Statement_Day || '—')} | Due: ${escapeHtml(record.Credit_Payment_Due_Day || '—')}</span>
-              </div>
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>Login:</strong></span>
-                <span class="field-value-minimal">${escapeHtml(record.Credit_Login_ID || '—')}</span>
-              </div>
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>Password:</strong></span>
-                <span class="field-value-minimal">${record.Credit_Login_Password ? '••••••••' : '—'}</span>
-              </div>
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>Account #:</strong></span>
-                <span class="field-value-minimal">${escapeHtml(record.Credit_Account_Number || '—')}</span>
-              </div>
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>Portal:</strong></span>
-                <span class="field-value-minimal">${record.Credit_URL ? `<a href="${record.Credit_URL}" target="_blank" class="info-link">${record.Credit_URL}</a>` : '—'}</span>
-              </div>
-            </div>
-          </div>
+          ${buildInfoCard('Contact & Institution', contactRows)}
         </div>
         <div class="column-right">
-          <div class="fields-card-minimal">
-            <div class="section-heading-minimal"><strong>Helpline &amp; Contacts</strong></div>
-            <div class="fields-content-minimal">
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>Phones:</strong></span>
-                <span class="field-value-minimal">${helplinePhones.map(cleanPhone).filter(Boolean).join(' / ') || '—'}</span>
-              </div>
-              <div class="field-row-minimal">
-                <span class="field-label-minimal"><strong>Emails:</strong></span>
-                <span class="field-value-minimal">${helplineEmails.join(' / ') || '—'}</span>
-              </div>
-            </div>
-          </div>
+          ${buildInfoCard('Account Details', accountRows)}
         </div>
       </div>
 
-      ${addOnHtml ? `<div class="holders-full-width">${addOnHtml}</div>` : ''}
-
+      ${buildHolderTable('Primary Card Details', primaryRow)}
+      ${addOnTables}
       ${renderSecuritySummary(record.Credit_Security_QA || [])}
     `;
 
@@ -1151,12 +1122,16 @@ document.addEventListener('DOMContentLoaded', () => {
   /* -------------------- PDF Export -------------------- */
   const generatePDF = () => {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('portrait', 'mm', 'a4');
+    const doc = new jsPDF('landscape', 'mm', 'a4');
     const marginLeft = 18;
     const marginTop = 18;
     const marginRight = 18;
-    const contentWidth = doc.internal.pageSize.getWidth() - marginLeft - marginRight;
+    const marginBottom = 18;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const contentWidth = pageWidth - marginLeft - marginRight;
     let yPos = marginTop;
+    const lineHeight = 4.5;
 
     const data = getData();
     if (!data.length) {
@@ -1165,88 +1140,211 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
+    doc.setFontSize(16);
     doc.text('Credit Card Records', marginLeft, yPos);
-    yPos += 8;
+    yPos += 10;
 
-    const lineGap = 5;
-    const drawField = (label, value) => {
+    const renderInfoColumns = (leftEntries, rightEntries) => {
+      const gap = 8;
+      const columnWidth = (contentWidth - gap) / 2;
+      let colYLeft = yPos;
+      let colYRight = yPos;
+
+      const drawColumn = (entries, startX, currentY) => {
+        entries.forEach(entry => {
+          const label = entry.label;
+          const value = String(entry.value || '—');
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(9);
+          doc.text(`${label}:`, startX, currentY);
+          const valueLines = doc.splitTextToSize(value, columnWidth - 32);
+          doc.setFont('helvetica', 'normal');
+          doc.text(valueLines, startX + 32, currentY);
+          const height = Math.max(lineHeight, valueLines.length * lineHeight);
+          currentY += height + 1.5;
+        });
+        return currentY;
+      };
+
+      colYLeft = drawColumn(leftEntries, marginLeft, colYLeft);
+      colYRight = drawColumn(rightEntries, marginLeft + columnWidth + gap, colYRight);
+      yPos = Math.max(colYLeft, colYRight) + 6;
+    };
+
+    const tableColumnPercents = [0.17, 0.17, 0.09, 0.09, 0.09, 0.16, 0.11, 0.12];
+    const tableColumnWidths = tableColumnPercents.map(p => contentWidth * p);
+
+    const drawTable = (headers, rows) => {
+      const headerHeight = 7;
+      let tableY = yPos;
+
+      if (tableY + headerHeight + rows.length * 7 > pageHeight - marginBottom) {
+        doc.addPage();
+        yPos = marginTop;
+        tableY = yPos;
+      }
+
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(9);
-      doc.text(`${label}:`, marginLeft, yPos);
+      doc.setFillColor(13, 71, 161);
+      doc.setTextColor(255, 255, 255);
+
+      let x = marginLeft;
+      headers.forEach((header, idx) => {
+        const width = tableColumnWidths[idx];
+        doc.rect(x, tableY, width, headerHeight, 'F');
+        doc.text(header, x + 1.5, tableY + 4.5);
+        x += width;
+      });
+
+      tableY += headerHeight;
       doc.setFont('helvetica', 'normal');
-      doc.text(String(value || '—'), marginLeft + 30, yPos);
-      yPos += lineGap;
+      doc.setTextColor(0, 0, 0);
+
+      rows.forEach((row, rowIdx) => {
+        let rowHeight = 6.5;
+        const cellLines = row.map((value, idx) => {
+          const text = String(value || '—');
+          const lines = doc.splitTextToSize(text, tableColumnWidths[idx] - 2.5);
+          rowHeight = Math.max(rowHeight, lines.length * lineHeight + 2);
+          return lines;
+        });
+
+        if (tableY + rowHeight > pageHeight - marginBottom) {
+          doc.addPage();
+          yPos = marginTop;
+          tableY = yPos;
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(9);
+          doc.setFillColor(13, 71, 161);
+          doc.setTextColor(255, 255, 255);
+          let resetX = marginLeft;
+          headers.forEach((header, idx) => {
+            const width = tableColumnWidths[idx];
+            doc.rect(resetX, tableY, width, headerHeight, 'F');
+            doc.text(header, resetX + 1.5, tableY + 4.5);
+            resetX += width;
+          });
+          tableY += headerHeight;
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(0, 0, 0);
+        }
+
+        let cellX = marginLeft;
+        cellLines.forEach((lines, idx) => {
+          const width = tableColumnWidths[idx];
+          doc.rect(cellX, tableY, width, rowHeight);
+          doc.text(lines, cellX + 1, tableY + 4);
+          cellX += width;
+        });
+        tableY += rowHeight;
+      });
+
+      yPos = tableY + 6;
     };
 
     data.forEach((record, idx) => {
+      if (idx > 0 && yPos > pageHeight - marginBottom - 20) {
+        doc.addPage();
+        yPos = marginTop;
+      }
+
       const recordNumber = idx + 1;
       const displayTag = record.Credit_Ac_Tag || 'Untitled';
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
+      doc.setFontSize(12);
       doc.setTextColor(13, 71, 161);
       doc.text(`Record #${recordNumber}: ${displayTag}`, marginLeft, yPos);
       doc.setDrawColor(200, 200, 200);
       doc.line(marginLeft, yPos + 1.5, marginLeft + contentWidth, yPos + 1.5);
-      yPos += 6;
+      yPos += 7;
       doc.setTextColor(0, 0, 0);
 
-      drawField('Institution', record.Credit_Institution);
-      drawField('Primary Holder', record.Credit_Primary_Holder);
-      drawField('Card Number', record.Credit_Card_Number);
-      drawField('Valid From', record.Credit_Valid_From);
-      drawField('Valid To', record.Credit_Valid_To);
-      drawField('CVV', record.Credit_CVV);
-      drawField('AmEx Code', record.Credit_Amex_Code);
-      drawField('Extra Digits', record.Credit_Extra_Digits);
-      drawField('Transaction PIN', record.Credit_Transaction_Pin);
-      drawField('Tele PIN', record.Credit_Tele_Pin);
-      drawField('Billing Cycle', record.Credit_Billing_Cycle);
-      drawField('Statement Day', record.Credit_Statement_Day);
-      drawField('Payment Due Day', record.Credit_Payment_Due_Day);
-      drawField('Login ID', record.Credit_Login_ID);
-      drawField('Account Number', record.Credit_Account_Number);
-      drawField('Portal URL', record.Credit_URL);
-      drawField('Helpline Phones', [record.Credit_Helpline_Phone1, record.Credit_Helpline_Phone2, record.Credit_Helpline_Phone3].filter(Boolean).join(' / '));
-      drawField('Helpline Emails', [record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3].filter(Boolean).join(' / '));
+      const helplinePhones = [record.Credit_Helpline_Phone1, record.Credit_Helpline_Phone2, record.Credit_Helpline_Phone3]
+        .map(cleanPhone)
+        .filter(Boolean)
+        .join(' / ');
+      const helplineEmails = [record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3]
+        .filter(Boolean)
+        .join(' / ');
 
-      if (record.AddOnCards && record.AddOnCards.length) {
+      const leftEntries = [
+        { label: 'Institution', value: record.Credit_Institution || '—' },
+        { label: 'Helpline Phone', value: helplinePhones || '—' },
+        { label: 'Helpline Email', value: helplineEmails || '—' },
+        { label: 'Portal', value: record.Credit_URL || '—' }
+      ];
+
+      const rightEntries = [
+        { label: 'Account #', value: record.Credit_Account_Number || '—' },
+        { label: 'Billing Cycle', value: record.Credit_Billing_Cycle || '—' },
+        { label: 'Statement Date', value: record.Credit_Statement_Day || '—' },
+        { label: 'Payment Due By', value: record.Credit_Payment_Due_Day || '—' },
+        { label: 'Login', value: record.Credit_Login_ID || '—' },
+        { label: 'Password', value: record.Credit_Login_Password ? '••••••••' : '—' }
+      ];
+
+      renderInfoColumns(leftEntries, rightEntries);
+
+      const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
+      const primaryRow = [
+        record.Credit_Primary_Holder || '—',
+        record.Credit_Card_Number || '—',
+        record.Credit_Valid_From || '—',
+        record.Credit_Valid_To || '—',
+        record.Credit_CVV || '—',
+        extraCodes || '—',
+        record.Credit_Transaction_Pin || '—',
+        record.Credit_Tele_Pin || '—'
+      ];
+
+      drawTable(
+        ['Holder', 'Card Number', 'Valid From', 'Valid To', 'CVV', 'Extra Codes', 'Txn_PIN', 'Tele_PIN'],
+        [primaryRow]
+      );
+
+      (record.AddOnCards || []).forEach((card, addIdx) => {
         doc.setFont('helvetica', 'bold');
-        doc.text('Add-On Cards:', marginLeft, yPos);
-        yPos += lineGap;
-        record.AddOnCards.forEach((card, addIdx) => {
-          doc.setFont('helvetica', 'bold');
-          doc.text(`• Card #${addIdx + 1}`, marginLeft, yPos);
-          yPos += lineGap;
-          doc.setFont('helvetica', 'normal');
-          doc.text(`Holder: ${card.holder || '—'}`, marginLeft + 4, yPos);
-          yPos += lineGap;
-          doc.text(`Number: ${card.cardNumber || '—'}`, marginLeft + 4, yPos);
-          yPos += lineGap;
-          doc.text(`Validity: ${[card.validFrom, card.validTo].filter(Boolean).join(' ➝ ') || '—'}`, marginLeft + 4, yPos);
-          yPos += lineGap;
-          doc.text(`CVV: ${card.cvv || '—'} | Codes: ${[card.amexCode, card.extraDigits].filter(Boolean).join(' | ') || '—'}`, marginLeft + 4, yPos);
-          yPos += lineGap;
-        });
-      }
+        doc.setFontSize(10);
+        doc.text(`Add-On Card #${addIdx + 1}`, marginLeft, yPos);
+        yPos += 5;
+        const addOnRow = [
+          card.holder || '—',
+          card.cardNumber || '—',
+          card.validFrom || '—',
+          card.validTo || '—',
+          [card.amexCode, card.extraDigits].filter(Boolean).join(' | ') || '—',
+          card.txnPin || '—',
+          card.telePin || '—'
+        ];
+        drawTable(
+          ['Holder', 'Card Number', 'Valid From', 'Valid To', 'CVV', 'Extra Codes', 'Txn_PIN', 'Tele_PIN'],
+          [addOnRow]
+        );
+      });
 
       if (record.Credit_Security_QA && record.Credit_Security_QA.length) {
+        if (yPos > pageHeight - marginBottom - 40) {
+          doc.addPage();
+          yPos = marginTop;
+        }
         doc.setFont('helvetica', 'bold');
-        doc.text('Security Questions:', marginLeft, yPos);
-        yPos += lineGap;
+        doc.setFontSize(10);
+        doc.text('Security Questions (Password Recovery)', marginLeft, yPos);
+        yPos += 5;
         doc.setFont('helvetica', 'normal');
         record.Credit_Security_QA.forEach((qa, qaIdx) => {
           const text = `Q${qaIdx + 1}: ${qa.question || '—'} | A: ${qa.answer || '—'}`;
           const lines = doc.splitTextToSize(text, contentWidth);
           lines.forEach(line => {
             doc.text(line, marginLeft + 4, yPos);
-            yPos += lineGap;
+            yPos += lineHeight;
           });
         });
+        yPos += 4;
       }
 
-      yPos += lineGap;
-      if (yPos > doc.internal.pageSize.getHeight() - marginTop) {
+      if (yPos > pageHeight - marginBottom - 20) {
         doc.addPage();
         yPos = marginTop;
       }
@@ -1263,14 +1361,85 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const securityHtml = renderSecuritySummary(record.Credit_Security_QA || []);
-      const addOnHtml = (record.AddOnCards || []).map((card, idx) => `
-        <div class="holder-table-container">
-          <table class="holder-info-table holder-info-table-modern">
+      const helplinePhones = [record.Credit_Helpline_Phone1, record.Credit_Helpline_Phone2, record.Credit_Helpline_Phone3]
+        .map(cleanPhone)
+        .filter(Boolean)
+        .join(' / ');
+      const helplineEmails = [record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3]
+        .filter(Boolean)
+        .join(' / ');
+      const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
+
+      const contactTable = `
+        <table class="info-table">
+          <tbody>
+            <tr><td>Institution</td><td>${escapeHtml(record.Credit_Institution || '—')}</td></tr>
+            <tr><td>Helpline Phone</td><td>${escapeHtml(helplinePhones || '—')}</td></tr>
+            <tr><td>Helpline Email</td><td>${escapeHtml(helplineEmails || '—')}</td></tr>
+            <tr><td>Portal</td><td>${record.Credit_URL ? `<a href="${escapeHtml(record.Credit_URL)}" target="_blank">${escapeHtml(record.Credit_URL)}</a>` : '—'}</td></tr>
+          </tbody>
+        </table>
+      `;
+
+      const accountTable = `
+        <table class="info-table">
+          <tbody>
+            <tr><td>Account #</td><td>${escapeHtml(record.Credit_Account_Number || '—')}</td></tr>
+            <tr><td>Billing Cycle</td><td>${escapeHtml(record.Credit_Billing_Cycle || '—')}</td></tr>
+            <tr><td>Statement Date</td><td>${escapeHtml(record.Credit_Statement_Day || '—')}</td></tr>
+            <tr><td>Payment Due By</td><td>${escapeHtml(record.Credit_Payment_Due_Day || '—')}</td></tr>
+            <tr><td>Login</td><td>${escapeHtml(record.Credit_Login_ID || '—')}</td></tr>
+            <tr><td>Password</td><td>${record.Credit_Login_Password ? '••••••••' : '—'}</td></tr>
+          </tbody>
+        </table>
+      `;
+
+      const primaryRow = [
+        record.Credit_Primary_Holder || '—',
+        record.Credit_Card_Number || '—',
+        record.Credit_Valid_From || '—',
+        record.Credit_Valid_To || '—',
+        record.Credit_CVV || '—',
+        extraCodes || '—',
+        record.Credit_Transaction_Pin || '—',
+        record.Credit_Tele_Pin || '—'
+      ];
+
+      const primaryTable = `
+        <table class="holder-table">
+          <thead>
+            <tr>
+              <th>Holder</th>
+              <th>Card Number</th>
+              <th>Valid From</th>
+              <th>Valid To</th>
+              <th>CVV</th>
+              <th>Extra Codes</th>
+              <th>Txn PIN</th>
+              <th>Tele PIN</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>${primaryRow.map(value => `<td>${escapeHtml(value || '—')}</td>`).join('')}</tr>
+          </tbody>
+        </table>
+      `;
+
+      const addOnTables = (record.AddOnCards || []).map((card, idx) => {
+        const row = [
+          card.holder || '—',
+          card.cardNumber || '—',
+          card.validFrom || '—',
+          card.validTo || '—',
+          card.cvv || '—',
+          [card.amexCode, card.extraDigits].filter(Boolean).join(' | ') || '—',
+          card.txnPin || '—',
+          card.telePin || '—'
+        ];
+        return `
+          <h3 class="section-heading">Add-On Card #${idx + 1}</h3>
+          <table class="holder-table">
             <thead>
-              <tr>
-                <th colspan="6">Add-On Card #${idx + 1}</th>
-              </tr>
               <tr>
                 <th>Holder</th>
                 <th>Card Number</th>
@@ -1278,21 +1447,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <th>Valid To</th>
                 <th>CVV</th>
                 <th>Extra Codes</th>
+                <th>Txn PIN</th>
+                <th>Tele PIN</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>${escapeHtml(card.holder || '—')}</td>
-                <td>${escapeHtml(card.cardNumber || '—')}</td>
-                <td>${escapeHtml(card.validFrom || '—')}</td>
-                <td>${escapeHtml(card.validTo || '—')}</td>
-                <td>${escapeHtml(card.cvv || '—')}</td>
-                <td>${escapeHtml([card.amexCode, card.extraDigits].filter(Boolean).join(' | ') || '—')}</td>
-              </tr>
+              <tr>${row.map(value => `<td>${escapeHtml(value || '—')}</td>`).join('')}</tr>
             </tbody>
           </table>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+
+      const securityHtml = renderSecuritySummary(record.Credit_Security_QA || []);
 
       printWindow.document.write(`
         <!DOCTYPE html>
@@ -1301,44 +1467,46 @@ document.addEventListener('DOMContentLoaded', () => {
           <title>Credit Card Record</title>
           <link rel="stylesheet" href="8_Manage_Credit_Card_Style.css">
           <style>
-            body{padding:24px;background:#fff;font-family:'Segoe UI',sans-serif;color:#222;}
+            body{padding:24px;font-family:'Segoe UI',sans-serif;background:#fff;color:#222;}
             .print-container{max-width:900px;margin:0 auto;}
-            .record-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
-            .record-header h2{margin:0;font-size:20px;color:#1a237e;}
-            .field-set{border:1px solid #e0e0e0;border-radius:8px;padding:16px;margin-bottom:16px;}
-            .field{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;}
-            .field:last-child{border-bottom:none;}
-            .field label{font-weight:600;color:#424242;}
-            .field span{flex:1;text-align:right;color:#212121;}
+            .record-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+            .record-header h2{margin:0;font-size:22px;color:#1a237e;}
+            .info-split{display:flex;gap:16px;margin-bottom:18px;}
+            .info-card{flex:1;background:#f9fafb;border:1px solid #e0e0e0;border-radius:8px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}            
+            .info-card h3{margin:0 0 12px 0;font-size:14px;color:#c62828;text-transform:uppercase;letter-spacing:0.5px;}
+            .info-table{width:100%;border-collapse:collapse;}
+            .info-table td{padding:8px 10px;border-bottom:1px solid #e0e0e0;font-size:12.5px;}
+            .info-table td:first-child{font-weight:600;color:#1a237e;width:40%;}
+            .info-table tr:last-child td{border-bottom:none;}
+            .holder-table{width:100%;border-collapse:collapse;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.05);}            
+            .holder-table th{background:#0d47a1;color:#fff;font-weight:700;padding:8px 10px;text-align:center;font-size:12px;}
+            .holder-table td{border:1px solid #d3d3d3;padding:8px 10px;text-align:center;font-size:12.5px;}
+            .section-heading{margin:24px 0 8px 0;font-size:14px;font-weight:700;color:#c62828;text-transform:uppercase;letter-spacing:0.5px;}
+            a{color:#1a0dab;text-decoration:none;}
+            a:hover{text-decoration:underline;}
           </style>
         </head>
         <body>
           <div class="print-container">
             <div class="record-header">
               <h2>Record #${recordNum}: ${escapeHtml(record.Credit_Ac_Tag || 'Untitled')}</h2>
-              <div>${escapeHtml(record.Credit_Institution || '')}</div>
+              <div style="font-weight:600;color:#37474f;">${escapeHtml(record.Credit_Institution || '')}</div>
             </div>
 
-            <div class="field-set">
-              <div class="field"><label>Primary Holder</label><span>${escapeHtml(record.Credit_Primary_Holder || '—')}</span></div>
-              <div class="field"><label>Card Number</label><span>${escapeHtml(record.Credit_Card_Number || '—')}</span></div>
-              <div class="field"><label>Validity</label><span>${escapeHtml([record.Credit_Valid_From, record.Credit_Valid_To].filter(Boolean).join(' ➝ ') || '—')}</span></div>
-              <div class="field"><label>CVV / Codes</label><span>${escapeHtml([record.Credit_CVV, record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ') || '—')}</span></div>
-              <div class="field"><label>PINs</label><span>Txn: ${escapeHtml(record.Credit_Transaction_Pin || '—')} | Tele: ${escapeHtml(record.Credit_Tele_Pin || '—')}</span></div>
-              <div class="field"><label>Billing</label><span>${escapeHtml(record.Credit_Billing_Cycle || '—')}</span></div>
-              <div class="field"><label>Statement Day</label><span>${escapeHtml(record.Credit_Statement_Day || '—')}</span></div>
-              <div class="field"><label>Payment Due</label><span>${escapeHtml(record.Credit_Payment_Due_Day || '—')}</span></div>
-              <div class="field"><label>Login ID</label><span>${escapeHtml(record.Credit_Login_ID || '—')}</span></div>
-              <div class="field"><label>Account #</label><span>${escapeHtml(record.Credit_Account_Number || '—')}</span></div>
-              <div class="field"><label>Portal</label><span>${escapeHtml(record.Credit_URL || '—')}</span></div>
+            <div class="info-split">
+              <div class="info-card">
+                <h3>Contact & Institution</h3>
+                ${contactTable}
+              </div>
+              <div class="info-card">
+                <h3>Account Details</h3>
+                ${accountTable}
+              </div>
             </div>
 
-            <div class="field-set">
-              <div class="field"><label>Helpline Phones</label><span>${escapeHtml([record.Credit_Helpline_Phone1, record.Credit_Helpline_Phone2, record.Credit_Helpline_Phone3].filter(Boolean).join(' / ') || '—')}</span></div>
-              <div class="field"><label>Helpline Emails</label><span>${escapeHtml([record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3].filter(Boolean).join(' / ') || '—')}</span></div>
-            </div>
-
-            ${addOnHtml}
+            <h3 class="section-heading">Primary Card Details</h3>
+            ${primaryTable}
+            ${addOnTables}
             ${securityHtml}
           </div>
         </body>
