@@ -1450,64 +1450,19 @@ document.addEventListener('DOMContentLoaded', () => {
         telePin: record.Credit_Tele_Pin || '—'
       }];
 
-      const primaryTable = buildHolderTable('Primary Card Details', primaryRow, 'print-primary-card');
-
       const addOnTables = (record.AddOnCards || []).map((card, idx) => {
-        const row = [
-          card.holder || '—',
-          formatCardNumber(card.cardNumber || '') || '—',
-          card.validFrom || '—',
-          card.validTo || '—',
-          card.cvv || '—',
-          [card.amexCode, card.extraDigits].filter(Boolean).join(' | ') || '—',
-          card.txnPin || '—',
-          card.telePin || '—'
-        ];
-        return `
-          <h3 class="section-heading">Add-On Card #${idx + 1}</h3>
-          <div class="holder-table-container">
-            <div class="holder-table-header">
-              <h3 class="section-heading">Add-On Card #${idx + 1}</h3>
-            </div>
-            <table class="holder-info-table holder-info-table-modern resizable-table" data-resize-key="add-on-card-${idx + 1}">
-              <colgroup>
-                <col data-col-index="0" style="width: 16%;">
-                <col data-col-index="1" style="width: 18%;">
-                <col data-col-index="2" style="width: 12%;">
-                <col data-col-index="3" style="width: 12%;">
-                <col data-col-index="4" style="width: 10%;">
-                <col data-col-index="5" style="width: 12%;">
-                <col data-col-index="6" style="width: 10%;">
-                <col data-col-index="7" style="width: 10%;">
-              </colgroup>
-            <thead>
-              <tr>
-                <th>Holder</th>
-                <th>Card Number</th>
-                <th>Valid From</th>
-                <th>Valid To</th>
-                <th>CVV</th>
-                <th>Extra Codes</th>
-                  <th>Txn_PIN</th>
-                  <th>Tele_PIN</th>
-              </tr>
-            </thead>
-            <tbody>
-                <tr class="holder-secondary-row">
-                  <td>${row[0]}</td>
-                  <td>${row[1]}</td>
-                  <td>${row[2]}</td>
-                  <td>${row[3]}</td>
-                  <td>${row[4]}</td>
-                  <td>${row[5]}</td>
-                  <td>${row[6]}</td>
-                  <td>${row[7]}</td>
-                </tr>
-            </tbody>
-          </table>
-          </div>
-        `;
-      });
+        const row = [{
+          holder: card.holder || '—',
+          cardNumber: formatCardNumber(card.cardNumber || '') || '—',
+          validFrom: card.validFrom || '—',
+          validTo: card.validTo || '—',
+          cvv: card.cvv || '—',
+          extraCodes: [card.amexCode, card.extraDigits].filter(Boolean).join(' | ') || '—',
+          txnPin: card.txnPin || '—',
+          telePin: card.telePin || '—'
+        }];
+        return buildHolderTable(`Add-On Card #${idx + 1}`, row, `print-addon-card-${idx + 1}`);
+      }).join('');
 
       const securityHtml = renderSecuritySummary(record.Credit_Security_QA || []);
 
@@ -1585,9 +1540,8 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
 
-            ${primaryTable}
             ${addOnTables}
-            ${securityHtml}
+            ${renderSecuritySummary(record.Credit_Security_QA || [])}
           </div>
         </body>
         </html>
