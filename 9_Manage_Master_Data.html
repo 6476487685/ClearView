@@ -256,8 +256,7 @@
     }
     .value-row.sqa-row .value-actions {
       margin-left: auto;
-      flex: 0 0 35%;
-      justify-content: flex-end;
+      flex-shrink: 0;
     }
     .value-text.sqa-question {
       flex: 0 0 50%;
@@ -276,8 +275,8 @@
       border-right: 2px solid rgba(0,0,0,0.12);
     }
     .value-text.sqa-answer {
-      flex: 0 0 15%;
-      font-size: 0.75rem;
+      flex: 0 0 18%;
+      font-size: 0.85rem;
       text-align: right;
       color: #15803d;
       white-space: nowrap;
@@ -288,6 +287,7 @@
     .value-actions {
       display: flex;
       gap: 8px;
+      flex: 1;
       justify-content: flex-end;
     }
     .btn-icon {
@@ -343,7 +343,7 @@
       color: #dc2626;
     }
     .sqa-input-answer {
-      flex: 0 0 15%;
+      flex: 0 0 18%;
       font-size: 0.85rem;
       color: #15803d;
     }
@@ -355,7 +355,7 @@
       border-color: var(--accent-blue, #3b82f6);
     }
     .btn-add {
-      flex: 0 0 35%;
+      flex: 0 0 20%;
       display: inline-flex;
       justify-content: center;
       padding: 10px 20px;
