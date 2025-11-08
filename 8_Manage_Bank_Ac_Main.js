@@ -1690,7 +1690,13 @@ document.addEventListener("DOMContentLoaded", () => {
             font: { bold: true, color: { rgb: '1A237E' } }
           };
           const bodyStyle = {
-            fill: { patternType: 'solid', fgColor: { rgb: bodyColor } }
+            fill: { patternType: 'solid', fgColor: { rgb: bodyColor } },
+            border: {
+              top: { style: 'thin', color: { rgb: 'B0BEC5' } },
+              bottom: { style: 'thin', color: { rgb: 'B0BEC5' } },
+              left: { style: 'thin', color: { rgb: 'B0BEC5' } },
+              right: { style: 'thin', color: { rgb: 'B0BEC5' } }
+            }
           };
 
           for (let col = 0; col <= 1; col++) {
