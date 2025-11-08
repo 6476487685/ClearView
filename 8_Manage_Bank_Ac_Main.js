@@ -879,6 +879,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const card = document.createElement('div');
     card.className = 'bank-record-card';
 
+    const recordNumber = index + 1;
+    const displayTag = record.Bank_Ac_Tag || 'No Account Tag';
+    const recordLabel = `Record #${recordNumber}: ${displayTag}`;
+
     // Create holders display - 2x2 grid for up to 4 holders
     const holderCount = record.Bank_Holders ? record.Bank_Holders.length : 0;
     const isSingleHolder = holderCount === 1;
@@ -1211,7 +1215,7 @@ document.addEventListener("DOMContentLoaded", () => {
     card.innerHTML = `
       <div class="account-tag-bar-minimal">
         <div class="account-tag-content-minimal">
-          <span>${record.Bank_Ac_Tag || 'No Account Tag'}</span>
+          <span>${recordLabel}</span>
           <div style="display:flex;gap:8px;align-items:center;">
             <button class="btn-edit" data-index="${index}">✏️ Edit</button>
             <button class="btn-print" data-index="${index}">🖨️ Print</button>
@@ -1378,15 +1382,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (printBtn) {
-      printBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        try {
-          printRecord(record);
-        } catch (error) {
-          console.error('Print error:', error);
-          alert('Unable to print. Please check if popups are blocked.');
-        }
+      printBtn.addEventListener('click', () => {
+         const data = getData();
+         const actualIndex = data.findIndex(r => r.id === record.id);
+         const recordToPrint = actualIndex !== -1 ? data[actualIndex] : record;
+         const recordNum = (actualIndex !== -1 ? actualIndex : index) + 1;
+         printRecord(recordToPrint, recordNum);
       });
     }
 
@@ -1766,6 +1767,9 @@ document.addEventListener("DOMContentLoaded", () => {
     yPos = marginTop;
 
     bankRecords.forEach((record, index) => {
+      const recordNumber = index + 1;
+      const displayTag = record.Bank_Ac_Tag || 'No Account Tag';
+      const recordLabel = `Record #${recordNumber}: ${displayTag}`;
       const securityQADataPdf = Array.isArray(record.Bank_Security_QA)
         ? record.Bank_Security_QA.filter(item => item && (item.question || item.answer))
         : [];
@@ -1786,8 +1790,8 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.rect(marginLeft, yPos, contentWidth, 11, 'F');
       doc.setFontSize(13);
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(25, 118, 210); // #1976d2
-      doc.text(`${record.Bank_Ac_Tag || 'No Account Tag'}`, marginLeft + 5, yPos + 7.5);
+      doc.setTextColor(13, 71, 161);
+      doc.text(recordLabel, marginLeft + 5, yPos + 7.5);
       yPos += 16;
 
       // Two Column Layout: Bank Information (Left) and Account Information (Right)
@@ -2193,7 +2197,7 @@ document.addEventListener("DOMContentLoaded", () => {
     doc.text(footerText, pageWidth / 2, pageHeight - marginBottom + 8, { align: 'center' });
   }
 
-  function printRecord(record) {
+  function printRecord(record, recordNum = 1) {
     try {
       const printWindow = window.open('', '_blank', 'width=1200,height=800');
       if (!printWindow) {
@@ -2519,7 +2523,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </head>
           <body>
             <div class="account-tag-bar">
-              <div class="account-tag-content">${record.Bank_Ac_Tag || 'No Account Tag'}</div>
+              <div class="account-tag-content">Record #${recordNum}: ${record.Bank_Ac_Tag || 'No Account Tag'}</div>
             </div>
             
             <div class="two-column-layout">
