@@ -1539,8 +1539,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .print-container{max-width:920px;margin:0 auto;}
             .record-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
             .record-header h2{margin:0;font-size:20px;color:#1a237e;}
-            .info-split{display:flex;gap:12px;margin-bottom:14px;align-items:stretch;}
-            .info-card{flex:1;background:#f9fafb;border:1px solid #e0e0e0;border-radius:8px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}            
+            .info-split{display:flex;flex-direction:column;gap:12px;margin-bottom:14px;}
+            .info-card{background:#f9fafb;border:1px solid #e0e0e0;border-radius:8px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}            
             .info-card h3{margin:0 0 8px 0;font-size:13px;color:#c62828;letter-spacing:0.5px;}
             .holder-info-table{width:100%;border-collapse:collapse;table-layout:auto;border-radius:10px;overflow:hidden;border:1px solid #1a4fb0;box-shadow:0 2px 6px rgba(26,79,176,0.18);}
             .holder-info-table thead th{background:#0d47a1;color:#fff;font-weight:700;padding:7px 10px;text-align:center;font-size:11.5px;border-right:1px solid rgba(255,255,255,0.25);white-space:nowrap;}
@@ -1836,9 +1836,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* -------------------- Initialization -------------------- */
   function populateModalDropdowns() {
-    populateInstitutionSelect();
-    populateAccountTagSelect();
-    populatePrimaryHolderDropdown();
+  populateInstitutionSelect();
+  populateAccountTagSelect();
+  populatePrimaryHolderDropdown();
     populateCardStatusSelect();
   }
 
