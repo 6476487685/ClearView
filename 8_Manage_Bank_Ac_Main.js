@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const autoBackupStatusText = document.getElementById('autoBackupStatusText');
   const btnManualBackup = document.getElementById('btnManualBackup');
   const toastContainer = document.getElementById('toastContainer');
-  const themeSwitchControl = document.getElementById('themeSwitch');
   let masterEmails = [];
   let masterPhoneOptions = [];
   let masterSqaOptions = [];
@@ -66,14 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
       showToast('✅ Manual backup started. Check your downloads.', 'success');
     });
     btnManualBackup.title = 'Download consolidated master data and all transactional records';
-  }
-
-  if (themeSwitchControl) {
-    themeSwitchControl.addEventListener('change', () => {
-      setTimeout(() => {
-        renderRecords();
-      }, 0);
-    });
   }
 
   updateAutoBackupStatusText();
