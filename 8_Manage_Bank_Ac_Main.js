@@ -82,6 +82,67 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem('bank_accounts', JSON.stringify(data));
   };
 
+  const cleanPhone = (phoneString) => {
+    const str = String(phoneString || '').trim();
+    if (!str) return '';
+    const plusIndex = str.lastIndexOf('+');
+    const segment = plusIndex !== -1 ? str.slice(plusIndex) : str;
+    const normalized = segment
+      .replace(/[()]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/[^+\d-]/g, '')
+      .replace(/--+/g, '-')
+      .replace(/-+$/, '');
+    return normalized || '';
+  };
+
+  const extractPinValues = (holder = {}) => {
+    const sanitize = (value) => {
+      const trimmed = String(value || '').trim();
+      if (!trimmed) return '';
+      const upper = trimmed.toUpperCase();
+      return upper === 'XXXXXX' || upper === 'XXXXX' ? '' : trimmed;
+    };
+
+    let pin = sanitize(holder.pin);
+    let tpin = sanitize(holder.tpin);
+    let mpin = sanitize(holder.mpin);
+
+    if (!pin && !tpin && !mpin && holder.pins) {
+      const parts = String(holder.pins)
+        .split('|')
+        .map(part => sanitize(part));
+      pin = parts[0] || '';
+      tpin = parts[1] || '';
+      mpin = parts[2] || '';
+    }
+
+    return { pin, tpin, mpin };
+  };
+
+  const formatPins = (holder = {}) => {
+    const { pin, tpin, mpin } = extractPinValues(holder);
+    const defaultVal = 'XXXXXX';
+    return `${pin || defaultVal} | ${tpin || defaultVal} | ${mpin || defaultVal}`;
+  };
+
+  const formatEmailPhone = (holder = {}) => {
+    if (!holder) return '';
+    const email = holder.email || '';
+    const phone = cleanPhone(holder.phone || '');
+    if (email || phone) {
+      return [email, phone].filter(Boolean).join(' | ');
+    }
+    if (holder.emailPhone) {
+      const parts = holder.emailPhone.split('|').map(part => part.trim());
+      const legacyEmail = parts[0] || '';
+      const legacyPhone = parts.length > 1 ? cleanPhone(parts[1]) : '';
+      return [legacyEmail, legacyPhone].filter(Boolean).join(' | ');
+    }
+    return '';
+  };
+
   function showToast(message, type = 'info') {
     if (!toastContainer) return;
 
@@ -228,7 +289,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const email = document.getElementById(`Bank_Holder_${i}_Email`).value || '';
       const phoneRaw = document.getElementById(`Bank_Holder_${i}_Phone`).value || '';
       const phone = cleanPhone(phoneRaw);
-      const emailPhone = email && phone ? `${email} | ${phone}` : email || phone || '';
+      const dcPin = document.getElementById(`Bank_Holder_${i}_Dcpin`).value || '';
+      const pinRaw = document.getElementById(`Bank_Holder_${i}_Pin`).value || '';
+      const tpinRaw = document.getElementById(`Bank_Holder_${i}_Tpin`).value || '';
+      const mpinRaw = document.getElementById(`Bank_Holder_${i}_Mpin`).value || '';
+      const pinValues = extractPinValues({ pin: pinRaw, tpin: tpinRaw, mpin: mpinRaw });
+      const emailPhone = [email, phone].filter(Boolean).join(' | ');
       
       holders.push({
         holder: document.getElementById(`Bank_Holder_${i}_Holder`).value || '',
@@ -240,7 +306,11 @@ document.addEventListener("DOMContentLoaded", () => {
         emailPhone: emailPhone, // Keep for backward compatibility
         loginPassword: document.getElementById(`Bank_Holder_${i}_LoginPassword`).value || '',
         debitCard: document.getElementById(`Bank_Holder_${i}_DebitCard`).value || '',
-        pins: document.getElementById(`Bank_Holder_${i}_Pins`).value || 'XXXXXX | XXXXXX | XXXXXX',
+        dcPin: dcPin,
+        pin: pinValues.pin,
+        tpin: pinValues.tpin,
+        mpin: pinValues.mpin,
+        pins: formatPins(pinValues),
         interaccEmailOrUPIID: document.getElementById(`Bank_Holder_${i}_Interacc_Email_or_UPI_ID`).value || ''
       });
     }
@@ -585,12 +655,24 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="holder-row">
           <div style="flex: 2.5;">
-            <label>Debit Card Info <span style="font-size: 10px; color: #4285f4;">[Format: Card Number | Valid From To | CVV | Card Type | Extra Digits | DCPIN]</span></label>
-            <input type="text" id="Bank_Holder_${i}_DebitCard" placeholder="Card Number | Valid From To | CVV | Card Type | Extra Digits | DCPIN">
+            <label>Debit Card Info <span style="font-size: 10px; color: #4285f4;">[Format: Card Number | Valid From To | CVV | Card Type | Extra Digits]</span></label>
+            <input type="text" id="Bank_Holder_${i}_DebitCard" placeholder="Card Number | Valid From To | CVV | Card Type | Extra Digits">
           </div>
-          <div style="flex: 1.4;">
-            <label>PIN | TPIN | MPIN</label>
-            <input type="text" id="Bank_Holder_${i}_Pins" class="pins-input" value="XXXXXX | XXXXXX | XXXXXX" placeholder="XXXXXX | XXXXXX | XXXXXX" style="font-family:'Courier New',monospace;letter-spacing:2px;color:var(--text-secondary);">
+          <div style="flex: 0.8;">
+            <label>DCPIN</label>
+            <input type="text" id="Bank_Holder_${i}_Dcpin" class="pins-input" placeholder="XXXXXX" style="font-family:'Courier New',monospace;letter-spacing:2px;color:var(--text-secondary);">
+          </div>
+          <div style="flex: 1;">
+            <label>PIN</label>
+            <input type="text" id="Bank_Holder_${i}_Pin" class="pins-input" placeholder="XXXXXX" style="font-family:'Courier New',monospace;letter-spacing:2px;color:var(--text-secondary);">
+          </div>
+          <div style="flex: 1;">
+            <label>TPIN</label>
+            <input type="text" id="Bank_Holder_${i}_Tpin" class="pins-input" placeholder="XXXXXX" style="font-family:'Courier New',monospace;letter-spacing:2px;color:var(--text-secondary);">
+          </div>
+          <div style="flex: 1;">
+            <label>MPIN</label>
+            <input type="text" id="Bank_Holder_${i}_Mpin" class="pins-input" placeholder="XXXXXX" style="font-family:'Courier New',monospace;letter-spacing:2px;color:var(--text-secondary);">
           </div>
           <div style="flex: 1.1;">
             <label>Interacc_Email_or_UPI_ID</label>
@@ -628,7 +710,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const phoneField = document.getElementById(`Bank_Holder_${holderNum}_Phone`);
             const loginPasswordField = document.getElementById(`Bank_Holder_${holderNum}_LoginPassword`);
             const debitCardField = document.getElementById(`Bank_Holder_${holderNum}_DebitCard`);
-            const pinsField = document.getElementById(`Bank_Holder_${holderNum}_Pins`);
+            const dcpinField = document.getElementById(`Bank_Holder_${holderNum}_Dcpin`);
+            const pinField = document.getElementById(`Bank_Holder_${holderNum}_Pin`);
+            const tpinField = document.getElementById(`Bank_Holder_${holderNum}_Tpin`);
+            const mpinField = document.getElementById(`Bank_Holder_${holderNum}_Mpin`);
             const interaccEmailOrUPIIDField = document.getElementById(`Bank_Holder_${holderNum}_Interacc_Email_or_UPI_ID`);
             
             if (holderField) holderField.value = holder.holder || '';
@@ -636,25 +721,15 @@ document.addEventListener("DOMContentLoaded", () => {
             if (clientIDField) clientIDField.value = holder.clientID || '';
             if (userIDField) userIDField.value = holder.userID || '';
             
-            // Load email and phone separately, or parse from emailPhone for backward compatibility
-            if (emailField) {
-              if (holder.email) {
-                emailField.value = holder.email;
-              } else if (holder.emailPhone) {
-                // Parse old format: "email | phone"
-                const parts = holder.emailPhone.split(' | ');
-                emailField.value = parts[0] || '';
-              }
+            let holderEmail = holder.email || '';
+            let holderPhone = cleanPhone(holder.phone || '');
+            if (holder.emailPhone) {
+              const parts = holder.emailPhone.split(' | ');
+              if (!holderEmail) holderEmail = parts[0] || '';
+              if (!holderPhone && parts.length > 1) holderPhone = cleanPhone(parts[1]);
             }
-            if (phoneField) {
-              if (holder.phone) {
-                phoneField.value = holder.phone;
-              } else if (holder.emailPhone) {
-                // Parse old format: "email | phone"
-                const parts = holder.emailPhone.split(' | ');
-                phoneField.value = parts.length > 1 ? parts[1] : '';
-              }
-            }
+            populateEmailSelect(emailField, holderEmail);
+            populatePhoneSelect(phoneField, holderPhone);
             
             if (loginPasswordField) {
               loginPasswordField.value = holder.loginPassword || '';
@@ -662,7 +737,11 @@ document.addEventListener("DOMContentLoaded", () => {
               loginPasswordField.type = 'password';
             }
             if (debitCardField) debitCardField.value = holder.debitCard || '';
-            if (pinsField) pinsField.value = holder.pins || 'XXXXXX | XXXXXX | XXXXXX';
+            if (dcpinField) dcpinField.value = holder.dcPin || '';
+            const pinValues = extractPinValues(holder);
+            if (pinField) pinField.value = pinValues.pin;
+            if (tpinField) tpinField.value = pinValues.tpin;
+            if (mpinField) mpinField.value = pinValues.mpin;
             if (interaccEmailOrUPIIDField) interaccEmailOrUPIIDField.value = holder.interaccEmailOrUPIID || '';
           }
         });
@@ -936,21 +1015,16 @@ document.addEventListener("DOMContentLoaded", () => {
               <tr>
                 <td>${holder.clientID || ''}</td>
                 <td>${holder.debitCard || ''}</td>
-                <td>${holder.emailPhone || ''}</td>
+                <td>${formatEmailPhone(holder)}</td>
                 <td>${holder.interaccEmailOrUPIID || ''}</td>
               </tr>
             </tbody>
           </table>
-          ${holder.userID ? `
           <div class="holder-additional-info">
-            <div><strong>UserID_or_LoginID:</strong> ${holder.userID} / <strong>Login_Password:</strong> <span class="password-display" data-holder="${holderNum}" data-password="${holder.loginPassword || ''}" style="cursor:pointer;user-select:none;">••••••••</span></div>
+            ${holder.userID ? `<div><strong>UserID_or_LoginID:</strong> ${holder.userID} / <strong>Login_Password:</strong> ${holder.loginPassword || ''}</div>` : ''}
+            <div><strong>DCPIN:</strong> ${holder.dcPin || ''}</div>
+            <div><strong>PIN | TPIN | MPIN:</strong> ${formatPins(holder)}</div>
           </div>
-          ` : ''}
-          ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `
-          <div class="holder-additional-info">
-            <div><strong>PIN | TPIN | MPIN:</strong> ${holder.pins}</div>
-          </div>
-          ` : ''}
         </div>
       `;
     };
@@ -962,8 +1036,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const holderType = 'Sole Holder';
       holdersHtml = `
         <div class="notes-card-minimal">
-          <div class="section-heading-minimal"><strong>Holders & Contacts (1)</strong></div>
-          ${createHolderTable(holder, 1, holderType, 0, true)}
+          <div class="notes-content-minimal">
+            <div><strong>Client ID:</strong> ${holder.clientID || ''}</div>
+            <div><strong>User ID:</strong> ${holder.userID || ''}</div>
+            <div><strong>Email | Phone:</strong> ${formatEmailPhone(holder)}</div>
+            <div><strong>PIN | TPIN | MPIN:</strong> ${formatPins(holder)}</div>
+            <div><strong>Debit Card:</strong> ${holder.debitCard || ''}</div>
+            <div><strong>DCPIN:</strong> ${holder.dcPin || ''}</div>
+            <div><strong>Interacc Email / UPI ID:</strong> ${holder.interaccEmailOrUPIID || ''}</div>
+          </div>
         </div>
       `;
     } else {
@@ -1052,7 +1133,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="info-row">
               <span class="info-label">Phones:</span>
               <div class="info-value-list">
-                ${helplinePhones.map(phone => `<span class="info-badge">${phone}</span>`).join('')}
+                ${helplinePhones.map(phone => `<span class="info-badge">${cleanPhone(phone)}</span>`).join('')}
               </div>
             </div>
           ` : ''}
@@ -1533,10 +1614,11 @@ document.addEventListener("DOMContentLoaded", () => {
               banksData.push([`Holder ${hIdx + 1} Name`, holder.name || '']);
               banksData.push([`Holder ${hIdx + 1} Client_ID_or_Customer_ID`, holder.clientID || '']);
               banksData.push([`Holder ${hIdx + 1} UserID_or_LoginID`, holder.userID || '']);
-              banksData.push([`Holder ${hIdx + 1} Email/Phone`, holder.emailPhone || '']);
+              banksData.push([`Holder ${hIdx + 1} Email/Phone`, formatEmailPhone(holder)]);
               banksData.push([`Holder ${hIdx + 1} Login_Password`, holder.loginPassword || '']);
               banksData.push([`Holder ${hIdx + 1} Debit Card`, holder.debitCard || '']);
-              banksData.push([`Holder ${hIdx + 1} PIN | TPIN | MPIN`, holder.pins || '']);
+              banksData.push([`Holder ${hIdx + 1} DCPIN`, holder.dcPin || '']);
+              banksData.push([`Holder ${hIdx + 1} PIN | TPIN | MPIN`, formatPins(holder)]);
               banksData.push([`Holder ${hIdx + 1} Interacc_Email_or_UPI_ID`, holder.interaccEmailOrUPIID || '']);
             });
           }
@@ -1717,7 +1799,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       
       // Helpline section
-      const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4].filter(p => p);
+      const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4]
+        .map(cleanPhone)
+        .filter(p => p);
       const emails = [record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e);
       if (phones.length > 0 || emails.length > 0 || record.Bank_Helpline_URL) {
         yPos += 3;
@@ -1893,18 +1977,20 @@ document.addEventListener("DOMContentLoaded", () => {
           doc.rect(marginLeft, holderStartY, contentWidth, 7 + tableHeight);
 
           // Additional info below table (UserID, PIN)
-          if (holder.userID || (holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX')) {
-            yPos += 3;
-            doc.setFontSize(8.5);
-            if (holder.userID) {
-              doc.text(`UserID: ${holder.userID} / Pass: ${holder.loginPassword || ''}`, marginLeft + 4, yPos);
-              yPos += 5.5;
-            }
-            if (holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX') {
-              doc.text(`PIN | TPIN | MPIN: ${holder.pins}`, marginLeft + 4, yPos);
-              yPos += 5.5;
-            }
+          yPos += 3;
+          doc.setFont(undefined, 'bold');
+          doc.text('Credentials & PINs', marginLeft + 3, yPos);
+          yPos += 5;
+          doc.setFont(undefined, 'normal');
+          if (holder.userID) {
+            doc.text(`UserID: ${holder.userID}`, marginLeft + 4, yPos);
+            yPos += 5.5;
           }
+          doc.text(`DCPIN: ${holder.dcPin || ''}`, marginLeft + 4, yPos);
+          yPos += 5.5;
+          doc.text(`PIN | TPIN | MPIN: ${formatPins(holder)}`, marginLeft + 4, yPos);
+          yPos += 5.5;
+
           yPos += 7;
         });
       }
@@ -1929,7 +2015,7 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.text(`${record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || ''}`, marginLeft + 4, yPos);
       yPos += 5.5;
       if (record.Bank_Nominee_Email || record.Bank_Nominee_Phone) {
-        const emailPhone = [record.Bank_Nominee_Email, record.Bank_Nominee_Phone].filter(v => v).join(' | ');
+        const emailPhone = [record.Bank_Nominee_Email, cleanPhone(record.Bank_Nominee_Phone)].filter(v => v).join(' | ');
         doc.text(`Email | Phone: ${emailPhone}`, marginLeft + 4, yPos);
         yPos += 5.5;
       }
@@ -2110,21 +2196,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 <tr>
                   <td>${holder.clientID || ''}</td>
                   <td>${holder.debitCard || ''}</td>
-                  <td>${holder.emailPhone || ''}</td>
+                  <td>${formatEmailPhone(holder)}</td>
                   <td>${holder.interaccEmailOrUPIID || ''}</td>
                 </tr>
               </tbody>
             </table>
-            ${holder.userID ? `
             <div class="holder-additional-info">
-              <div><strong>UserID_or_LoginID:</strong> ${holder.userID} / <strong>Login_Password:</strong> ${holder.loginPassword || ''}</div>
+              ${holder.userID ? `<div><strong>UserID_or_LoginID:</strong> ${holder.userID} / <strong>Login_Password:</strong> ${holder.loginPassword || ''}</div>` : ''}
+              <div><strong>DCPIN:</strong> ${holder.dcPin || ''}</div>
+              <div><strong>PIN | TPIN | MPIN:</strong> ${formatPins(holder)}</div>
             </div>
-            ` : ''}
-            ${holder.pins && holder.pins !== 'XXXXXX | XXXXXX | XXXXXX' ? `
-            <div class="holder-additional-info">
-              <div><strong>PIN | TPIN | MPIN:</strong> ${holder.pins}</div>
-            </div>
-            ` : ''}
           </div>
         `;
       }).join('');
@@ -2162,7 +2243,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Get helpline data
-      const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4].filter(p => p);
+      const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4]
+        .map(cleanPhone)
+        .filter(p => p);
       const emails = [record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e);
 
       printWindow.document.write(`
@@ -2538,26 +2621,4 @@ document.addEventListener("DOMContentLoaded", () => {
     select.value = cleanSelected || '';
   }
 
-  const cleanPhone = (value) => {
-    if (!value) return '';
-    const str = String(value).trim();
-    if (!str) return '';
-    const parts = str.split(':');
-    return parts[parts.length - 1].trim();
-  };
-
-  const formatEmailPhone = (holder) => {
-    if (!holder) return '';
-    const email = holder.email || '';
-    const phone = cleanPhone(holder.phone || '');
-    if (email || phone) return [email, phone].filter(Boolean).join(' | ');
-    if (holder.emailPhone) {
-      const parts = holder.emailPhone.split(' | ');
-      const legacyEmail = parts[0] || '';
-      const legacyPhone = cleanPhone(parts.length > 1 ? parts[1] : '');
-      return [legacyEmail, legacyPhone].filter(Boolean).join(' | ');
-    }
-    return '';
-  };
 });
-
