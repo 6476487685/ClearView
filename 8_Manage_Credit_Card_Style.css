@@ -65,3 +65,20 @@ body.table-resizing {
   cursor: col-resize !important;
   user-select: none;
 }
+
+.contact-table td {
+  vertical-align: top;
+  text-align: left;
+}
+
+.contact-label-cell {
+  font-weight: 700;
+  color: #1a237e;
+  white-space: nowrap;
+}
+
+.contact-value-cell {
+  color: var(--text-primary, #0b1a33);
+  white-space: normal;
+  word-break: break-word;
+}

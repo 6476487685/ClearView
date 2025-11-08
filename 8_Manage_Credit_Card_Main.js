@@ -563,29 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
 
-    const contactCells = [
-      { label: 'Institution', value: record.Credit_Institution || '—' },
-      {
-        label: 'Portal',
-        value: record.Credit_URL
-          ? `<a href="${escapeHtml(record.Credit_URL)}" target="_blank" class="info-link">${escapeHtml(record.Credit_URL)}</a>`
-          : '—',
-        html: true
-      }
-    ];
-    const formatListAsLines = (list) => list.map(item => escapeHtml(item)).join('<br>');
-    contactCells.push({
-      label: 'Helpline Phone',
-      value: helplinePhoneList.length ? formatListAsLines(helplinePhoneList) : '—',
-      html: helplinePhoneList.length > 0
-    });
-    contactCells.push({
-      label: 'Helpline Email',
-      value: helplineEmailList.length ? formatListAsLines(helplineEmailList) : '—',
-      html: helplineEmailList.length > 0
-    });
-
-    const contactGridHtml = buildAccountDetailsGrid(contactCells, 'credit-contact-details');
+    const contactGridHtml = buildContactInstitutionTable(record, helplinePhoneList, helplineEmailList);
 
     const accountRows = [
       { label: 'Account #', value: record.Credit_Account_Number || '—' },
@@ -1415,27 +1393,7 @@ document.addEventListener('DOMContentLoaded', () => {
         : '—';
       const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
 
-      const contactCells = [
-        { label: 'Institution', value: record.Credit_Institution || '—' },
-        {
-          label: 'Portal',
-          value: record.Credit_URL
-            ? `<a href="${escapeHtml(record.Credit_URL)}" target="_blank" class="info-link">${escapeHtml(record.Credit_URL)}</a>`
-            : '—',
-          html: true
-        },
-        {
-          label: 'Helpline Phone',
-          value: formatListForPrint(helplinePhoneList),
-          html: helplinePhoneList.length > 0
-        },
-        {
-          label: 'Helpline Email',
-          value: formatListForPrint(helplineEmailList),
-          html: helplineEmailList.length > 0
-        }
-      ];
-      const contactGridHtml = buildAccountDetailsGrid(contactCells, 'print-contact-details');
+      const contactGridHtml = buildContactInstitutionTable(record, helplinePhoneList, helplineEmailList, true);
 
       const accountRows = [
         { label: 'Account #', value: record.Credit_Account_Number || '—' },
@@ -1516,6 +1474,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .credit-info-table tbody td:first-child{font-weight:700;color:#1a237e;white-space:nowrap;}
             .credit-info-table tbody td:nth-child(2),
             .credit-info-table tbody td:nth-child(4){text-align:left;}
+            .contact-table td{vertical-align:top;text-align:left;}
+            .contact-label-cell{font-weight:700;color:#1a237e;white-space:nowrap;}
+            .contact-value-cell{white-space:normal;word-break:break-word;}
             .section-heading{margin:14px 0 6px 0;font-size:12.5px;font-weight:700;color:#c62828;text-transform:uppercase;letter-spacing:0.5px;}
             .security-card-minimal{margin-top:12px;padding:12px;border:1px solid #e0e0e0;border-radius:8px;background:#fdfdfd;}
             .security-qa-block{font-size:11px;line-height:1.25;}
@@ -1586,6 +1547,48 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
   `;
+
+  const buildContactInstitutionTable = (record, phoneList = [], emailList = [], isPrint = false) => {
+    const phones = [...phoneList];
+    const emails = [...emailList];
+    while (phones.length < 3) phones.push('');
+    while (emails.length < 3) emails.push('');
+
+    const displayValue = (value) => {
+      const trimmed = (value || '').trim();
+      return trimmed ? escapeHtml(trimmed) : '—';
+    };
+
+    const tableClasses = ['holder-info-table', 'holder-info-table-modern', 'contact-table'];
+    if (isPrint) tableClasses.push('print-contact-table');
+
+    return `
+      <table class="${tableClasses.join(' ')}">
+        <tbody>
+          <tr>
+            <td class="contact-label-cell">Institution</td>
+            <td>${displayValue(record.Credit_Institution)}</td>
+            <td class="contact-label-cell">Portal</td>
+            <td>${record.Credit_URL ? `<a href="${escapeHtml(record.Credit_URL)}" target="_blank" class="info-link">${escapeHtml(record.Credit_URL)}</a>` : '—'}</td>
+          </tr>
+          <tr>
+            <td class="contact-label-cell" rowspan="3">Helpline Phone</td>
+            <td class="contact-value-cell">${displayValue(phones[0])}</td>
+            <td class="contact-label-cell" rowspan="3">Helpline Email</td>
+            <td class="contact-value-cell">${displayValue(emails[0])}</td>
+          </tr>
+          <tr>
+            <td class="contact-value-cell">${displayValue(phones[1])}</td>
+            <td class="contact-value-cell">${displayValue(emails[1])}</td>
+          </tr>
+          <tr>
+            <td class="contact-value-cell">${displayValue(phones[2])}</td>
+            <td class="contact-value-cell">${displayValue(emails[2])}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  };
 
   const buildHolderTable = (title, rowData, resizeKey = '') => {
     const display = (value) => escapeHtml(value && value.trim() !== '' ? value : '—');
