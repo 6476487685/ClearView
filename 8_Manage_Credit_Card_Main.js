@@ -1648,13 +1648,17 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const buildContactGrid = (cells = []) => `
-    <div class="fields-content-minimal info-card-body info-card-body-grid">
-      ${cells.map(cell => `
-        <div class="info-grid-cell">
-          <span class="info-grid-label">${escapeHtml(cell.label)}:</span>
-          <span class="info-grid-value">${cell.html ? cell.value : escapeHtml(cell.value)}</span>
-        </div>
-      `).join('')}
+    <div class="fields-content-minimal info-card-body">
+      <table class="info-grid-table">
+        <tbody>
+          <tr class="info-grid-row info-grid-row-labels">
+            ${cells.map(cell => `<td class="info-grid-label">${escapeHtml(cell.label)}</td>`).join('')}
+          </tr>
+          <tr class="info-grid-row info-grid-row-values">
+            ${cells.map(cell => `<td class="info-grid-value">${cell.html ? cell.value : escapeHtml(cell.value)}</td>`).join('')}
+          </tr>
+        </tbody>
+      </table>
     </div>
   `;
 

@@ -23,40 +23,36 @@ body.dark .credit-info-table tbody td:first-child{
   gap: 8px;
 }
 
-.info-card-body-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 18px;
-}
-
-.info-grid-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.info-grid-label {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.info-grid-value {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-  word-break: break-word;
-}
-
 .info-card-grid .info-value {
   color: var(--text-primary);
 }
 
-.info-card-body-grid .info-link {
+.info-grid-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 12px 10px;
+}
+
+.info-grid-row-labels td {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.info-grid-row-values td {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: center;
+  word-break: break-word;
+}
+
+.info-grid-table .info-link {
   color: var(--accent);
   text-decoration: none;
 }
 
-.info-card-body-grid .info-link:hover {
+.info-grid-table .info-link:hover {
   text-decoration: underline;
 }
