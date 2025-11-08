@@ -246,7 +246,10 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .value-row.sqa-row {
-      gap: 6px;
+      display: grid;
+      grid-template-columns: 8cm 3.5cm minmax(3cm, 1fr);
+      column-gap: 0.1cm;
+      align-items: center;
     }
     .value-text {
       flex: 1;
@@ -255,12 +258,12 @@
       padding-right: 10px;
     }
     .value-row.sqa-row .value-actions {
-      margin-left: auto;
-      flex-shrink: 0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
     }
     .value-text.sqa-question {
-      width: 8cm;
-      max-width: 8cm;
+      width: 100%;
       font-size: 0.8rem;
       white-space: normal;
       display: -webkit-box;
@@ -276,8 +279,7 @@
       border-right: 2px solid rgba(0,0,0,0.12);
     }
     .value-text.sqa-answer {
-      width: 3.5cm;
-      max-width: 3.5cm;
+      width: 100%;
       font-size: 0.75rem;
       text-align: right;
       color: #15803d;
@@ -323,8 +325,10 @@
       width: 100%;
     }
     .add-form.sqa-add {
+      display: grid;
+      grid-template-columns: 8cm 3.5cm minmax(3cm, 1fr);
+      column-gap: 0.1cm;
       align-items: center;
-      gap: 4px;
     }
     .add-input {
       flex: 1;
@@ -336,21 +340,19 @@
       color: var(--text-primary, #1e293b);
     }
     .sqa-input-question {
-      width: 8cm;
-      max-width: 8cm;
+      width: 100%;
+      max-width: 100%;
       font-size: 0.9rem;
       color: #b91c1c;
-      margin-right: 0.05cm;
     }
     .sqa-input-question::placeholder {
       color: #dc2626;
     }
     .sqa-input-answer {
-      width: 3.5cm;
-      max-width: 3.5cm;
+      width: 100%;
+      max-width: 100%;
       font-size: 0.85rem;
       color: #15803d;
-      margin-right: 0.05cm;
     }
     .sqa-input-answer::placeholder {
       color: #16a34a;
@@ -360,8 +362,8 @@
       border-color: var(--accent-blue, #3b82f6);
     }
     .btn-add {
+      width: 100%;
       min-width: 3cm;
-      flex: 0 0 auto;
       display: inline-flex;
       justify-content: center;
       padding: 10px 20px;
