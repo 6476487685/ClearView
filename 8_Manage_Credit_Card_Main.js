@@ -462,28 +462,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const populateHolderSelect = (selectElement, selectedValue = '') => {
-  const populateCardStatusSelect = () => {
-    try {
-      const statusSelect = document.getElementById('Credit_Account_Status');
-      if (!statusSelect) return;
-
-      const unifiedDataStr = localStorage.getItem('unified_master_data');
-      let statuses = [];
-      if (unifiedDataStr) {
-        const unifiedData = JSON.parse(unifiedDataStr);
-        statuses = unifiedData.common?.Ac_Status || [];
-      }
-
-      statusSelect.innerHTML = '<option value="">Select account status</option>';
-      statuses.forEach(status => {
-        if (status && status !== '') {
-          statusSelect.innerHTML += `<option value="${escapeHtml(status)}">${escapeHtml(status)}</option>`;
-        }
-      });
-    } catch (e) {
-      console.error('Error populating card status:', e);
-    }
-  };
     try {
       const unifiedDataStr = localStorage.getItem('unified_master_data');
       let commonData = {};
