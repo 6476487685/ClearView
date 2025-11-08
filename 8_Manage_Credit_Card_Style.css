@@ -82,3 +82,71 @@ body.table-resizing {
   white-space: normal;
   word-break: break-word;
 }
+
+.card-info-section {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.card-info-section .info-card {
+  flex: 1 1 360px;
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.card-info-section .info-card .section-heading-minimal {
+  margin-bottom: 14px;
+  font-size: 0.95rem;
+  color: var(--accent-red, #c62828);
+}
+
+.general-info-table,
+.card-details-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid rgba(13,71,161,0.25);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(13,71,161,0.12);
+}
+
+.card-details-table td,
+.general-info-table td,
+.card-details-table th {
+  padding: 10px 12px;
+  border: 1px solid rgba(13,71,161,0.18);
+}
+
+.general-info-table .contact-label-cell {
+  width: 22%;
+  background: #000000;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.general-info-table .contact-value-cell {
+  background: #e6f0ff;
+  color: #0b1a33;
+}
+
+.card-details-table .snapshot-header td {
+  background: #000000;
+  color: #ffffff;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+  text-align: center;
+}
+
+.card-details-table .snapshot-values td {
+  background: #eef4ff;
+  text-align: center;
+  color: #0b1a33;
+  font-weight: 500;
+}

@@ -563,16 +563,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
 
-    const contactGridHtml = buildContactInstitutionTable(record, helplinePhoneList, helplineEmailList);
-
-    const accountRows = [
-      { label: 'Account #', value: record.Credit_Account_Number || '—' },
-      { label: 'Billing Cycle', value: record.Credit_Billing_Cycle || '—' },
-      { label: 'Statement Date', value: record.Credit_Statement_Day || '—' },
-      { label: 'Payment Due By', value: record.Credit_Payment_Due_Day || '—' },
-      { label: 'Login', value: record.Credit_Login_ID || '—' },
-      { label: 'Password', value: record.Credit_Login_Password ? '••••••••' : '—' }
-    ];
+    const generalInfoTable = buildContactInstitutionTable(record, helplinePhoneList, helplineEmailList);
+    const cardSnapshotTable = buildCardSnapshotTable(record, extraCodes);
 
     const primaryRow = [{
       holder: record.Credit_Primary_Holder || '—',
@@ -611,18 +603,14 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
-      <div class="two-column-layout">
-        <div class="column-left">
-          <div class="fields-card-minimal">
-            <div class="section-heading-minimal"><strong>Contact & Institution</strong></div>
-            ${contactGridHtml}
-          </div>
+      <div class="card-info-section">
+        <div class="info-card">
+          <div class="section-heading-minimal"><strong>Contact & Institution</strong></div>
+          ${generalInfoTable}
         </div>
-        <div class="column-right">
-          <div class="fields-card-minimal">
-            <div class="section-heading-minimal"><strong>Account Details</strong></div>
-            ${buildAccountDetailsGrid(accountRows, 'credit-account-details')}
-          </div>
+        <div class="info-card">
+          <div class="section-heading-minimal"><strong>Card Snapshot</strong></div>
+          ${cardSnapshotTable}
         </div>
       </div>
 
@@ -1395,15 +1383,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const contactGridHtml = buildContactInstitutionTable(record, helplinePhoneList, helplineEmailList, true);
 
-      const accountRows = [
-        { label: 'Account #', value: record.Credit_Account_Number || '—' },
-        { label: 'Billing Cycle', value: record.Credit_Billing_Cycle || '—' },
-        { label: 'Statement Date', value: record.Credit_Statement_Day || '—' },
-        { label: 'Payment Due By', value: record.Credit_Payment_Due_Day || '—' },
-        { label: 'Login', value: record.Credit_Login_ID || '—' },
-        { label: 'Password', value: record.Credit_Login_Password ? '••••••••' : '—' }
-      ];
-      const accountGridHtml = buildAccountDetailsGrid(accountRows, 'print-account-details');
+      const cardSnapshotTable = buildCardSnapshotTable(record, extraCodes, true);
 
       const primaryRow = [{
         holder: record.Credit_Primary_Holder || '—',
@@ -1475,8 +1455,12 @@ document.addEventListener('DOMContentLoaded', () => {
             .credit-info-table tbody td:nth-child(2),
             .credit-info-table tbody td:nth-child(4){text-align:left;}
             .contact-table td{vertical-align:top;text-align:left;}
-            .contact-label-cell{font-weight:700;color:#1a237e;white-space:nowrap;}
-            .contact-value-cell{white-space:normal;word-break:break-word;}
+            .general-info-table .contact-label-cell{font-weight:700;color:#ffffff;white-space:nowrap;background:#000000;}
+            .general-info-table .contact-value-cell{background:#e6f0ff;color:#0b1a33;white-space:normal;word-break:break-word;}
+            .card-details-table{width:100%;border-collapse:collapse;border:1px solid rgba(13,71,161,0.25);border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(13,71,161,0.12);}
+            .card-details-table td{padding:8px 10px;border:1px solid rgba(13,71,161,0.18);}
+            .card-details-table .snapshot-header td{background:#000000;color:#ffffff;font-weight:700;text-transform:uppercase;letter-spacing:0.35px;text-align:center;}
+            .card-details-table .snapshot-values td{background:#eef4ff;text-align:center;color:#0b1a33;font-weight:500;}
             .section-heading{margin:14px 0 6px 0;font-size:12.5px;font-weight:700;color:#c62828;text-transform:uppercase;letter-spacing:0.5px;}
             .security-card-minimal{margin-top:12px;padding:12px;border:1px solid #e0e0e0;border-radius:8px;background:#fdfdfd;}
             .security-qa-block{font-size:11px;line-height:1.25;}
@@ -1498,10 +1482,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3>Contact & Institution</h3>
               ${contactGridHtml}
               </div>
-              <div class="info-card">
-                <h3>Account Details</h3>
-                ${accountGridHtml}
-              </div>
+            <div class="info-card">
+              <h3>Card Snapshot</h3>
+              ${cardSnapshotTable}
+            </div>
             </div>
 
             ${primaryTable}
@@ -1549,41 +1533,108 @@ document.addEventListener('DOMContentLoaded', () => {
   `;
 
   const buildContactInstitutionTable = (record, phoneList = [], emailList = [], isPrint = false) => {
-    const phones = [...phoneList];
-    const emails = [...emailList];
-    while (phones.length < 3) phones.push('');
-    while (emails.length < 3) emails.push('');
+    const normalizeList = (list = []) => list
+      .map(item => (item || '').trim())
+      .filter(Boolean);
+    const phoneText = (() => {
+      const phones = normalizeList(phoneList);
+      if (!phones.length) return '—';
+      return phones.map(phone => escapeHtml(phone)).join(' / ');
+    })();
+    const emailText = (() => {
+      const emails = normalizeList(emailList);
+      if (!emails.length) return '—';
+      return emails.map(email => escapeHtml(email)).join(' / ');
+    })();
 
     const displayValue = (value) => {
       const trimmed = (value || '').trim();
       return trimmed ? escapeHtml(trimmed) : '—';
     };
 
-    const tableClasses = ['holder-info-table', 'holder-info-table-modern', 'contact-table'];
+    const tableClasses = ['holder-info-table', 'holder-info-table-modern', 'contact-table', 'general-info-table'];
     if (isPrint) tableClasses.push('print-contact-table');
 
     return `
       <table class="${tableClasses.join(' ')}">
         <tbody>
           <tr>
-            <td class="contact-label-cell">Institution</td>
-            <td>${displayValue(record.Credit_Institution)}</td>
+            <td class="contact-label-cell">Helpline Email</td>
+            <td class="contact-value-cell">${emailText}</td>
+          </tr>
+          <tr>
+            <td class="contact-label-cell">Helpline Phone</td>
+            <td class="contact-value-cell">${phoneText}</td>
+          </tr>
+          <tr>
             <td class="contact-label-cell">Portal</td>
-            <td>${record.Credit_URL ? `<a href="${escapeHtml(record.Credit_URL)}" target="_blank" class="info-link">${escapeHtml(record.Credit_URL)}</a>` : '—'}</td>
+            <td class="contact-value-cell">${record.Credit_URL ? `<a href="${escapeHtml(record.Credit_URL)}" target="_blank" class="info-link">${escapeHtml(record.Credit_URL)}</a>` : '—'}</td>
           </tr>
           <tr>
-            <td class="contact-label-cell" rowspan="3">Helpline Phone</td>
-            <td class="contact-value-cell">${displayValue(phones[0])}</td>
-            <td class="contact-label-cell" rowspan="3">Helpline Email</td>
-            <td class="contact-value-cell">${displayValue(emails[0])}</td>
+            <td class="contact-label-cell">Card Status</td>
+            <td class="contact-value-cell">${displayValue(record.Credit_Card_Status || record.Credit_Status)}</td>
           </tr>
-          <tr>
-            <td class="contact-value-cell">${displayValue(phones[1])}</td>
-            <td class="contact-value-cell">${displayValue(emails[1])}</td>
+        </tbody>
+      </table>
+    `;
+  };
+
+  const buildCardSnapshotTable = (record, extraCodes = '', isPrint = false) => {
+    const tableClasses = ['card-details-table'];
+    if (isPrint) tableClasses.push('print-card-details-table');
+    const display = (value) => {
+      const trimmed = (value || '').trim();
+      return trimmed ? escapeHtml(trimmed) : '—';
+    };
+    const cardLimit = record.Credit_Card_Limit || record.Credit_Limit || record.Credit_Limit_Amount || '';
+    const passwordDisplay = record.Credit_Login_Password ? '••••••••' : '—';
+
+    return `
+      <table class="${tableClasses.join(' ')}">
+        <tbody>
+          <tr class="snapshot-header">
+            <td>Institution</td>
+            <td>Holder</td>
+            <td>Account #</td>
+            <td>Card Number</td>
+            <td>Valid From</td>
+            <td>Valid To</td>
+            <td>CVV</td>
           </tr>
-          <tr>
-            <td class="contact-value-cell">${displayValue(phones[2])}</td>
-            <td class="contact-value-cell">${displayValue(emails[2])}</td>
+          <tr class="snapshot-values">
+            <td>${display(record.Credit_Institution)}</td>
+            <td>${display(record.Credit_Primary_Holder)}</td>
+            <td>${display(record.Credit_Account_Number)}</td>
+            <td>${display(record.Credit_Card_Number)}</td>
+            <td>${display(record.Credit_Valid_From)}</td>
+            <td>${display(record.Credit_Valid_To)}</td>
+            <td>${display(record.Credit_CVV)}</td>
+          </tr>
+          <tr class="snapshot-header">
+            <td>Extra Codes</td>
+            <td>Txn_PIN</td>
+            <td>Tele_PIN</td>
+            <td>Card Limit</td>
+            <td>Billing Cycle</td>
+            <td>Statement Date</td>
+            <td>Payment Due By</td>
+          </tr>
+          <tr class="snapshot-values">
+            <td>${display(extraCodes)}</td>
+            <td>${display(record.Credit_Transaction_Pin)}</td>
+            <td>${display(record.Credit_Tele_Pin)}</td>
+            <td>${display(cardLimit)}</td>
+            <td>${display(record.Credit_Billing_Cycle)}</td>
+            <td>${display(record.Credit_Statement_Day)}</td>
+            <td>${display(record.Credit_Payment_Due_Day)}</td>
+          </tr>
+          <tr class="snapshot-header">
+            <td colspan="3">Login</td>
+            <td colspan="4">Password</td>
+          </tr>
+          <tr class="snapshot-values">
+            <td colspan="3">${display(record.Credit_Login_ID)}</td>
+            <td colspan="4">${isPrint && record.Credit_Login_Password ? escapeHtml(record.Credit_Login_Password) : passwordDisplay}</td>
           </tr>
         </tbody>
       </table>
@@ -1681,37 +1732,6 @@ document.addEventListener('DOMContentLoaded', () => {
           </tbody>
         </table>
       </div>
-    `;
-  };
-
-  const buildAccountDetailsGrid = (rows = [], resizeKey = '') => {
-    const tableKey = slugifyKey(resizeKey || 'account-grid');
-    const pairs = [];
-    for (let i = 0; i < rows.length; i += 2) {
-      const left = rows[i] || { label: '', value: '' };
-      const right = rows[i + 1] || { label: '', value: '' };
-      pairs.push({ left, right });
-    }
- 
-    return `
-      <table class="holder-info-table holder-info-table-modern credit-info-table resizable-table" data-resize-key="${tableKey}">
-        <colgroup>
-          <col data-col-index="0" style="width: 22%;">
-          <col data-col-index="1" style="width: 28%;">
-          <col data-col-index="2" style="width: 22%;">
-          <col data-col-index="3" style="width: 28%;">
-        </colgroup>
-        <tbody>
-          ${pairs.map(pair => `
-            <tr>
-              <td>${escapeHtml(pair.left.label || '')}</td>
-              <td>${pair.left.html ? pair.left.value || '—' : escapeHtml(pair.left.value || '—')}</td>
-              <td>${escapeHtml(pair.right.label || '')}</td>
-              <td>${pair.right.html ? pair.right.value || '—' : escapeHtml(pair.right.value || '—')}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
     `;
   };
 
