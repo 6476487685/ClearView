@@ -26,33 +26,3 @@ body.dark .credit-info-table tbody td:first-child{
 .info-card-grid .info-value {
   color: var(--text-primary);
 }
-
-.info-grid-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 12px 10px;
-}
-
-.info-grid-row-labels td {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.info-grid-row-values td {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-  text-align: center;
-  word-break: break-word;
-}
-
-.info-grid-table .info-link {
-  color: var(--accent);
-  text-decoration: none;
-}
-
-.info-grid-table .info-link:hover {
-  text-decoration: underline;
-}

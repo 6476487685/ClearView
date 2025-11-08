@@ -566,6 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
       { label: 'Helpline Phone', value: helplinePhones || '—' },
       { label: 'Helpline Email', value: helplineEmails || '—' }
     ];
+    const contactGridHtml = buildAccountDetailsGrid(contactCells);
 
     const accountRows = [
       { label: 'Account #', value: record.Credit_Account_Number || '—' },
@@ -615,9 +616,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="two-column-layout">
         <div class="column-left">
-          <div class="fields-card-minimal info-card">
-            <div class="section-heading-minimal info-card-header"><strong>Contact & Institution</strong></div>
-            ${buildContactGrid(contactCells)}
+          <div class="fields-card-minimal">
+            <div class="section-heading-minimal"><strong>Contact & Institution</strong></div>
+            ${contactGridHtml}
           </div>
         </div>
         <div class="column-right">
@@ -1646,21 +1647,6 @@ document.addEventListener('DOMContentLoaded', () => {
       </table>
     `;
   };
-
-  const buildContactGrid = (cells = []) => `
-    <div class="fields-content-minimal info-card-body">
-      <table class="info-grid-table">
-        <tbody>
-          <tr class="info-grid-row info-grid-row-labels">
-            ${cells.map(cell => `<td class="info-grid-label">${escapeHtml(cell.label)}</td>`).join('')}
-          </tr>
-          <tr class="info-grid-row info-grid-row-values">
-            ${cells.map(cell => `<td class="info-grid-value">${cell.html ? cell.value : escapeHtml(cell.value)}</td>`).join('')}
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  `;
 
   /* -------------------- Initialization -------------------- */
   populateInstitutionSelect();
