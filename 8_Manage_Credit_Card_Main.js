@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const addOnContainer = document.getElementById('addOnCardsContainer');
   const addOnList = document.getElementById('addOnCardsList');
   const btnAddAddOnCard = document.getElementById('btnAddAddOnCard');
-  const accountTagFilter = document.getElementById('Credit_Account_Tag');
+  const filterSelect = document.getElementById('Credit_Filter_Tag');
   const recordsContainer = document.getElementById('creditCardRecordsContainer');
   const autoBackupToggle = document.getElementById('autoBackupToggle');
   const autoBackupStatus = document.getElementById('autoBackupStatusText');
@@ -314,7 +314,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     addOnEnableCheckbox.checked = true;
     addOnContainer.style.display = 'block';
-    cards.forEach(card => addAddOnCardRow(card));
+    cards.forEach(card => addAddOnCardRow({
+      holder: card.holder || '',
+      cardNumber: card.cardNumber || '',
+      validFrom: card.validFrom || '',
+      validTo: card.validTo || '',
+      cvv: card.cvv || '',
+      amexCode: card.amexCode || '',
+      extraDigits: card.extraDigits || '',
+      txnPin: card.txnPin || '',
+      telePin: card.telePin || ''
+    }));
   };
 
   const loadContactOptions = (forceRefresh = false) => {
@@ -442,16 +452,22 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const populateFilterOptions = () => {
-    if (!accountTagFilter) return;
+    if (!filterSelect) return;
     const data = getData();
     const tags = new Set();
     data.forEach(record => {
       if (record.Credit_Ac_Tag) tags.add(record.Credit_Ac_Tag);
     });
-    accountTagFilter.innerHTML = '<option value="">All Account Tags</option>';
+    const currentFilter = filterSelect.value;
+    filterSelect.innerHTML = '<option value="">All Account Tags</option>';
     Array.from(tags).sort().forEach(tag => {
-      accountTagFilter.innerHTML += `<option value="${escapeHtml(tag)}">${escapeHtml(tag)}</option>`;
+      filterSelect.innerHTML += `<option value="${escapeHtml(tag)}">${escapeHtml(tag)}</option>`;
     });
+    if (currentFilter && tags.has(currentFilter)) {
+      filterSelect.value = currentFilter;
+    } else {
+      filterSelect.value = '';
+    }
   };
 
   const closeModal = () => {
@@ -500,7 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* -------------------- Rendering -------------------- */
   const renderRecords = () => {
     const data = getData();
-    const selectedTag = accountTagFilter ? accountTagFilter.value : '';
+    const selectedTag = filterSelect ? filterSelect.value : '';
     let filteredData = data;
     if (selectedTag) {
       filteredData = data.filter(record => record.Credit_Ac_Tag === selectedTag);
@@ -810,7 +826,9 @@ document.addEventListener('DOMContentLoaded', () => {
     generatePDF();
   });
 
-  accountTagFilter.addEventListener('change', renderRecords);
+  if (filterSelect) {
+    filterSelect.addEventListener('change', renderRecords);
+  }
   addOnEnableCheckbox.addEventListener('change', () => {
     addOnContainer.style.display = addOnEnableCheckbox.checked ? 'block' : 'none';
     if (!addOnEnableCheckbox.checked) {
