@@ -605,16 +605,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="card-info-section">
         <div class="info-card">
-          <div class="section-heading-minimal"><strong>Contact & Institution</strong></div>
+            <div class="section-heading-minimal"><strong>Contact & Institution</strong></div>
           ${generalInfoTable}
-        </div>
+          </div>
         <div class="info-card">
           <div class="section-heading-minimal"><strong>Card Snapshot</strong></div>
           ${cardSnapshotTable}
         </div>
       </div>
 
-      ${buildHolderTable('Primary Card Details', primaryRow, 'credit-holder-primary')}
       ${addOnTables}
       ${renderSecuritySummary(record.Credit_Security_QA || [])}
     `;
@@ -1482,10 +1481,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3>Contact & Institution</h3>
               ${contactGridHtml}
               </div>
-            <div class="info-card">
+              <div class="info-card">
               <h3>Card Snapshot</h3>
               ${cardSnapshotTable}
-            </div>
+              </div>
             </div>
 
             ${primaryTable}
@@ -1800,14 +1799,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const cells = Array.from(firstRow.children);
       cells.forEach((cell, index) => {
         if (index === cells.length - 1) return;
-
+ 
         const existingHandle = cell.querySelector('.column-resizer');
         if (existingHandle) return;
-
+ 
         const handle = document.createElement('div');
         handle.className = 'column-resizer';
         handle.dataset.resizerIndex = index;
-
+ 
         const columnCells = Array.from(table.querySelectorAll(`tr > *:nth-child(${index + 1})`));
         const colElement = cols[index];
  
