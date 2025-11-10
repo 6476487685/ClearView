@@ -444,17 +444,88 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const accountTagSelect = document.getElementById('Credit_Ac_Tag');
       if (!accountTagSelect) return;
-      const unifiedDataStr = localStorage.getItem('unified_master_data');
-      let tags = [];
-      if (unifiedDataStr) {
-        const unifiedData = JSON.parse(unifiedDataStr);
-        tags = unifiedData.income?.Income_Ac_Tag || [];
-      }
-      accountTagSelect.innerHTML = '<option value="">Select Account Tag</option>';
-      tags.forEach(tag => {
-        if (tag && tag !== '') {
-          accountTagSelect.innerHTML += `<option value="${escapeHtml(tag)}">${escapeHtml(tag)}</option>`;
+
+      const toStringSafe = (value) => {
+        if (value === null || value === undefined) return '';
+        return String(value).trim();
+      };
+
+      const addIfExpenseTag = (collection = [], bucket = new Set()) => {
+        if (!Array.isArray(collection)) return bucket;
+        collection.forEach(item => {
+          if (!item && item !== 0) return;
+          if (typeof item === 'string') {
+            const normalized = toStringSafe(item);
+            if (normalized) bucket.add(normalized);
+            return;
+          }
+          if (typeof item === 'object') {
+            const classification = toStringSafe(item.Ac_Classification || item.classification || item.type);
+            if (classification && classification !== 'Expanse' && classification !== 'Expense') return;
+            const rawValue =
+              toStringSafe(item.Ac_Tag || item.tag || item.value || item.label || item.name);
+            if (rawValue) bucket.add(rawValue);
+          }
+        });
+        return bucket;
+      };
+
+      const collectExpenseTags = () => {
+        const tagSet = new Set();
+        const unifiedDataStr = localStorage.getItem('unified_master_data');
+        if (unifiedDataStr) {
+          try {
+            const unifiedData = JSON.parse(unifiedDataStr) || {};
+            addIfExpenseTag(unifiedData.consolidated?.Ac_Tag, tagSet);
+            addIfExpenseTag(unifiedData.expense?.Expanse_Ac_Tag, tagSet);
+            // Some older datasets may store combined Ac_Tag arrays directly under common
+            addIfExpenseTag(
+              (unifiedData.common && unifiedData.common.Ac_Tag) || [],
+              tagSet
+            );
+          } catch (parseError) {
+            console.warn('Unable to parse unified master data for account tags:', parseError);
+          }
         }
+
+        if (!tagSet.size) {
+          // Fallback to legacy expense master data
+          try {
+            const legacyExpenseStr = localStorage.getItem('expense_master_data');
+            if (legacyExpenseStr) {
+              const legacyExpense = JSON.parse(legacyExpenseStr) || {};
+              addIfExpenseTag(legacyExpense.Expanse_Ac_Tag, tagSet);
+            }
+          } catch (legacyError) {
+            console.warn('Unable to parse legacy expense master data:', legacyError);
+          }
+        }
+
+        if (!tagSet.size) {
+          // Final fallback: derive from stored expense transactions
+          try {
+            const expenseRecords = JSON.parse(localStorage.getItem('expense_records') || '[]');
+            expenseRecords.forEach(record => {
+              const tag = toStringSafe(record?.Expanse_Ac_Tag || record?.Expense_Tag || record?.tag);
+              if (tag) tagSet.add(tag);
+            });
+          } catch (recordsError) {
+            console.warn('Unable to derive tags from expense records:', recordsError);
+          }
+        }
+
+        return Array.from(tagSet);
+      };
+
+      const allExpenseTags = collectExpenseTags();
+      const filteredTags = allExpenseTags
+        .map(tag => toStringSafe(tag))
+        .filter(tag => tag && /^(CC|LOC)/i.test(tag))
+        .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+      accountTagSelect.innerHTML = '<option value="">Select Account Tag</option>';
+      filteredTags.forEach(tag => {
+        accountTagSelect.innerHTML += `<option value="${escapeHtml(tag)}">${escapeHtml(tag)}</option>`;
       });
     } catch (e) {
       console.error('Error populating account tags:', e);
