@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded",()=>{
  const table=document.getElementById('investmentTable');
+ const horizontalScrollbar = document.getElementById('horizontalScrollbar');
+ const tableDataWrapper = document.querySelector('.table-data-wrapper');
+ let scrollDummy = null;
  const tbody=document.getElementById('investmentBody');
  const form=document.getElementById('investmentForm');
  const modal=document.getElementById('investmentModal');
@@ -193,9 +196,17 @@ if(btnImportExcel && excelFileInput){
   if(tag)d=d.filter(x=>x.tag===tag);
   if(hol)d=d.filter(x=>x.holder===hol);
   if(st)d=d.filter(x=>x.txnstatus===st);
-  if(from)d=d.filter(x=>(!r.investdate||r.investdate>=from||r.maturitydate>=from));
-  if(to)d=d.filter(x=>(!r.investdate||r.investdate<=to||r.maturitydate<=to));
-  if(txt)d=d.filter(x=>Object.values(x).join(' ').toLowerCase().includes(txt));
+  if(from)d=d.filter(x=>{
+  const invest=x.investdate;
+  const maturity=x.maturitydate;
+  return (!invest || invest>=from) || (!!maturity && maturity>=from);
+ });
+ if(to)d=d.filter(x=>{
+  const invest=x.investdate;
+  const maturity=x.maturitydate;
+  return (!invest || invest<=to) || (!!maturity && maturity<=to);
+ });
+ if(txt)d=d.filter(x=>Object.values(x).join(' ').toLowerCase().includes(txt));
   renderTable(d);
  }
  filters.forEach(el=>el.oninput=applyFilters);
@@ -350,55 +361,234 @@ if(btnImportExcel && excelFileInput){
  // Populate dropdowns on page load
  populateModalDropdowns();
 
- // Column resize with persistent storage
- let startX,startW,th;
- const STORAGE_KEY = 'investment_column_widths';
- 
- // Load saved column widths
- function loadColumnWidths() {
-   const savedWidths = localStorage.getItem(STORAGE_KEY);
-   if (savedWidths) {
-     try {
-       const widths = JSON.parse(savedWidths);
-       table.querySelectorAll('th.resizable').forEach((h, index) => {
-         if (widths[index]) {
-           h.style.width = widths[index];
-         }
-       });
-     } catch (e) {
-       console.log('Error loading column widths:', e);
-     }
-   }
- }
- 
- // Save column widths
- function saveColumnWidths() {
-   const widths = [];
-   table.querySelectorAll('th.resizable').forEach(h => {
-     widths.push(h.style.width || h.offsetWidth + 'px');
-   });
-   localStorage.setItem(STORAGE_KEY, JSON.stringify(widths));
- }
- 
- // Initialize column widths
- loadColumnWidths();
- 
- table.querySelectorAll('th.resizable').forEach(h=>{
-  h.addEventListener('mousedown',e=>{
-   if(e.offsetX>h.offsetWidth-6){
-    startX=e.pageX;startW=h.offsetWidth;th=h;document.body.style.userSelect='none';
-    document.addEventListener('mousemove',resize);document.addEventListener('mouseup',stop);
-   }
+// Column resize functionality
+const COLUMN_STORAGE_KEY = 'investment_column_widths';
+const RESIZER_STYLE_ID = 'investment-column-resizer-style';
+const resizeState = {
+  active: false,
+  startX: 0,
+  startWidth: 0,
+  columnIndex: -1,
+  headerCell: null
+};
+
+const ensureResizerStyles = () => {
+  if (document.getElementById(RESIZER_STYLE_ID)) return;
+  const style = document.createElement('style');
+  style.id = RESIZER_STYLE_ID;
+  style.textContent = `
+    th.resizable::after { display: none !important; }
+    .column-resizer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 12px;
+      height: 100%;
+      cursor: col-resize;
+      user-select: none;
+      touch-action: none;
+      z-index: 5;
+    }
+    .column-resizer::after {
+      content: '';
+      position: absolute;
+      right: 4px;
+      top: 20%;
+      bottom: 20%;
+      width: 3px;
+      border-radius: 6px;
+      background: rgba(26, 79, 176, 0.45);
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+    body.table-resizing {
+      cursor: col-resize !important;
+      user-select: none !important;
+    }
+    .column-resizer:hover::after,
+    .column-resizer:active::after {
+      background: rgba(26, 79, 176, 0.85);
+      transform: scaleX(1.2);
+    }
+  `;
+  document.head.appendChild(style);
+};
+
+const parseWidth = (value) => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'number') return value;
+  const match = String(value).match(/(\d+)/);
+  return match ? parseInt(match[1], 10) : null;
+};
+
+const getColumnCells = (index) => {
+  if (!table) return [];
+  return Array.from(table.querySelectorAll(`tbody tr td:nth-child(${index + 1})`));
+};
+
+const updateTableWidth = () => {
+  if (!table) return;
+  const headerCells = table.querySelectorAll('thead tr th');
+  const total = Array.from(headerCells).reduce((sum, cell) => {
+    const explicit = parseWidth(cell.style.width);
+    return sum + (explicit || cell.offsetWidth || 0);
+  }, 0);
+  if (total > 0) {
+    table.style.width = `${total}px`;
+    table.style.minWidth = `${total}px`;
+  }
+};
+
+const syncHorizontalScrollbarWidth = () => {
+  if (!table || !horizontalScrollbar || !scrollDummy) return;
+  const tableWidth = table.scrollWidth || table.offsetWidth;
+  scrollDummy.style.width = `${Math.max(tableWidth, horizontalScrollbar.offsetWidth + 1)}px`;
+};
+
+const applyColumnWidth = (index, width) => {
+  if (!table) return;
+  const normalizedWidth = Math.max(60, parseInt(width, 10) || 0);
+  const headerCells = table.querySelectorAll('thead tr th');
+  const targetHeader = headerCells[index];
+  if (!targetHeader) return;
+
+  const widthPx = `${normalizedWidth}px`;
+  targetHeader.style.width = widthPx;
+  targetHeader.style.minWidth = widthPx;
+
+  getColumnCells(index).forEach((cell) => {
+    cell.style.width = widthPx;
+    cell.style.minWidth = widthPx;
   });
- });
- function resize(e){if(!th)return;const diff=e.pageX-startX;th.style.width=(startW+diff)+'px';}
- function stop(){
-   document.removeEventListener('mousemove',resize);
-   document.removeEventListener('mouseup',stop);
-   document.body.style.userSelect='auto';
-   saveColumnWidths(); // Save widths after resize
-   th=null;
- }
+  updateTableWidth();
+  syncHorizontalScrollbarWidth();
+};
+
+const saveColumnWidths = () => {
+  if (!table) return;
+  const widths = Array.from(table.querySelectorAll('thead tr th')).map((th) => {
+    const applied = parseWidth(th.style.width);
+    return `${applied || th.offsetWidth}px`;
+  });
+  localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(widths));
+};
+
+const loadColumnWidths = () => {
+  if (!table) return;
+  const saved = localStorage.getItem(COLUMN_STORAGE_KEY);
+  if (!saved) return;
+  try {
+    const widths = JSON.parse(saved);
+    widths.forEach((width, index) => {
+      if (width) {
+        applyColumnWidth(index, width);
+      }
+    });
+  } catch (err) {
+    console.warn('Unable to restore saved column widths:', err);
+  }
+};
+
+const handlePointerMove = (event) => {
+  if (!resizeState.active || !table) return;
+  event.preventDefault();
+  const delta = event.pageX - resizeState.startX;
+  const newWidth = resizeState.startWidth + delta;
+  applyColumnWidth(resizeState.columnIndex, newWidth);
+};
+
+const stopResizing = () => {
+  if (!resizeState.active) return;
+  document.removeEventListener('mousemove', handlePointerMove, true);
+  document.removeEventListener('mouseup', stopResizing, true);
+  document.body.classList.remove('table-resizing');
+  resizeState.active = false;
+  resizeState.headerCell = null;
+  resizeState.columnIndex = -1;
+  saveColumnWidths();
+};
+
+const startResizing = (event, headerCell, index) => {
+  if (!table || !headerCell) return;
+  event.preventDefault();
+  resizeState.active = true;
+  resizeState.startX = event.pageX;
+  resizeState.startWidth = headerCell.offsetWidth;
+  resizeState.columnIndex = index;
+  resizeState.headerCell = headerCell;
+  document.body.classList.add('table-resizing');
+  document.addEventListener('mousemove', handlePointerMove, true);
+  document.addEventListener('mouseup', stopResizing, true);
+};
+
+if (table) {
+  ensureResizerStyles();
+  const headerCells = table.querySelectorAll('thead tr th');
+  headerCells.forEach((th, index) => {
+    if (!th.classList.contains('resizable')) return;
+    if (th.querySelector('.column-resizer')) return;
+    const resizer = document.createElement('div');
+    resizer.className = 'column-resizer';
+    resizer.title = 'Drag to resize column';
+    resizer.addEventListener('mousedown', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      startResizing(event, th, index);
+    });
+    th.appendChild(resizer);
+  });
+  loadColumnWidths();
+  updateTableWidth();
+  syncHorizontalScrollbarWidth();
+}
+
+if (horizontalScrollbar && tableDataWrapper) {
+  scrollDummy = document.createElement('div');
+  scrollDummy.style.height = '17px';
+  scrollDummy.style.display = 'block';
+  scrollDummy.style.minWidth = '1200px';
+  scrollDummy.style.position = 'absolute';
+  scrollDummy.style.left = '0';
+  scrollDummy.style.top = '0';
+  horizontalScrollbar.appendChild(scrollDummy);
+
+  const ensureScrollbarWidth = () => {
+    const wrapperWidth = horizontalScrollbar.offsetWidth;
+    if (scrollDummy.offsetWidth <= wrapperWidth) {
+      scrollDummy.style.width = `${wrapperWidth + 1}px`;
+    }
+  };
+
+  ensureScrollbarWidth();
+  setTimeout(() => {
+    ensureScrollbarWidth();
+    syncHorizontalScrollbarWidth();
+  }, 200);
+
+  horizontalScrollbar.style.overflowX = 'scroll';
+  horizontalScrollbar.style.overflowY = 'hidden';
+  horizontalScrollbar.style.display = 'block';
+  horizontalScrollbar.style.visibility = 'visible';
+
+  horizontalScrollbar.addEventListener('scroll', () => {
+    tableDataWrapper.scrollLeft = horizontalScrollbar.scrollLeft;
+  });
+
+  tableDataWrapper.addEventListener('scroll', () => {
+    if (horizontalScrollbar.scrollLeft !== tableDataWrapper.scrollLeft) {
+      horizontalScrollbar.scrollLeft = tableDataWrapper.scrollLeft;
+    }
+  });
+
+  const observer = new MutationObserver(() => {
+    horizontalScrollbar.scrollLeft = tableDataWrapper.scrollLeft;
+  });
+  observer.observe(tableDataWrapper, { childList: true, subtree: true });
+
+  setTimeout(() => {
+    horizontalScrollbar.scrollLeft = tableDataWrapper.scrollLeft;
+    syncHorizontalScrollbarWidth();
+  }, 100);
+}
 
 // Helper function to generate filename
 function generateFilename(extension) {
@@ -412,28 +602,27 @@ function generateFilename(extension) {
   return `Investment_Filter_Report_${year}-${month}-${day}_${hours}-${minutes}-${seconds}.${extension}`;
 }
 
-// Helper function to create Excel file using SheetJS
 function createExcelFile(data) {
   // Prepare worksheet data
-  const headers = ['#', 'Investment Description', 'Category Equity', 'Account Tag Equity', 'Currency', 'Amount', 'Mode', 'Holder', 'Invest Date', 'Paid From', 'Maturity Date', 'Frequency', 'Ac Status', 'Txn Status'];
+  const headers = ['#', 'Description', 'Category', 'Account Tag', 'Currency', 'Amount', 'Mode', 'Holder', 'Invest Date', 'Paid From', 'Maturity Date', 'Frequency', 'Ac Status', 'Txn Status'];
   const worksheetData = [headers];
   
   data.forEach((row, index) => {
     const rowData = [
       index + 1,
-      row.desc,
-      row.cat,
-      row.tag,
-      row.cur,
-      Number(row.amt).toFixed(2),
-      row.mode,
-      row.holder,
-      row.investdate,
-      row.paidfrom || '',
-      row.maturitydate,
-      row.freq,
-      row.acstatus,
-      row.txnstatus
+      row.description || '',
+      row.category || '',
+      row.tag || '',
+      row.currency || '',
+      row.amount || '',
+      row.mode || '',
+      row.holder || '',
+      row.investDate || '',
+      row.paidFrom || '',
+      row.maturityDate || '',
+      row.frequency || '',
+      row.accountStatus || '',
+      row.txnStatus || ''
     ];
     worksheetData.push(rowData);
   });
@@ -445,19 +634,19 @@ function createExcelFile(data) {
   // Set column widths for better readability
   ws['!cols'] = [
     { wch: 5 },   // #
-    { wch: 25 },  // Investment Description
-    { wch: 15 },  // Category Equity
-    { wch: 20 },  // Account Tag Equity
+    { wch: 30 },  // Description
+    { wch: 18 },  // Category
+    { wch: 20 },  // Account Tag
     { wch: 10 },  // Currency
-    { wch: 12 },  // Amount
+    { wch: 14 },  // Amount
     { wch: 15 },  // Mode
-    { wch: 12 },  // Holder
-    { wch: 12 },  // Invest Date
-    { wch: 20 },  // Paid From
-    { wch: 12 },  // Maturity Date
-    { wch: 12 },  // Frequency
-    { wch: 12 },  // Ac Status
-    { wch: 12 }   // Txn Status
+    { wch: 15 },  // Holder
+    { wch: 14 },  // Invest Date
+    { wch: 18 },  // Paid From
+    { wch: 16 },  // Maturity Date
+    { wch: 14 },  // Frequency
+    { wch: 14 },  // Ac Status
+    { wch: 14 }   // Txn Status
   ];
   
   XLSX.utils.book_append_sheet(wb, ws, "Investment Report");
@@ -654,7 +843,8 @@ function awaitBackupAndDownload(){
 
 // Exports
 btnExcel.onclick=()=>{
-const data = getData();
+const data = getVisibleTableData();
+if(!data.length){alert('No investment data to export.');return;}
 const blob = createExcelFile(data);
 const a = document.createElement('a');
 a.href = URL.createObjectURL(blob);
@@ -665,8 +855,9 @@ showPathReminder('excel');
 };
  btnPDF.onclick=()=>{
  try {
-  const data = getData();
-  
+  const data = getVisibleTableData();
+  if(!data.length){alert('No investment data to export.');return;}
+ 
   // Check if jsPDF is loaded
   if (!window.jspdf) {
     alert('PDF library not loaded. Please refresh the page and try again.');
@@ -682,6 +873,7 @@ showPathReminder('excel');
  function formatDate(dateStr) {
    if (!dateStr) return '';
    const date = new Date(dateStr);
+   if (Number.isNaN(date.getTime())) return dateStr;
    return date.toISOString().split('T')[0].replace(/-/g, '/');
  }
  
@@ -712,13 +904,13 @@ showPathReminder('excel');
  doc.text(criteriaText, pageWidth / 2, 35, { align: 'center' });
  
  // Compact table layout for 20+ records per page
-const headers = ['#', 'Investment Description', 'Category Equity', 'Account Tag Equity', 'Currency', 'Amount', 'Mode', 'Holder', 'Invest Date', 'Paid From', 'Maturity Date', 'Frequency', 'Ac Status', 'Txn Status'];
-const colWidths = [10, 40, 22, 28, 15, 20, 20, 18, 20, 30, 20, 18, 18, 18];
+ const headers = ['#', 'Description', 'Category', 'Tag', 'Currency', 'Amount', 'Mode', 'Holder', 'Invest Date', 'Paid From', 'Maturity Date', 'Frequency', 'Ac Status', 'Txn Status'];
+ const colWidths = [10, 40, 24, 26, 14, 18, 18, 20, 20, 22, 22, 16, 16, 16];
  const rowHeight = 5; // Compact row height
  const startY = 45;
  let currentY = startY;
  let currentPage = 1;
- const totalPages = Math.ceil(data.length / 22); // ~22 records per page with compact layout
+ const totalPages = Math.max(1, Math.ceil(data.length / 22)); // ~22 records per page with compact layout
  
  // Calculate total table width and center it
  const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0);
@@ -777,27 +969,26 @@ const colWidths = [10, 40, 22, 28, 15, 20, 20, 18, 20, 30, 20, 18, 18, 18];
    
    const rowData = [
      (index + 1).toString(),
-     row.desc,
-     row.cat,
-     row.tag,
-     row.cur,
-     Number(row.amt).toFixed(2),
-     row.mode,
-     row.holder,
-     formatDate(row.investdate),
-     row.paidfrom || '',
-     formatDate(row.maturitydate),
-     row.freq,
-     row.acstatus,
-     row.txnstatus
+     row.description || '',
+     row.category || '',
+     row.tag || '',
+     row.currency || '',
+     row.amount || '',
+     row.mode || '',
+     row.holder || '',
+     formatDate(row.investDate),
+     row.paidFrom || '',
+     formatDate(row.maturityDate),
+     row.frequency || '',
+     row.accountStatus || '',
+     row.txnStatus || ''
    ];
    
    let x = tableStartX;
    rowData.forEach((cell, i) => {
-     // Truncate long text to fit columns
-     let cellText = cell.toString();
-     // Define max lengths based on column widths
-     const maxLengths = [3, 25, 15, 20, 10, 15, 15, 12, 15, 25, 15, 12, 12, 12];
+     const raw = cell === undefined || cell === null ? '' : cell;
+     let cellText = raw.toString();
+     const maxLengths = [3, 25, 18, 18, 10, 14, 14, 16, 14, 16, 16, 12, 12, 12];
      const maxLength = maxLengths[i];
      if (cellText.length > maxLength) {
        cellText = cellText.substring(0, maxLength - 3) + '...';
@@ -829,3 +1020,30 @@ if (savedTheme === 'dark') {
   document.body.classList.add('dark');
 }
 });
+
+function getVisibleTableData() {
+  const rows = document.querySelectorAll('#investmentBody tr:not([style*="display: none"])');
+  const data = [];
+  rows.forEach((row) => {
+    const cells = row.querySelectorAll('td');
+    if (cells.length >= 15) {
+      const safe = (index) => (cells[index]?.textContent || '').trim();
+      data.push({
+        description: safe(1),
+        category: safe(2),
+        tag: safe(3),
+        currency: safe(4),
+        amount: safe(5),
+        mode: safe(6),
+        holder: safe(7),
+        investDate: safe(8),
+        paidFrom: safe(9),
+        maturityDate: safe(10),
+        frequency: safe(11),
+        accountStatus: safe(12),
+        txnStatus: safe(13)
+      });
+    }
+  });
+  return data;
+}
