@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded",()=>{
- const table=document.getElementById('expenseTable');
+const table=document.getElementById('expenseTable');
+const horizontalScrollbar = document.getElementById('horizontalScrollbar');
+const tableDataWrapper = document.querySelector('.table-data-wrapper');
+let scrollDummy = null;
  const tbody=document.getElementById('expenseBody');
  const form=document.getElementById('expenseForm');
  const modal=document.getElementById('expenseModal');
@@ -492,6 +495,12 @@ const updateTableWidth = () => {
   }
 };
 
+const syncHorizontalScrollbarWidth = () => {
+  if (!table || !horizontalScrollbar || !scrollDummy) return;
+  const tableWidth = table.scrollWidth || table.offsetWidth;
+  scrollDummy.style.width = `${Math.max(tableWidth, horizontalScrollbar.offsetWidth + 1)}px`;
+};
+
 const applyColumnWidth = (index, width) => {
   if (!table) return;
   const normalizedWidth = Math.max(60, parseInt(width, 10) || 0);
@@ -508,6 +517,7 @@ const applyColumnWidth = (index, width) => {
     cell.style.minWidth = widthPx;
   });
   updateTableWidth();
+  syncHorizontalScrollbarWidth();
 };
 
 const saveColumnWidths = () => {
@@ -585,15 +595,12 @@ if (table) {
   });
   loadColumnWidths();
   updateTableWidth();
+  syncHorizontalScrollbarWidth();
 }
 
 // Sync horizontal scrollbar with table scroll
-const horizontalScrollbar = document.getElementById('horizontalScrollbar');
-const tableDataWrapper = document.querySelector('.table-data-wrapper');
-
 if (horizontalScrollbar && tableDataWrapper) {
-  const scrollDummy = document.createElement('div');
-  scrollDummy.style.width = '1200px';
+  scrollDummy = document.createElement('div');
   scrollDummy.style.height = '17px';
   scrollDummy.style.display = 'block';
   scrollDummy.style.minWidth = '1200px';
@@ -610,7 +617,10 @@ if (horizontalScrollbar && tableDataWrapper) {
   };
 
   ensureScrollbarWidth();
-  setTimeout(ensureScrollbarWidth, 200);
+  setTimeout(() => {
+    ensureScrollbarWidth();
+    syncHorizontalScrollbarWidth();
+  }, 200);
 
   horizontalScrollbar.style.overflowX = 'scroll';
   horizontalScrollbar.style.overflowY = 'hidden';
@@ -634,9 +644,7 @@ if (horizontalScrollbar && tableDataWrapper) {
 
   setTimeout(() => {
     horizontalScrollbar.scrollLeft = tableDataWrapper.scrollLeft;
-    if (horizontalScrollbar.scrollWidth <= horizontalScrollbar.clientWidth) {
-      scrollDummy.style.width = `${parseInt(scrollDummy.style.width, 10) + 1}px`;
-    }
+    syncHorizontalScrollbarWidth();
   }, 100);
 }
 

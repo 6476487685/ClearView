@@ -71,7 +71,6 @@ input[type="search"]:focus,input[type="date"]:focus,select:focus{outline:none;bo
 .table-scroll-wrapper::-webkit-scrollbar-thumb:hover{background:var(--text-secondary);}
 .table-data-wrapper{position:absolute;top:0;left:0;right:17px;bottom:0;overflow-x:scroll;overflow-y:auto;padding-top:0;}
 .table-data-wrapper::-webkit-scrollbar{width:17px;height:17px;}
-.table-data-wrapper::-webkit-scrollbar:horizontal{display:none;}
 .table-data-wrapper::-webkit-scrollbar-track{background:var(--border-light);}
 .table-data-wrapper::-webkit-scrollbar-thumb{background:var(--text-muted);border-radius:4px;}
 table{width:1200px;border-collapse:collapse;table-layout:auto;min-width:1200px;position:relative;border:1px solid var(--border-light);}
