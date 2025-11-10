@@ -413,55 +413,232 @@ document.addEventListener("DOMContentLoaded",()=>{
  // Populate dropdowns on page load
  populateModalDropdowns();
 
- // Column resize with persistent storage
- let startX,startW,th;
- const STORAGE_KEY = 'expense_column_widths';
- 
- // Load saved column widths
- function loadColumnWidths() {
-   const savedWidths = localStorage.getItem(STORAGE_KEY);
-   if (savedWidths) {
-     try {
-       const widths = JSON.parse(savedWidths);
-       table.querySelectorAll('th.resizable').forEach((h, index) => {
-         if (widths[index]) {
-           h.style.width = widths[index];
-         }
-       });
-     } catch (e) {
-       console.log('Error loading column widths:', e);
-     }
-   }
- }
- 
- // Save column widths
- function saveColumnWidths() {
-   const widths = [];
-   table.querySelectorAll('th.resizable').forEach(h => {
-     widths.push(h.style.width || h.offsetWidth + 'px');
-   });
-   localStorage.setItem(STORAGE_KEY, JSON.stringify(widths));
- }
- 
- // Initialize column widths
- loadColumnWidths();
- 
- table.querySelectorAll('th.resizable').forEach(h=>{
-  h.addEventListener('mousedown',e=>{
-   if(e.offsetX>h.offsetWidth-6){
-    startX=e.pageX;startW=h.offsetWidth;th=h;document.body.style.userSelect='none';
-    document.addEventListener('mousemove',resize);document.addEventListener('mouseup',stop);
-   }
+// Column resize functionality
+const COLUMN_STORAGE_KEY = 'expense_column_widths';
+const RESIZER_STYLE_ID = 'expense-column-resizer-style';
+const resizeState = {
+  active: false,
+  startX: 0,
+  startWidth: 0,
+  columnIndex: -1,
+  headerCell: null
+};
+
+const ensureResizerStyles = () => {
+  if (document.getElementById(RESIZER_STYLE_ID)) return;
+  const style = document.createElement('style');
+  style.id = RESIZER_STYLE_ID;
+  style.textContent = `
+    th.resizable::after {
+      display: none !important;
+    }
+    .column-resizer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 12px;
+      height: 100%;
+      cursor: col-resize;
+      user-select: none;
+      touch-action: none;
+      z-index: 5;
+    }
+    .column-resizer::after {
+      content: '';
+      position: absolute;
+      right: 4px;
+      top: 20%;
+      bottom: 20%;
+      width: 3px;
+      border-radius: 6px;
+      background: rgba(26, 79, 176, 0.45);
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+    body.table-resizing {
+      cursor: col-resize !important;
+      user-select: none !important;
+    }
+    .column-resizer:hover::after,
+    .column-resizer:active::after {
+      background: rgba(26, 79, 176, 0.85);
+      transform: scaleX(1.2);
+    }
+  `;
+  document.head.appendChild(style);
+};
+
+const parseWidth = (value) => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'number') return value;
+  const match = String(value).match(/(\d+)/);
+  return match ? parseInt(match[1], 10) : null;
+};
+
+const getColumnCells = (index) => {
+  if (!table) return [];
+  return Array.from(table.querySelectorAll(`tbody tr td:nth-child(${index + 1})`));
+};
+
+const updateTableWidth = () => {
+  if (!table) return;
+  const headerCells = table.querySelectorAll('thead tr th');
+  const total = Array.from(headerCells).reduce((sum, cell) => {
+    const explicit = parseWidth(cell.style.width);
+    return sum + (explicit || cell.offsetWidth || 0);
+  }, 0);
+  if (total > 0) {
+    table.style.width = `${total}px`;
+    table.style.minWidth = `${total}px`;
+  }
+};
+
+const applyColumnWidth = (index, width) => {
+  if (!table) return;
+  const normalizedWidth = Math.max(60, parseInt(width, 10) || 0);
+  const headerCells = table.querySelectorAll('thead tr th');
+  const targetHeader = headerCells[index];
+  if (!targetHeader) return;
+
+  const widthPx = `${normalizedWidth}px`;
+  targetHeader.style.width = widthPx;
+  targetHeader.style.minWidth = widthPx;
+
+  getColumnCells(index).forEach((cell) => {
+    cell.style.width = widthPx;
+    cell.style.minWidth = widthPx;
   });
- });
- function resize(e){if(!th)return;const diff=e.pageX-startX;th.style.width=(startW+diff)+'px';}
- function stop(){
-   document.removeEventListener('mousemove',resize);
-   document.removeEventListener('mouseup',stop);
-   document.body.style.userSelect='auto';
-   saveColumnWidths(); // Save widths after resize
-   th=null;
- }
+  updateTableWidth();
+};
+
+const saveColumnWidths = () => {
+  if (!table) return;
+  const widths = Array.from(table.querySelectorAll('thead tr th')).map((th) => {
+    const applied = parseWidth(th.style.width);
+    return `${applied || th.offsetWidth}px`;
+  });
+  localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(widths));
+};
+
+const loadColumnWidths = () => {
+  if (!table) return;
+  const saved = localStorage.getItem(COLUMN_STORAGE_KEY);
+  if (!saved) return;
+  try {
+    const widths = JSON.parse(saved);
+    widths.forEach((width, index) => {
+      if (width) {
+        applyColumnWidth(index, width);
+      }
+    });
+  } catch (err) {
+    console.warn('Unable to restore saved column widths:', err);
+  }
+};
+
+const handlePointerMove = (event) => {
+  if (!resizeState.active || !table) return;
+  event.preventDefault();
+  const delta = event.pageX - resizeState.startX;
+  const newWidth = resizeState.startWidth + delta;
+  applyColumnWidth(resizeState.columnIndex, newWidth);
+};
+
+const stopResizing = () => {
+  if (!resizeState.active) return;
+  document.removeEventListener('mousemove', handlePointerMove, true);
+  document.removeEventListener('mouseup', stopResizing, true);
+  document.body.classList.remove('table-resizing');
+  resizeState.active = false;
+  resizeState.headerCell = null;
+  resizeState.columnIndex = -1;
+  saveColumnWidths();
+};
+
+const startResizing = (event, headerCell, index) => {
+  if (!table || !headerCell) return;
+  event.preventDefault();
+  resizeState.active = true;
+  resizeState.startX = event.pageX;
+  resizeState.startWidth = headerCell.offsetWidth;
+  resizeState.columnIndex = index;
+  resizeState.headerCell = headerCell;
+  document.body.classList.add('table-resizing');
+  document.addEventListener('mousemove', handlePointerMove, true);
+  document.addEventListener('mouseup', stopResizing, true);
+};
+
+if (table) {
+  ensureResizerStyles();
+  const headerCells = table.querySelectorAll('thead tr th');
+  headerCells.forEach((th, index) => {
+    if (!th.classList.contains('resizable')) return;
+    if (th.querySelector('.column-resizer')) return;
+    const resizer = document.createElement('div');
+    resizer.className = 'column-resizer';
+    resizer.title = 'Drag to resize column';
+    resizer.addEventListener('mousedown', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      startResizing(event, th, index);
+    });
+    th.appendChild(resizer);
+  });
+  loadColumnWidths();
+  updateTableWidth();
+}
+
+// Sync horizontal scrollbar with table scroll
+const horizontalScrollbar = document.getElementById('horizontalScrollbar');
+const tableDataWrapper = document.querySelector('.table-data-wrapper');
+
+if (horizontalScrollbar && tableDataWrapper) {
+  const scrollDummy = document.createElement('div');
+  scrollDummy.style.width = '1200px';
+  scrollDummy.style.height = '17px';
+  scrollDummy.style.display = 'block';
+  scrollDummy.style.minWidth = '1200px';
+  scrollDummy.style.position = 'absolute';
+  scrollDummy.style.left = '0';
+  scrollDummy.style.top = '0';
+  horizontalScrollbar.appendChild(scrollDummy);
+
+  const ensureScrollbarWidth = () => {
+    const wrapperWidth = horizontalScrollbar.offsetWidth;
+    if (scrollDummy.offsetWidth <= wrapperWidth) {
+      scrollDummy.style.width = `${wrapperWidth + 1}px`;
+    }
+  };
+
+  ensureScrollbarWidth();
+  setTimeout(ensureScrollbarWidth, 200);
+
+  horizontalScrollbar.style.overflowX = 'scroll';
+  horizontalScrollbar.style.overflowY = 'hidden';
+  horizontalScrollbar.style.display = 'block';
+  horizontalScrollbar.style.visibility = 'visible';
+
+  horizontalScrollbar.addEventListener('scroll', () => {
+    tableDataWrapper.scrollLeft = horizontalScrollbar.scrollLeft;
+  });
+
+  tableDataWrapper.addEventListener('scroll', () => {
+    if (horizontalScrollbar.scrollLeft !== tableDataWrapper.scrollLeft) {
+      horizontalScrollbar.scrollLeft = tableDataWrapper.scrollLeft;
+    }
+  });
+
+  const observer = new MutationObserver(() => {
+    horizontalScrollbar.scrollLeft = tableDataWrapper.scrollLeft;
+  });
+  observer.observe(tableDataWrapper, { childList: true, subtree: true });
+
+  setTimeout(() => {
+    horizontalScrollbar.scrollLeft = tableDataWrapper.scrollLeft;
+    if (horizontalScrollbar.scrollWidth <= horizontalScrollbar.clientWidth) {
+      scrollDummy.style.width = `${parseInt(scrollDummy.style.width, 10) + 1}px`;
+    }
+  }, 100);
+}
 
 // Helper function to generate filename
 function generateFilename(extension) {
