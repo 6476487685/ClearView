@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Transaction Manager — Income Dashboard</title>
+  <title>Income Manager Dashboard</title>
   <link rel="stylesheet" href="3_Income_Style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -13,22 +13,20 @@
 <body>
   <header class="header">
     <div class="header-left">
-      <h1 class="header-title">Transaction Manager — Income Dashboard</h1>
-      <div class="header-buttons">
-        <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
-        <button class="excel" id="btnImportExcel" onclick="document.getElementById('excelFileInput').click();">📥 Load From Excel</button>
-        <div class="dropdown">
-          <button class="excel" onclick="this.nextElementSibling.classList.toggle('show')">📤 Export ▼</button>
-          <div class="dropdown-content">
-            <button class="excel" id="btnExcel">📗 Export Excel</button>
-            <button class="pdf" id="btnPDF">📘 Export PDF</button>
-          </div>
-        </div>
-        <button class="danger" id="btnClearData" style="opacity: 0.5; cursor: not-allowed;">🗑️ Clear Data</button>
-      </div>
+      <h1 class="header-title">Income Manager Dashboard</h1>
+      <button class="black" onclick="window.location.href='index.html'">← Back to Main Dashboard</button>
     </div>
     <div class="header-right">
-      <button class="black" onclick="window.location.href='index.html'">← Back to Main Dashboard</button>
+      <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
+      <button class="excel" id="btnImportExcel" onclick="document.getElementById('excelFileInput').click();">📥 Load From Excel</button>
+      <div class="dropdown">
+        <button class="excel" onclick="this.nextElementSibling.classList.toggle('show')">📤 Export ▼</button>
+        <div class="dropdown-content">
+          <button class="excel" id="btnExcel">📗 Export Excel</button>
+          <button class="pdf" id="btnPDF">📘 Export PDF</button>
+        </div>
+      </div>
+      <button class="danger" id="btnClearData" style="opacity: 0.5; cursor: not-allowed;">🗑️ Clear Data</button>
     </div>
   </header>
 
@@ -65,7 +63,9 @@
     </section>
 
     <section class="table-card">
-      <div class="table-scroll-wrapper">
+      <div class="table-header-space"></div>
+      <div class="table-scroll-wrapper" id="horizontalScrollbar"></div>
+      <div class="table-data-wrapper">
         <table id="incomeTable">
         <thead>
           <tr>
@@ -86,6 +86,7 @@
         </thead>
         <tbody id="incomeBody"></tbody>
         </table>
+      </div>
       </div>
     </section>
   </main>
