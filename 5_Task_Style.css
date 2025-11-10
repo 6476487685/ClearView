@@ -17,8 +17,8 @@
   --shadow-lg:0 2px 6px 2px rgba(60,64,67,0.15),0 8px 24px 4px rgba(60,64,67,0.15);
   --radius:4px;
   --radius-lg:6px;
-  --filter-bg:#ffeaa7;
-  --record-bar-bg:#e3f2fd;
+  --filter-bg:#d7d4c1;
+  --record-bar-bg:#d7d4c1;
 }
 *{box-sizing:border-box;}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text-primary);line-height:1.4;font-size:13px;font-weight:400;}
@@ -75,14 +75,14 @@ input[type="search"]:focus,input[type="date"]:focus,select:focus{outline:none;bo
 .table-data-wrapper::-webkit-scrollbar-track{background:var(--border-light);}
 .table-data-wrapper::-webkit-scrollbar-thumb{background:var(--text-muted);border-radius:4px;}
 table{width:1200px;border-collapse:collapse;table-layout:auto;min-width:1200px;position:relative;border:1px solid var(--border-light);}
-thead{position:sticky;top:0;left:0;right:0;z-index:15;background:#ffeaa7;display:table-header-group;width:1200px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-top:0;}
+thead{position:sticky;top:0;left:0;right:0;z-index:15;background:var(--filter-bg);display:table-header-group;width:1200px;box-shadow:0 2px 4px rgba(0,0,0,0.1);margin-top:0;}
 thead::before{display:none;}
 tbody{display:table-row-group;margin-top:0;}
 tbody tr{display:table-row;width:1200px;table-layout:fixed;}
 thead tr{display:table-row;}
 th:last-child,td:last-child{width:80px!important;min-width:80px!important;max-width:80px!important;}
 th,td{padding:8px 12px;border:1px solid var(--border-light);font-size:12px;color:var(--text-primary);vertical-align:middle;line-height:1.4;height:auto;}
-th{background:#ffeaa7;font-weight:700;position:relative;user-select:none;text-align:center;color:var(--text-primary);text-transform:capitalize;letter-spacing:0.08em;}
+th{background:var(--filter-bg);font-weight:700;position:relative;user-select:none;text-align:center;color:var(--text-primary);text-transform:capitalize;letter-spacing:0.08em;}
 th:nth-child(1),td:nth-child(1),
 th:nth-child(2),td:nth-child(2),
 th:nth-child(3),td:nth-child(3){text-align:left;}
