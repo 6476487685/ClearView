@@ -1455,29 +1455,39 @@
         style.id = RESIZER_STYLE_ID;
         style.textContent = `
           th.resizable { position: relative; }
+          th.resizable::after {
+            display: none !important;
+          }
           .column-resizer {
             position: absolute;
             top: 0;
-            right: 0;
-            width: 8px;
+            right: -4px;
+            width: 14px;
             height: 100%;
             cursor: col-resize;
             user-select: none;
             touch-action: none;
-            z-index: 2;
+            z-index: 5;
           }
           .column-resizer::after {
             content: '';
             position: absolute;
-            right: 3px;
+            right: 6px;
             top: 20%;
             bottom: 20%;
-            width: 2px;
-            background: rgba(26, 79, 176, 0.35);
+            width: 3px;
+            border-radius: 6px;
+            background: rgba(26, 79, 176, 0.45);
+            transition: background 0.15s ease, transform 0.15s ease;
           }
           body.table-resizing {
             cursor: col-resize !important;
             user-select: none !important;
+          }
+          .column-resizer:hover::after,
+          .column-resizer:active::after {
+            background: rgba(26, 79, 176, 0.85);
+            transform: scaleX(1.2);
           }
         `;
         document.head.appendChild(style);
@@ -1495,6 +1505,19 @@
         return Array.from(taskTable.querySelectorAll(`tbody tr td:nth-child(${index + 1})`));
       };
 
+      const updateTableWidth = () => {
+        if (!taskTable) return;
+        const headerCells = taskTable.querySelectorAll('thead tr th');
+        const total = Array.from(headerCells).reduce((sum, cell) => {
+          const explicit = parseWidth(cell.style.width);
+          return sum + (explicit || cell.offsetWidth || 0);
+        }, 0);
+        if (total > 0) {
+          taskTable.style.width = `${total}px`;
+          taskTable.style.minWidth = `${total}px`;
+        }
+      };
+
       const applyColumnWidth = (index, width) => {
         if (!taskTable) return;
         const normalizedWidth = Math.max(60, parseInt(width, 10) || 0);
@@ -1510,6 +1533,7 @@
           cell.style.width = widthPx;
           cell.style.minWidth = widthPx;
         });
+        updateTableWidth();
       };
 
       const saveColumnWidths = () => {
@@ -1547,8 +1571,8 @@
 
       const stopResizing = () => {
         if (!resizeState.active) return;
-        document.removeEventListener('mousemove', handlePointerMove);
-        document.removeEventListener('mouseup', stopResizing);
+        document.removeEventListener('mousemove', handlePointerMove, true);
+        document.removeEventListener('mouseup', stopResizing, true);
         document.body.classList.remove('table-resizing');
         resizeState.active = false;
         resizeState.headerCell = null;
@@ -1565,8 +1589,8 @@
         resizeState.columnIndex = index;
         resizeState.headerCell = headerCell;
         document.body.classList.add('table-resizing');
-        document.addEventListener('mousemove', handlePointerMove);
-        document.addEventListener('mouseup', stopResizing);
+        document.addEventListener('mousemove', handlePointerMove, true);
+        document.addEventListener('mouseup', stopResizing, true);
       };
 
       if (taskTable) {
@@ -1578,10 +1602,15 @@
           const resizer = document.createElement('div');
           resizer.className = 'column-resizer';
           resizer.title = 'Drag to resize column';
-          resizer.addEventListener('mousedown', (event) => startResizing(event, th, index));
+          resizer.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            startResizing(event, th, index);
+          });
           th.appendChild(resizer);
         });
         loadColumnWidths();
+        updateTableWidth();
       }
       
       // Theme functionality removed - using global theme from index.html
