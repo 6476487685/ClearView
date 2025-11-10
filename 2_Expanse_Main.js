@@ -669,18 +669,18 @@ function createExcelFile(data) {
   data.forEach((row, index) => {
     const rowData = [
       index + 1,
-      row.desc,
-      row.cat,
-      row.tag,
-      row.cur,
-      Number(row.amt).toFixed(2),
-      row.mode,
-      row.holder,
-      row.due,
-      row.paid,
-      row.freq,
-      row.acstatus,
-      row.txnstatus
+      row.description || '',
+      row.category || '',
+      row.tag || '',
+      row.currency || '',
+      row.amount || '',
+      row.mode || '',
+      row.holder || '',
+      row.dueDate || '',
+      row.paidDate || '',
+      row.frequency || '',
+      row.accountStatus || '',
+      row.txnStatus || ''
     ];
     worksheetData.push(rowData);
   });
@@ -711,6 +711,34 @@ function createExcelFile(data) {
   // Generate Excel file
   const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+function getVisibleTableData() {
+  const rows = document.querySelectorAll('#expenseBody tr:not([style*="display: none"])');
+  const data = [];
+  rows.forEach((row, index) => {
+    const cells = row.querySelectorAll('td');
+    if (cells.length >= 15) {
+      const safeText = (cellIndex) => (cells[cellIndex]?.textContent || '').trim();
+      data.push({
+        description: safeText(1),
+        category: safeText(2),
+        tag: safeText(3),
+        currency: safeText(4),
+        amount: safeText(5),
+        dueDate: safeText(6),
+        paidFrom: safeText(7),
+        amountPaid: safeText(8),
+        paidDate: safeText(9),
+        mode: safeText(10),
+        txnStatus: safeText(11),
+        holder: safeText(12),
+        frequency: safeText(13),
+        accountStatus: safeText(14)
+      });
+    }
+  });
+  return data;
 }
 
 // Helper function to get configured path and show message
@@ -951,18 +979,26 @@ function awaitBackupAndDownload(){
 
 // Exports
 btnExcel.onclick=()=>{
-const data = getData();
-const blob = createExcelFile(data);
-const a = document.createElement('a');
-a.href = URL.createObjectURL(blob);
-a.download = generateFilename('xlsx');
-a.click();
-URL.revokeObjectURL(a.href);
-showPathReminder('excel');
+  const data = getVisibleTableData();
+  if (!data.length) {
+    alert('No expense data to export.');
+    return;
+  }
+  const blob = createExcelFile(data);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = generateFilename('xlsx');
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showPathReminder('excel');
 };
  btnPDF.onclick=()=>{
  try {
-  const data = getData();
+  const data = getVisibleTableData();
+  if (!data.length) {
+    alert('No expense data to export.');
+    return;
+  }
   
   // Check if jsPDF is loaded
   if (!window.jspdf) {
@@ -1009,13 +1045,13 @@ showPathReminder('excel');
  doc.text(criteriaText, pageWidth / 2, 35, { align: 'center' });
  
  // Compact table layout for 20+ records per page
- const headers = ['#', 'Description', 'Category', 'Tag', 'Currency', 'Amount', 'Mode', 'Holder', 'Due Date', 'Paid Date', 'Frequency', 'Ac Status', 'Txn Status'];
+const headers = ['#', 'Description', 'Category', 'Tag', 'Currency', 'Amount', 'Mode', 'Holder', 'Due Date', 'Paid Date', 'Frequency', 'Ac Status', 'Txn Status'];
  const colWidths = [10, 40, 22, 28, 15, 20, 20, 18, 20, 20, 18, 18, 18];
  const rowHeight = 5; // Compact row height
  const startY = 45;
  let currentY = startY;
  let currentPage = 1;
- const totalPages = Math.ceil(data.length / 22); // ~22 records per page with compact layout
+const totalPages = Math.max(1, Math.ceil(data.length / 22)); // ~22 records per page with compact layout
  
  // Calculate total table width and center it
  const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0);
@@ -1072,26 +1108,27 @@ showPathReminder('excel');
      addNewPage();
    }
    
-   const rowData = [
-     (index + 1).toString(),
-     row.desc,
-     row.cat,
-     row.tag,
-     row.cur,
-     Number(row.amt).toFixed(2),
-     row.mode,
-     row.holder,
-     formatDate(row.due),
-     formatDate(row.paid),
-     row.freq,
-     row.acstatus,
-     row.txnstatus
-   ];
+  const rowData = [
+    (index + 1).toString(),
+    row.description || '',
+    row.category || '',
+    row.tag || '',
+    row.currency || '',
+    row.amount || '',
+    row.mode || '',
+    row.holder || '',
+    formatDate(row.dueDate),
+    formatDate(row.paidDate),
+    row.frequency || '',
+    row.accountStatus || '',
+    row.txnStatus || ''
+  ];
    
    let x = tableStartX;
    rowData.forEach((cell, i) => {
      // Truncate long text to fit columns
-     let cellText = cell.toString();
+    const raw = cell === undefined || cell === null ? '' : cell;
+    let cellText = raw.toString();
      // Define max lengths based on column widths
      const maxLengths = [3, 25, 15, 20, 10, 15, 15, 12, 15, 15, 12, 12, 12];
      const maxLength = maxLengths[i];
