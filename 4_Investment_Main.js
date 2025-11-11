@@ -213,11 +213,12 @@ if(btnImportExcel && excelFileInput){
  clearBtn.onclick=()=>{filters.forEach(el=>el.value='');renderTable(getData());};
 
  // Function to populate modal dropdowns from Excel master data
- function populateModalDropdowns(){
-  try{
-   // Load unified master data from localStorage
-   const unifiedDataStr=localStorage.getItem('unified_master_data');
-   let masterData={};
+function populateModalDropdowns(){
+ const all=getData();
+ try{
+  // Load unified master data from localStorage
+  const unifiedDataStr=localStorage.getItem('unified_master_data');
+  let masterData={};
    if(unifiedDataStr){
     const unifiedData=JSON.parse(unifiedDataStr);
     masterData=unifiedData.investment||{};
@@ -325,7 +326,15 @@ if(btnImportExcel && excelFileInput){
     }
     
     // Populate dropdown
+    const placeholder=document.createElement('option');
+    placeholder.value='';
+    placeholder.textContent='Select';
+    placeholder.disabled=true;
+    placeholder.selected=true;
+    placeholder.hidden=true;
+    select.appendChild(placeholder);
     values.forEach(v=>{
+     if(v==='')return;
      const option=document.createElement('option');
      option.value=v;
      option.textContent=v;
@@ -346,13 +355,27 @@ if(btnImportExcel && excelFileInput){
  }catch(e){
   console.error('Error populating modal dropdowns:',e);
   // Fallback to original behavior
-  const all=getData();
    const uniq=k=>[...new Set(all.map(x=>x[k]))];
-  ['cat','tag','cur','mode','holder','paidfrom','freq'].forEach(k=>{
+ ['cat','tag','cur','mode','holder','paidfrom','freq','acstatus','txnstatus'].forEach(k=>{
    const s=form[k];
    if(s){
     s.innerHTML='';
-    uniq(k).forEach(v=>s.innerHTML+=`<option>${v}</option>`);
+   const values=uniq(k).filter(v=>v&&v!=='');
+   if(values.length>0){
+    const placeholder=document.createElement('option');
+    placeholder.value='';
+    placeholder.textContent='Select';
+    placeholder.disabled=true;
+    placeholder.selected=true;
+    placeholder.hidden=true;
+    s.appendChild(placeholder);
+   }
+   values.forEach(v=>{
+    const option=document.createElement('option');
+    option.value=v;
+    option.textContent=v;
+    s.appendChild(option);
+   });
    }
   });
  }
