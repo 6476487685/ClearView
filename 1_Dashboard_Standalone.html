@@ -464,10 +464,7 @@ document.querySelectorAll('#sidebar .nav-link').forEach(link=>{
   link.addEventListener('click',e=>{
     e.preventDefault();
     const section=link.dataset.section;
-    if(section==='project-docs'){
-      openDocumentsModal();
-      return;
-    }
+    // Standalone preview: show info for every section (no direct navigation)
     openStandaloneInfo(section,link.textContent.trim());
   });
 });
