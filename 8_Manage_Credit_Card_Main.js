@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let editIndex = null;
   let formHasChanges = false;
   let originalFormData = null;
-  let autoBackupEnabled = true;
+  let autoBackupEnabled = false;
   let masterEmails = [];
   let masterPhoneOptions = [];
   let masterSqaOptions = [];
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (storedAutoBackup !== null) {
     autoBackupEnabled = storedAutoBackup === 'true';
   } else {
-    localStorage.setItem('auto_backup_enabled', 'true');
+    localStorage.setItem('auto_backup_enabled', 'false');
   }
 
   /* -------------------- DOM References -------------------- */

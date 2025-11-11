@@ -41,12 +41,12 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/'/g, '&#39;');
   };
 
-  let autoBackupEnabled = true;
+  let autoBackupEnabled = false;
   const storedAutoBackup = localStorage.getItem('auto_backup_enabled');
   if (storedAutoBackup !== null) {
     autoBackupEnabled = storedAutoBackup === 'true';
   } else {
-    localStorage.setItem('auto_backup_enabled', 'true');
+    localStorage.setItem('auto_backup_enabled', 'false');
   }
 
   if (autoBackupToggle) {
