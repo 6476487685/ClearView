@@ -547,16 +547,60 @@
       outline: none;
       border-color: var(--accent-blue, #3b82f6);
     }
+
+    /* Header layout aligned with dashboard style */
+    .header{
+      background:var(--surface, #ffffff);
+      color:var(--text-primary, #0a0a0a);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px 20px;
+      font-weight:400;
+      position:relative;
+      border-bottom:1px solid var(--border-light, #f1f3f4);
+      box-shadow:var(--shadow-xs, 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15));
+      gap:16px;
+    }
+    .header-left{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      flex:1;
+      align-items:flex-start;
+    }
+    .header-title{
+      font-size:20px;
+      font-weight:700;
+      color:#b87333;
+      letter-spacing:-0.02em;
+      text-shadow:1px 1px 2px rgba(0,0,0,0.1);
+      margin:0;
+    }
+    .header-left-actions{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .header-right{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
   </style>
 </head>
 <body>
   <!-- Header matching dashboard style -->
   <header class="header">
-    <div class="left">
-      <button class="black" onclick="window.location.href='index.html'">← Back to Main Dashboard</button>
+    <div class="header-left">
+      <h1 class="header-title">Manage Master Data</h1>
+      <div class="header-left-actions">
+        <button class="black" onclick="window.location.href='index.html'">← Back to Main Dashboard</button>
+      </div>
     </div>
-    <div class="title">Manage Master Data</div>
-    <div class="right">
+    <div class="header-right">
       <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
       <button class="excel" id="btnLoadFromD" type="button" title="Upload Excel File">📤 Load from D:</button>
       <button class="excel" id="btnDownloadExcel" type="button" title="Download Current Master Data to Excel">📥 Download Master Data</button>
