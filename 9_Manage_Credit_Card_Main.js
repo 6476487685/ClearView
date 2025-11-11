@@ -1542,7 +1542,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <html>
         <head>
           <title>Credit Card Record</title>
-          <link rel="stylesheet" href="8_Manage_Credit_Card_Style.css">
+          <link rel="stylesheet" href="9_Manage_Credit_Card_Style.css">
           <style>
             @page {
               size: A4 landscape;
