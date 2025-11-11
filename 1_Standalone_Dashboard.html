@@ -1,0 +1,2258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ClearView 1.0 — Transaction Manager</title>
+<link rel="stylesheet" href="assets/font-awesome.min.css">
+<style>
+:root {
+  --header-bg:linear-gradient(135deg, #667eea 0%, #764ba2 100%);--sidebar-bg:#f8fafc;--content-bg:#ffffff;--primary-bg:#f1f5f9;
+  --accent-blue:#3b82f6;--accent-blue-hover:#2563eb;--accent-gold:#f59e0b;
+  --accent-purple:#8b5cf6;--accent-purple-hover:#7c3aed;
+  --text-body:#1e293b;--divider:#e2e8f0;--shadow:0 4px 6px -1px rgba(0,0,0,0.1);
+  --gradient-primary:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+body.dark {
+  --header-bg:linear-gradient(135deg, #1e293b 0%, #334155 100%);--sidebar-bg:#1e293b;--content-bg:#0f172a;--primary-bg:#0f172a;
+  --accent-blue:#60a5fa;--accent-blue-hover:#3b82f6;--accent-gold:#fbbf24;
+  --accent-purple:#a78bfa;--accent-purple-hover:#8b5cf6;
+  --text-body:#f1f5f9;--divider:#334155;--shadow:0 4px 6px -1px rgba(0,0,0,0.3);
+}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--primary-bg);color:var(--text-body);line-height:1.6;}
+header{
+ height:60px;background:var(--header-bg);border-bottom:1px solid var(--divider);
+ display:flex;align-items:center;justify-content:space-between;
+ padding:0 20px;position:fixed;top:0;left:0;right:0;z-index:1000;
+ box-shadow:var(--shadow);
+}
+header h1{margin:0;font-size:1.4rem;font-weight:700;flex:1;text-align:center;display:flex;justify-content:center;align-items:center;gap:8px;color:#ffffff;text-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.theme-switch{position:relative;width:44px;height:22px;}
+.theme-switch input{opacity:0;width:0;height:0;}
+.slider{
+ position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;
+ background-color:#ccc;transition:.4s;border-radius:34px;
+}
+.slider:before{
+ position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;
+ background-color:white;transition:.4s;border-radius:50%;
+}
+input:checked + .slider{background-color:var(--accent-blue);}
+input:checked + .slider:before{transform:translateX(22px);}
+#logoutBtn{
+ background:linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+ color:#fff;border:1px solid rgba(255,255,255,0.2);padding:10px 18px;border-radius:12px;
+ font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+ backdrop-filter:blur(15px);box-shadow:0 4px 15px rgba(0,0,0,0.1);font-size:0.9rem;position:relative;overflow:hidden;
+}
+#logoutBtn::before{
+ content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+ background:linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+ transition:left 0.5s;
+}
+#logoutBtn:hover{
+ background:linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%);
+ border-color:rgba(255,255,255,0.4);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.15);
+}
+#logoutBtn:hover::before{left:100%;}
+#logoutBtn:active{transform:translateY(0px);box-shadow:0 2px 10px rgba(0,0,0,0.1);}
+#sidebar{
+ position:fixed;top:60px;left:0;width:308px;bottom:0;background:var(--sidebar-bg);
+ border-right:1px solid var(--divider);overflow-y:auto;padding:20px 15px;box-shadow:var(--shadow);
+}
+.nav-link{display:block;padding:12px 16px;margin:4px 0;border-radius:8px;text-decoration:none;color:var(--text-body);transition:all 0.3s ease;font-weight:500;}
+.nav-link:hover{background:var(--accent-blue);color:#fff;transform:translateX(4px);box-shadow:var(--shadow);}
+.nav-link.nav-link-master{
+  background:linear-gradient(135deg,#f59e0b 0%,#f97316 45%,#ea580c 100%);
+  color:#fff;
+  font-weight:700;
+  border:1px solid rgba(255,255,255,0.35);
+  box-shadow:0 10px 22px rgba(249,115,22,0.25);
+  position:relative;
+  overflow:hidden;
+}
+.nav-link.nav-link-master::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(120deg,rgba(255,255,255,0.2),transparent 50%);
+  opacity:0;
+  transition:opacity 0.3s ease;
+}
+.nav-link.nav-link-master:hover{
+  transform:translateX(6px);
+  box-shadow:0 12px 28px rgba(234,88,12,0.35);
+}
+.nav-link.nav-link-master:hover::after{opacity:1;}
+body.dark .nav-link.nav-link-master{
+  border:1px solid rgba(255,255,255,0.25);
+  box-shadow:0 12px 28px rgba(249,115,22,0.35);
+}
+.nav-link.disabled{opacity:.5;pointer-events:none;}
+.nav-link span.icon{margin-right:10px;font-size:1.1em;}
+#content{margin-left:308px;margin-top:60px;padding:30px;min-height:calc(100vh - 60px);}
+.modal{
+ display:none;position:fixed;z-index:2000;left:0;top:0;width:100%;height:100%;
+ background-color:rgba(0,0,0,0.4);
+}
+.modal-content{
+ background:var(--content-bg);margin:10% auto;padding:30px;border:1px solid var(--divider);
+ width:80%;max-width:600px;border-radius:12px;animation:fadein .25s;box-shadow:var(--shadow);
+}
+@keyframes fadein{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+.close{float:right;font-size:20px;font-weight:bold;cursor:pointer;}
+.table thead{background:var(--accent-blue);color:#fff;}
+.table td,.table th{padding:6px 10px;border-bottom:1px solid var(--divider);}
+
+/* Enhanced Documents Modal Styles */
+.docs-modal{max-width:896px;width:75%;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;position:fixed;top:calc(60px + (100vh - 60px) / 2 - 192px);left:calc(308px + (100vw - 308px) / 2);transform:translate(-50%, -50%);z-index:1001;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--divider);flex-shrink:0;}
+.modal-header h4{margin:0;color:var(--text-body);font-size:16px;font-weight:600;}
+
+.upload-section{margin-bottom:12px;flex-shrink:0;}
+.upload-area{border:2px dashed var(--accent-blue);border-radius:8px;padding:20px;text-align:center;background:linear-gradient(135deg, rgba(66,133,244,0.05) 0%, rgba(66,133,244,0.02) 100%);transition:all 0.3s ease;cursor:pointer;position:relative;height:80px;display:flex;align-items:center;justify-content:center;}
+.upload-area:hover{border-color:var(--accent-blue-hover);background:linear-gradient(135deg, rgba(66,133,244,0.1) 0%, rgba(66,133,244,0.05) 100%);transform:translateY(-1px);box-shadow:var(--shadow-xs);}
+.upload-area.dragover{border-color:var(--success);background:linear-gradient(135deg, rgba(52,168,83,0.1) 0%, rgba(52,168,83,0.05) 100%);}
+.upload-icon{font-size:24px;margin-right:10px;opacity:0.7;}
+.upload-text{font-size:14px;font-weight:600;color:var(--text-body);margin:0 8px 0 0;}
+.upload-subtext{font-size:11px;color:var(--text-secondary);margin:0 12px 0 0;}
+.upload-btn{background:var(--accent-blue);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;box-shadow:var(--shadow-xs);font-size:12px;margin-left:12px;}
+.upload-btn:hover{background:var(--accent-blue-hover);transform:translateY(-1px);box-shadow:var(--shadow-sm);}
+#docUpload{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;}
+
+.documents-section{background:var(--surface);border-radius:6px;overflow:hidden;box-shadow:var(--shadow-xs);flex:1;display:flex;flex-direction:column;min-height:0;}
+.section-header{display:flex;justify-content:space-between;align-items:center;padding:10px 15px;background:var(--bg);border-bottom:1px solid var(--divider);flex-shrink:0;}
+.section-header h5{margin:0;color:var(--text-body);font-size:13px;font-weight:600;}
+.doc-stats{font-size:11px;background:var(--accent-blue);color:#fff;padding:3px 8px;border-radius:10px;font-weight:500;}
+
+.table-container{flex:1;overflow-y:auto;max-height:350px;}
+.docs-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;}
+.docs-table th{background:var(--accent-blue);color:#fff;padding:10px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;position:sticky;top:0;z-index:1;}
+.docs-table th:nth-child(1){width:30%;}
+.docs-table th:nth-child(2){width:15%;}
+.docs-table th:nth-child(3){width:10%;}
+.docs-table th:nth-child(4){width:20%;}
+.docs-table th:nth-child(5){width:25%;}
+.docs-table td{padding:10px 12px;border-bottom:1px solid var(--divider);font-size:12px;word-wrap:break-word;}
+.docs-table tbody tr:hover{background:var(--bg);transition:background 0.2s ease;}
+.docs-table tbody tr:last-child td{border-bottom:none;}
+
+.empty-state td{padding:30px 15px;text-align:center;}
+.empty-message{color:var(--text-secondary);}
+.empty-icon{font-size:32px;margin-bottom:10px;opacity:0.5;}
+.empty-message p{margin:0;font-size:12px;}
+
+.doc-actions{display:flex;gap:4px;flex-wrap:nowrap;justify-content:flex-start;align-items:center;}
+.doc-btn{background:#f8f9fa;color:#495057;border:2px solid #dee2e6;padding:8px;border-radius:6px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:36px;height:36px;min-width:36px;transition:none;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+.doc-btn:hover{background:#e9ecef;border-color:#adb5bd;box-shadow:0 3px 6px rgba(0,0,0,0.15);transform:none;}
+.doc-btn:active{background:#dee2e6;transform:none;}
+.doc-btn:disabled{opacity:0.5;cursor:not-allowed;background:#f8f9fa;border-color:#dee2e6;}
+.doc-btn:disabled:hover{background:#f8f9fa;border-color:#dee2e6;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+
+/* Font Awesome Icon Styling - Simple Black & White */
+.doc-btn i{color:#000;font-size:16px;transition:all 0.2s ease;}
+.doc-btn .icon-download{color:#000;}
+.doc-btn .icon-move-up,.doc-btn .icon-move-down{color:#000;}
+.doc-btn .icon-delete{color:#000;}
+
+/* Hover effects for Font Awesome icons */
+.doc-btn.download:hover i{color:#333;transform:scale(1.1);}
+.doc-btn.move-up:hover i{color:#333;transform:scale(1.1);}
+.doc-btn.move-down:hover i{color:#333;transform:scale(1.1);}
+.doc-btn.delete:hover i{color:#333;transform:scale(1.1);}
+
+/* Dark mode Font Awesome icon colors */
+body.dark .doc-btn i{color:#fff;}
+body.dark .doc-btn.download:hover i,
+body.dark .doc-btn.move-up:hover i,
+body.dark .doc-btn.move-down:hover i,
+body.dark .doc-btn.delete:hover i{color:#ccc;}
+
+/* File type icons styling */
+.file-icon{color:#000;font-size:14px;margin-right:6px;}
+body.dark .file-icon{color:#fff;}
+
+/* Table header icons */
+.docs-table th i{color:#fff;font-size:12px;margin-right:6px;}
+
+/* Upload area icon */
+.upload-icon i{color:var(--accent-blue);font-size:24px;opacity:0.7;transition:all 0.3s ease;}
+.upload-area:hover .upload-icon i{opacity:1;transform:scale(1.1);}
+
+/* Empty state icon */
+.empty-icon i{color:var(--text-secondary);font-size:32px;opacity:0.5;}
+
+/* Section header icons */
+.section-header h5 i{color:var(--text-body);font-size:13px;margin-right:8px;}
+body.dark .section-header h5 i{color:var(--text-body);}
+
+/* Modal header icons */
+.modal-header h4 i{color:var(--text-body);font-size:16px;margin-right:8px;}
+body.dark .modal-header h4 i{color:var(--text-body);}
+
+
+/* File name display and editing */
+.file-name-display{font-size:12px;font-weight:500;color:var(--text-body);cursor:pointer;transition:color 0.2s ease;}
+.file-name-display:hover{color:var(--accent-blue);}
+.file-name-edit{background:transparent;border:1px solid var(--accent-blue);border-radius:3px;padding:4px 6px;font-size:12px;font-weight:500;color:var(--text-body);width:100%;min-width:150px;}
+.file-name-edit:focus{outline:none;border-color:var(--accent-blue-hover);box-shadow:0 0 0 2px rgba(66,133,244,0.1);}
+
+/* Drag and drop styles */
+.docs-table tr[draggable="true"]{cursor:move;transition:all 0.2s ease;}
+.docs-table tr[draggable="true"]:hover{background:rgba(139,92,246,0.05);}
+.docs-table tr.drag-over{background:rgba(139,92,246,0.1);border:2px dashed var(--accent-purple);}
+
+</style>
+</head>
+<body>
+<header>
+  <label class="theme-switch"><input type="checkbox" id="themeSwitch"><span class="slider"></span></label>
+  <h1>🔍 ClearView 1.0</h1>
+  <button id="logoutBtn">🚀 Sign Out</button>
+</header>
+
+<nav id="sidebar">
+  <a href="#" class="nav-link" data-target="tasks"><span class="icon">✅</span>Manage Tasks</a>
+  <a href="#" class="nav-link" data-target="investments"><span class="icon">📈</span>Manage Investments</a>
+  <a href="#" class="nav-link" data-target="expense"><span class="icon">💸</span>Manage Expense Transactions</a>
+  <a href="#" class="nav-link" data-target="income"><span class="icon">💰</span>Manage Income Transactions</a>
+  <a href="#" class="nav-link" data-target="credit-cards"><span class="icon">💳</span>Manage Credit Cards</a>
+  <a href="#" class="nav-link" data-target="bank-accounts"><span class="icon">🗂️</span>Manage Bank Accounts</a>
+  <a href="#" class="nav-link" data-target="project-docs"><span class="icon">📁</span>Manage Project Documents</a>
+  <a href="#" class="nav-link nav-link-master" data-target="masters"><span class="icon">🧩</span>Manage Master Data</a>
+  <a href="#" class="nav-link" data-target="personal-docs"><span class="icon">🗄️</span>Personal Docs Viewer</a>
+</nav>
+
+<main id="content"></main>
+
+<!-- ========== MODALS ========== -->
+
+<!-- Documents Modal -->
+<div id="modal-docs" class="modal">
+  <div class="modal-content docs-modal">
+    <div class="modal-header">
+      <h4><i class="fas fa-folder-open"></i> Document Manager</h4>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button id="downloadAllBtn" style="
+          background:var(--accent-gold);color:#fff;border:none;padding:8px 12px;
+          border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
+          display:flex;align-items:center;gap:6px;font-weight:500;
+        " title="Download all documents to Backup folder">
+          <i class="fas fa-download"></i>
+          <span>Download All</span>
+        </button>
+        <button id="quickChangeDocsBtn" style="
+          background:var(--accent-gold);color:#fff;border:none;padding:8px 12px;
+          border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
+          display:flex;align-items:center;gap:6px;font-weight:500;
+        " title="Quick change Documents folder">
+          <i class="fas fa-sync-alt"></i>
+          <span>Quick Change</span>
+        </button>
+        <button id="changeDocsFolderBtn" style="
+          background:var(--accent-blue);color:#fff;border:none;padding:8px 12px;
+          border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
+          display:flex;align-items:center;gap:6px;font-weight:500;
+        " title="Change Documents folder">
+          <i class="fas fa-folder-plus"></i>
+          <span>Change Folder</span>
+        </button>
+        <span class="close" data-close="modal-docs">&times;</span>
+      </div>
+    </div>
+    
+    <div class="upload-section">
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+        <p class="upload-text">Drag & drop files here or click to browse</p>
+        <p class="upload-subtext">Supports: PDF, DOC, DOCX, XLS, XLSX, TXT, Images</p>
+        <button class="upload-btn" id="uploadBtn">Choose Files</button>
+        <input type="file" id="docUpload" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif">
+      </div>
+    </div>
+    
+    <div class="documents-section">
+      <div class="section-header">
+        <h5><i class="fas fa-files"></i> Your Documents</h5>
+        <div class="doc-stats" id="docStats">0 documents</div>
+      </div>
+      
+      <div class="table-container">
+        <table class="table docs-table" width="100%">
+          <thead>
+            <tr>
+              <th><i class="fas fa-file"></i> Name</th>
+              <th><i class="fas fa-folder"></i> Type</th>
+              <th><i class="fas fa-weight-hanging"></i> Size</th>
+              <th><i class="fas fa-calendar-plus"></i> Added</th>
+              <th><i class="fas fa-cogs"></i> Actions</th>
+            </tr>
+          </thead>
+          <tbody id="docsTbody">
+            <tr class="empty-state">
+              <td colspan="5" class="empty-message">
+                <div class="empty-icon"><i class="fas fa-folder-open"></i></div>
+                <p>No documents yet. Upload your first document above!</p>
+              </td>
+            </tr>
+          </tbody>
+    </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Backup & Export Modal -->
+<div id="modal-backup" class="modal">
+  <div class="modal-content docs-modal">
+    <div class="modal-header">
+      <h4><i class="fas fa-database"></i> Backup & Export</h4>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button id="changeBackupFolderBtn" style="
+          background:var(--accent-blue);color:#fff;border:none;padding:8px 12px;
+          border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.3s ease;
+          display:flex;align-items:center;gap:6px;font-weight:500;
+        " title="Change Backup folder">
+          <i class="fas fa-folder-plus"></i>
+          <span>Change Folder</span>
+        </button>
+        <span class="close" data-close="modal-backup">&times;</span>
+      </div>
+    </div>
+    
+    <div style="padding:20px;">
+      <div style="margin-bottom:20px;">
+        <h5 style="margin:0 0 10px 0;color:var(--text-body);font-size:16px;display:flex;align-items:center;gap:8px;">
+          <i class="fas fa-info-circle"></i>
+          Backup Information
+        </h5>
+        <div style="background:var(--primary-bg);padding:15px;border-radius:8px;border-left:4px solid var(--accent-blue);">
+          <p style="margin:0 0 8px 0;font-size:14px;color:var(--text-body);">
+            <strong>Backup Folder:</strong> <span id="backupFolderDisplay">Not set</span>
+          </p>
+          <p style="margin:0;font-size:12px;color:var(--text-secondary);">
+            All backup files will be saved directly to this folder
+          </p>
+        </div>
+      </div>
+      
+      <div style="margin-bottom:20px;">
+        <h5 style="margin:0 0 15px 0;color:var(--text-body);font-size:16px;display:flex;align-items:center;gap:8px;">
+          <i class="fas fa-download"></i>
+          Export Options
+        </h5>
+        
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:15px;">
+          <!-- Documents Export -->
+          <div style="background:var(--content-bg);border:2px solid var(--divider);border-radius:8px;padding:15px;text-align:center;cursor:pointer;transition:all 0.3s ease;" 
+               onclick="exportDocuments()" onmouseover="this.style.borderColor='var(--accent-blue)';this.style.transform='translateY(-2px)'" 
+               onmouseout="this.style.borderColor='var(--divider)';this.style.transform='translateY(0)'">
+            <div style="font-size:32px;margin-bottom:10px;color:var(--accent-blue);">
+              <i class="fas fa-file-export"></i>
+            </div>
+            <h6 style="margin:0 0 8px 0;color:var(--text-body);font-size:14px;">Export Documents</h6>
+            <p style="margin:0;font-size:12px;color:var(--text-secondary);">Export all documents to Backup folder</p>
+          </div>
+          
+          <!-- Data Export -->
+          <div style="background:var(--content-bg);border:2px solid var(--divider);border-radius:8px;padding:15px;text-align:center;cursor:pointer;transition:all 0.3s ease;" 
+               onclick="exportData()" onmouseover="this.style.borderColor='var(--accent-gold)';this.style.transform='translateY(-2px)'" 
+               onmouseout="this.style.borderColor='var(--divider)';this.style.transform='translateY(0)'">
+            <div style="font-size:32px;margin-bottom:10px;color:var(--accent-gold);">
+              <i class="fas fa-table"></i>
+            </div>
+            <h6 style="margin:0 0 8px 0;color:var(--text-body);font-size:14px;">Export Data</h6>
+            <p style="margin:0;font-size:12px;color:var(--text-secondary);">Export transaction data (JSON/CSV)</p>
+          </div>
+          
+          <!-- Full Backup -->
+          <div style="background:var(--content-bg);border:2px solid var(--divider);border-radius:8px;padding:15px;text-align:center;cursor:pointer;transition:all 0.3s ease;" 
+               onclick="createFullBackup()" onmouseover="this.style.borderColor='var(--accent-purple)';this.style.transform='translateY(-2px)'" 
+               onmouseout="this.style.borderColor='var(--divider)';this.style.transform='translateY(0)'">
+            <div style="font-size:32px;margin-bottom:10px;color:var(--accent-purple);">
+              <i class="fas fa-archive"></i>
+            </div>
+            <h6 style="margin:0 0 8px 0;color:var(--text-body);font-size:14px;">Full Backup</h6>
+            <p style="margin:0;font-size:12px;color:var(--text-secondary);">Complete application backup</p>
+          </div>
+          
+          <!-- Settings Export -->
+          <div style="background:var(--content-bg);border:2px solid var(--divider);border-radius:8px;padding:15px;text-align:center;cursor:pointer;transition:all 0.3s ease;" 
+               onclick="exportSettings()" onmouseover="this.style.borderColor='var(--success)';this.style.transform='translateY(-2px)'" 
+               onmouseout="this.style.borderColor='var(--divider)';this.style.transform='translateY(0)'">
+            <div style="font-size:32px;margin-bottom:10px;color:var(--success);">
+              <i class="fas fa-cog"></i>
+            </div>
+            <h6 style="margin:0 0 8px 0;color:var(--text-body);font-size:14px;">Export Settings</h6>
+            <p style="margin:0;font-size:12px;color:var(--text-secondary);">Export application settings</p>
+          </div>
+        </div>
+      </div>
+      
+      <div style="background:var(--primary-bg);padding:15px;border-radius:8px;border-left:4px solid var(--success);">
+        <h6 style="margin:0 0 8px 0;color:var(--text-body);font-size:14px;display:flex;align-items:center;gap:8px;">
+          <i class="fas fa-lightbulb"></i>
+          Pro Tip
+        </h6>
+        <p style="margin:0;font-size:12px;color:var(--text-secondary);">
+          All exports are saved directly to your Backup folder. Set your Backup folder first to ensure files are saved to the correct location.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Placeholder Modal (used for other menu items) -->
+<div id="modal-generic" class="modal">
+  <div class="modal-content">
+    <span class="close" data-close="modal-generic">&times;</span>
+    <h4 id="genericTitle"></h4>
+    <p id="genericMessage">This standalone dashboard is a preview. Open the main ClearView application to use this feature.</p>
+  </div>
+</div>
+
+<script src="assets/xlsx.full.min.js"></script>
+<script>
+/* ---------- Theme ---------- */
+const themeSwitch=document.getElementById('themeSwitch');
+const savedTheme=localStorage.getItem('theme')||'light';
+if(savedTheme==='dark'){document.body.classList.add('dark');themeSwitch.checked=true;}
+themeSwitch.addEventListener('change',()=>{
+  document.body.classList.toggle('dark');
+  localStorage.setItem('theme',themeSwitch.checked?'dark':'light');
+});
+
+/* ---------- Logout ---------- */
+document.getElementById('logoutBtn').addEventListener('click',()=>{
+  if(confirm('Are you sure you want to logout?')) location.reload();
+});
+
+/* ---------- Modal Logic ---------- */
+function openModal(id){
+  document.getElementById(id).style.display='block';
+  
+  // Update document stats when Documents modal is opened
+  if(id === 'modal-docs'){
+    updateStats();
+  }
+}
+function closeModal(id){
+  document.getElementById(id).style.display='none';
+}
+document.querySelectorAll('.close').forEach(x=>x.onclick=()=>closeModal(x.dataset.close));
+window.onclick=function(e){
+  document.querySelectorAll('.modal').forEach(m=>{if(e.target===m)m.style.display='none';});
+};
+
+/* ---------- Sidebar Clicks ---------- */
+const genericTitleEl=document.getElementById('genericTitle');
+const genericMessageEl=document.getElementById('genericMessage');
+const STANDALONE_MESSAGES={
+  tasks:'Review and prioritize your tasks from the main ClearView dashboard.',
+  investments:'Track portfolio performance and maturity schedules using the Investments dashboard.',
+  expense:'Capture bills, reimbursements, and payout details in the Expense Transactions module.',
+  income:'Record income inflows, payment modes, and holders from the Income Transactions dashboard.',
+  'credit-cards':'View card credentials, billing cycles, and statements from the Manage Credit Cards dashboard.',
+  'bank-accounts':'Maintain bank account metadata and credentials inside the Manage Bank Accounts dashboard.',
+  'project-docs':'Launch the Project Documents dashboard from ClearView to manage uploads, downloads, and backups.',
+  masters:'Update shared dropdown values (categories, tags, holders, statuses) using Manage Master Data on the main dashboard.',
+  'personal-docs':'Open the Personal Docs Viewer from ClearView to browse your folders and preview files.'
+};
+
+document.querySelectorAll('#sidebar .nav-link').forEach(link=>{
+  link.addEventListener('click',e=>{
+    e.preventDefault();
+    const section=link.dataset.target||'';
+    showStandaloneInfo(section,link.textContent.trim());
+  });
+});
+
+function showStandaloneInfo(section,label){
+  genericTitleEl.textContent=label||'Standalone Preview';
+  genericMessageEl.textContent=STANDALONE_MESSAGES[section]||'This standalone dashboard is a preview. Open the main ClearView application to use this feature.';
+  openModal('modal-generic');
+}
+
+/* ---------- Load Local Data - Complete Implementation ---------- */
+
+// Step 1: Overwrite Warning First
+function showOverwriteWarning(){
+  const existingData=localStorage.getItem('txnData')||localStorage.getItem('expense_records')||localStorage.getItem('income_records');
+  
+  if(existingData){
+    // Show warning popup
+    const confirmed=confirm('⚠️ OVERWRITE WARNING\n\nLoading new data will overwrite all existing application data.\n\nThis action cannot be undone.\n\nDo you want to continue?');
+    if(confirmed){
+      openFilePicker();
+    }
+  }else{
+    // No existing data, proceed directly to file picker
+    openFilePicker();
+  }
+}
+
+// Step 2: File Picker After Confirmation
+function openFilePicker(){
+  const fileInput=document.createElement('input');
+  fileInput.type='file';
+  fileInput.accept='.xlsx,.json,.sqlite,.db';
+  fileInput.style.display='none';
+  document.body.appendChild(fileInput);
+  
+  fileInput.addEventListener('change',(e)=>{
+    const file=e.target.files[0];
+    if(!file)return;
+    
+    // Validate file type
+    const validExtensions=['.xlsx','.json','.sqlite','.db'];
+    const fileName=file.name.toLowerCase();
+    const isValid=validExtensions.some(ext=>fileName.endsWith(ext));
+    
+    if(!isValid){
+      alert('❌ Invalid file type!\n\nPlease select a valid data file:\n• .xlsx (Excel)\n• .json (JSON)\n• .sqlite (SQLite)\n• .db (Database)');
+      document.body.removeChild(fileInput);
+      return;
+    }
+    
+    // Process the file
+    processFile(file);
+    document.body.removeChild(fileInput);
+  });
+  
+  fileInput.click();
+}
+
+// Step 3: Process File and Show Toast Notification
+function processFile(file){
+  try{
+    // Save file info to localStorage
+    localStorage.setItem('localDataPath',file.name);
+    localStorage.setItem('txnData','loaded');
+    
+    // Step 3: Toast Notification
+    showToast('✅ Data loaded successfully!');
+    
+    // Update tooltip
+    updateLoadLocalTooltip();
+    
+    // Step 4: Backup Folder Setup
+    setTimeout(()=>{
+      setupBackupFolder();
+    },1000);
+    
+  }catch(error){
+    alert('❌ Error loading file: '+error.message);
+  }
+}
+
+// Step 4: Backup Folder Setup - Fresh Implementation
+function setupBackupFolder(){
+  const setupBackup=confirm('📁 BACKUP FOLDER SETUP\n\nWould you like to set a default backup folder for downloads?\n\n• Click OK to set backup folder\n• Click Cancel to skip');
+  
+  if(setupBackup){
+    showSimpleBackupDialog();
+  }
+}
+
+// Simple backup folder dialog - no complex folder picker
+function showSimpleBackupDialog(){
+  const overlay=document.createElement('div');
+  overlay.style.cssText=`
+    position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);
+    display:flex;justify-content:center;align-items:center;z-index:10001;
+    backdrop-filter:blur(8px);
+  `;
+  
+  const modal=document.createElement('div');
+  modal.style.cssText=`
+    background:var(--content-bg);padding:32px;border-radius:20px;
+    box-shadow:0 32px 64px rgba(0,0,0,0.2);max-width:420px;width:90%;
+    border:1px solid var(--divider);backdrop-filter:blur(15px);
+    position:relative;
+  `;
+  
+  modal.innerHTML=`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:56px;margin-bottom:12px;">📁</div>
+      <h3 style="margin:0 0 8px 0;color:var(--text-body);font-size:20px;font-weight:700;">Choose Backup Folder</h3>
+      <p style="margin:0;color:var(--text-secondary);font-size:14px;line-height:1.5;">Select a folder where downloads will be saved</p>
+    </div>
+    
+    <div style="margin-bottom:24px;">
+      <label style="display:block;margin-bottom:12px;color:var(--text-body);font-weight:600;font-size:15px;">Folder Name:</label>
+      <input type="text" id="folderNameInput" placeholder="Enter folder name (e.g., ClearView_Backups)" 
+             style="width:calc(100% - 36px);padding:16px 18px;border:2px solid var(--divider);border-radius:12px;
+             font-size:15px;background:var(--content-bg);color:var(--text-body);
+             transition:all 0.3s ease;box-shadow:0 4px 12px rgba(0,0,0,0.08);
+             margin-bottom:20px;outline:none;" />
+      
+      <button id="pastePathBtn" style="
+        width:100%;padding:14px 18px;background:var(--accent-blue);color:#fff;border:none;
+        border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 4px 12px rgba(66,133,244,0.3);font-size:15px;
+        display:flex;align-items:center;justify-content:center;gap:10px;
+        text-align:center;margin-bottom:16px;
+      ">
+        <span style="font-size:20px;">📋</span>
+        <span>Paste Custom Path</span>
+      </button>
+      
+      <div style="font-size:12px;color:var(--text-secondary);text-align:center;line-height:1.4;padding:12px;background:var(--primary-bg);border-radius:8px;">
+        💡 <strong>Copy your Custom Folder Path using File Explorer and hit Paste Button</strong>
+      </div>
+    </div>
+    
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button id="cancelBackupBtn" style="
+        padding:14px 24px;background:#6b7280;color:#fff;border:none;
+        border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 4px 12px rgba(107,114,128,0.2);font-size:15px;
+        min-width:100px;
+      ">Cancel</button>
+      <button id="saveBackupBtn" style="
+        padding:14px 24px;background:#34a853;color:#ffffff;border:none;
+        border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 4px 12px rgba(52,168,83,0.2);font-size:15px;
+        min-width:100px;
+      ">Save</button>
+    </div>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  
+  const folderInput=modal.querySelector('#folderNameInput');
+  const pasteBtn=modal.querySelector('#pastePathBtn');
+  const cancelBtn=modal.querySelector('#cancelBackupBtn');
+  const saveBtn=modal.querySelector('#saveBackupBtn');
+  
+  // Paste custom path
+  pasteBtn.addEventListener('click',async ()=>{
+    try{
+      const text=await navigator.clipboard.readText();
+      if(text.trim()){
+        folderInput.value=text.trim();
+        console.log('Pasted custom path:', text.trim());
+        showToast('📋 Custom path pasted from clipboard');
+      }else{
+        alert('📋 CLIPBOARD EMPTY\n\nYour clipboard is empty.\n\nCopy a folder path and try again, or type a folder name manually.');
+      }
+    }catch(error){
+      console.error('Error reading clipboard:', error);
+      alert('📋 CLIPBOARD ACCESS DENIED\n\nUnable to access clipboard.\n\nPlease type the folder name or path manually.');
+    }
+  });
+  
+  // Cancel button
+  cancelBtn.addEventListener('click',()=>{
+    document.body.removeChild(overlay);
+  });
+  
+  // Save button
+  saveBtn.addEventListener('click',()=>{
+    const folderPath=folderInput.value.trim();
+    console.log('Save button clicked, folder path:', folderPath);
+    
+    if(folderPath){
+      localStorage.setItem('backupFolderPath',folderPath);
+      console.log('Backup folder saved to localStorage:', folderPath);
+      showToast('💾 Backup folder set successfully!');
+      
+      // Update tooltip immediately
+      setTimeout(()=>{
+        updateBackupTooltip();
+      },100);
+      
+      document.body.removeChild(overlay);
+    }else{
+      alert('Please enter a folder name.\n\nYou can:\n• Type a custom folder name\n• Use "Paste Custom Path" to paste a folder path from clipboard');
+      folderInput.focus();
+    }
+  });
+  
+  // Close on overlay click
+  overlay.addEventListener('click',(e)=>{
+    if(e.target===overlay){
+      document.body.removeChild(overlay);
+    }
+  });
+  
+  // Focus on input
+  setTimeout(()=>folderInput.focus(),100);
+}
+
+// Native folder picker function
+async function showFolderPicker(folderInput){
+  try{
+    // Check if File System Access API is supported
+    if('showDirectoryPicker' in window){
+      console.log('Using File System Access API for folder selection');
+      
+      // Show native folder picker
+      const directoryHandle = await window.showDirectoryPicker({
+        mode: 'readwrite',
+        startIn: 'documents'
+      });
+      
+      // Get folder name
+      const folderName = directoryHandle.name;
+      console.log('Selected folder:', folderName);
+      
+      // Set the folder name in the input
+      folderInput.value = folderName;
+      
+      // Show success message
+      showToast(`📁 Folder selected: ${folderName}`);
+      
+    }else{
+      // Fallback for browsers that don't support File System Access API
+      console.log('File System Access API not supported, using fallback');
+      showFolderFallback(folderInput);
+    }
+  }catch(error){
+    if(error.name === 'AbortError'){
+      console.log('User cancelled folder selection');
+      // User cancelled, do nothing
+    }else{
+      console.error('Error selecting folder:', error);
+      // Fallback to manual selection
+      showFolderFallback(folderInput);
+    }
+  }
+}
+
+// Fallback folder selection for older browsers
+function showFolderFallback(folderInput){
+  const overlay=document.createElement('div');
+  overlay.style.cssText=`
+    position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);
+    display:flex;justify-content:center;align-items:center;z-index:10002;
+    backdrop-filter:blur(5px);
+  `;
+  
+  const modal=document.createElement('div');
+  modal.style.cssText=`
+    background:var(--content-bg);padding:30px;border-radius:12px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.3);max-width:400px;width:90%;
+    border:1px solid var(--divider);
+  `;
+  
+  modal.innerHTML=`
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:36px;margin-bottom:10px;">📂</div>
+      <h3 style="margin:0 0 10px 0;color:var(--text-body);font-size:16px;">Choose Folder Location</h3>
+      <p style="margin:0;color:var(--text-secondary);font-size:14px;">Select a folder for downloads</p>
+    </div>
+    
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+      <button class="folder-option" data-path="Downloads" style="
+        padding:12px 16px;background:var(--primary-bg);color:var(--text-body);
+        border:2px solid var(--divider);border-radius:6px;text-align:left;
+        cursor:pointer;transition:all 0.3s ease;font-size:14px;
+        display:flex;align-items:center;gap:10px;
+      ">
+        <span style="font-size:20px;">📥</span>
+        <div>
+          <div style="font-weight:600;">Downloads</div>
+          <div style="font-size:12px;color:var(--text-secondary);">Default download folder</div>
+        </div>
+      </button>
+      
+      <button class="folder-option" data-path="Documents" style="
+        padding:12px 16px;background:var(--primary-bg);color:var(--text-body);
+        border:2px solid var(--divider);border-radius:6px;text-align:left;
+        cursor:pointer;transition:all 0.3s ease;font-size:14px;
+        display:flex;align-items:center;gap:10px;
+      ">
+        <span style="font-size:20px;">📄</span>
+        <div>
+          <div style="font-weight:600;">Documents</div>
+          <div style="font-size:12px;color:var(--text-secondary);">Documents folder</div>
+        </div>
+      </button>
+      
+      <button class="folder-option" data-path="Desktop" style="
+        padding:12px 16px;background:var(--primary-bg);color:var(--text-body);
+        border:2px solid var(--divider);border-radius:6px;text-align:left;
+        cursor:pointer;transition:all 0.3s ease;font-size:14px;
+        display:flex;align-items:center;gap:10px;
+      ">
+        <span style="font-size:20px;">🖥️</span>
+        <div>
+          <div style="font-weight:600;">Desktop</div>
+          <div style="font-size:12px;color:var(--text-secondary);">Desktop folder</div>
+        </div>
+      </button>
+    </div>
+    
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button id="cancelFolderOptions" style="
+        padding:8px 16px;background:#6b7280;color:#fff;border:none;
+        border-radius:6px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+      ">Cancel</button>
+    </div>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  
+  // Add click handlers to folder options
+  const folderOptions=modal.querySelectorAll('.folder-option');
+  folderOptions.forEach(option=>{
+    // Hover effects
+    option.addEventListener('mouseenter',()=>{
+      option.style.background='var(--accent-blue)';
+      option.style.color='#fff';
+      option.style.borderColor='var(--accent-blue)';
+      option.style.transform='translateY(-2px)';
+      option.style.boxShadow='0 4px 12px rgba(66,133,244,0.3)';
+    });
+    
+    option.addEventListener('mouseleave',()=>{
+      option.style.background='var(--primary-bg)';
+      option.style.color='var(--text-body)';
+      option.style.borderColor='var(--divider)';
+      option.style.transform='translateY(0)';
+      option.style.boxShadow='none';
+    });
+    
+    // Click handler
+    option.addEventListener('click',(e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const path=option.dataset.path;
+      console.log('Folder option clicked:', path);
+      
+      folderInput.value=path;
+      console.log('Folder path set:', path);
+      document.body.removeChild(overlay);
+    });
+  });
+  
+  // Cancel button
+  modal.querySelector('#cancelFolderOptions').addEventListener('click',()=>{
+    document.body.removeChild(overlay);
+  });
+  
+  // Close on overlay click
+  overlay.addEventListener('click',(e)=>{
+    if(e.target===overlay){
+      document.body.removeChild(overlay);
+    }
+  });
+}
+
+// Folder picker function
+function showFolderPicker(){
+  // Create a modal overlay for the folder picker
+  const overlay=document.createElement('div');
+  overlay.style.cssText=`
+    position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);
+    display:flex;justify-content:center;align-items:center;z-index:10001;
+    backdrop-filter:blur(5px);
+  `;
+  
+  const modal=document.createElement('div');
+  modal.style.cssText=`
+    background:var(--content-bg);padding:28px;border-radius:16px;
+    box-shadow:0 24px 48px rgba(0,0,0,0.15);max-width:480px;width:90%;
+    border:1px solid var(--divider);backdrop-filter:blur(10px);
+  `;
+  
+  modal.innerHTML=`
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:48px;margin-bottom:10px;">📁</div>
+      <h3 style="margin:0 0 10px 0;color:var(--text-body);font-size:18px;">Choose Backup Folder</h3>
+      <p style="margin:0;color:var(--text-secondary);font-size:14px;">Select a folder where downloads will be saved</p>
+    </div>
+    
+    <div style="margin-bottom:24px;">
+      <label style="display:block;margin-bottom:10px;color:var(--text-body);font-weight:600;font-size:15px;">Folder Path:</label>
+      <input type="text" id="folderPathInput" placeholder="Select folder or paste path here" 
+             style="width:100%;padding:14px 16px;border:2px solid var(--divider);border-radius:8px;
+             font-size:15px;background:var(--content-bg);color:var(--text-body);
+             transition:border-color 0.3s ease;box-shadow:0 2px 6px rgba(0,0,0,0.08);
+             margin-bottom:16px;" />
+      
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <button id="browseBtn" style="
+          flex:2;padding:14px 20px;background:var(--accent-blue);color:#fff;border:none;
+          border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+          box-shadow:0 3px 6px rgba(66,133,244,0.25);font-size:15px;
+          display:flex;align-items:center;justify-content:center;gap:10px;
+          text-align:center;
+        ">
+          <span style="font-size:20px;">📂</span>
+          <span>Select Folder</span>
+        </button>
+        <button id="defaultBtn" style="
+          flex:1;padding:14px 16px;background:var(--text-secondary);color:#fff;border:none;
+          border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+          box-shadow:0 3px 6px rgba(107,114,128,0.25);font-size:15px;
+          display:flex;align-items:center;justify-content:center;gap:8px;
+          text-align:center;
+        ">
+          <span style="font-size:20px;">📋</span>
+          <span>Paste</span>
+        </button>
+      </div>
+      
+      <button id="downloadsBtn" style="
+        width:100%;padding:14px 20px;background:var(--success);color:#fff;border:none;
+        border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 3px 6px rgba(52,168,83,0.25);font-size:15px;
+        display:flex;align-items:center;justify-content:center;gap:10px;
+        text-align:center;margin-bottom:12px;
+      ">
+        <span style="font-size:20px;">📥</span>
+        <span>Use Downloads Folder</span>
+      </button>
+      
+      <div style="font-size:12px;color:var(--text-secondary);text-align:center;line-height:1.4;">
+        💡 <strong>Select Folder:</strong> Browse your computer | <strong>Paste:</strong> Paste copied path | <strong>Downloads:</strong> Default location
+      </div>
+    </div>
+    
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;">
+      <button id="cancelFolderBtn" style="
+        padding:12px 20px;background:#6b7280;color:#fff;border:none;
+        border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 3px 6px rgba(107,114,128,0.2);font-size:14px;
+        min-width:90px;
+      ">Cancel</button>
+      <button id="saveFolderBtn" style="
+        padding:12px 20px;background:var(--success);color:#fff;border:none;
+        border-radius:8px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 3px 6px rgba(52,168,83,0.2);font-size:14px;
+        min-width:90px;
+      ">Save</button>
+    </div>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  
+  const folderInput=modal.querySelector('#folderPathInput');
+  const browseBtn=modal.querySelector('#browseBtn');
+  const defaultBtn=modal.querySelector('#defaultBtn');
+  const downloadsBtn=modal.querySelector('#downloadsBtn');
+  const cancelBtn=modal.querySelector('#cancelFolderBtn');
+  const saveBtn=modal.querySelector('#saveFolderBtn');
+  
+  // Browse button - show native folder picker
+  browseBtn.addEventListener('click',async (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Select Folder button clicked');
+    
+    // Add visual feedback immediately
+    browseBtn.style.background='var(--accent-blue-hover)';
+    browseBtn.style.transform='scale(0.98)';
+    
+    try{
+      // Check if File System Access API is supported
+      if('showDirectoryPicker' in window){
+        console.log('Using File System Access API');
+        
+        // Show instruction to user
+        const proceed = confirm('📁 FOLDER PICKER INSTRUCTIONS\n\n1. Click "Allow" in the browser permission dialog\n2. Browse and select your desired folder\n3. The folder name will be saved as your backup location\n\nClick OK to proceed with folder selection.');
+        
+        if(!proceed){
+          console.log('User cancelled folder selection');
+          return;
+        }
+        
+        const directoryHandle = await window.showDirectoryPicker({
+          mode: 'readwrite',
+          startIn: 'documents'
+        });
+        
+        const folderName = directoryHandle.name;
+        console.log('Selected folder:', folderName);
+        
+        folderInput.value = folderName;
+        console.log('Folder input set to:', folderName);
+        showToast(`📁 Folder selected: ${folderName}`);
+        
+      }else{
+        console.log('File System Access API not supported');
+        alert('Native folder picker not supported in this browser. Using fallback options.');
+        showFolderFallback(folderInput);
+      }
+    }catch(error){
+      if(error.name === 'AbortError'){
+        console.log('User cancelled folder selection');
+      }else if(error.name === 'NotAllowedError'){
+        console.log('User denied permission');
+        alert('❌ Permission Denied\n\nYou denied permission to access folders. You can:\n• Try again and click "Allow"\n• Use the "Paste" button to manually enter a folder path\n• Use "Use Downloads Folder" for default location');
+      }else{
+        console.error('Error in folder picker:', error);
+        alert('❌ Error opening folder picker\n\nPlease try:\n• Click "Paste" to manually enter a folder path\n• Click "Use Downloads Folder" for default location\n• Make sure your browser supports folder selection');
+      }
+    }finally{
+      // Reset button style
+      browseBtn.style.background='var(--accent-blue)';
+      browseBtn.style.transform='scale(1)';
+    }
+  });
+  
+  // Add visual feedback to buttons
+  browseBtn.addEventListener('mousedown',()=>{
+    browseBtn.style.transform='translateY(1px)';
+    browseBtn.style.boxShadow='0 2px 4px rgba(66,133,244,0.2)';
+  });
+  
+  browseBtn.addEventListener('mouseup',()=>{
+    browseBtn.style.transform='translateY(0)';
+    browseBtn.style.boxShadow='0 3px 6px rgba(66,133,244,0.3)';
+  });
+
+  // Paste button
+  defaultBtn.addEventListener('click',async ()=>{
+    try{
+      const text = await navigator.clipboard.readText();
+      if(text.trim()){
+        folderInput.value = text.trim();
+        console.log('Pasted folder path:', text.trim());
+        showToast('📋 Folder path pasted from clipboard');
+      }else{
+        alert('📋 CLIPBOARD EMPTY\n\nYour clipboard is empty or contains no text.\n\nTo use this feature:\n1. Copy a folder path from Windows Explorer\n2. Click "Paste" again\n\nOr use "Use Downloads Folder" for default location.');
+      }
+    }catch(error){
+      console.error('Error reading clipboard:', error);
+      alert('📋 CLIPBOARD ACCESS DENIED\n\nUnable to access clipboard. You can:\n• Copy a folder path and paste it manually in the input field\n• Use "Use Downloads Folder" for default location\n• Try the "Select Folder" button for native folder picker');
+    }
+  });
+
+  // Downloads button
+  downloadsBtn.addEventListener('click',()=>{
+    folderInput.value='Downloads';
+    console.log('Downloads button clicked, set to:', 'Downloads');
+    
+    // Add visual feedback
+    downloadsBtn.style.background='#2e7d32';
+    downloadsBtn.style.transform='scale(0.98)';
+    setTimeout(()=>{
+      downloadsBtn.style.background='var(--success)';
+      downloadsBtn.style.transform='scale(1)';
+    },200);
+    
+    showToast('📥 Downloads folder selected');
+  });
+  
+  // Cancel button
+  cancelBtn.addEventListener('click',()=>{
+    document.body.removeChild(overlay);
+  });
+  
+  // Save button
+  saveBtn.addEventListener('click',()=>{
+    const folderPath=folderInput.value.trim();
+    console.log('Save button clicked, folder path:', folderPath);
+    
+    if(folderPath){
+      localStorage.setItem('backupFolderPath',folderPath);
+      console.log('Backup folder saved to localStorage:', folderPath);
+      showToast('💾 Backup folder set successfully!');
+      
+      // Update tooltip immediately
+      setTimeout(()=>{
+        updateBackupTooltip();
+      },100);
+      
+      document.body.removeChild(overlay);
+    }else{
+      alert('Please enter a folder path or use the default Downloads folder.\n\nYou can:\n• Click "Select Folder" to browse and select a folder\n• Click "Use Downloads Folder" to use the default folder\n• Click "Paste" to paste a folder path from clipboard');
+      folderInput.focus();
+      return;
+    }
+  });
+  
+  // Close on overlay click
+  overlay.addEventListener('click',(e)=>{
+    if(e.target===overlay){
+      document.body.removeChild(overlay);
+    }
+  });
+  
+  // Focus on input
+  setTimeout(()=>folderInput.focus(),100);
+}
+
+// Step 5 & 6: Tooltip Update Functions
+function updateLoadLocalTooltip(){
+  const loadLocalLink=document.querySelector('nav a[data-target="load"]');
+  if(loadLocalLink){
+    const dataPath=localStorage.getItem('localDataPath');
+    loadLocalLink.title=dataPath?`Current data: ${dataPath}`:'Click to load local data files';
+  }
+}
+
+function updateBackupTooltip(){
+  const backupLink=document.querySelector('nav a[data-target="backup"]');
+  if(backupLink){
+    const backupPath=localStorage.getItem('backupFolderPath');
+    backupLink.title=backupPath?`Backup folder: ${backupPath}`:'Click to set backup folder';
+  }
+}
+
+// Initialize tooltips on page load
+document.addEventListener('DOMContentLoaded',()=>{
+  updateLoadLocalTooltip();
+  updateBackupTooltip();
+});
+
+// Toast notification function
+function showToast(message){
+  // Remove any existing toast
+  const existingToast=document.querySelector('.toast-notification');
+  if(existingToast){
+    existingToast.remove();
+  }
+  
+  const toast=document.createElement('div');
+  toast.className='toast-notification';
+  toast.style.cssText=`
+    position:fixed;top:20px;right:20px;background:var(--success);color:#fff;
+    padding:12px 20px;border-radius:6px;box-shadow:var(--shadow);
+    z-index:10000;font-weight:600;font-size:14px;opacity:0;
+    transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);transform:translateX(100%);
+    border:1px solid rgba(255,255,255,0.2);
+    backdrop-filter:blur(10px);
+  `;
+  toast.textContent=message;
+  document.body.appendChild(toast);
+  
+  // Force reflow to ensure initial styles are applied
+  toast.offsetHeight;
+  
+  // Show toast
+  setTimeout(()=>{
+    toast.style.opacity='1';
+    toast.style.transform='translateX(0)';
+  },100);
+  
+  // Hide toast after 3 seconds
+  setTimeout(()=>{
+    toast.style.opacity='0';
+    toast.style.transform='translateX(100%)';
+    setTimeout(()=>{
+      if(document.body.contains(toast)){
+        document.body.removeChild(toast);
+      }
+    },300);
+  },3000);
+}
+
+
+/* ---------- Documents Folder Setup ---------- */
+function openDocumentsModal(){
+  const docsFolderPath = localStorage.getItem('docsFolderPath');
+  
+  if(!docsFolderPath){
+    // First time - show folder setup dialog
+    showDocumentsFolderSetup();
+  } else {
+    // Folder already set - open documents modal
+    openModal('modal-docs');
+  }
+}
+
+function showDocumentsFolderSetup(){
+  const overlay=document.createElement('div');
+  overlay.style.cssText=`
+    position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);
+    display:flex;justify-content:center;align-items:center;z-index:10001;
+    backdrop-filter:blur(8px);
+  `;
+  
+  const modal=document.createElement('div');
+  modal.style.cssText=`
+    background:var(--content-bg);padding:32px;border-radius:20px;
+    box-shadow:0 32px 64px rgba(0,0,0,0.2);max-width:420px;width:90%;
+    border:1px solid var(--divider);backdrop-filter:blur(15px);
+    position:relative;
+  `;
+  
+  modal.innerHTML=`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:56px;margin-bottom:12px;"><i class="fas fa-folder-open"></i></div>
+      <h3 style="margin:0 0 8px 0;color:var(--text-body);font-size:20px;font-weight:700;">Choose Documents Folder</h3>
+      <p style="margin:0;color:var(--text-secondary);font-size:14px;line-height:1.5;">Select a folder where your documents will be saved</p>
+    </div>
+    
+    <div style="margin-bottom:24px;">
+      <label style="display:block;margin-bottom:12px;color:var(--text-body);font-weight:600;font-size:15px;">Folder Name:</label>
+      <input type="text" id="docsFolderNameInput" placeholder="Enter folder name (e.g., ClearView_Documents)" 
+             style="width:calc(100% - 36px);padding:16px 18px;border:2px solid var(--divider);border-radius:12px;
+             font-size:15px;background:var(--content-bg);color:var(--text-body);
+             transition:all 0.3s ease;box-shadow:0 4px 12px rgba(0,0,0,0.08);
+             margin-bottom:20px;outline:none;" />
+      
+      <button id="pasteDocsPathBtn" style="
+        width:100%;padding:14px 18px;background:var(--accent-blue);color:#fff;border:none;
+        border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 4px 12px rgba(66,133,244,0.3);font-size:15px;
+        display:flex;align-items:center;justify-content:center;gap:10px;
+        text-align:center;margin-bottom:16px;
+      ">
+        <i class="fas fa-clipboard" style="font-size:20px;"></i>
+        <span>Paste Custom Path</span>
+      </button>
+      
+      <div style="font-size:12px;color:var(--text-secondary);text-align:center;line-height:1.4;padding:12px;background:var(--primary-bg);border-radius:8px;">
+        <i class="fas fa-lightbulb"></i> <strong>Copy your Custom Folder Path using File Explorer and hit Paste Button</strong>
+      </div>
+    </div>
+    
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button id="cancelDocsBtn" style="
+        padding:14px 24px;background:#6b7280;color:#fff;border:none;
+        border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 4px 12px rgba(107,114,128,0.2);font-size:15px;
+        min-width:100px;
+      ">Cancel</button>
+      <button id="saveDocsBtn" style="
+        padding:14px 24px;background:#34a853;color:#ffffff;border:none;
+        border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 4px 12px rgba(52,168,83,0.2);font-size:15px;
+        min-width:100px;
+      ">Save</button>
+    </div>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  
+  const folderInput=modal.querySelector('#docsFolderNameInput');
+  const pasteBtn=modal.querySelector('#pasteDocsPathBtn');
+  const cancelBtn=modal.querySelector('#cancelDocsBtn');
+  const saveBtn=modal.querySelector('#saveDocsBtn');
+  
+  // Paste custom path
+  pasteBtn.addEventListener('click',async ()=>{
+    try{
+      const text=await navigator.clipboard.readText();
+      if(text.trim()){
+        folderInput.value=text.trim();
+        console.log('Pasted custom docs path:', text.trim());
+        showToast('<i class="fas fa-clipboard"></i> Custom path pasted from clipboard');
+      }else{
+        alert('<i class="fas fa-clipboard"></i> CLIPBOARD EMPTY\n\nYour clipboard is empty.\n\nCopy a folder path and try again, or type a folder name manually.');
+      }
+    }catch(error){
+      console.error('Error reading clipboard:', error);
+      alert('<i class="fas fa-clipboard"></i> CLIPBOARD ACCESS DENIED\n\nUnable to access clipboard.\n\nPlease type the folder name or path manually.');
+    }
+  });
+  
+  // Cancel button
+  cancelBtn.addEventListener('click',()=>{
+    document.body.removeChild(overlay);
+  });
+  
+  // Save button
+  saveBtn.addEventListener('click',()=>{
+    const folderPath=folderInput.value.trim();
+    console.log('Save docs button clicked, folder path:', folderPath);
+    
+    if(folderPath){
+      localStorage.setItem('docsFolderPath',folderPath);
+      console.log('Docs folder saved to localStorage:', folderPath);
+      showToast('<i class="fas fa-folder-open"></i> Documents folder set successfully!');
+      
+      // Update tooltip immediately
+      setTimeout(()=>{
+        updateDocsTooltip();
+      },100);
+      
+      // Open documents modal after setting folder
+      setTimeout(()=>{
+        document.body.removeChild(overlay);
+        openModal('modal-docs');
+      },500);
+    }else{
+      alert('Please enter a folder name.\n\nYou can:\n• Type a custom folder name\n• Use "Paste Custom Path" to paste a folder path from clipboard');
+      folderInput.focus();
+    }
+  });
+  
+  // Close on overlay click
+  overlay.addEventListener('click',(e)=>{
+    if(e.target===overlay){
+      document.body.removeChild(overlay);
+    }
+  });
+  
+  // Focus on input
+  setTimeout(()=>folderInput.focus(),100);
+}
+
+function updateDocsTooltip(){
+  const docsLink=document.querySelector('nav a[data-target="docs"]');
+  if(docsLink){
+    const docsPath=localStorage.getItem('docsFolderPath');
+    docsLink.title=docsPath?`Documents folder: ${docsPath}`:'Click to set documents folder';
+  }
+}
+
+function updateDownloadsTooltip(){
+  const downloadsLink=document.querySelector('nav a[data-target="load"]');
+  if(downloadsLink){
+    const downloadsPath=localStorage.getItem('downloadsFolderPath');
+    downloadsLink.title=downloadsPath?`Downloads folder: ${downloadsPath}`:'Click to set downloads folder';
+  }
+}
+
+/* ---------- Downloads Folder Setup ---------- */
+function setupDownloadsFolder(){
+  const downloadsFolderPath = localStorage.getItem('downloadsFolderPath');
+  
+  if(!downloadsFolderPath){
+    // First time - show folder setup dialog
+    showDownloadsFolderSetup();
+  } else {
+    // Folder already set - proceed with load data
+    openFilePicker();
+  }
+}
+
+function showDownloadsFolderSetup(){
+  const overlay=document.createElement('div');
+  overlay.style.cssText=`
+    position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);
+    display:flex;justify-content:center;align-items:center;z-index:10001;
+    backdrop-filter:blur(8px);
+  `;
+  
+  const modal=document.createElement('div');
+  modal.style.cssText=`
+    background:var(--content-bg);padding:32px;border-radius:20px;
+    box-shadow:0 32px 64px rgba(0,0,0,0.2);max-width:420px;width:90%;
+    border:1px solid var(--divider);backdrop-filter:blur(15px);
+    position:relative;
+  `;
+  
+  modal.innerHTML=`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:56px;margin-bottom:12px;"><i class="fas fa-download"></i></div>
+      <h3 style="margin:0 0 8px 0;color:var(--text-body);font-size:20px;font-weight:700;">Choose Downloads Folder</h3>
+      <p style="margin:0;color:var(--text-secondary);font-size:14px;line-height:1.5;">Select a folder where downloads will be saved</p>
+    </div>
+    
+    <div style="margin-bottom:24px;">
+      <label style="display:block;margin-bottom:12px;color:var(--text-body);font-weight:600;font-size:15px;">Folder Name:</label>
+      <input type="text" id="downloadsFolderNameInput" placeholder="Enter folder name (e.g., ClearView_Downloads)" 
+             style="width:calc(100% - 36px);padding:16px 18px;border:2px solid var(--divider);border-radius:12px;
+             font-size:15px;background:var(--content-bg);color:var(--text-body);
+             transition:all 0.3s ease;box-shadow:0 4px 12px rgba(0,0,0,0.08);
+             margin-bottom:20px;outline:none;" />
+      
+      <button id="pasteDownloadsPathBtn" style="
+        width:100%;padding:14px 18px;background:var(--accent-blue);color:#fff;border:none;
+        border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 4px 12px rgba(66,133,244,0.3);font-size:15px;
+        display:flex;align-items:center;justify-content:center;gap:10px;
+        text-align:center;margin-bottom:16px;
+      ">
+        <i class="fas fa-clipboard" style="font-size:20px;"></i>
+        <span>Paste Custom Path</span>
+      </button>
+      
+      <div style="font-size:12px;color:var(--text-secondary);text-align:center;line-height:1.4;padding:12px;background:var(--primary-bg);border-radius:8px;">
+        <i class="fas fa-lightbulb"></i> <strong>Copy your Custom Folder Path using File Explorer and hit Paste Button</strong>
+      </div>
+    </div>
+    
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button id="cancelDownloadsBtn" style="
+        padding:14px 24px;background:#6b7280;color:#fff;border:none;
+        border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 4px 12px rgba(107,114,128,0.2);font-size:15px;
+        min-width:100px;
+      ">Cancel</button>
+      <button id="saveDownloadsBtn" style="
+        padding:14px 24px;background:#34a853;color:#ffffff;border:none;
+        border-radius:10px;font-weight:600;cursor:pointer;transition:all 0.3s ease;
+        box-shadow:0 4px 12px rgba(52,168,83,0.2);font-size:15px;
+        min-width:100px;
+      ">Save</button>
+    </div>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  
+  const folderInput=modal.querySelector('#downloadsFolderNameInput');
+  const pasteBtn=modal.querySelector('#pasteDownloadsPathBtn');
+  const cancelBtn=modal.querySelector('#cancelDownloadsBtn');
+  const saveBtn=modal.querySelector('#saveDownloadsBtn');
+  
+  // Paste custom path
+  pasteBtn.addEventListener('click',async ()=>{
+    try{
+      const text=await navigator.clipboard.readText();
+      if(text.trim()){
+        folderInput.value=text.trim();
+        console.log('Pasted custom downloads path:', text.trim());
+        showToast('<i class="fas fa-clipboard"></i> Custom path pasted from clipboard');
+      }else{
+        alert('<i class="fas fa-clipboard"></i> CLIPBOARD EMPTY\n\nYour clipboard is empty.\n\nCopy a folder path and try again, or type a folder name manually.');
+      }
+    }catch(error){
+      console.error('Error reading clipboard:', error);
+      alert('<i class="fas fa-clipboard"></i> CLIPBOARD ACCESS DENIED\n\nUnable to access clipboard.\n\nPlease type the folder name or path manually.');
+    }
+  });
+  
+  // Cancel button
+  cancelBtn.addEventListener('click',()=>{
+    document.body.removeChild(overlay);
+  });
+  
+  // Save button
+  saveBtn.addEventListener('click',()=>{
+    const folderPath=folderInput.value.trim();
+    console.log('Save downloads button clicked, folder path:', folderPath);
+    
+    if(folderPath){
+      localStorage.setItem('downloadsFolderPath',folderPath);
+      console.log('Downloads folder saved to localStorage:', folderPath);
+      showToast('<i class="fas fa-download"></i> Downloads folder set successfully!');
+      
+      // Update tooltip immediately
+      setTimeout(()=>{
+        updateDownloadsTooltip();
+      },100);
+      
+      // Proceed with load data after setting folder
+      setTimeout(()=>{
+        document.body.removeChild(overlay);
+        openFilePicker();
+      },500);
+    }else{
+      alert('Please enter a folder name.\n\nYou can:\n• Type a custom folder name\n• Use "Paste Custom Path" to paste a folder path from clipboard');
+      folderInput.focus();
+    }
+  });
+  
+  // Close on overlay click
+  overlay.addEventListener('click',(e)=>{
+    if(e.target===overlay){
+      document.body.removeChild(overlay);
+    }
+  });
+  
+  // Focus on input
+  setTimeout(()=>folderInput.focus(),100);
+}
+
+// Initialize tooltips on page load
+document.addEventListener('DOMContentLoaded',()=>{
+  updateLoadLocalTooltip();
+  updateBackupTooltip();
+  updateDocsTooltip();
+  updateDownloadsTooltip();
+});
+
+/* ---------- Enhanced Documents ---------- */
+const docUpload=document.getElementById('docUpload');
+const docsTbody=document.getElementById('docsTbody');
+const uploadArea=document.getElementById('uploadArea');
+const uploadBtn=document.getElementById('uploadBtn');
+const docStats=document.getElementById('docStats');
+let docs=JSON.parse(localStorage.getItem('docsList')||'[]');
+let isFilePickerOpen = false;
+
+// Initialize
+renderDocs();
+updateStats();
+
+// Change Documents folder button and Download All button
+document.addEventListener('DOMContentLoaded', function() {
+  const changeDocsFolderBtn = document.getElementById('changeDocsFolderBtn');
+  const quickChangeDocsBtn = document.getElementById('quickChangeDocsBtn');
+  const downloadAllBtn = document.getElementById('downloadAllBtn');
+  
+  if(quickChangeDocsBtn) {
+    quickChangeDocsBtn.addEventListener('click', async function() {
+      const docsFolderPath = localStorage.getItem('docsFolderPath');
+      if(docsFolderPath) {
+        await showFolderChoiceDialog(docsFolderPath, 'Documents');
+      } else {
+        showToast(`<i class="fas fa-exclamation-triangle"></i> No Documents folder set. Please set up Documents folder first.`);
+      }
+    });
+  }
+  
+  if(changeDocsFolderBtn) {
+    changeDocsFolderBtn.addEventListener('click', function() {
+      showDocumentsFolderSetup();
+    });
+  }
+  
+  if(downloadAllBtn) {
+    downloadAllBtn.addEventListener('click', function() {
+      downloadAllDocuments();
+    });
+  }
+});
+
+
+// Upload button click - ONLY way to open file picker
+// Clear any existing event listeners and add only one
+if(uploadBtn.onclick){
+  uploadBtn.onclick = null;
+}
+uploadBtn.onclick = function(e){
+  e.preventDefault();
+  e.stopPropagation();
+  
+  if(isFilePickerOpen){
+    console.log('File picker already open - ignoring click');
+    return;
+  }
+  
+  console.log('Upload button clicked - opening file picker ONCE');
+  isFilePickerOpen = true;
+  docUpload.click();
+  
+  // Reset flag after a short delay
+  setTimeout(() => {
+    isFilePickerOpen = false;
+  }, 1000);
+};
+
+// File input change
+docUpload.addEventListener('change',handleFileUpload);
+
+// Drag and drop functionality
+uploadArea.addEventListener('dragover',e=>{
+  e.preventDefault();
+  uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave',()=>{
+  uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop',e=>{
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+  const files=e.dataTransfer.files;
+  handleFiles(files);
+});
+
+// NO upload area click event - removed to prevent double file picker
+
+function handleFileUpload(e){
+  const files=e.target.files;
+  isFilePickerOpen = false; // Reset flag when files are selected
+  
+  console.log('File upload triggered, files selected:', files.length);
+  
+  if(files && files.length > 0){
+    handleFiles(files);
+  }
+  
+  // Clear the input AFTER processing to allow re-uploading same files
+  setTimeout(() => {
+    e.target.value = '';
+  }, 100);
+}
+
+function handleFiles(files){
+  let addedCount = 0;
+  let skippedCount = 0;
+  
+  console.log('Processing files:', Array.from(files).map(f => f.name));
+  
+  Array.from(files).forEach(file=>{
+    console.log('Processing file:', file.name);
+    
+    if(isValidFileType(file)){
+      // Add file directly without duplicate checking
+      console.log('Adding file:', file.name);
+      const entry=createDocumentEntry(file);
+  docs.push(entry);
+      addedCount++;
+    }else{
+      console.log('Invalid file type:', file.name);
+      alert(`File type not supported: ${file.name}`);
+      skippedCount++;
+    }
+  });
+  
+  console.log('Final counts - Added:', addedCount, 'Skipped:', skippedCount);
+  
+  // Save and update UI
+  if(addedCount > 0){
+  localStorage.setItem('docsList',JSON.stringify(docs));
+  renderDocs();
+    updateStats();
+    
+    const folderPath = localStorage.getItem('docsFolderPath') || 'Documents';
+    if(addedCount === 1){
+      showToast(`<i class="fas fa-upload"></i> File uploaded successfully to ${folderPath}`);
+    }else{
+      showToast(`<i class="fas fa-upload"></i> ${addedCount} files uploaded successfully to ${folderPath}`);
+    }
+  }
+  
+  if(skippedCount > 0){
+    setTimeout(() => {
+      showToast(`<i class="fas fa-exclamation-triangle"></i> ${skippedCount} file(s) skipped due to unsupported format`);
+    }, 1500);
+  }
+}
+
+
+function isValidFileType(file){
+  const validTypes=['.pdf','.doc','.docx','.xls','.xlsx','.txt','.jpg','.jpeg','.png','.gif'];
+  return validTypes.some(type=>file.name.toLowerCase().endsWith(type));
+}
+
+function createDocumentEntry(file){
+  const docsFolderPath = localStorage.getItem('docsFolderPath') || 'Documents';
+  return {
+    name:file.name,
+    type:getFileType(file.name),
+    size:formatFileSize(file.size),
+    date:new Date().toLocaleString(),
+    folderPath: docsFolderPath,
+    id:Date.now()+Math.random()
+  };
+}
+
+function getFileType(filename){
+  const ext=filename.split('.').pop().toLowerCase();
+  const typeMap={
+    'pdf':'PDF Document',
+    'doc':'Word Document',
+    'docx':'Word Document',
+    'xls':'Excel Spreadsheet',
+    'xlsx':'Excel Spreadsheet',
+    'txt':'Text File',
+    'jpg':'JPEG Image',
+    'jpeg':'JPEG Image',
+    'png':'PNG Image',
+    'gif':'GIF Image'
+  };
+  return typeMap[ext]||'Unknown';
+}
+
+function formatFileSize(bytes){
+  if(bytes===0)return'0 B';
+  const k=1024;
+  const sizes=['B','KB','MB','GB'];
+  const i=Math.floor(Math.log(bytes)/Math.log(k));
+  return parseFloat((bytes/Math.pow(k,i)).toFixed(1))+' '+sizes[i];
+}
+
+function updateStats(){
+  const count=docs.length;
+  console.log('Updating stats - document count:', count);
+  if(docStats){
+    docStats.textContent=`${count} document${count!==1?'s':''}`;
+    console.log('Stats updated to:', docStats.textContent);
+  }else{
+    console.error('docStats element not found');
+  }
+}
+
+function renderDocs(){
+  docsTbody.innerHTML='';
+  if(docs.length===0){
+    docsTbody.innerHTML=`<tr class="empty-state">
+      <td colspan="5" class="empty-message">
+        <div class="empty-icon">📭</div>
+        <p>No documents yet. Upload your first document above!</p>
+      </td>
+    </tr>`;
+    return;
+  }
+  
+  docs.forEach((d,i)=>{
+    const r=document.createElement('tr');
+    r.draggable = true;
+    r.dataset.index = i;
+    r.innerHTML=`<td>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="file-icon">${getFileIcon(d.type)}</span>
+        <span class="file-name-display" data-i="${i}" style="font-weight:500;cursor:pointer;" title="Click or double-click to rename">${d.name}</span>
+      </div>
+    </td>
+    <td><span class="file-type">${d.type}</span></td>
+    <td><span class="file-size">${d.size}</span></td>
+    <td><span class="file-date">${d.date}</span></td>
+    <td>
+      <div class="doc-actions">
+        <button class="doc-btn download" data-i="${i}" title="Download">
+          <i class="fas fa-download icon-download"></i>
+        </button>
+        <button class="doc-btn move-up" data-i="${i}" title="Move Up" ${i === 0 ? 'disabled' : ''}>
+          <i class="fas fa-arrow-up icon-move-up"></i>
+        </button>
+        <button class="doc-btn move-down" data-i="${i}" title="Move Down" ${i === docs.length - 1 ? 'disabled' : ''}>
+          <i class="fas fa-arrow-down icon-move-down"></i>
+        </button>
+        <button class="doc-btn delete" data-i="${i}" title="Delete">
+          <i class="fas fa-trash icon-delete"></i>
+        </button>
+      </div>
+    </td>`;
+    docsTbody.appendChild(r);
+  });
+  
+  // Event listeners for action buttons
+  docsTbody.querySelectorAll('.doc-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      const i=parseInt(e.target.closest('.doc-btn').dataset.i);
+      if(e.target.closest('.doc-btn').classList.contains('download')){
+        downloadDocument(i);
+      }else if(e.target.closest('.doc-btn').classList.contains('move-up')){
+        moveFileUp(i);
+      }else if(e.target.closest('.doc-btn').classList.contains('move-down')){
+        moveFileDown(i);
+      }else{
+        deleteDocument(i);
+      }
+    });
+  });
+  
+  // Event listeners for file name clicks and double-clicks
+  docsTbody.querySelectorAll('.file-name-display').forEach(span=>{
+    span.addEventListener('click',e=>{
+      const i=parseInt(e.target.dataset.i);
+      renameDocument(i);
+    });
+    
+    // Add double-click event for direct editing
+    span.addEventListener('dblclick',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      const i=parseInt(e.target.dataset.i);
+      renameDocument(i);
+    });
+  });
+  
+  // Drag and drop event listeners
+  docsTbody.querySelectorAll('tr').forEach(row => {
+    row.addEventListener('dragstart', handleDragStart);
+    row.addEventListener('dragover', handleDragOver);
+    row.addEventListener('drop', handleDrop);
+    row.addEventListener('dragend', handleDragEnd);
+  });
+}
+
+function getFileIcon(type){
+  const iconMap={
+    'PDF Document':'<i class=\"fas fa-file-pdf\"></i>',
+    'Word Document':'<i class=\"fas fa-file-word\"></i>',
+    'Excel Spreadsheet':'<i class=\"fas fa-file-excel\"></i>',
+    'Text File':'<i class=\"fas fa-file-alt\"></i>',
+    'JPEG Image':'<i class=\"fas fa-file-image\"></i>',
+    'PNG Image':'<i class=\"fas fa-file-image\"></i>',
+    'GIF Image':'<i class=\"fas fa-file-image\"></i>'
+  };
+  return iconMap[type]||'<i class=\"fas fa-file\"></i>';
+}
+
+async function downloadDocument(index){
+  const doc=docs[index];
+  const folderPath = doc.folderPath || 'Documents';
+  const docsFolderPath = localStorage.getItem('docsFolderPath');
+  const lastDocsFolder = localStorage.getItem('lastDocsFolder');
+  
+  showToast(`<i class="fas fa-download"></i> Downloading "${doc.name}" from ${folderPath}...`);
+  
+  try {
+    // Create a blob with the file content
+    const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${folderPath}\nDocuments Folder: ${docsFolderPath || 'Not set'}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    
+    if(docsFolderPath && 'showDirectoryPicker' in window) {
+      // Try to save directly to Documents folder
+      await downloadToDocsFolderDirect(blob, doc.name, docsFolderPath);
+    } else if(lastDocsFolder) {
+      // Use last chosen folder
+      showToast(`<i class="fas fa-folder-open"></i> Using last folder: ${lastDocsFolder}`);
+      downloadToDefaultLocation(blob, doc.name, lastDocsFolder);
+    } else {
+      // Fallback to default download
+      downloadToDefaultLocation(blob, doc.name, docsFolderPath);
+    }
+    
+  } catch (error) {
+    console.error('Download error:', error);
+    showToast(`<i class="fas fa-exclamation-triangle"></i> Download failed: "${doc.name}"`);
+  }
+}
+
+async function downloadToDocsFolderDirect(blob, fileName, docsFolderPath) {
+  try {
+    // Show directory picker to select Documents folder
+    const directoryHandle = await window.showDirectoryPicker({
+      mode: 'readwrite',
+      startIn: 'documents'
+    });
+    
+    // Create file in the selected directory
+    const fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+    
+    // Store the last chosen folder
+    localStorage.setItem('lastDocsFolder', directoryHandle.name);
+    
+    showToast(`<i class="fas fa-download"></i> File saved to Documents folder: "${fileName}"`);
+    
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('User cancelled directory selection');
+      return;
+    }
+    
+    console.error('Error saving to Documents folder:', error);
+    // Fallback to default download
+    downloadToDefaultLocation(blob, fileName, docsFolderPath);
+  }
+}
+
+function downloadToDefaultLocation(blob, fileName, docsFolderPath) {
+  // Create filename with Documents folder path for easy identification
+  const finalFileName = docsFolderPath ? `[${docsFolderPath}]_${fileName}` : fileName;
+  
+  // Silent download to default location
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = finalFileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  
+  // Show success message
+  setTimeout(() => {
+    const message = docsFolderPath 
+      ? `<i class="fas fa-download"></i> Download completed: "${fileName}"<br><small>Please move to Documents folder: ${docsFolderPath}</small>`
+      : `<i class="fas fa-download"></i> Download completed: "${fileName}"<br><small>Set Documents folder to auto-save downloads</small>`;
+    showToast(message);
+  }, 500);
+}
+
+
+async function downloadAllDocuments() {
+  const docsFolderPath = localStorage.getItem('docsFolderPath');
+  
+  if(docs.length === 0) {
+    showToast(`<i class="fas fa-exclamation-triangle"></i> No documents to download`);
+    return;
+  }
+  
+  if(!docsFolderPath) {
+    showToast(`<i class="fas fa-exclamation-triangle"></i> Please set a Documents folder first`);
+    return;
+  }
+  
+  showToast(`<i class="fas fa-download"></i> Downloading ${docs.length} documents to Documents folder: ${docsFolderPath}`);
+  
+  try {
+    // Download all documents with Documents folder path in filename
+    downloadAllToDocsFolderSilent(docsFolderPath);
+  } catch (error) {
+    console.error('Error downloading all documents:', error);
+    showToast(`<i class="fas fa-exclamation-triangle"></i> Download failed: ${error.message}`);
+  }
+}
+
+async function downloadAllToDocsFolderSilent(docsFolderPath) {
+  // Check if we have a stored directory handle for the Documents folder
+  const docsFolderHandle = localStorage.getItem('docsFolderHandle');
+  const lastDocsFolder = localStorage.getItem('lastDocsFolder');
+  
+  if(docsFolderHandle && 'showDirectoryPicker' in window) {
+    // Try to use the stored handle to save files directly
+    await downloadAllToStoredDocsFolder(docsFolderPath);
+  } else if(lastDocsFolder) {
+    // Show option to use last folder or choose new one
+    await showFolderChoiceDialog(docsFolderPath, 'Documents');
+  } else {
+    // Fallback: ask user to select Documents folder for direct saving
+    await downloadAllToDocsFolderWithPicker(docsFolderPath);
+  }
+}
+
+async function showFolderChoiceDialog(folderPath, folderType) {
+  const lastFolder = localStorage.getItem(`last${folderType}Folder`);
+  
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.6); display: flex; justify-content: center; 
+    align-items: center; z-index: 10001; backdrop-filter: blur(8px);
+  `;
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: var(--content-bg); padding: 32px; border-radius: 20px;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.2); max-width: 420px; width: 90%;
+    border: 1px solid var(--divider); backdrop-filter: blur(15px);
+    position: relative;
+  `;
+  
+  modal.innerHTML = `
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="font-size: 56px; margin-bottom: 12px;"><i class="fas fa-folder-open"></i></div>
+      <h3 style="margin: 0 0 8px 0; color: var(--text-body); font-size: 20px; font-weight: 700;">
+        Choose ${folderType} Folder
+      </h3>
+      <p style="margin: 0; color: var(--text-secondary); font-size: 14px; line-height: 1.5;">
+        Select where to save your files
+      </p>
+    </div>
+    
+    <div style="margin-bottom: 24px;">
+      <div style="background: var(--primary-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid var(--accent-blue);">
+        <p style="margin: 0 0 8px 0; font-size: 14px; color: var(--text-body);">
+          <strong>Last Used Folder:</strong> ${lastFolder}
+        </p>
+        <p style="margin: 0; font-size: 12px; color: var(--text-secondary);">
+          Click "Use Last Folder" to save to this location
+        </p>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <button id="useLastFolderBtn" style="
+          width: 100%; padding: 14px 18px; background: var(--accent-blue); color: #fff; border: none;
+          border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(66,133,244,0.3); font-size: 15px;
+          display: flex; align-items: center; justify-content: center; gap: 10px;
+        ">
+          <i class="fas fa-check-circle"></i>
+          <span>Use Last Folder</span>
+        </button>
+        
+        <button id="chooseNewFolderBtn" style="
+          width: 100%; padding: 14px 18px; background: var(--accent-gold); color: #fff; border: none;
+          border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(245,158,11,0.3); font-size: 15px;
+          display: flex; align-items: center; justify-content: center; gap: 10px;
+        ">
+          <i class="fas fa-folder-plus"></i>
+          <span>Choose New Folder</span>
+        </button>
+        
+        <button id="cancelFolderChoiceBtn" style="
+          width: 100%; padding: 14px 18px; background: #6b7280; color: #fff; border: none;
+          border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(107,114,128,0.2); font-size: 15px;
+        ">
+          Cancel
+        </button>
+      </div>
+    </div>
+  `;
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  
+  const useLastBtn = modal.querySelector('#useLastFolderBtn');
+  const chooseNewBtn = modal.querySelector('#chooseNewFolderBtn');
+  const cancelBtn = modal.querySelector('#cancelFolderChoiceBtn');
+  
+  // Use last folder
+  useLastBtn.addEventListener('click', async () => {
+    document.body.removeChild(overlay);
+    showToast(`<i class="fas fa-folder-open"></i> Using last folder: ${lastFolder}`);
+    
+    // Download to last folder (fallback to default location with folder name)
+    if(folderType === 'Documents') {
+      downloadAllToDefaultLocation(lastFolder);
+    }
+  });
+  
+  // Choose new folder
+  chooseNewBtn.addEventListener('click', async () => {
+    document.body.removeChild(overlay);
+    if(folderType === 'Documents') {
+      await downloadAllToDocsFolderWithPicker(folderPath);
+    }
+  });
+  
+  // Cancel
+  cancelBtn.addEventListener('click', () => {
+    document.body.removeChild(overlay);
+  });
+  
+  // Close on overlay click
+  overlay.addEventListener('click', (e) => {
+    if(e.target === overlay) {
+      document.body.removeChild(overlay);
+    }
+  });
+}
+
+async function downloadAllToStoredDocsFolder(docsFolderPath) {
+  try {
+    // Parse the stored directory handle (we'll need to store it properly)
+    showToast(`<i class="fas fa-download"></i> Saving files directly to Documents folder: ${docsFolderPath}`);
+    
+    // For now, fallback to picker method since we need to implement proper handle storage
+    await downloadAllToDocsFolderWithPicker(docsFolderPath);
+    
+  } catch (error) {
+    console.error('Error using stored Documents folder:', error);
+    // Fallback to picker method
+    await downloadAllToDocsFolderWithPicker(docsFolderPath);
+  }
+}
+
+async function downloadAllToDocsFolderWithPicker(docsFolderPath) {
+  try {
+    // Show directory picker to select Documents folder
+    const directoryHandle = await window.showDirectoryPicker({
+      mode: 'readwrite',
+      startIn: 'documents'
+    });
+    
+    // Store the directory handle for future use
+    // Note: In a real implementation, you'd need to serialize the handle properly
+    localStorage.setItem('docsFolderHandle', 'stored');
+    localStorage.setItem('docsFolderPath', directoryHandle.name);
+    localStorage.setItem('lastDocsFolder', directoryHandle.name);
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    showToast(`<i class="fas fa-download"></i> Saving ${docs.length} documents to Documents folder...`);
+    
+    // Download each document directly to the selected folder
+    for (let i = 0; i < docs.length; i++) {
+      const doc = docs[i];
+      try {
+        // Create file content
+        const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${doc.folderPath || 'Documents'}\nDocuments Folder: ${docsFolderPath}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
+        const blob = new Blob([content], { type: 'text/plain' });
+        
+        // Create file in the selected directory
+        const fileHandle = await directoryHandle.getFileHandle(doc.name, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        
+        successCount++;
+        
+        // Update progress
+        if(i % 3 === 0 || i === docs.length - 1) {
+          showToast(`<i class="fas fa-download"></i> Saved ${i + 1}/${docs.length} documents to Documents folder...`);
+        }
+        
+      } catch (error) {
+        console.error(`Error saving ${doc.name}:`, error);
+        errorCount++;
+      }
+    }
+    
+    // Show final result
+    if(errorCount === 0) {
+      showToast(`<i class="fas fa-check-circle"></i> Successfully saved all ${successCount} documents to Documents folder!`);
+    } else {
+      showToast(`<i class="fas fa-exclamation-triangle"></i> Saved ${successCount} documents, ${errorCount} failed to Documents folder`);
+    }
+    
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('User cancelled directory selection');
+      showToast(`<i class="fas fa-times-circle"></i> Save cancelled`);
+      return;
+    }
+    
+    console.error('Error accessing Documents folder:', error);
+    // Fallback to default download
+    downloadAllToDefaultLocation(docsFolderPath);
+  }
+}
+
+function downloadAllToDefaultLocation(docsFolderPath) {
+  let successCount = 0;
+  let errorCount = 0;
+  
+  // Download each document with Documents folder path in the filename
+  docs.forEach((doc, index) => {
+    setTimeout(() => {
+      try {
+        // Create file content with Documents folder information
+        const content = `This is a demo file: ${doc.name}\nType: ${doc.type}\nSize: ${doc.size}\nDate: ${doc.date}\nSource Folder: ${doc.folderPath || 'Documents'}\nDocuments Folder: ${docsFolderPath}\n\nThis is a placeholder download. In a real application, this would contain the actual file content.`;
+        const blob = new Blob([content], { type: 'text/plain' });
+        
+        // Create filename with Documents folder path for easy identification
+        const fileName = `[${docsFolderPath}]_${doc.name}`;
+        
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        successCount++;
+        
+        // Update progress
+        if(index % 3 === 0 || index === docs.length - 1) {
+          showToast(`<i class="fas fa-download"></i> Downloaded ${index + 1}/${docs.length} documents...`);
+        }
+        
+      } catch (error) {
+        console.error(`Error downloading ${doc.name}:`, error);
+        errorCount++;
+      }
+    }, index * 300); // Stagger downloads by 300ms
+  });
+  
+  // Show final result after all downloads complete
+  setTimeout(() => {
+    if(errorCount === 0) {
+      showToast(`<i class="fas fa-check-circle"></i> Downloaded all ${successCount} documents!<br><small>Please move to Documents folder: ${docsFolderPath}</small>`);
+    } else {
+      showToast(`<i class="fas fa-exclamation-triangle"></i> Downloaded ${successCount} documents, ${errorCount} failed<br><small>Please move to Documents folder: ${docsFolderPath}</small>`);
+    }
+  }, docs.length * 300 + 1000);
+}
+
+function renameDocument(index){
+  const doc=docs[index];
+  const span=document.querySelector(`.file-name-display[data-i="${index}"]`);
+  if(!span) return;
+  
+  // Create input field
+  const input=document.createElement('input');
+  input.type='text';
+  input.className='file-name-edit';
+  input.value=doc.name;
+  input.style.width='100%';
+  
+  // Replace span with input
+  span.style.display='none';
+  span.parentNode.insertBefore(input,span.nextSibling);
+  input.focus();
+  input.select();
+  
+  // Save on Enter or blur
+  function saveRename(){
+    const newName=input.value.trim();
+    if(newName && newName!==doc.name){
+      const oldName = doc.name;
+      doc.name=newName;
+      localStorage.setItem('docsList',JSON.stringify(docs));
+      renderDocs();
+      updateStats();
+      showToast(`<i class="fas fa-edit"></i> File renamed from "${oldName}" to "${newName}"`);
+    }else{
+      span.style.display='inline';
+      input.remove();
+    }
+  }
+  
+  // Cancel on Escape
+  function cancelRename(){
+    span.style.display='inline';
+    input.remove();
+  }
+  
+  input.addEventListener('blur',saveRename);
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      saveRename();
+    }else if(e.key==='Escape'){
+      e.preventDefault();
+      cancelRename();
+    }
+  });
+}
+
+function moveFileUp(index){
+  if(index > 0){
+    // Swap with the file above
+    const temp = docs[index];
+    docs[index] = docs[index - 1];
+    docs[index - 1] = temp;
+    
+    localStorage.setItem('docsList', JSON.stringify(docs));
+    renderDocs();
+    showToast(`<i class="fas fa-arrow-up"></i> File "${temp.name}" moved up`);
+  }
+}
+
+function moveFileDown(index){
+  if(index < docs.length - 1){
+    // Swap with the file below
+    const temp = docs[index];
+    docs[index] = docs[index + 1];
+    docs[index + 1] = temp;
+    
+    localStorage.setItem('docsList', JSON.stringify(docs));
+    renderDocs();
+    showToast(`<i class="fas fa-arrow-down"></i> File "${temp.name}" moved down`);
+  }
+}
+
+// Drag and drop functions
+let draggedRow = null;
+
+function handleDragStart(e) {
+  draggedRow = this;
+  this.style.opacity = '0.5';
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  this.style.backgroundColor = 'rgba(139, 92, 246, 0.1)';
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  if (draggedRow !== this) {
+    const fromIndex = parseInt(draggedRow.dataset.index);
+    const toIndex = parseInt(this.dataset.index);
+    
+    // Move the item in the docs array
+    const item = docs.splice(fromIndex, 1)[0];
+    docs.splice(toIndex, 0, item);
+    
+    // Save and re-render
+    localStorage.setItem('docsList', JSON.stringify(docs));
+    renderDocs();
+    showToast(`<i class="fas fa-exchange-alt"></i> File "${item.name}" moved to position ${toIndex + 1}`);
+  }
+  this.style.backgroundColor = '';
+}
+
+function handleDragEnd(e) {
+  this.style.opacity = '';
+  this.style.backgroundColor = '';
+  draggedRow = null;
+}
+
+function deleteDocument(index){
+  const fileName = docs[index].name;
+  if(confirm(`Are you sure you want to delete "${fileName}"?`)){
+    docs.splice(index,1);
+    localStorage.setItem('docsList',JSON.stringify(docs));
+    renderDocs();
+    updateStats();
+    showToast(`<i class="fas fa-trash"></i> File "${fileName}" deleted successfully`);
+  }
+}
+</script>
+</body>
+</html>
