@@ -62,6 +62,33 @@ input:checked + .slider:before{transform:translateX(22px);}
 }
 .nav-link{display:block;padding:12px 16px;margin:4px 0;border-radius:8px;text-decoration:none;color:var(--text-body);transition:all 0.3s ease;font-weight:500;}
 .nav-link:hover{background:var(--accent-blue);color:#fff;transform:translateX(4px);box-shadow:var(--shadow);}
+.nav-link.nav-link-master{
+  background:linear-gradient(135deg,#f59e0b 0%,#f97316 45%,#ea580c 100%);
+  color:#fff;
+  font-weight:700;
+  border:1px solid rgba(255,255,255,0.35);
+  box-shadow:0 10px 22px rgba(249,115,22,0.25);
+  position:relative;
+  overflow:hidden;
+}
+.nav-link.nav-link-master::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(120deg,rgba(255,255,255,0.2),transparent 50%);
+  opacity:0;
+  transition:opacity 0.3s ease;
+}
+.nav-link.nav-link-master:hover{
+  transform:translateX(6px);
+  box-shadow:0 12px 28px rgba(234,88,12,0.35);
+}
+.nav-link.nav-link-master:hover::after{opacity:1;}
+body.dark .nav-link.nav-link-master{
+  border:1px solid rgba(255,255,255,0.25);
+  box-shadow:0 12px 28px rgba(249,115,22,0.35);
+}
 .nav-link.disabled{opacity:.5;pointer-events:none;}
 .nav-link span.icon{margin-right:10px;font-size:1.1em;}
 #content{margin-left:308px;margin-top:60px;padding:30px;min-height:calc(100vh - 60px);}
@@ -186,14 +213,15 @@ body.dark .modal-header h4 i{color:var(--text-body);}
 </header>
 
 <nav id="sidebar">
-  <a href="#" class="nav-link"><span class="icon">🧩</span>Manage Master Data</a>
-  <a href="#" class="nav-link"><span class="icon">✅</span>Manage Tasks</a>
-  <a href="#" class="nav-link"><span class="icon">🗂️</span>Manage Bank Accounts</a>
-  <a href="#" class="nav-link"><span class="icon">📈</span>Investments</a>
-  <a href="#" class="nav-link"><span class="icon">💸</span>Expense Transactions</a>
-  <a href="#" class="nav-link"><span class="icon">💰</span>Income Transactions</a>
-  <a href="#" class="nav-link"><span class="icon">📁</span>Manage Project Documents</a>
-  <a href="#" class="nav-link"><span class="icon">🗄️</span>Personal Docs Viewer</a>
+  <a href="#" class="nav-link" data-section="tasks"><span class="icon">✅</span>Manage Tasks</a>
+  <a href="#" class="nav-link" data-section="investments"><span class="icon">📈</span>Manage Investments</a>
+  <a href="#" class="nav-link" data-section="expense"><span class="icon">💸</span>Manage Expense Transactions</a>
+  <a href="#" class="nav-link" data-section="income"><span class="icon">💰</span>Manage Income Transactions</a>
+  <a href="#" class="nav-link" data-section="credit-cards"><span class="icon">💳</span>Manage Credit Cards</a>
+  <a href="#" class="nav-link" data-section="bank-accounts"><span class="icon">🗂️</span>Manage Bank Accounts</a>
+  <a href="#" class="nav-link" data-section="project-docs"><span class="icon">📁</span>Manage Project Documents</a>
+  <a href="#" class="nav-link nav-link-master" data-section="masters"><span class="icon">🧩</span>Manage Master Data</a>
+  <a href="#" class="nav-link" data-section="personal-docs"><span class="icon">🗄️</span>Personal Docs Viewer</a>
 </nav>
 
 <main id="content"></main>
@@ -380,7 +408,7 @@ body.dark .modal-header h4 i{color:var(--text-body);}
   <div class="modal-content">
     <span class="close" data-close="modal-generic">&times;</span>
     <h4 id="genericTitle"></h4>
-    <p>Coming soon…</p>
+    <p id="genericMessage">Standalone preview only.</p>
   </div>
 </div>
 
@@ -417,43 +445,38 @@ window.onclick=function(e){
   document.querySelectorAll('.modal').forEach(m=>{if(e.target===m)m.style.display='none';});
 };
 
-/* ---------- Sidebar Clicks ---------- */
-document.querySelectorAll('.nav-link').forEach(link=>{
+/* ---------- Sidebar Preview Handling ---------- */
+const genericTitleEl=document.getElementById('genericTitle');
+const genericMessageEl=document.getElementById('genericMessage');
+const SECTION_MESSAGES={
+  tasks:'Review, prioritize, and assign tasks from the main ClearView dashboard.',
+  investments:'Track portfolio performance, maturity dates, and investment returns in the full Investments module.',
+  expense:'Capture bills, reimbursements, and payout details using the Expense Transactions dashboard.',
+  income:'Record income inflows, payment modes, and account holders from the Income Transactions dashboard.',
+  'credit-cards':'View card credentials, billing cycles, and statements from the Manage Credit Cards dashboard.',
+  'bank-accounts':'Maintain bank account metadata, credentials, and contact info within the Manage Bank Accounts dashboard.',
+  'project-docs':'Use the Project Documents dashboard for drag-and-drop uploads, downloads, and backups.',
+  masters:'Update shared dropdown values (categories, tags, holders, statuses) in Manage Master Data on the main dashboard.',
+  'personal-docs':'Launch the Personal Docs Viewer to browse and preview files directly from your configured folders.'
+};
+
+document.querySelectorAll('#sidebar .nav-link').forEach(link=>{
   link.addEventListener('click',e=>{
     e.preventDefault();
-    const t=link.dataset.target;
-    if(!t) return;
-    if(t==='docs'){openDocumentsModal();}
-    else if(t==='masters'){
-      window.location.href='11_Manage_Master_Data.html';
+    const section=link.dataset.section;
+    if(section==='project-docs'){
+      openDocumentsModal();
+      return;
     }
-    else if(t==='tasks'){
-      window.location.href='5_Task_Index.html';
-    }
-    else if(t==='expense'){
-      window.location.href='2_Expanse_Index.html';
-    }
-    else if(t==='income'){
-      window.location.href='3_Income_Index.html';
-    }
-    else if(t==='bank-accounts'){
-      window.location.href='8_Manage_Bank_Ac_Index.html';
-    }
-    else if(t==='investments'){
-      window.location.href='4_Investment_Index.html';
-    }
-    else if(t==='project-docs'){
-      window.location.href='6_Manage_Project_Docs_Index.html';
-    }
-    else if(t==='personal-docs'){
-      window.location.href='7_Personal_Docs_Viewer.html';
-    }
-    else if(['analytics','backup'].includes(t)){
-      document.getElementById('genericTitle').textContent=link.textContent;
-      openModal('modal-generic');
-    }
+    openStandaloneInfo(section,link.textContent.trim());
   });
 });
+
+function openStandaloneInfo(section,label){
+  genericTitleEl.textContent=label||'Standalone Preview';
+  genericMessageEl.textContent=SECTION_MESSAGES[section]||'This standalone dashboard preview does not link to the full module. Open the main ClearView dashboard to use this feature.';
+  openModal('modal-generic');
+}
 
 /* ---------- Load Local Data - Complete Implementation ---------- */
 
