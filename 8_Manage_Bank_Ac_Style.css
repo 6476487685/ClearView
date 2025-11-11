@@ -54,49 +54,36 @@ button{
 .header{
   background:var(--surface);
   color:var(--text-primary);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
   padding:12px 20px;
   font-weight:400;
   position:relative;
   border-bottom:1px solid var(--border-light);
   box-shadow:var(--shadow-xs);
-}
-
-.header-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  width:100%;
   gap:16px;
 }
 
-.header-row-top{
-  margin-bottom:10px;
+.header-left{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  flex:1;
+  align-items:flex-start;
 }
 
-.header-row-bottom{
-  justify-content:center;
-}
-
-.header-section{
+.header-left-actions{
   display:flex;
   align-items:center;
   gap:12px;
+  flex-wrap:wrap;
 }
 
-.header-section.align-left{
-  justify-content:flex-start;
-}
-
-.header-section.align-right{
-  justify-content:flex-end;
-}
-
-.header-section.align-right>*{
-  margin-left:8px;
-}
-
-.header-section.align-left>*:not(:last-child){
-  margin-right:8px;
+.header-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
 }
 
 .header-left{

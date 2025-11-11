@@ -11,8 +11,9 @@
 </head>
 <body>
   <header class="header">
-    <div class="header-row header-row-top">
-      <div class="header-section align-left">
+    <div class="header-left">
+      <h1 class="header-title">Manage Credit Cards</h1>
+      <div class="header-left-actions">
         <button class="black" onclick="window.location.href='index.html'">← Back to Main Dashboard</button>
         <div class="auto-backup-control" title="Toggle automatic Excel backups">
           <span class="status" id="autoBackupStatusText">Auto Backup: Paused</span>
@@ -22,13 +23,10 @@
           </label>
         </div>
       </div>
-      <div class="header-section align-right">
-        <button class="primary" id="btnManualBackup">💾 Backup Now</button>
-        <button class="excel" id="btnExportPDF">📘 Export All Records</button>
-      </div>
     </div>
-    <div class="header-row header-row-bottom">
-      <h1 class="header-title">Manage Credit Cards</h1>
+    <div class="header-right">
+      <button class="primary" id="btnManualBackup">💾 Backup Now</button>
+      <button class="excel" id="btnExportPDF">📘 Export All Records</button>
     </div>
   </header>
 

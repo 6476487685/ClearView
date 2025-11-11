@@ -1,35 +1,5 @@
 @import url('8_Manage_Bank_Ac_Style.css');
 
-.header-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:16px;
-  width:100%;
-}
-.header-row-top{
-  margin-bottom:10px;
-}
-.header-row-bottom{
-  justify-content:center;
-}
-.header-section{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-.header-section.align-left{
-  justify-content:flex-start;
-}
-.header-section.align-right{
-  justify-content:flex-end;
-}
-.header-section.align-right > *{
-  margin-left:8px;
-}
-.header-section.align-left > *:not(:last-child){
-  margin-right:8px;
-}
 .credit-info-table tbody td{
   text-align:left;
   font-size:12.5px;
