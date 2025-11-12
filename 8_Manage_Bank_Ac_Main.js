@@ -70,7 +70,33 @@ document.addEventListener("DOMContentLoaded", () => {
   updateAutoBackupStatusText();
 
   // Data Management
-  const getData = () => JSON.parse(localStorage.getItem('bank_accounts') || '[]');
+  const getData = () => {
+    let records = [];
+    try {
+      records = JSON.parse(localStorage.getItem('bank_accounts') || '[]');
+      if (!Array.isArray(records)) {
+        records = [];
+      }
+    } catch (error) {
+      console.warn('Unable to parse bank account data. Resetting to empty array.', error);
+      records = [];
+    }
+
+    let legacyConverted = false;
+    const normalizedRecords = records.map(record => {
+      const { normalizedRecord, changed } = normalizeLegacyRecord(record);
+      if (changed) {
+        legacyConverted = true;
+      }
+      return normalizedRecord;
+    });
+
+    if (legacyConverted) {
+      saveData(normalizedRecords);
+    }
+
+    return normalizedRecords;
+  };
   const saveData = (data) => {
     localStorage.setItem('bank_accounts', JSON.stringify(data));
   };
@@ -89,6 +115,130 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/-+$/, '');
     return normalized || '';
   };
+
+  const splitContactEntries = (value = '') => {
+    return String(value || '')
+      .split(/\r?\n|[,;|]+/)
+      .map(entry => entry.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+  };
+
+  const joinContactEntries = (entries = []) => {
+    if (!Array.isArray(entries) || !entries.length) return '';
+    return entries.join('\n');
+  };
+
+  const normalizePhoneEntries = (value = '') => {
+    const seen = new Set();
+    return splitContactEntries(value)
+      .map(cleanPhone)
+      .filter(entry => {
+        if (!entry) return false;
+        if (seen.has(entry)) return false;
+        seen.add(entry);
+        return true;
+      });
+  };
+
+  const normalizeEmailEntries = (value = '') => {
+    const seen = new Set();
+    return splitContactEntries(value)
+      .map(entry => entry.trim())
+      .filter(entry => {
+        if (!entry) return false;
+        const lower = entry.toLowerCase();
+        if (seen.has(lower)) return false;
+        seen.add(lower);
+        return true;
+      });
+  };
+
+  const getHelplinePhoneList = (record = {}) => {
+    if (!record || typeof record !== 'object') return [];
+    const primary = normalizePhoneEntries(record.Bank_Helpline_Phone || '');
+    if (primary.length) return primary;
+    return [
+      cleanPhone(record.Bank_Helpline_Phone1),
+      cleanPhone(record.Bank_Helpline_Phone2),
+      cleanPhone(record.Bank_Helpline_Phone3),
+      cleanPhone(record.Bank_Helpline_Phone4)
+    ].filter(Boolean);
+  };
+
+  const getHelplineEmailList = (record = {}) => {
+    if (!record || typeof record !== 'object') return [];
+    const primary = normalizeEmailEntries(record.Bank_Helpline_Email || '');
+    if (primary.length) return primary;
+    return [
+      record.Bank_Helpline_Email1,
+      record.Bank_Helpline_Email2,
+      record.Bank_Helpline_Email3,
+      record.Bank_Helpline_Email4
+    ].map(value => (value || '').trim()).filter(Boolean);
+  };
+
+  function normalizeLegacyRecord(record) {
+    if (!record || typeof record !== 'object') {
+      return { normalizedRecord: {}, changed: false };
+    }
+
+    const clone = { ...record };
+    let changed = false;
+
+    const legacyPhones = [
+      cleanPhone(clone.Bank_Helpline_Phone1),
+      cleanPhone(clone.Bank_Helpline_Phone2),
+      cleanPhone(clone.Bank_Helpline_Phone3),
+      cleanPhone(clone.Bank_Helpline_Phone4)
+    ].filter(Boolean);
+
+    const combinedPhones = Array.from(new Set([
+      ...normalizePhoneEntries(clone.Bank_Helpline_Phone || ''),
+      ...legacyPhones
+    ].filter(Boolean)));
+
+    const normalizedPhoneValue = joinContactEntries(combinedPhones);
+    if ((clone.Bank_Helpline_Phone || '') !== normalizedPhoneValue) {
+      clone.Bank_Helpline_Phone = normalizedPhoneValue;
+      changed = true;
+    }
+
+    const legacyEmails = [
+      (clone.Bank_Helpline_Email1 || '').trim(),
+      (clone.Bank_Helpline_Email2 || '').trim(),
+      (clone.Bank_Helpline_Email3 || '').trim(),
+      (clone.Bank_Helpline_Email4 || '').trim()
+    ].filter(Boolean);
+
+    const combinedEmails = Array.from(new Set([
+      ...normalizeEmailEntries(clone.Bank_Helpline_Email || ''),
+      ...legacyEmails
+    ].filter(Boolean)));
+
+    const normalizedEmailValue = joinContactEntries(combinedEmails);
+    if ((clone.Bank_Helpline_Email || '') !== normalizedEmailValue) {
+      clone.Bank_Helpline_Email = normalizedEmailValue;
+      changed = true;
+    }
+
+    [
+      'Bank_Helpline_Phone1',
+      'Bank_Helpline_Phone2',
+      'Bank_Helpline_Phone3',
+      'Bank_Helpline_Phone4',
+      'Bank_Helpline_Email1',
+      'Bank_Helpline_Email2',
+      'Bank_Helpline_Email3',
+      'Bank_Helpline_Email4'
+    ].forEach(field => {
+      if (field in clone) {
+        delete clone[field];
+        changed = true;
+      }
+    });
+
+    return { normalizedRecord: clone, changed };
+  }
 
   const extractPinValues = (holder = {}) => {
     const sanitize = (value) => {
@@ -251,6 +401,10 @@ document.addEventListener("DOMContentLoaded", () => {
     bankModal.classList.remove('show');
     editIndex = null;
     bankForm.reset();
+    const helplinePhoneTextarea = document.getElementById('Bank_Helpline_Phone');
+    if (helplinePhoneTextarea) helplinePhoneTextarea.value = '';
+    const helplineEmailTextarea = document.getElementById('Bank_Helpline_Email');
+    if (helplineEmailTextarea) helplineEmailTextarea.value = '';
     formHasChanges = false;
     originalFormData = null;
   }
@@ -347,14 +501,14 @@ document.addEventListener("DOMContentLoaded", () => {
       Bank_Nominee_Name_Text: getValueSafe('Bank_Nominee_Name_Text'),
       Bank_Nominee_Email: getValueSafe('Bank_Nominee_Email'),
       Bank_Nominee_Phone: cleanPhone(getValueSafe('Bank_Nominee_Phone')),
-      Bank_Helpline_Phone1: cleanPhone(getValueSafe('Bank_Helpline_Phone1')),
-      Bank_Helpline_Phone2: cleanPhone(getValueSafe('Bank_Helpline_Phone2')),
-      Bank_Helpline_Phone3: cleanPhone(getValueSafe('Bank_Helpline_Phone3')),
-      Bank_Helpline_Phone4: cleanPhone(getValueSafe('Bank_Helpline_Phone4')),
-      Bank_Helpline_Email1: getValueSafe('Bank_Helpline_Email1'),
-      Bank_Helpline_Email2: getValueSafe('Bank_Helpline_Email2'),
-      Bank_Helpline_Email3: getValueSafe('Bank_Helpline_Email3'),
-      Bank_Helpline_Email4: getValueSafe('Bank_Helpline_Email4'),
+      Bank_Helpline_Phone: (() => {
+        const entries = normalizePhoneEntries(getValueSafe('Bank_Helpline_Phone'));
+        return joinContactEntries(entries);
+      })(),
+      Bank_Helpline_Email: (() => {
+        const entries = normalizeEmailEntries(getValueSafe('Bank_Helpline_Email'));
+        return joinContactEntries(entries);
+      })(),
       Bank_Helpline_URL: getValueSafe('Bank_Helpline_URL'),
       Bank_Notes: getValueSafe('Bank_Notes'),
       Bank_Security_QA: securityQA,
@@ -1111,19 +1265,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Create beautiful helpline block
-    const helplinePhones = [
-      record.Bank_Helpline_Phone1,
-      record.Bank_Helpline_Phone2,
-      record.Bank_Helpline_Phone3,
-      record.Bank_Helpline_Phone4
-    ].filter(p => p);
-
-    const helplineEmails = [
-      record.Bank_Helpline_Email1,
-      record.Bank_Helpline_Email2,
-      record.Bank_Helpline_Email3,
-      record.Bank_Helpline_Email4
-    ].filter(e => e);
+    const helplinePhones = getHelplinePhoneList(record);
+    const helplineEmails = getHelplineEmailList(record);
 
     const securityQAData = Array.isArray(record.Bank_Security_QA)
       ? record.Bank_Security_QA.filter(item => item && (item.question || item.answer))
@@ -1532,14 +1675,14 @@ document.addEventListener("DOMContentLoaded", () => {
     
     populateEmailSelect(document.getElementById('Bank_Nominee_Email'), record.Bank_Nominee_Email || '');
     populatePhoneSelect(document.getElementById('Bank_Nominee_Phone'), record.Bank_Nominee_Phone || '');
-    document.getElementById('Bank_Helpline_Phone1').value = record.Bank_Helpline_Phone1 || '';
-    document.getElementById('Bank_Helpline_Phone2').value = record.Bank_Helpline_Phone2 || '';
-    document.getElementById('Bank_Helpline_Phone3').value = record.Bank_Helpline_Phone3 || '';
-    document.getElementById('Bank_Helpline_Phone4').value = record.Bank_Helpline_Phone4 || '';
-    document.getElementById('Bank_Helpline_Email1').value = record.Bank_Helpline_Email1 || '';
-    document.getElementById('Bank_Helpline_Email2').value = record.Bank_Helpline_Email2 || '';
-    document.getElementById('Bank_Helpline_Email3').value = record.Bank_Helpline_Email3 || '';
-    document.getElementById('Bank_Helpline_Email4').value = record.Bank_Helpline_Email4 || '';
+    const helplinePhoneTextarea = document.getElementById('Bank_Helpline_Phone');
+    if (helplinePhoneTextarea) {
+      helplinePhoneTextarea.value = joinContactEntries(getHelplinePhoneList(record)) || '';
+    }
+    const helplineEmailTextarea = document.getElementById('Bank_Helpline_Email');
+    if (helplineEmailTextarea) {
+      helplineEmailTextarea.value = joinContactEntries(getHelplineEmailList(record)) || '';
+    }
     document.getElementById('Bank_Helpline_URL').value = record.Bank_Helpline_URL || '';
     document.getElementById('Bank_Notes').value = record.Bank_Notes || '';
 
@@ -1640,14 +1783,8 @@ document.addEventListener("DOMContentLoaded", () => {
           banksData.push(['Nominee Name', record.Bank_Nominee_Name_Text || record.Bank_Nominee_Name || '']);
           banksData.push(['Nominee_Email', record.Bank_Nominee_Email || '']);
           banksData.push(['Nominee_Phone', record.Bank_Nominee_Phone || '']);
-          banksData.push(['Helpline Phone 1', record.Bank_Helpline_Phone1 || '']);
-          banksData.push(['Helpline Phone 2', record.Bank_Helpline_Phone2 || '']);
-          banksData.push(['Helpline Phone 3', record.Bank_Helpline_Phone3 || '']);
-          banksData.push(['Helpline Phone 4', record.Bank_Helpline_Phone4 || '']);
-          banksData.push(['Helpline Email 1', record.Bank_Helpline_Email1 || '']);
-          banksData.push(['Helpline Email 2', record.Bank_Helpline_Email2 || '']);
-          banksData.push(['Helpline Email 3', record.Bank_Helpline_Email3 || '']);
-          banksData.push(['Helpline Email 4', record.Bank_Helpline_Email4 || '']);
+          banksData.push(['Helpline Phone(s)', joinContactEntries(getHelplinePhoneList(record)) || '']);
+          banksData.push(['Helpline Email(s)', joinContactEntries(getHelplineEmailList(record)) || '']);
           banksData.push(['Helpline URL', record.Bank_Helpline_URL || '']);
           banksData.push(['Notes', record.Bank_Notes || '']);
           if (record.Bank_Security_QA && record.Bank_Security_QA.length > 0) {
@@ -1861,10 +1998,8 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       
       // Helpline section
-      const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4]
-        .map(cleanPhone)
-        .filter(p => p);
-      const emails = [record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e);
+      const phones = getHelplinePhoneList(record);
+      const emails = getHelplineEmailList(record);
       if (phones.length > 0 || emails.length > 0 || record.Bank_Helpline_URL) {
         yPos += 3;
         doc.setFont(undefined, 'bold');
@@ -2346,10 +2481,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Get helpline data
-      const phones = [record.Bank_Helpline_Phone1, record.Bank_Helpline_Phone2, record.Bank_Helpline_Phone3, record.Bank_Helpline_Phone4]
-        .map(cleanPhone)
-        .filter(p => p);
-      const emails = [record.Bank_Helpline_Email1, record.Bank_Helpline_Email2, record.Bank_Helpline_Email3, record.Bank_Helpline_Email4].filter(e => e);
+      const phones = getHelplinePhoneList(record);
+      const emails = getHelplineEmailList(record);
 
       printWindow.document.write(`
         <!DOCTYPE html>

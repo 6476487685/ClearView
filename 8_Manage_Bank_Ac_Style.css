@@ -68,29 +68,28 @@ button{
 .header-left{
   display:flex;
   flex-direction:column;
-  gap:8px;
+  gap:10px;
   flex:1;
   align-items:flex-start;
 }
 
-.header-left-actions{
+.header-back-button{
+  align-self:flex-start;
+}
+
+.header-right{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.header-right-actions{
   display:flex;
   align-items:center;
   gap:12px;
   flex-wrap:wrap;
-}
-
-.header-right{
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-
-.header-left{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  flex:1;
+  justify-content:flex-end;
 }
 
 .header-title{
@@ -106,12 +105,6 @@ button{
   display:flex;
   gap:8px;
   align-items:center;
-}
-
-.header-right{
-  display:flex;
-  align-items:center;
-  gap:12px;
 }
 
 .auto-backup-control{
@@ -1321,6 +1314,12 @@ body.dark .security-item{
   grid-template-columns:1fr 1fr;
   gap:12px;
   margin-bottom:12px;
+}
+
+.helpline-grid textarea{
+  width:100%;
+  resize:vertical;
+  min-height:110px;
 }
 
 /* Add Record Container */
