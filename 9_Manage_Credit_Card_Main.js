@@ -4,8 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let formHasChanges = false;
   let originalFormData = null;
   let autoBackupEnabled = false;
-  let masterEmails = [];
-  let masterPhoneOptions = [];
   let masterSqaOptions = [];
   let masterSqaMap = new Map();
   const MAX_SECURITY_QUESTIONS = 6;
@@ -58,7 +56,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 3200);
   };
 
-  const getData = () => JSON.parse(localStorage.getItem('credit_cards') || '[]');
+  const getData = () => {
+    let records = [];
+    try {
+      records = JSON.parse(localStorage.getItem('credit_cards') || '[]');
+      if (!Array.isArray(records)) {
+        records = [];
+      }
+    } catch (error) {
+      console.warn('Unable to parse credit card data. Resetting to empty array.', error);
+      records = [];
+    }
+
+    let legacyConverted = false;
+    const normalizedRecords = records.map(record => {
+      const { normalizedRecord, changed } = normalizeLegacyRecord(record);
+      if (changed) {
+        legacyConverted = true;
+      }
+      return normalizedRecord;
+    });
+
+    if (legacyConverted) {
+      saveData(normalizedRecords);
+    }
+
+    return normalizedRecords;
+  };
   const saveData = (data) => localStorage.setItem('credit_cards', JSON.stringify(data));
 
   const cleanPhone = (phoneString) => {
@@ -74,6 +98,67 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/--+/g, '-')
       .replace(/-+$/, '');
     return normalized || '';
+  };
+
+  const splitContactEntries = (value = '') => {
+    return String(value || '')
+      .split(/\r?\n|[,;|]+/)
+      .map(entry => entry.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+  };
+
+  const joinContactEntries = (entries = []) => {
+    if (!Array.isArray(entries) || !entries.length) return '';
+    return entries.join('\n');
+  };
+
+  const normalizePhoneEntries = (value = '') => {
+    const seen = new Set();
+    return splitContactEntries(value)
+      .map(cleanPhone)
+      .filter(entry => {
+        if (!entry) return false;
+        if (seen.has(entry)) return false;
+        seen.add(entry);
+        return true;
+      });
+  };
+
+  const normalizeEmailEntries = (value = '') => {
+    const seen = new Set();
+    return splitContactEntries(value)
+      .map(entry => entry.trim())
+      .filter(entry => {
+        if (!entry) return false;
+        const lower = entry.toLowerCase();
+        if (seen.has(lower)) return false;
+        seen.add(lower);
+        return true;
+      });
+  };
+
+  const getHelplinePhoneList = (record = {}) => {
+    if (!record || typeof record !== 'object') return [];
+    const primaryList = normalizePhoneEntries(record.Credit_Helpline_Phone || '');
+    if (primaryList.length) return primaryList;
+    return [
+      cleanPhone(record.Credit_Helpline_Phone1),
+      cleanPhone(record.Credit_Helpline_Phone2),
+      cleanPhone(record.Credit_Helpline_Phone3),
+      cleanPhone(record.Credit_Helpline_Phone4)
+    ].filter(Boolean);
+  };
+
+  const getHelplineEmailList = (record = {}) => {
+    if (!record || typeof record !== 'object') return [];
+    const primaryList = normalizeEmailEntries(record.Credit_Helpline_Email || '');
+    if (primaryList.length) return primaryList;
+    return [
+      record.Credit_Helpline_Email1,
+      record.Credit_Helpline_Email2,
+      record.Credit_Helpline_Email3,
+      record.Credit_Helpline_Email4
+    ].map(value => (value || '').trim()).filter(Boolean);
   };
 
   const formatEmailPhone = (holder = {}) => {
@@ -95,6 +180,69 @@ document.addEventListener('DOMContentLoaded', () => {
   const getValueSafe = (id) => {
     const el = document.getElementById(id);
     return el ? el.value || '' : '';
+  };
+
+  const normalizeLegacyRecord = (record) => {
+    if (!record || typeof record !== 'object') {
+      return { normalizedRecord: {}, changed: false };
+    }
+
+    const clone = { ...record };
+    let changed = false;
+
+    const legacyPhones = [
+      cleanPhone(clone.Credit_Helpline_Phone1),
+      cleanPhone(clone.Credit_Helpline_Phone2),
+      cleanPhone(clone.Credit_Helpline_Phone3),
+      cleanPhone(clone.Credit_Helpline_Phone4)
+    ].filter(Boolean);
+
+    const combinedPhones = Array.from(new Set([
+      ...normalizePhoneEntries(clone.Credit_Helpline_Phone || ''),
+      ...legacyPhones
+    ].filter(Boolean)));
+
+    const normalizedPhoneValue = joinContactEntries(combinedPhones);
+    if ((clone.Credit_Helpline_Phone || '') !== normalizedPhoneValue) {
+      clone.Credit_Helpline_Phone = normalizedPhoneValue;
+      changed = true;
+    }
+
+    const legacyEmails = [
+      (clone.Credit_Helpline_Email1 || '').trim(),
+      (clone.Credit_Helpline_Email2 || '').trim(),
+      (clone.Credit_Helpline_Email3 || '').trim(),
+      (clone.Credit_Helpline_Email4 || '').trim()
+    ].filter(Boolean);
+
+    const combinedEmails = Array.from(new Set([
+      ...normalizeEmailEntries(clone.Credit_Helpline_Email || ''),
+      ...legacyEmails
+    ].filter(Boolean)));
+
+    const normalizedEmailValue = joinContactEntries(combinedEmails);
+    if ((clone.Credit_Helpline_Email || '') !== normalizedEmailValue) {
+      clone.Credit_Helpline_Email = normalizedEmailValue;
+      changed = true;
+    }
+
+    [
+      'Credit_Helpline_Phone1',
+      'Credit_Helpline_Phone2',
+      'Credit_Helpline_Phone3',
+      'Credit_Helpline_Phone4',
+      'Credit_Helpline_Email1',
+      'Credit_Helpline_Email2',
+      'Credit_Helpline_Email3',
+      'Credit_Helpline_Email4'
+    ].forEach(field => {
+      if (field in clone) {
+        delete clone[field];
+        changed = true;
+      }
+    });
+
+    return { normalizedRecord: clone, changed };
   };
 
   const parseSqaValue = (rawValue) => {
@@ -251,6 +399,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const resetForm = () => {
     creditForm.reset();
+    const helplinePhoneTextarea = document.getElementById('Credit_Helpline_Phone');
+    if (helplinePhoneTextarea) helplinePhoneTextarea.value = '';
+    const helplineEmailTextarea = document.getElementById('Credit_Helpline_Email');
+    if (helplineEmailTextarea) helplineEmailTextarea.value = '';
     addOnList.innerHTML = '';
     addOnContainer.style.display = 'none';
     addOnEnableCheckbox.checked = false;
@@ -364,59 +516,6 @@ document.addEventListener('DOMContentLoaded', () => {
       txnPin: card.txnPin || '',
       telePin: card.telePin || ''
     }));
-  };
-
-  const loadContactOptions = (forceRefresh = false) => {
-    if (!forceRefresh && masterEmails.length && masterPhoneOptions.length) return;
-    try {
-      const unifiedDataStr = localStorage.getItem('unified_master_data');
-      let commonData = {};
-      if (unifiedDataStr) {
-        const unifiedData = JSON.parse(unifiedDataStr);
-        commonData = unifiedData.common || {};
-      }
-      masterEmails = Array.from(new Set((commonData.Email || []).filter(email => email && email.trim() !== '')));
-      const phoneSet = new Map();
-      (commonData.Phone || []).forEach(entry => {
-        const label = (entry || '').trim();
-        if (!label) return;
-        const value = cleanPhone(label);
-        if (!value) return;
-        if (!phoneSet.has(value)) {
-          phoneSet.set(value, label);
-        }
-      });
-      masterPhoneOptions = Array.from(phoneSet.entries()).map(([value, label]) => ({ value, label }));
-    } catch (e) {
-      console.error('Error loading shared email/phone options:', e);
-    }
-  };
-
-  const populateEmailSelect = (select, selectedValue = '') => {
-    if (!select) return;
-    loadContactOptions();
-    const options = new Set(masterEmails.map(email => email.trim()).filter(Boolean));
-    if (selectedValue) options.add(selectedValue);
-    select.innerHTML = '<option value="">Select Email</option>';
-    Array.from(options).sort().forEach(email => {
-      select.innerHTML += `<option value="${escapeHtml(email)}">${escapeHtml(email)}</option>`;
-    });
-    select.value = selectedValue || '';
-  };
-
-  const populatePhoneSelect = (select, selectedValue = '') => {
-    if (!select) return;
-    loadContactOptions();
-    const cleanSelected = cleanPhone(selectedValue);
-    select.innerHTML = '<option value="">Select Phone</option>';
-    masterPhoneOptions.forEach(opt => {
-      const isSelected = cleanSelected && opt.value === cleanSelected;
-      select.innerHTML += `<option value="${escapeHtml(opt.value)}"${isSelected ? ' selected' : ''}>${escapeHtml(opt.label)}</option>`;
-    });
-    if (cleanSelected && !masterPhoneOptions.some(opt => opt.value === cleanSelected)) {
-      select.innerHTML += `<option value="${escapeHtml(cleanSelected)}" selected>${escapeHtml(cleanSelected)}</option>`;
-    }
-    select.value = cleanSelected || '';
   };
 
   const populateInstitutionSelect = () => {
@@ -679,11 +778,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayTag = record.Credit_Ac_Tag || 'No Account Tag';
     const recordLabel = `Record #${recordNumber}: ${displayTag}`;
 
-    const helplinePhoneList = [record.Credit_Helpline_Phone1, record.Credit_Helpline_Phone2, record.Credit_Helpline_Phone3]
-      .map(cleanPhone)
-      .filter(Boolean);
-    const helplineEmailList = [record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3]
-      .filter(value => value && value.trim() !== '');
+    const helplinePhoneList = getHelplinePhoneList(record);
+    const helplineEmailList = getHelplineEmailList(record);
 
     const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
 
@@ -758,12 +854,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         creditForm.reset();
         populateModalDropdowns();
-        populateEmailSelect(document.getElementById('Credit_Helpline_Email1'), record.Credit_Helpline_Email1 || '');
-        populateEmailSelect(document.getElementById('Credit_Helpline_Email2'), record.Credit_Helpline_Email2 || '');
-        populateEmailSelect(document.getElementById('Credit_Helpline_Email3'), record.Credit_Helpline_Email3 || '');
-        populatePhoneSelect(document.getElementById('Credit_Helpline_Phone1'), record.Credit_Helpline_Phone1 || '');
-        populatePhoneSelect(document.getElementById('Credit_Helpline_Phone2'), record.Credit_Helpline_Phone2 || '');
-        populatePhoneSelect(document.getElementById('Credit_Helpline_Phone3'), record.Credit_Helpline_Phone3 || '');
         loadRecordIntoForm(record);
         toggleModal(true);
       });
@@ -835,12 +925,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('Credit_Login_Password').value = record.Credit_Login_Password || '';
     document.getElementById('Credit_Account_Number').value = record.Credit_Account_Number || '';
     document.getElementById('Credit_URL').value = record.Credit_URL || '';
-    populatePhoneSelect(document.getElementById('Credit_Helpline_Phone1'), record.Credit_Helpline_Phone1 || '');
-    populatePhoneSelect(document.getElementById('Credit_Helpline_Phone2'), record.Credit_Helpline_Phone2 || '');
-    populatePhoneSelect(document.getElementById('Credit_Helpline_Phone3'), record.Credit_Helpline_Phone3 || '');
-    populateEmailSelect(document.getElementById('Credit_Helpline_Email1'), record.Credit_Helpline_Email1 || '');
-    populateEmailSelect(document.getElementById('Credit_Helpline_Email2'), record.Credit_Helpline_Email2 || '');
-    populateEmailSelect(document.getElementById('Credit_Helpline_Email3'), record.Credit_Helpline_Email3 || '');
+    const helplinePhoneTextarea = document.getElementById('Credit_Helpline_Phone');
+    if (helplinePhoneTextarea) {
+      helplinePhoneTextarea.value = joinContactEntries(getHelplinePhoneList(record)) || '';
+    }
+    const helplineEmailTextarea = document.getElementById('Credit_Helpline_Email');
+    if (helplineEmailTextarea) {
+      helplineEmailTextarea.value = joinContactEntries(getHelplineEmailList(record)) || '';
+    }
 
     populateSecurityDropdowns(record.Credit_Security_QA || []);
     populateAddOnCards(record.AddOnCards || []);
@@ -870,12 +962,14 @@ document.addEventListener('DOMContentLoaded', () => {
       Credit_Account_Number: getValueSafe('Credit_Account_Number'),
       Credit_URL: getValueSafe('Credit_URL'),
       Credit_Account_Status: getValueSafe('Credit_Account_Status'),
-      Credit_Helpline_Phone1: cleanPhone(getValueSafe('Credit_Helpline_Phone1')),
-      Credit_Helpline_Phone2: cleanPhone(getValueSafe('Credit_Helpline_Phone2')),
-      Credit_Helpline_Phone3: cleanPhone(getValueSafe('Credit_Helpline_Phone3')),
-      Credit_Helpline_Email1: getValueSafe('Credit_Helpline_Email1'),
-      Credit_Helpline_Email2: getValueSafe('Credit_Helpline_Email2'),
-      Credit_Helpline_Email3: getValueSafe('Credit_Helpline_Email3'),
+      Credit_Helpline_Phone: (() => {
+        const entries = normalizePhoneEntries(getValueSafe('Credit_Helpline_Phone'));
+        return joinContactEntries(entries);
+      })(),
+      Credit_Helpline_Email: (() => {
+        const entries = normalizeEmailEntries(getValueSafe('Credit_Helpline_Email'));
+        return joinContactEntries(entries);
+      })(),
       AddOnCards: addOnEnableCheckbox.checked ? gatherAddOnCards() : [],
       Credit_Security_QA: (() => {
         const qa = [];
@@ -921,12 +1015,6 @@ document.addEventListener('DOMContentLoaded', () => {
     editIndex = null;
     resetForm();
     populateModalDropdowns();
-    populateEmailSelect(document.getElementById('Credit_Helpline_Email1'));
-    populateEmailSelect(document.getElementById('Credit_Helpline_Email2'));
-    populateEmailSelect(document.getElementById('Credit_Helpline_Email3'));
-    populatePhoneSelect(document.getElementById('Credit_Helpline_Phone1'));
-    populatePhoneSelect(document.getElementById('Credit_Helpline_Phone2'));
-    populatePhoneSelect(document.getElementById('Credit_Helpline_Phone3'));
     document.getElementById('modalTitle').textContent = 'Add Credit Card';
     toggleModal(true);
   });
@@ -1153,12 +1241,8 @@ document.addEventListener('DOMContentLoaded', () => {
           ccData.push(['Login Password', record.Credit_Login_Password ? '******' : '']);
           ccData.push(['Account Number', record.Credit_Account_Number || '']);
           ccData.push(['Portal URL', record.Credit_URL || '']);
-          ccData.push(['Helpline Phone 1', record.Credit_Helpline_Phone1 || '']);
-          ccData.push(['Helpline Phone 2', record.Credit_Helpline_Phone2 || '']);
-          ccData.push(['Helpline Phone 3', record.Credit_Helpline_Phone3 || '']);
-          ccData.push(['Helpline Email 1', record.Credit_Helpline_Email1 || '']);
-          ccData.push(['Helpline Email 2', record.Credit_Helpline_Email2 || '']);
-          ccData.push(['Helpline Email 3', record.Credit_Helpline_Email3 || '']);
+          ccData.push(['Helpline Phone(s)', joinContactEntries(getHelplinePhoneList(record)) || '']);
+          ccData.push(['Helpline Email(s)', joinContactEntries(getHelplineEmailList(record)) || '']);
           ccData.push(['Card Status', record.Credit_Account_Status || '']);
 
           (record.AddOnCards || []).forEach((card, addIdx) => {
@@ -1395,13 +1479,8 @@ document.addEventListener('DOMContentLoaded', () => {
       yPos += 7;
       doc.setTextColor(0, 0, 0);
 
-      const helplinePhones = [record.Credit_Helpline_Phone1, record.Credit_Helpline_Phone2, record.Credit_Helpline_Phone3]
-        .map(cleanPhone)
-        .filter(Boolean)
-        .join(' / ');
-      const helplineEmails = [record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3]
-        .filter(Boolean)
-        .join(' / ');
+      const helplinePhones = getHelplinePhoneList(record).join(' / ');
+      const helplineEmails = getHelplineEmailList(record).join(' / ');
 
       const leftEntries = [
         { label: 'Institution', value: record.Credit_Institution || '—' },
@@ -1496,14 +1575,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const helplinePhoneList = [record.Credit_Helpline_Phone1, record.Credit_Helpline_Phone2, record.Credit_Helpline_Phone3]
-        .map(cleanPhone)
-        .filter(Boolean);
-      const helplineEmailList = [record.Credit_Helpline_Email1, record.Credit_Helpline_Email2, record.Credit_Helpline_Email3]
-        .filter(value => value && value.trim() !== '');
-      const formatListForPrint = (list) => list.length
-        ? list.map(item => escapeHtml(item)).join('<br>')
-        : '—';
+      const helplinePhoneList = getHelplinePhoneList(record);
+      const helplineEmailList = getHelplineEmailList(record);
       const extraCodes = [record.Credit_Amex_Code, record.Credit_Extra_Digits].filter(Boolean).join(' | ');
 
       const contactGridHtml = buildContactInstitutionTable(record, helplinePhoneList, helplineEmailList, true);

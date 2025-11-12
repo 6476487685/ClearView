@@ -154,7 +154,14 @@ body.table-resizing {
 
 .helpline-grid select,
 .helpline-grid input,
+.helpline-grid textarea,
 #Credit_Account_Status,
 #Credit_URL {
   text-align: left;
+}
+
+.helpline-grid textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 110px;
 }
