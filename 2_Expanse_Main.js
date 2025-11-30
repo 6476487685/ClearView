@@ -32,8 +32,87 @@ let scrollDummy = null;
  ];
  // Don't load dummy data - start with empty array
  // User will load their own data via Excel import
- const getData=()=>JSON.parse(localStorage.getItem('expense_records'))||[];
- const saveData=d=>localStorage.setItem('expense_records',JSON.stringify(d));
+
+// Helper function to convert Excel serial dates to YYYY-MM-DD format
+function convertExcelDateToYYYYMMDD(value){
+  if(!value || value==='')return '';
+  // If already a date string in YYYY-MM-DD format, return as is
+  if(typeof value==='string' && /^\d{4}-\d{2}-\d{2}$/.test(value))return value;
+  // If it's a valid date string (other formats), parse it
+  const dateStr=String(value).trim();
+  if(dateStr.match(/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}$/)){
+    const parts=dateStr.split(/[-\/]/);
+    const year=parts[0];
+    const month=String(parts[1]).padStart(2,'0');
+    const day=String(parts[2]).padStart(2,'0');
+    return `${year}-${month}-${day}`;
+  }
+  // If it's a number (Excel serial date), convert it
+  const num=Number(value);
+  if(!isNaN(num) && num>0){
+    const excelEpoch=new Date(1899,11,30);
+    const jsDate=new Date(excelEpoch.getTime()+num*86400000);
+    if(!isNaN(jsDate.getTime())){
+      const year=jsDate.getFullYear();
+      const month=String(jsDate.getMonth()+1).padStart(2,'0');
+      const day=String(jsDate.getDate()).padStart(2,'0');
+      return `${year}-${month}-${day}`;
+    }
+  }
+  // Try parsing as a regular date string (e.g., "2025-01-15" or "01/15/2025")
+  try {
+    const parsedDate = new Date(value);
+    if(!isNaN(parsedDate.getTime())){
+      const year=parsedDate.getFullYear();
+      const month=String(parsedDate.getMonth()+1).padStart(2,'0');
+      const day=String(parsedDate.getDate()).padStart(2,'0');
+      return `${year}-${month}-${day}`;
+    }
+  } catch(e) {
+    // Ignore parsing errors
+  }
+  return value;
+}
+
+// Helper function to format date for display (fixes existing bad data)
+function formatDateForDisplay(value){
+  return convertExcelDateToYYYYMMDD(value);
+}
+
+// Function to fix existing dates in expense records
+function fixExistingExpenseDates(){
+  const records = JSON.parse(localStorage.getItem('expense_records') || '[]');
+  if(records.length === 0) return;
+  
+  let needsFix = false;
+  const fixedRecords = records.map(r => {
+    const dueDate = convertExcelDateToYYYYMMDD(r.Expense_Due_Date || r.due || '');
+    const paidDate = convertExcelDateToYYYYMMDD(r.Expense_Paid_Date || r.paid || '');
+    
+    if((r.Expense_Due_Date || r.due) && dueDate !== (r.Expense_Due_Date || r.due)) needsFix = true;
+    if((r.Expense_Paid_Date || r.paid) && paidDate !== (r.Expense_Paid_Date || r.paid)) needsFix = true;
+    
+    return {
+      ...r,
+      Expense_Due_Date: dueDate || r.Expense_Due_Date || r.due || '',
+      Expense_Paid_Date: paidDate || r.Expense_Paid_Date || r.paid || '',
+      due: dueDate || r.due || '',
+      paid: paidDate || r.paid || ''
+    };
+  });
+  
+  if(needsFix){
+    localStorage.setItem('expense_records', JSON.stringify(fixedRecords));
+    console.log('✓ Fixed date formats in expense records');
+  }
+}
+
+const getData=()=>{
+  // Fix dates on first load
+  fixExistingExpenseDates();
+  return JSON.parse(localStorage.getItem('expense_records'))||[];
+};
+const saveData=d=>localStorage.setItem('expense_records',JSON.stringify(d));
 
  function renderTable(d){
   tbody.innerHTML='';
@@ -42,9 +121,12 @@ let scrollDummy = null;
   if(recordCountEl)recordCountEl.textContent=d.length;
   d.forEach((r,i)=>{
    const tr=document.createElement('tr');
+   // Format dates for display
+   const dueDate = formatDateForDisplay(r.Expense_Due_Date || r.due || '');
+   const paidDate = formatDateForDisplay(r.Expense_Paid_Date || r.paid || '');
    tr.innerHTML=`<td>${i+1}</td><td>${r.Expense_Description||r.desc||''}</td><td>${r.Expense_Category||r.cat||''}</td><td>${r.Expense_Tag||r.tag||''}</td>
-   <td>${r.Expense_Currency||r.cur||''}</td><td>${Number(r.Expense_Amount_Due||r.Expense_Amount||r.amt||0).toFixed(2)}</td><td>${r.Expense_Due_Date||r.due||''}</td><td>${r.Expense_Paid_From||''}</td>
-   <td>${Number(r.Expense_Amount_Paid||0).toFixed(2)}</td><td>${r.Expense_Paid_Date||r.paid||''}</td><td>${r.Expense_Mode||r.mode||''}</td><td>${r.Expense_Txn_Status||r.txnstatus||''}</td>
+   <td>${r.Expense_Currency||r.cur||''}</td><td>${Number(r.Expense_Amount_Due||r.Expense_Amount||r.amt||0).toFixed(2)}</td><td>${dueDate}</td><td>${r.Expense_Paid_From||''}</td>
+   <td>${Number(r.Expense_Amount_Paid||0).toFixed(2)}</td><td>${paidDate}</td><td>${r.Expense_Mode||r.mode||''}</td><td>${r.Expense_Txn_Status||r.txnstatus||''}</td>
    <td>${r.Expense_Holder||r.holder||''}</td><td>${r.Expense_Frequency||r.freq||''}</td><td>${r.Expense_Account_Status||r.acstatus||''}</td>
    <td><span class='del' title='Delete'>🗑️</span></td>`;
    tbody.appendChild(tr);
@@ -1168,16 +1250,39 @@ if (excelFileInput) {
         const workbook = XLSX.read(data, { type: 'array' });
         console.log('Available sheets:', workbook.SheetNames);
 
-        // Load Txn_Expense sheet
-        if (workbook.SheetNames.includes('Txn_Expense')) {
-          const sheet = workbook.Sheets['Txn_Expense'];
+        // Try to find expense sheet with various name variations
+        let expenseSheetName = null;
+        const possibleSheetNames = ['Txn_Expense', 'Txn_Expanse', 'Expense', 'Expanse', 'Expenses', 'Expanses'];
+        
+        for (const name of possibleSheetNames) {
+          if (workbook.SheetNames.includes(name)) {
+            expenseSheetName = name;
+            break;
+          }
+        }
+        
+        // If no exact match found, look for sheets containing "expense" or "expanse"
+        if (!expenseSheetName) {
+          for (const sheetName of workbook.SheetNames) {
+            const lowerName = sheetName.toLowerCase();
+            if (lowerName.includes('expense') || lowerName.includes('expanse')) {
+              expenseSheetName = sheetName;
+              console.log(`Found expense sheet with similar name: ${sheetName}`);
+              break;
+            }
+          }
+        }
+        
+        if (expenseSheetName) {
+          console.log(`Loading data from sheet: ${expenseSheetName}`);
+          const sheet = workbook.Sheets[expenseSheetName];
           const jsonData = XLSX.utils.sheet_to_json(sheet);
           if(jsonData[0]){
             localStorage.setItem('last_import_headers_Txn_Expense', JSON.stringify(Object.keys(jsonData[0])));
           }
           
           if (jsonData.length === 0) {
-            alert('No data found in Txn_Expense sheet.');
+            alert(`No data found in ${expenseSheetName} sheet.`);
             return;
           }
 
@@ -1224,8 +1329,8 @@ if (excelFileInput) {
               Expense_Amount_Paid: getValue('Amount_Paid', 'Amount-Paid', '0'),
               Expense_Mode: getValue('Mode_Txn', 'Txn_Mode', 'Expense_Mode', 'Payment_Mode', 'Mode'),
               Expense_Holder: getValue('Ac_Holder', 'Expense_Holder', 'Holder'),
-              Expense_Due_Date: getValue('Due_Date', 'Expense_Due_Date'),
-              Expense_Paid_Date: getValue('Paid_Date', 'Expense_Paid_Date'),
+              Expense_Due_Date: convertExcelDateToYYYYMMDD(getValue('Due_Date', 'Expense_Due_Date')),
+              Expense_Paid_Date: convertExcelDateToYYYYMMDD(getValue('Paid_Date', 'Expense_Paid_Date')),
               Expense_Frequency: getValue('Frequency', 'Expense_Frequency'),
               Expense_Account_Status: getValue('Ac_Status', 'Expense_Account_Status', 'Account Status'),
               Expense_Txn_Status: getValue('Status_Txn', 'Txn_Status', 'Expense_Txn_Status', 'Transaction Status')
@@ -1239,12 +1344,16 @@ if (excelFileInput) {
           localStorage.setItem('expense_records', JSON.stringify(expenses));
           
           // Reload page to refresh UI
-          alert(`Successfully loaded ${expenses.length} expenses from Excel file! Reloading page...`);
+          alert(`Successfully loaded ${expenses.length} expenses from ${expenseSheetName} sheet! Reloading page...`);
           setTimeout(() => {
             window.location.reload();
           }, 1000);
         } else {
-          alert('Txn_Expense sheet not found in the Excel file.');
+          // Show detailed error with available sheets
+          const availableSheets = workbook.SheetNames.join(', ');
+          alert(`Expense sheet not found in the Excel file.\n\nAvailable sheets:\n${availableSheets}\n\nLooking for: Txn_Expense, Txn_Expanse, Expense, or Expanse`);
+          console.error('Available sheets:', workbook.SheetNames);
+          console.error('Could not find expense sheet. Expected one of:', possibleSheetNames);
         }
       } catch (error) {
         console.error('Error reading Excel file:', error);

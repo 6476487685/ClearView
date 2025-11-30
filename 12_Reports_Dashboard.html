@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Reports Dashboard</title>
+
+<!-- Inter Font -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        margin: 0;
+        font-family: "Inter", sans-serif;
+        background: #f7f8fa;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* HEADER FIXED & FULL-WIDTH */
+    .header {
+        width: 100%;
+        background: #ffffff;
+        color: #0a0a0a;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 20px;
+        font-weight: 400;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 10;
+        border-bottom: 1px solid #f8f9fa;
+        box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
+        box-sizing: border-box;
+    }
+
+    .header-left {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+        align-items: flex-start;
+    }
+
+    .header-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #b87333;
+        letter-spacing: -0.02em;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        margin: 0;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    button {
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.1s ease;
+        font-family: inherit;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    button.black {
+        background: #0a0a0a;
+        color: #ffffff;
+    }
+    button.black:hover {
+        background: #2d2d2d;
+        box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
+    }
+
+    .back-btn {
+        background: #0a0a0a;
+        color: #ffffff;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 13px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 32px;
+        font-weight: 500;
+        transition: all 0.1s ease;
+    }
+    .back-btn:hover {
+        background: #2d2d2d;
+        box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
+    }
+
+    /* MAIN LAYOUT */
+    .main {
+        display: flex;
+        width: 100%;
+        margin-top: 100px; /* push content below header (adjusted for new header height with title + button) */
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+        width: 260px;
+        background: #ffffff;
+        height: calc(100vh - 100px);
+        border-right: 1px solid #e5e7eb;
+        overflow-y: auto;
+        padding-top: 10px;
+    }
+
+    /* CONTENT AREA */
+    .content-area {
+        flex: 1;
+        padding: 10px 30px 30px 30px; /* Reduced top padding */
+        overflow-y: auto;
+        height: calc(100vh - 100px);
+        background: #f7f8fa;
+    }
+
+    /* YEAR FILTER CONTAINER */
+    .year-filter-container {
+        height: 50px; /* Reduced height */
+        margin-top: 0;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end; /* Right align */
+        padding: 0 10px;
+    }
+
+    .year-filter-container.hidden {
+        display: none;
+    }
+
+    .year-filter-label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #374151;
+        margin-right: 12px;
+    }
+
+    .year-filter-select {
+        padding: 8px 12px;
+        border: 2px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        background: #ffffff;
+        color: #374151;
+        cursor: pointer;
+        min-width: 150px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .year-filter-select:hover {
+        border-color: #3b82f6;
+    }
+
+    .year-filter-select:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* TOP-LEVEL MENU ITEMS */
+    .menu-item {
+        padding: 12px 22px;
+        cursor: pointer;
+        color: #374151;
+        font-size: 16px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-left: 4px solid transparent;
+        transition: 0.2s;
+        margin-bottom: 4px;
+    }
+    .menu-item:hover {
+        background: #f5f9ff;
+    }
+
+    .menu-item.active {
+        background: #e8f1ff;
+        border-left-color: #3b82f6;
+        font-weight: 600;
+    }
+
+    /* SUBMENU */
+    .submenu {
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.35s ease;
+        margin-left: 15px;
+        border-left: 1px dashed #cfd5df;
+        padding-left: 5px;
+    }
+    .submenu.open { max-height: 1500px; }
+
+    /* SUBMENU ITEM */
+    .submenu-item {
+        padding: 10px 16px;
+        cursor: pointer;
+        background: #f8fbff;
+        border-left: 4px solid #3b82f6;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        font-size: 15px;
+    }
+    .submenu-item:hover {
+        background: #e8f1ff;
+        transform: translateX(4px);
+    }
+
+    /* LEVEL-3 */
+    .sub-submenu {
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.35s ease;
+        margin-left: 20px;
+        padding-left: 10px;
+        border-left: 2px dashed #cbd5e1;
+    }
+    .sub-submenu.open {
+        max-height: 1000px;
+    }
+
+    .sub-submenu-item {
+        padding: 10px 14px;
+        background: #f1f5f9;
+        margin-bottom: 8px;
+        border-radius: 6px;
+    }
+    .sub-submenu-item:hover {
+        background: #e2e8f0;
+        transform: translateX(4px);
+    }
+
+    /* ARROWS */
+    .arrow {
+        margin-left: auto;
+        transition: transform 0.3s ease;
+    }
+    .arrow.rotate {
+        transform: rotate(180deg);
+    }
+
+    /* REPORT TILES */
+    .report-tiles-container {
+        display: grid;
+        /* Increase columns so each tile is narrower (≈30% width reduction compared to 3 columns) */
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        padding: 0;
+        margin: 0;
+        max-width: 1200px;
+    }
+    
+    .report-tiles-container.hidden {
+        display: none;
+    }
+
+    .report-tile {
+        border-radius: 6px;
+        padding: 8px 12px; /* ~50% of original padding */
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 45px; /* ~50% of original height */
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        background: #ffffff;
+    }
+
+    .report-tile:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .report-tile-label {
+        font-weight: 700;
+        font-size: 11px; /* slightly smaller to match reduced tile size */
+        margin-bottom: 4px;
+        color: #7B1FA2;
+    }
+    
+    .report-tile-value {
+        font-weight: 700;
+        font-size: 14px; /* slightly smaller to match reduced tile size */
+        margin-top: 2px;
+    }
+
+    /* Tile color schemes */
+    .tile-total-records {
+        border: 2px solid #3F51B5;
+        background: #E8EAF6;
+    }
+    .tile-total-records .income-tile-value {
+        color: #283593;
+    }
+
+    .tile-cad {
+        border: 2px solid #4CAF50;
+        background: #E8F5E9;
+    }
+    .tile-cad .income-tile-value {
+        color: #2E7D32;
+    }
+
+    .tile-usd {
+        border: 2px solid #2196F3;
+        background: #E3F2FD;
+    }
+    .tile-usd .income-tile-value {
+        color: #1565C0;
+    }
+
+    .tile-rental {
+        border: 2px solid #4CAF50;
+        background: #E8F5E9;
+    }
+    .tile-rental .income-tile-value {
+        color: #2E7D32;
+    }
+
+    /* New expense category tiles with light colors */
+    .tile-electricity {
+        border: 2px solid #FF9800;
+        background: #FFF3E0;
+    }
+    .tile-electricity .report-tile-value {
+        color: #E65100;
+    }
+
+    .tile-water {
+        border: 2px solid #00BCD4;
+        background: #E0F7FA;
+    }
+    .tile-water .report-tile-value {
+        color: #006064;
+    }
+
+    .tile-furness-oil {
+        border: 2px solid #9C27B0;
+        background: #F3E5F5;
+    }
+    .tile-furness-oil .report-tile-value {
+        color: #4A148C;
+    }
+
+    .tile-hot-water-tank {
+        border: 2px solid #F44336;
+        background: #FFEBEE;
+    }
+    .tile-hot-water-tank .report-tile-value {
+        color: #B71C1C;
+    }
+
+    /* Student Loan tiles with light colors */
+    .tile-student-loan-amit {
+        border: 2px solid #FF6B35;
+        background: #FFF4F0;
+    }
+    .tile-student-loan-amit .report-tile-value {
+        color: #C63D17;
+    }
+
+    .tile-student-loan-rashmi {
+        border: 2px solid #4ECDC4;
+        background: #E8F8F7;
+    }
+    .tile-student-loan-rashmi .report-tile-value {
+        color: #0D7377;
+    }
+
+    /* Internet tiles with light colors */
+    .tile-internet-15sm {
+        border: 2px solid #03A9F4;
+        background: #E1F5FE;
+    }
+    .tile-internet-15sm .report-tile-value {
+        color: #01579B;
+    }
+
+    .tile-internet-208ma {
+        border: 2px solid #8BC34A;
+        background: #F1F8E9;
+    }
+    .tile-internet-208ma .report-tile-value {
+        color: #33691E;
+    }
+
+    /* Mortgage tiles with light colors */
+    .tile-mortgage-15sm {
+        border: 2px solid #FF9800;
+        background: #FFF3E0;
+    }
+    .tile-mortgage-15sm .report-tile-value {
+        color: #E65100;
+    }
+
+    .tile-mortgage-208ma {
+        border: 2px solid #9C27B0;
+        background: #F3E5F5;
+    }
+    .tile-mortgage-208ma .report-tile-value {
+        color: #4A148C;
+    }
+
+    /* Total Records tile with black background */
+    .tile-total-records-expanse {
+        border: 2px solid #000000;
+        background: #000000;
+    }
+    .tile-total-records-expanse .report-tile-label {
+        color: #ffffff;
+    }
+    .tile-total-records-expanse .report-tile-value {
+        color: #ffffff;
+    }
+
+    /* Credit Card Payment tiles with light colors */
+    .tile-cc-payment-amit {
+        border: 2px solid #E91E63;
+        background: #FCE4EC;
+    }
+    .tile-cc-payment-amit .report-tile-value {
+        color: #880E4F;
+    }
+
+    .tile-cc-payment-rashmi {
+        border: 2px solid #00ACC1;
+        background: #E0F7FA;
+    }
+    .tile-cc-payment-rashmi .report-tile-value {
+        color: #006064;
+    }
+
+    .tile-cc-payment-om {
+        border: 2px solid #FF6F00;
+        background: #FFF3E0;
+    }
+    .tile-cc-payment-om .report-tile-value {
+        color: #E65100;
+    }
+
+    .tile-cc-payment-4713411nsl {
+        border: 2px solid #7B1FA2;
+        background: #F3E5F5;
+    }
+    .tile-cc-payment-4713411nsl .report-tile-value {
+        color: #4A148C;
+    }
+
+</style>
+</head>
+
+<body>
+
+<!-- HEADER (NOW FULL-WIDTH & LEFT-ALIGNED) -->
+<header class="header">
+    <div class="header-left">
+        <h1 class="header-title">Reports Dashboard</h1>
+        <button class="black" onclick="window.location.href='index.html'">← Back to Main Dashboard</button>
+    </div>
+    <div class="header-right">
+        <!-- Future header actions can go here -->
+    </div>
+</header>
+
+<div class="main">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+        <!-- Task Reports -->
+        <div class="menu-item" onclick="showReportTiles('task');">
+            ✅ Task Reports
+        </div>
+
+        <!-- Income Reports -->
+        <div class="menu-item" onclick="toggleMenu('income', this, 'submenu'); handleReportMenuClick('income');">
+            🪙 Income Reports <span class="arrow">▼</span>
+        </div>
+        <div id="income" class="submenu">
+            <a href="12A3_Income_Report_Personal_Income.html" class="submenu-item" style="text-decoration: none; color: inherit; display: block;">Personal Income Report</a>
+            <a href="12A1_Income_Report_Rent_Collection.html" class="submenu-item" style="text-decoration: none; color: inherit; display: block;">Rent Collection Report</a>
+            <a href="12A2_Income_Report_Tenant_Based.html" class="submenu-item" style="text-decoration: none; color: inherit; display: block;">Tenant Based Report</a>
+        </div>
+
+        <!-- ⭐ FIXED: Investment Reports (now in correct place) -->
+        <div class="menu-item" onclick="showReportTiles('investment');">
+            📈 Investment Reports
+        </div>
+
+        <!-- Expanse Reports -->
+        <div class="menu-item" onclick="toggleMenu('expanse', this, 'submenu'); handleReportMenuClick('expanse');">
+            💵 Expanse Reports <span class="arrow">▼</span>
+        </div>
+
+        <div id="expanse" class="submenu">
+
+            <!-- Electricity -->
+            <a href="12B1_Expense_Report_Electricity.html" class="submenu-item" style="text-decoration: none; color: inherit; display: block;">Electricity Bills</a>
+
+            <!-- Water -->
+            <a href="12B2_Expense_Report_Water.html" class="submenu-item" style="text-decoration: none; color: inherit; display: block;">Water Bills</a>
+
+            <!-- Furness -->
+            <a href="12B3_Expense_Report_Furness_Oil.html" class="submenu-item" style="text-decoration: none; color: inherit; display: block;">Furness Oil</a>
+
+            <!-- Hot Water Tank -->
+            <a href="12B4_Expense_Report_Hot_Water_Tank_Rental.html" class="submenu-item" style="text-decoration: none; color: inherit; display: block;">Hot Water Tank Rental</a>
+
+            <!-- Internet -->
+            <a href="12B6_Expense_Report_Internet.html" class="submenu-item" style="text-decoration: none; color: inherit; display: block;">Internet</a>
+
+            <!-- Insurance -->
+            <div class="submenu-item" onclick="toggleMenu('insurance', this, 'sub-submenu')">
+                Insurance <span class="arrow">▼</span>
+            </div>
+            <div id="insurance" class="sub-submenu">
+                <div class="sub-submenu-item">Life</div>
+                <div class="sub-submenu-item">Car</div>
+                <div class="sub-submenu-item">Home</div>
+                <div class="sub-submenu-item">Mediclaim</div>
+            </div>
+
+            <!-- Property Tax -->
+            <div class="submenu-item" onclick="toggleMenu('ptax', this, 'sub-submenu')">
+                Property Tax <span class="arrow">▼</span>
+            </div>
+            <div id="ptax" class="sub-submenu">
+                <div class="sub-submenu-item">15SM</div>
+                <div class="sub-submenu-item">208MA</div>
+            </div>
+
+            <!-- Mortgage -->
+            <a href="12B7_Expense_Report_Mortgage.html" class="submenu-item" style="text-decoration: none; color: inherit; display: block;">Mortgage</a>
+
+            <!-- Credit Cards -->
+            <div class="submenu-item" onclick="toggleMenu('cc', this, 'sub-submenu')">
+                Credit Card Bills <span class="arrow">▼</span>
+            </div>
+            <div id="cc" class="sub-submenu">
+                <a href="12B9_Expense_Report_CC_By_Months.html" class="sub-submenu-item" style="text-decoration: none; color: inherit; display: block;">By Months</a>
+                <a href="12B8_Expense_Report_Credit_Cards.html" class="sub-submenu-item" style="text-decoration: none; color: inherit; display: block;">By Cards</a>
+                <a href="12B10_Expense_Report_CC_By_Holder.html" class="sub-submenu-item" style="text-decoration: none; color: inherit; display: block;">By Holder</a>
+            </div>
+
+            <!-- Student Loan -->
+            <a href="12B5_Expense_Report_Student_Loan.html" class="submenu-item" style="text-decoration: none; color: inherit; display: block;">Student Loan</a>
+
+            <!-- Renovation -->
+            <div class="submenu-item" onclick="toggleMenu('ren', this, 'sub-submenu')">
+                Renovation <span class="arrow">▼</span>
+            </div>
+            <div id="ren" class="sub-submenu">
+                <div class="sub-submenu-item">Maninder</div>
+                <div class="sub-submenu-item">Satpal</div>
+                <div class="sub-submenu-item">Electrical</div>
+                <div class="sub-submenu-item">Material</div>
+                <div class="sub-submenu-item">Funiture</div>
+                <div class="sub-submenu-item">Appliance</div>
+            </div>
+
+            <!-- Maintenance -->
+            <div class="submenu-item" onclick="toggleMenu('maint', this, 'sub-submenu')">
+                Maintenance <span class="arrow">▼</span>
+            </div>
+            <div id="maint" class="sub-submenu">
+                <div class="sub-submenu-item">15SM</div>
+                <div class="sub-submenu-item">208MA</div>
+            </div>
+
+            <!-- Family Maintenance -->
+            <div class="submenu-item" onclick="toggleMenu('family', this, 'sub-submenu')">
+                Family Maintenance <span class="arrow">▼</span>
+            </div>
+            <div id="family" class="sub-submenu">
+                <div class="sub-submenu-item">Mother In Law</div>
+                <div class="sub-submenu-item">Others</div>
+            </div>
+
+            <!-- Car Maintenance -->
+            <div class="submenu-item" onclick="toggleMenu('carmaintenance', this, 'sub-submenu')">
+                Car Maintenance <span class="arrow">▼</span>
+            </div>
+            <div id="carmaintenance" class="sub-submenu"></div>
+
+        </div>
+    </div>
+
+    <!-- CONTENT AREA -->
+    <div class="content-area">
+        <!-- Year Filter (shown only for expanse reports) -->
+        <div id="yearFilterContainer" class="year-filter-container hidden">
+            <label class="year-filter-label" for="yearFilter">Filter by Year:</label>
+            <select id="yearFilter" class="year-filter-select">
+                <option value="">All Years</option>
+            </select>
+        </div>
+        <div id="reportTiles" class="report-tiles-container hidden">
+            <!-- Tiles will be populated by JavaScript based on selected menu -->
+        </div>
+    </div>
+
+</div>
+
+<script>
+function toggleMenu(id, element, levelClass) {
+    let clickedMenu = document.getElementById(id);
+    let clickedArrow = element.querySelector(".arrow");
+
+    // Close others
+    document.querySelectorAll("." + levelClass).forEach(menu => {
+        if (menu !== clickedMenu) menu.classList.remove("open");
+    });
+
+    document.querySelectorAll("." + levelClass + " .arrow").forEach(arrow => {
+        if (arrow !== clickedArrow) arrow.classList.remove("rotate");
+    });
+
+    // Open selected
+    clickedMenu.classList.toggle("open");
+    clickedArrow.classList.toggle("rotate");
+    
+}
+
+// Unified function to handle menu clicks with submenus
+function handleReportMenuClick(reportType) {
+    setTimeout(() => {
+        const submenu = document.getElementById(reportType);
+        const tilesContainer = document.getElementById('reportTiles');
+        if (submenu && tilesContainer) {
+            if (submenu.classList.contains('open')) {
+                // Submenu is open - hide tiles
+                tilesContainer.classList.add('hidden');
+                currentReportType = null;
+            } else {
+                // Submenu is closed - show tiles
+                showReportTiles(reportType);
+            }
+        }
+    }, 50);
+}
+
+// Store current active report type
+let currentReportType = null;
+
+// Show tiles for a specific report type
+function showReportTiles(reportType) {
+    const tilesContainer = document.getElementById('reportTiles');
+    if (!tilesContainer) return;
+    
+    // Close all other submenus
+    document.querySelectorAll('.submenu').forEach(menu => {
+        menu.classList.remove('open');
+    });
+    document.querySelectorAll('.menu-item .arrow').forEach(arrow => {
+        arrow.classList.remove('rotate');
+    });
+    
+    // Store current report type
+    currentReportType = reportType;
+    
+    // Show/hide year filter based on report type
+    const yearFilterContainer = document.getElementById('yearFilterContainer');
+    if (yearFilterContainer) {
+        if (reportType === 'expanse') {
+            yearFilterContainer.classList.remove('hidden');
+            populateYearFilter();
+        } else {
+            yearFilterContainer.classList.add('hidden');
+        }
+    }
+    
+    // Load and display tiles based on report type
+    switch(reportType) {
+        case 'task':
+            loadTaskTiles();
+            break;
+        case 'income':
+            loadIncomeTiles();
+            break;
+        case 'investment':
+            loadInvestmentTiles();
+            break;
+        case 'expanse':
+            const yearSelect = document.getElementById('yearFilter');
+            const selectedYear = yearSelect ? yearSelect.value : '';
+            loadExpanseTiles(selectedYear);
+            break;
+        default:
+            tilesContainer.classList.add('hidden');
+            currentReportType = null;
+            return;
+    }
+    
+    tilesContainer.classList.remove('hidden');
+}
+
+// ===== TILE LOADER FUNCTIONS =====
+
+// Load and render Task statistics tiles
+function loadTaskTiles() {
+    const tilesContainer = document.getElementById('reportTiles');
+    if (!tilesContainer) return;
+    
+    try {
+        const taskData = localStorage.getItem('task_records');
+        if (!taskData) {
+            renderEmptyTaskTiles(tilesContainer);
+            return;
+        }
+        
+        const records = JSON.parse(taskData);
+        if (!Array.isArray(records) || records.length === 0) {
+            renderEmptyTaskTiles(tilesContainer);
+            return;
+        }
+        
+        // Calculate statistics
+        let totalRecords = records.length;
+        let completed = 0;
+        let inProgress = 0;
+        let pending = 0;
+        let highPriority = 0;
+        
+        records.forEach(record => {
+            const status = (record.Task_Status || record.status || '').toLowerCase();
+            const priority = (record.Task_Priority || record.priority || '').toLowerCase();
+            
+            if (status.includes('completed')) completed++;
+            else if (status.includes('progress')) inProgress++;
+            else pending++;
+            
+            if (priority.includes('high')) highPriority++;
+        });
+        
+        tilesContainer.innerHTML = `
+            <div class="report-tile tile-total-records">
+                <div class="report-tile-label">Total Records</div>
+                <div class="report-tile-value">${totalRecords}</div>
+            </div>
+            <div class="report-tile tile-cad">
+                <div class="report-tile-label">Completed</div>
+                <div class="report-tile-value">${completed}</div>
+            </div>
+            <div class="report-tile tile-usd">
+                <div class="report-tile-label">In Progress</div>
+                <div class="report-tile-value">${inProgress}</div>
+            </div>
+            <div class="report-tile tile-rental">
+                <div class="report-tile-label">Pending</div>
+                <div class="report-tile-value">${pending}</div>
+            </div>
+            <div class="report-tile tile-rental">
+                <div class="report-tile-label">High Priority</div>
+                <div class="report-tile-value">${highPriority}</div>
+            </div>
+        `;
+        
+    } catch (e) {
+        console.error('Error loading task tiles:', e);
+        renderEmptyTaskTiles(tilesContainer);
+    }
+}
+
+// Load and render Income statistics tiles
+function loadIncomeTiles() {
+    const tilesContainer = document.getElementById('reportTiles');
+    if (!tilesContainer) return;
+    
+    try {
+        const incomeData = localStorage.getItem('income_records');
+        if (!incomeData) {
+            renderEmptyIncomeTiles(tilesContainer);
+            return;
+        }
+        
+        const records = JSON.parse(incomeData);
+        if (!Array.isArray(records) || records.length === 0) {
+            renderEmptyIncomeTiles(tilesContainer);
+            return;
+        }
+        
+        // Calculate statistics
+        let totalRecords = records.length;
+        let totalCAD = 0;
+        let totalUSD = 0;
+        let rental208AMA = 0;
+        let rental15SMBSMT = 0;
+        let rental15SM = 0;
+        
+        records.forEach(record => {
+            const amount = parseFloat(record.amt || 0);
+            const currency = (record.cur || '').toUpperCase();
+            const tag = record.tag || '';
+            
+            if (currency === 'CAD') {
+                totalCAD += amount;
+            } else if (currency === 'USD') {
+                totalUSD += amount;
+            }
+            
+            if (tag.endsWith('15SM-BSMT')) {
+                rental15SMBSMT += amount;
+            } else if (tag.endsWith('15SM') && !tag.endsWith('15SM-BSMT')) {
+                rental15SM += amount;
+            } else if (tag.endsWith('208AMA')) {
+                rental208AMA += amount;
+            }
+        });
+        
+        tilesContainer.innerHTML = `
+            <div class="report-tile tile-total-records">
+                <div class="report-tile-label">Total Records</div>
+                <div class="report-tile-value">${totalRecords}</div>
+            </div>
+            <div class="report-tile tile-cad">
+                <div class="report-tile-label">Total CAD</div>
+                <div class="report-tile-value">${totalCAD.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-usd">
+                <div class="report-tile-label">Total USD</div>
+                <div class="report-tile-value">${totalUSD.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-rental">
+                <div class="report-tile-label">Rental - 208AMA</div>
+                <div class="report-tile-value">${rental208AMA.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-rental">
+                <div class="report-tile-label">Rental - 15SM-BSMT</div>
+                <div class="report-tile-value">${rental15SMBSMT.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-rental">
+                <div class="report-tile-label">Rental - 15SM</div>
+                <div class="report-tile-value">${rental15SM.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+        `;
+        
+    } catch (e) {
+        console.error('Error loading income tiles:', e);
+        renderEmptyIncomeTiles(tilesContainer);
+    }
+}
+
+// Load and render Investment statistics tiles
+function loadInvestmentTiles() {
+    const tilesContainer = document.getElementById('reportTiles');
+    if (!tilesContainer) return;
+    
+    try {
+        const investmentData = localStorage.getItem('investment_records');
+        if (!investmentData) {
+            renderEmptyInvestmentTiles(tilesContainer);
+            return;
+        }
+        
+        const records = JSON.parse(investmentData);
+        if (!Array.isArray(records) || records.length === 0) {
+            renderEmptyInvestmentTiles(tilesContainer);
+            return;
+        }
+        
+        // Calculate statistics
+        let totalRecords = records.length;
+        let totalCAD = 0;
+        let totalUSD = 0;
+        let totalInvested = 0;
+        
+        records.forEach(record => {
+            const amount = parseFloat(record.amt || record.investedamount || 0);
+            const currency = (record.cur || '').toUpperCase();
+            
+            totalInvested += amount;
+            if (currency === 'CAD') {
+                totalCAD += amount;
+            } else if (currency === 'USD') {
+                totalUSD += amount;
+            }
+        });
+        
+        tilesContainer.innerHTML = `
+            <div class="report-tile tile-total-records">
+                <div class="report-tile-label">Total Records</div>
+                <div class="report-tile-value">${totalRecords}</div>
+            </div>
+            <div class="report-tile tile-cad">
+                <div class="report-tile-label">Total CAD</div>
+                <div class="report-tile-value">${totalCAD.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-usd">
+                <div class="report-tile-label">Total USD</div>
+                <div class="report-tile-value">${totalUSD.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-rental">
+                <div class="report-tile-label">Total Invested</div>
+                <div class="report-tile-value">${totalInvested.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+        `;
+        
+    } catch (e) {
+        console.error('Error loading investment tiles:', e);
+        renderEmptyInvestmentTiles(tilesContainer);
+    }
+}
+
+// Helper function to extract year from date
+function extractYearFromDate(value) {
+    if (!value || value === '') return null;
+    
+    // Convert to string
+    let dateStr = '';
+    if (value instanceof Date) {
+        dateStr = value.toISOString().split('T')[0];
+    } else if (typeof value === 'string') {
+        dateStr = value;
+    } else {
+        dateStr = String(value);
+    }
+    
+    if (!dateStr || typeof dateStr !== 'string') {
+        return null;
+    }
+    
+    // Handle YYYY-MM-DD format
+    if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+        return dateStr.substring(0, 4);
+    }
+    
+    // Handle DD/MM/YYYY or MM/DD/YYYY format
+    if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+        const parts = dateStr.split('/');
+        return parts[parts.length - 1];
+    }
+    
+    // Try to extract first 4 digits as year
+    const yearMatch = dateStr.match(/^\d{4}/);
+    if (yearMatch) {
+        return yearMatch[0];
+    }
+    
+    // Try Excel serial date conversion
+    const num = Number(value);
+    if (!isNaN(num) && num > 0) {
+        const excelEpoch = new Date(1899, 11, 30);
+        const jsDate = new Date(excelEpoch.getTime() + num * 86400000);
+        if (!isNaN(jsDate.getTime())) {
+            return String(jsDate.getFullYear());
+        }
+    }
+    
+    // Try parsing as regular date
+    try {
+        const parsedDate = new Date(value);
+        if (!isNaN(parsedDate.getTime())) {
+            return String(parsedDate.getFullYear());
+        }
+    } catch (e) {
+        // Ignore parsing errors
+    }
+    
+    return null;
+}
+
+// Populate year filter dropdown
+function populateYearFilter() {
+    const yearSelect = document.getElementById('yearFilter');
+    if (!yearSelect) return;
+    
+    try {
+        const expenseData = localStorage.getItem('expense_records');
+        if (!expenseData) {
+            yearSelect.innerHTML = '<option value="">All Years</option>';
+            return;
+        }
+        
+        const records = JSON.parse(expenseData);
+        if (!Array.isArray(records) || records.length === 0) {
+            yearSelect.innerHTML = '<option value="">All Years</option>';
+            return;
+        }
+        
+        // Extract unique years from Paid_Date
+        const years = new Set();
+        records.forEach(record => {
+            const dateValue = record.Expense_Paid_Date || record.Expanse_Paid_Date || record.paid || '';
+            const year = extractYearFromDate(dateValue);
+            if (year) {
+                years.add(year);
+            }
+        });
+        
+        // Sort years in descending order
+        const sortedYears = Array.from(years).sort((a, b) => b.localeCompare(a));
+        
+        // Populate dropdown
+        yearSelect.innerHTML = '<option value="">All Years</option>' + 
+            sortedYears.map(year => `<option value="${year}">${year}</option>`).join('');
+        
+    } catch (e) {
+        console.error('Error populating year filter:', e);
+        yearSelect.innerHTML = '<option value="">All Years</option>';
+    }
+}
+
+// Load and render Expanse statistics tiles
+function loadExpanseTiles(selectedYear = '') {
+    const tilesContainer = document.getElementById('reportTiles');
+    if (!tilesContainer) return;
+    
+    try {
+        const expenseData = localStorage.getItem('expense_records');
+        if (!expenseData) {
+            renderEmptyExpanseTiles(tilesContainer);
+            return;
+        }
+        
+        const records = JSON.parse(expenseData);
+        if (!Array.isArray(records) || records.length === 0) {
+            renderEmptyExpanseTiles(tilesContainer);
+            return;
+        }
+        
+        // Filter by year if selected
+        let filteredRecords = records;
+        if (selectedYear) {
+            filteredRecords = records.filter(record => {
+                const dateValue = record.Expense_Paid_Date || record.Expanse_Paid_Date || record.paid || '';
+                const year = extractYearFromDate(dateValue);
+                return year === selectedYear;
+            });
+        }
+        
+        // Calculate total number of records
+        const totalRecords = filteredRecords.length;
+        
+        // Calculate gross totals for each expense category
+        let electricityTotal = 0;
+        let waterTotal = 0;
+        let furnessOilTotal = 0;
+        let hotWaterTankTotal = 0;
+        let studentLoanAmitTotal = 0;
+        let studentLoanRashmiTotal = 0;
+        let internet15Total = 0;
+        let internet208Total = 0;
+        let mortgage15Total = 0;
+        let mortgage208Total = 0;
+        let ccPaymentAmitTotal = 0;
+        let ccPaymentRashmiTotal = 0;
+        let ccPaymentOmTotal = 0;
+        let ccPayment4713411NSLTotal = 0;
+        
+        filteredRecords.forEach(record => {
+            const category = record.Expense_Category || record.Expanse_Category || record.cat || '';
+            const amountPaid = parseFloat(record.Expense_Amount_Paid || record.Amount_Paid || record.amt || 0);
+            const tag = record.Expense_Tag || record.Expanse_Ac_Tag || record.tag || '';
+            
+            if (category === 'Utility-Bill-Electricity') {
+                electricityTotal += amountPaid;
+            } else if (category === 'Utility-Bill-Water') {
+                waterTotal += amountPaid;
+            } else if (category === 'Utility-Bill-Furness Oil') {
+                furnessOilTotal += amountPaid;
+            } else if (category === 'Utility-Bill-Hot Water Tank') {
+                hotWaterTankTotal += amountPaid;
+            } else if (category === 'Utility-Bill-Internet') {
+                const tagUpper = tag.toUpperCase();
+                if (tagUpper.includes('15SM')) {
+                    internet15Total += amountPaid;
+                } else if (tagUpper.includes('208MA') || tagUpper.includes('208AMA')) {
+                    internet208Total += amountPaid;
+                }
+            } else if (category === 'Loan-Housing/Mortgage') {
+                const tagUpper = tag.toUpperCase();
+                // Check for 15SM (case-insensitive, handles variations like "15SM", "15-SM", etc.)
+                if (tagUpper.includes('15SM') || tagUpper.includes('15-SM')) {
+                    mortgage15Total += amountPaid;
+                } 
+                // Check for 208MA or 208AMA (case-insensitive, handles variations)
+                else if (tagUpper.includes('208MA') || tagUpper.includes('208AMA') || tagUpper.includes('208-MA') || tagUpper.includes('208-AMA')) {
+                    mortgage208Total += amountPaid;
+                } else {
+                    // Debug: log unmatched mortgage tags
+                    console.log('[Dashboard] Unmatched Mortgage tag:', tag, 'Category:', category);
+                }
+            } else if (category === 'Loan-Student') {
+                // Filter by tag for Student Loan - check if tag contains "Amit" or "Rashmi"
+                const tagUpper = tag.toUpperCase();
+                if (tagUpper.includes('AMIT')) {
+                    studentLoanAmitTotal += amountPaid;
+                } else if (tagUpper.includes('RASHMI')) {
+                    studentLoanRashmiTotal += amountPaid;
+                }
+            } else if (category === 'Credit Cards/BT') {
+                // Filter by tag for Credit Card Payments - check if tag contains "Amit", "Rashmi", "Om", or "4713411NSL"
+                const tagUpper = tag.toUpperCase();
+                if (tagUpper.includes('AMIT')) {
+                    ccPaymentAmitTotal += amountPaid;
+                } else if (tagUpper.includes('RASHMI')) {
+                    ccPaymentRashmiTotal += amountPaid;
+                } else if (tagUpper.includes('OM')) {
+                    ccPaymentOmTotal += amountPaid;
+                } else if (tagUpper.includes('4713411NSL')) {
+                    ccPayment4713411NSLTotal += amountPaid;
+                }
+            }
+        });
+        
+        // Debug: Log totals for troubleshooting
+        console.log('[Dashboard] Mortgage totals - 15SM:', mortgage15Total, '208MA:', mortgage208Total);
+        
+        tilesContainer.innerHTML = `
+            <div class="report-tile tile-total-records-expanse">
+                <div class="report-tile-label">Total Records</div>
+                <div class="report-tile-value">${totalRecords.toLocaleString('en-US')}</div>
+            </div>
+            <div class="report-tile tile-electricity">
+                <div class="report-tile-label">Electricity Bills</div>
+                <div class="report-tile-value">${electricityTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-water">
+                <div class="report-tile-label">Water Bills</div>
+                <div class="report-tile-value">${waterTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-furness-oil">
+                <div class="report-tile-label">Furness Oil</div>
+                <div class="report-tile-value">${furnessOilTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-hot-water-tank">
+                <div class="report-tile-label">Hot Water Tank Rentals</div>
+                <div class="report-tile-value">${hotWaterTankTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-internet-15sm">
+                <div class="report-tile-label">Internet - 15SM</div>
+                <div class="report-tile-value">${internet15Total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-internet-208ma">
+                <div class="report-tile-label">Internet - 208MA/208AMA</div>
+                <div class="report-tile-value">${internet208Total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-mortgage-15sm">
+                <div class="report-tile-label">Mortgage - 15SM</div>
+                <div class="report-tile-value">${mortgage15Total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-mortgage-208ma">
+                <div class="report-tile-label">Mortgage - 208MA/208AMA</div>
+                <div class="report-tile-value">${mortgage208Total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-student-loan-amit">
+                <div class="report-tile-label">Student Loan - Amit</div>
+                <div class="report-tile-value">${studentLoanAmitTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-student-loan-rashmi">
+                <div class="report-tile-label">Student Loan - Rashmi</div>
+                <div class="report-tile-value">${studentLoanRashmiTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-cc-payment-amit">
+                <div class="report-tile-label">Credit Card Payments - Amit</div>
+                <div class="report-tile-value">${ccPaymentAmitTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-cc-payment-rashmi">
+                <div class="report-tile-label">Credit Card Payments - Rashmi</div>
+                <div class="report-tile-value">${ccPaymentRashmiTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-cc-payment-om">
+                <div class="report-tile-label">Credit Card Payments - Om</div>
+                <div class="report-tile-value">${ccPaymentOmTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+            <div class="report-tile tile-cc-payment-4713411nsl">
+                <div class="report-tile-label">Credit Card Payments - 4713411NSL</div>
+                <div class="report-tile-value">${ccPayment4713411NSLTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+        `;
+        
+    } catch (e) {
+        console.error('Error loading expanse tiles:', e);
+        renderEmptyExpanseTiles(tilesContainer);
+    }
+}
+
+// Empty tile renderers
+function renderEmptyTaskTiles(container) {
+    container.innerHTML = `
+        <div class="report-tile tile-total-records">
+            <div class="report-tile-label">Total Records</div>
+            <div class="report-tile-value">0</div>
+        </div>
+        <div class="report-tile tile-cad">
+            <div class="report-tile-label">Completed</div>
+            <div class="report-tile-value">0</div>
+        </div>
+        <div class="report-tile tile-usd">
+            <div class="report-tile-label">In Progress</div>
+            <div class="report-tile-value">0</div>
+        </div>
+        <div class="report-tile tile-rental">
+            <div class="report-tile-label">Pending</div>
+            <div class="report-tile-value">0</div>
+        </div>
+        <div class="report-tile tile-rental">
+            <div class="report-tile-label">High Priority</div>
+            <div class="report-tile-value">0</div>
+        </div>
+    `;
+}
+
+function renderEmptyIncomeTiles(container) {
+    container.innerHTML = `
+        <div class="report-tile tile-total-records">
+            <div class="report-tile-label">Total Records</div>
+            <div class="report-tile-value">0</div>
+        </div>
+        <div class="report-tile tile-cad">
+            <div class="report-tile-label">Total CAD</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-usd">
+            <div class="report-tile-label">Total USD</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-rental">
+            <div class="report-tile-label">Rental - 208AMA</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-rental">
+            <div class="report-tile-label">Rental - 15SM-BSMT</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-rental">
+            <div class="report-tile-label">Rental - 15SM</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+    `;
+}
+
+function renderEmptyInvestmentTiles(container) {
+    container.innerHTML = `
+        <div class="report-tile tile-total-records">
+            <div class="report-tile-label">Total Records</div>
+            <div class="report-tile-value">0</div>
+        </div>
+        <div class="report-tile tile-cad">
+            <div class="report-tile-label">Total CAD</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-usd">
+            <div class="report-tile-label">Total USD</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-rental">
+            <div class="report-tile-label">Total Invested</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+    `;
+}
+
+function renderEmptyExpanseTiles(container) {
+    container.innerHTML = `
+        <div class="report-tile tile-total-records-expanse">
+            <div class="report-tile-label">Total Records</div>
+            <div class="report-tile-value">0</div>
+        </div>
+        <div class="report-tile tile-electricity">
+            <div class="report-tile-label">Electricity Bills</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-water">
+            <div class="report-tile-label">Water Bills</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-furness-oil">
+            <div class="report-tile-label">Furness Oil</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-hot-water-tank">
+            <div class="report-tile-label">Hot Water Tank Rentals</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-internet-15sm">
+            <div class="report-tile-label">Internet - 15SM</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-internet-208ma">
+            <div class="report-tile-label">Internet - 208MA/208AMA</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-mortgage-15sm">
+            <div class="report-tile-label">Mortgage - 15SM</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-mortgage-208ma">
+            <div class="report-tile-label">Mortgage - 208MA/208AMA</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-student-loan-amit">
+            <div class="report-tile-label">Student Loan - Amit</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-student-loan-rashmi">
+            <div class="report-tile-label">Student Loan - Rashmi</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-cc-payment-amit">
+            <div class="report-tile-label">Credit Card Payments - Amit</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-cc-payment-rashmi">
+            <div class="report-tile-label">Credit Card Payments - Rashmi</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-cc-payment-om">
+            <div class="report-tile-label">Credit Card Payments - Om</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+        <div class="report-tile tile-cc-payment-4713411nsl">
+            <div class="report-tile-label">Credit Card Payments - 4713411NSL</div>
+            <div class="report-tile-value">0.00</div>
+        </div>
+    `;
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Tiles will be loaded when a menu item is clicked
+    // No tiles shown by default
+    
+    // Add event listener for year filter
+    const yearFilter = document.getElementById('yearFilter');
+    if (yearFilter) {
+        yearFilter.addEventListener('change', function() {
+            if (currentReportType === 'expanse') {
+                const selectedYear = this.value;
+                loadExpanseTiles(selectedYear);
+            }
+        });
+    }
+    
+    // Refresh tiles when page becomes visible (in case data was updated in another tab)
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden && currentReportType) {
+            const tilesContainer = document.getElementById('reportTiles');
+            if (tilesContainer && !tilesContainer.classList.contains('hidden')) {
+                // Reload current tiles based on active report type
+                showReportTiles(currentReportType);
+            }
+        }
+    });
+});
+</script>
+
+</body>
+</html>

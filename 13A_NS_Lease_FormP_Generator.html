@@ -1,0 +1,3936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NS Lease Form P Generator</title>
+<!-- Updated: Property and Landlord selectors in one row -->
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    @keyframes flash {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    @keyframes dropdownFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .flashing-text {
+        animation: flash 1s infinite;
+    }
+
+    body { 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        margin: 0; 
+        padding: 0; 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .header {
+        background: white;
+        padding: 24px 30px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+
+    .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 16px;
+    }
+
+    .header-image {
+        flex-shrink: 0;
+        max-height: 50px;
+        width: auto;
+        opacity: 0.75;
+        order: 2;
+    }
+
+    .header-image img {
+        height: 50px;
+        width: auto;
+        display: block;
+    }
+
+    .header h1 {
+        margin: 0;
+        color: #b87333;
+        font-size: 20px;
+        font-weight: 700;
+        text-align: left;
+        flex: 1;
+        font-family: sans-serif;
+        letter-spacing: -0.02em;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .header-buttons-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-back-button {
+        background: #000;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header-back-button:hover {
+        background: #1a1a1a;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    }
+
+    .header-buttons-row {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .header-buttons-row .control-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .header-buttons-row .control-btn:active {
+        transform: translateY(0);
+    }
+
+    .control-panel {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+
+    .control-panel h2 {
+        margin-top: 0;
+        color: #333;
+        font-size: 24px;
+        font-weight: 600;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+    }
+
+    .control-panel h3 {
+        color: #555;
+        font-size: 18px;
+        font-weight: 600;
+        margin-top: 25px;
+        margin-bottom: 15px;
+    }
+
+    .control-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 14px;
+        color: white;
+        text-align: center;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        border: none;
+        white-space: nowrap;
+        min-height: 40px;
+        flex-shrink: 0;
+    }
+
+    .control-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+        filter: brightness(1.05);
+    }
+
+    .control-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .upload-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .upload-box {
+        display: inline-block;
+        padding: 10px 20px;
+        border: 2px solid #667eea;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-align: center;
+        cursor: pointer;
+        margin-bottom: 15px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .upload-box:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    .upload-box.has-file {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-color: #10b981;
+    }
+
+    .upload-info {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .upload-info.has-file {
+        color: #10b981;
+    }
+
+    select {
+        width: 100%;
+        padding: 12px 15px;
+        margin: 8px 0;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 15px;
+        background: white;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    select:hover {
+        border-color: #667eea;
+    }
+
+    select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .selector-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .selector-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .selector-item label {
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+
+    #excelWarnings {
+        margin-top: 15px;
+        padding: 15px;
+        background: #fef2f2;
+        border-left: 4px solid #ef4444;
+        color: #991b1b;
+        font-weight: 500;
+        white-space: pre-wrap;
+        border-radius: 4px;
+    }
+
+    .pdf-button {
+        padding: 15px 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: 600;
+        margin: 15px;
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    .pdf-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .pdf-button:active {
+        transform: translateY(0);
+    }
+
+    .button-container {
+        text-align: center;
+        margin: 30px 0;
+    }
+
+    .page {
+        width: 210mm;
+        min-height: 297mm;
+        padding: 10mm;
+        margin: 20px auto;
+        background: white;
+        border: 1px solid #ddd;
+        position: relative;
+        page-break-after: always;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        font-size: 1.05em;
+    }
+    
+    .page:last-of-type {
+        page-break-after: auto;
+    }
+    
+    .page[data-page="1"] {
+        padding-bottom: 12mm;
+    }
+    
+    .page[data-page="2"] {
+        padding-bottom: 15mm;
+    }
+    
+    .page[data-page="3"] {
+        padding-bottom: 12mm;
+    }
+    
+    .page[data-page="6"] {
+        page-break-after: always;
+        min-height: 297mm;
+        padding-top: 10mm;
+        padding-bottom: 10mm;
+    }
+    
+    .page[data-page="6"] .page-footer {
+        position: absolute;
+        bottom: 10mm;
+    }
+    
+    .page[data-page="7"] {
+        page-break-after: auto;
+    }
+
+    .page-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 8px;
+        margin-top: 15px;
+        border-top: 1px solid #ccc;
+        font-size: 11px;
+        color: #333;
+        position: absolute;
+        bottom: 10mm;
+        left: 10mm;
+        right: 10mm;
+    }
+
+    .page-footer-left {
+        text-align: left;
+        flex: 1;
+    }
+
+    .page-footer-right {
+        text-align: right;
+        font-weight: bold;
+    }
+
+    .section-title {
+        font-size: 19px;
+        font-weight: bold;
+        margin-top: 18px;
+        border-bottom: 2px solid black;
+        padding-bottom: 4px;
+    }
+
+    .field-label {
+        font-weight: bold;
+        margin-top: 8px;
+    }
+
+    .input-line {
+        border: 1px solid #000;
+        padding: 7px 9px;
+        margin: 4px 0;
+        width: 100%;
+        min-height: 26px;
+        font-size: 15px;
+    }
+
+    .input-line input {
+        border: none;
+        outline: none;
+        width: 100%;
+        padding: 4px;
+        font-size: 14px;
+        background: transparent;
+    }
+
+    .emergency-field-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+        margin: 4px 0;
+    }
+
+    .emergency-field-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .emergency-field-item label {
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 4px;
+        color: #555;
+    }
+
+    .emergency-field-item input {
+        border: 1px solid #000;
+        padding: 7px 9px;
+        font-size: 15px;
+        width: 100%;
+    }
+
+    .info-label {
+        font-size: 14px;
+        font-style: italic;
+        color: #333;
+        margin-top: 8px;
+        margin-bottom: 4px;
+        padding: 4px 0;
+        line-height: 1.5;
+        text-align: justify;
+    }
+
+    .formatted-text {
+        font-size: 15px;
+        line-height: 1.6;
+        color: #333;
+    }
+
+    .formatted-text .bold {
+        font-weight: bold;
+    }
+
+    .formatted-text .paragraph {
+        margin-bottom: 10px;
+    }
+
+    .formatted-text .list-item {
+        margin-left: 20px;
+        margin-bottom: 5px;
+        list-style-type: disc;
+    }
+
+    .formatted-text .list-item::before {
+        content: "• ";
+        font-weight: bold;
+        margin-right: 5px;
+    }
+
+    .small-input {
+        border: 1px solid #000;
+        padding: 3px;
+        width: 180px;
+    }
+
+    .headerTagBox {
+        position: absolute;
+        top: 6px;
+        right: 10px;
+        text-align: right;
+        z-index: 2;
+    }
+    #leaseTag {
+        position: static;
+        font-size: 11px;
+        font-weight: normal;
+        font-style: italic;
+        color: black;
+    }
+    
+    .leaseDatesTag {
+        position: static;
+        display: block;
+        margin-top: 2px;
+        font-size: 11px;
+        font-style: italic;
+        color: #555;
+        font-weight: normal;
+    }
+
+    .success-message {
+        padding: 12px 20px;
+        background: #d1fae5;
+        border-left: 4px solid #10b981;
+        color: #065f46;
+        border-radius: 4px;
+        margin-top: 15px;
+        font-weight: 500;
+    }
+
+    /* ====== OFFICIAL FORM P HEADER (ON PAGE 1) ====== */
+    .ns-form-header {
+        margin-bottom: 6mm;
+        text-align: left;
+    }
+    .ns-form-header-image {
+        height: 48px;
+        width: auto;
+        display: block;
+    }
+
+    /* Excel-like table styling with column resizers */
+    .excel-table-container {
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        overflow: auto;
+        background: #fff;
+        position: relative;
+    }
+    
+    .excel-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 13px;
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    
+    .excel-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: #f3f4f6;
+    }
+    
+    .excel-table th {
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-bottom: 2px solid #9ca3af;
+        padding: 6px 8px;
+        text-align: left;
+        font-weight: 600;
+        color: #111827;
+        position: relative;
+        user-select: none;
+        white-space: nowrap;
+        min-width: 80px;
+    }
+    
+    .excel-table th.resizable {
+        padding-right: 18px;
+    }
+    
+    .excel-table td {
+        border: 1px solid #d1d5db;
+        padding: 4px 6px;
+        background: #fff;
+        vertical-align: middle;
+    }
+    
+    .excel-table tbody tr:hover {
+        background: #f9fafb;
+    }
+    
+    .excel-table tbody tr:nth-child(even) {
+        background: #fafafa;
+    }
+    
+    .excel-table tbody tr:nth-child(even):hover {
+        background: #f3f4f6;
+    }
+    
+    .excel-table input,
+    .excel-table textarea {
+        width: 100%;
+        border: none;
+        padding: 4px 6px;
+        background: transparent;
+        font-size: 13px;
+        font-family: inherit;
+        outline: none;
+    }
+    
+    .excel-table input:focus,
+    .excel-table textarea:focus {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+    }
+    
+    .excel-table .inspection-comment1,
+    .excel-table .inspection-comment2 {
+        resize: none;
+        overflow: hidden;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        min-height: 24px;
+        line-height: 1.4;
+    }
+    
+    .column-resizer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 4px;
+        height: 100%;
+        cursor: col-resize;
+        background: transparent;
+        z-index: 1;
+    }
+    
+    .column-resizer:hover {
+        background: #3b82f6;
+    }
+    
+    .column-resizer.active {
+        background: #2563eb;
+    }
+
+    @media print {
+        @page {
+            size: A4;
+            /* 12mm top/left/right, 16mm bottom */
+            margin: 12mm 12mm 16mm 12mm;
+        }
+        body {
+            background: white;
+            margin: 0;
+            padding: 0;
+        }
+        /* Hide UI elements so they don't create an extra (blank) first page in the PDF */
+        .header,
+        .control-panel,
+        .button-container {
+            display: none;
+        }
+        .page {
+            page-break-after: always;
+            page-break-inside: avoid;
+            margin: 0;
+            padding: 10mm;
+            width: 210mm;
+            min-height: 297mm;
+            box-shadow: none;
+            border: none;
+        }
+        .page[data-page="1"] {
+            padding-bottom: 12mm;
+        }
+        .page[data-page="2"] {
+            padding-bottom: 15mm;
+        }
+        .page[data-page="3"] {
+            padding-bottom: 12mm;
+        }
+        .page[data-page="6"] {
+            page-break-after: always;
+            padding-bottom: 10mm;
+        }
+        .page[data-page="7"] {
+            page-break-after: auto;
+        }
+        .page-footer {
+            bottom: 10mm;
+            left: 10mm;
+            right: 10mm;
+        }
+        table {
+            page-break-inside: auto;
+        }
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+        thead {
+            display: table-header-group;
+        }
+        tfoot {
+            display: table-footer-group;
+        }
+    }
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-top">
+            <h1 class="flashing-text">Lease Generator</h1>
+            <div class="header-image">
+                <img src="ClearView_Icons_Images/formp-header.png" alt="Nova Scotia - Form P: Standard Form of Lease">
+            </div>
+        </div>
+        <div class="header-buttons-container">
+            <button class="header-back-button" onclick="window.location.href='index.html'">← Back to Main Dashboard</button>
+            <div class="header-buttons-row">
+                <a href="NS_Lease_Generator_Documentation.html" target="_blank" class="control-btn" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); text-decoration: none; display: inline-flex; align-items: center; border: none; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; color: #fff; box-shadow: 0 2px 4px rgba(99,102,241,0.2);">
+                    <span style="font-size: 14px; margin-right: 6px;">📚</span>
+                    <span>Documentation</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTROL PANEL -->
+    <div class="control-panel">
+        <div class="upload-info" id="combinedUploadInfo" style="margin-bottom: 10px;"></div>
+        <div id="excelWarnings"></div>
+        <input type="file" id="combinedExcelFile" accept=".xlsx,.xls,.csv" style="display:none;">
+
+        <!-- LANDLORD SELECTOR -->
+        <h3>1. Select Landlord</h3>
+        <div class="selector-group" style="margin-bottom: 20px;">
+            <div class="selector-item">
+                <select id="landlordSelect">
+                    <option value="">-- Select Landlord --</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- PROPERTY SELECTOR AND TYPE -->
+        <div class="selector-group" style="margin-bottom: 20px;">
+            <div class="selector-item">
+                <h3 style="font-size: 18px; margin-bottom: 10px; margin-top: 0;">3A. Property Address</h3>
+                <select id="propertySelect">
+                    <option value="">-- Select Property --</option>
+                </select>
+            </div>
+            <div class="selector-item">
+                <h3 style="font-size: 18px; margin-bottom: 10px; margin-top: 0;">3B. Type of Rental</h3>
+                <select id="propertyTypeSelect">
+                    <option value="">-- Select Type --</option>
+                    <option value="Shared Room in the House">Shared Room in the House</option>
+                    <option value="Private Room in the House">Private Room in the House</option>
+                    <option value="Basement Floor">Basement Floor</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- EMERGENCY CONTACT FIELDS -->
+        <h3>4. Emergency Contact</h3>
+        <div class="selector-group" style="margin-bottom: 20px;">
+            <div class="selector-item">
+                <label for="emergencyNameInput">Name</label>
+                <input type="text" id="emergencyNameInput" placeholder="Enter Name" style="padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
+            </div>
+            <div class="selector-item">
+                <label for="emergencyEmailInput">Email</label>
+                <input type="email" id="emergencyEmailInput" placeholder="Enter Email" style="padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
+            </div>
+            <div class="selector-item">
+                <label for="emergencyPhoneInput">Phone</label>
+                <input type="tel" id="emergencyPhoneInput" placeholder="Enter Phone" style="padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
+            </div>
+        </div>
+
+    <!-- TENANT SELECTORS -->
+        <h3>5. Select Tenants (Up to 4)</h3>
+        <div class="selector-group" id="tenantSelectors"></div>
+
+    <!-- OCCUPANTS SELECTORS -->
+        <h3>6. Select Occupants (Up to 4)</h3>
+        <div class="selector-group" id="occupantSelectors"></div>
+
+        <!-- LEASE DATES -->
+        <h3>8B. Fixed-Term Lease Dates</h3>
+        <div class="selector-group" style="margin-bottom: 20px;">
+            <div class="selector-item">
+                <label for="leaseStartDate">Start Date</label>
+                <input type="date" id="leaseStartDate" style="padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; width: 100%;">
+            </div>
+            <div class="selector-item">
+                <label for="leaseEndDate">End Date</label>
+                <input type="date" id="leaseEndDate" style="padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; width: 100%;">
+            </div>
+        </div>
+
+        <!-- RENT FIELDS -->
+        <div class="selector-group" style="margin-bottom: 20px; grid-template-columns: repeat(3, 1fr); gap: 15px; align-items: start;">
+            <div class="selector-item" style="display: flex; flex-direction: column; height: 100%;">
+                <h3 style="margin: 0 0 10px 0; padding: 0; font-size: 18px; font-weight: bold; line-height: 1.4; min-height: 50px; display: flex; align-items: flex-start;">10. Rent ($)</h3>
+                <input type="number" id="monthlyRentInput" placeholder="Enter amount" step="0.01" style="padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; width: 100%; box-sizing: border-box; height: 48px; margin: 0;">
+            </div>
+            <div class="selector-item" style="display: flex; flex-direction: column; height: 100%;">
+                <h3 style="margin: 0 0 10px 0; padding: 0; font-size: 18px; font-weight: bold; line-height: 1.4; min-height: 50px; display: flex; align-items: flex-start;">Payment Frequency</h3>
+                <select id="rentFrequencySelect" style="padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; width: 100%; box-sizing: border-box; height: 48px; margin: 0; appearance: none; background-color: white;">
+                    <option value="">-- Select Frequency --</option>
+                    <option value="Monthly" selected>Monthly</option>
+                    <option value="Weekly">Weekly</option>
+                    <option value="Bi-weekly">Bi-weekly</option>
+                    <option value="Lumpsum for the Period">Lumpsum for the Period</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="selector-item" style="display: flex; flex-direction: column; height: 100%;">
+                <h3 style="margin: 0 0 10px 0; padding: 0; font-size: 18px; font-weight: bold; line-height: 1.4; min-height: 50px; display: flex; align-items: flex-start;">15. Security/Damage Deposit ($)</h3>
+                <input type="number" id="securityDepositInput" placeholder="Enter amount" step="0.01" style="padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; width: 100%; box-sizing: border-box; height: 48px; margin: 0;">
+            </div>
+        </div>
+
+        <!-- PARKING FIELD -->
+        <h3>13D. Parking</h3>
+        <div class="selector-group" style="margin-bottom: 20px;">
+            <div class="selector-item">
+                <select id="parkingInput" style="padding: 12px 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; width: 100%;">
+                    <option value="">-- Select Parking Option --</option>
+                    <option value="Only one car can be parked on driveway, no guest parking allowed on driveway.">Only one car can be parked on driveway, no guest parking allowed on driveway.</option>
+                    <option value="Each tenant on this lease can park one car on driveway, no guest parking allowed on driveway.">Each tenant on this lease can park one car on driveway, no guest parking allowed on driveway.</option>
+                    <option value="Parking spot is not allocated, no guest parking allowed on driveway.">Parking spot is not allocated, no guest parking allowed on driveway.</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- BUTTON CONTAINER -->
+    <div class="button-container">
+        <button class="pdf-button" onclick="generatePDF()">📄 Generate PDF</button>
+        <button class="pdf-button" onclick="finalizeLease()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">✅ Finalize Lease</button>
+    </div>
+</div>
+
+<!-- ALL FORM P CONTENT -->
+<div id="pdfContent">
+
+<!-- ================= PAGE 1 ================= -->
+
+<div class="page" data-page="1" style="padding-top: 5mm;">
+    <!-- Official Form P header as single image (left aligned) -->
+    <div class="ns-form-header">
+        <!-- Header image is now in ClearView_Icons_Images folder -->
+        <img src="ClearView_Icons_Images/formp-header.png" alt="Nova Scotia - Form P: Standard Form of Lease" class="ns-form-header-image">
+    </div>
+
+    <div class="headerTagBox">
+        <div id="leaseTag" style="margin-top: 0; margin-bottom: 0;">PROPERTY — TENANTS HERE</div>
+        <div class="leaseDatesTag"></div>
+    </div>
+
+    <div class="section-title" style="margin-top: 3px;">1. Parties</div>
+    <div style="margin-bottom: 5px;">
+        <div style="font-weight: bold; margin-bottom: 3px;">(A) Landlord Details:</div>
+        <div class="emergency-field-group" style="grid-template-columns: 1fr 1fr; margin-bottom: 5px;">
+            <div class="emergency-field-item">
+                <label>Name</label>
+                <div class="input-line" id="landlordNameDisplay"></div>
+            </div>
+            <div class="emergency-field-item">
+                <label>Address</label>
+                <div class="input-line" id="landlordAddressDisplay"></div>
+            </div>
+        </div>
+        <div style="font-weight: bold; margin-top: 8px; margin-bottom: 3px;">(B) Tenant Names:</div>
+        <div id="tenantNamesContainer"></div>
+    </div>
+
+    <div class="section-title" style="margin-top: 5px;">2. Occupants</div>
+    <div class="input-line" id="occupantsField" style="margin-bottom: 3px;"> </div>
+    <div class="info-label" style="margin-bottom: 3px;">Only those tenants and occupants named are allowed to live in the premises without written consent of the landlord.</div>
+
+    <div class="emergency-field-group" style="grid-template-columns: 1fr 1fr;">
+        <div class="emergency-field-item">
+            <div class="section-title" style="font-size: 16px; margin-top: 8px; margin-bottom: 3px;">3A. Property Address</div>
+    <div class="input-line" id="premisesField"> </div>
+        </div>
+        <div class="emergency-field-item">
+            <div class="section-title" style="font-size: 16px; margin-top: 8px; margin-bottom: 3px;">3B. Type of Rental</div>
+    <div class="input-line" id="propertyTypeField"> </div>
+        </div>
+    </div>
+
+    <div class="section-title" style="margin-top: 5px;">4. Emergency Contact</div>
+    <div class="emergency-field-group" style="margin-bottom: 3px;">
+        <div class="emergency-field-item">
+            <label>Name</label>
+            <input type="text" id="emergencyNameField" placeholder="Emergency Contact Name">
+        </div>
+        <div class="emergency-field-item">
+            <label>Email</label>
+            <input type="email" id="emergencyEmailField" placeholder="Emergency Contact Email">
+        </div>
+        <div class="emergency-field-item">
+            <label>Phone</label>
+            <input type="tel" id="emergencyPhoneField" placeholder="Emergency Contact Phone">
+        </div>
+    </div>
+
+    <div class="emergency-field-group" style="grid-template-columns: 1fr 1fr;">
+        <div class="emergency-field-item">
+            <div class="section-title" style="font-size: 16px; margin-top: 8px; margin-bottom: 3px;">5. Property Manager</div>
+            <div class="input-line" id="managerField"></div>
+        </div>
+        <div class="emergency-field-item">
+            <div class="section-title" style="font-size: 16px; margin-top: 8px; margin-bottom: 3px;">6. Superintendent</div>
+            <div class="input-line" id="superField"></div>
+        </div>
+    </div>
+
+    <div class="section-title" style="margin-top: 5px;">7A. Electronic Address (Landlord to Tenant)</div>
+    <div id="emailLTContainer" style="margin-bottom: 3px;"></div>
+    <div class="info-label" style="margin-bottom: 0;">The tenant(s) may change the electronic address by serving written notice of the new electronic address to the landlord in accordance with subsection 15(1) of the Act. If the tenant provides an electronic address under this clause, the landlord may use this electronic address to serve to the tenant any Notice to Quit or other documents under the Act, including Applications to the Director.</div>
+
+    <div class="page-footer">
+        <div class="page-footer-left">2023-10 Form P Residential Tenancies Program 1-800-670-4357 www.novascotia.ca/rta</div>
+        <div class="page-footer-right">Page <span class="page-number">1</span>/<span class="total-pages">7</span></div>
+    </div>
+</div>
+
+<!-- ================= PAGE 2 ================= -->
+
+<div class="page" data-page="2">
+    <div class="headerTagBox">
+    <div id="leaseTag">PROPERTY — TENANTS HERE</div>
+        <div class="leaseDatesTag"></div>
+    </div>
+
+    <div class="section-title" style="margin-top: 5px;">7B. Electronic Address (Tenant to Landlord)</div>
+    <div class="input-line" id="emailTL">omagarwal.properties@gmail.com</div>
+    <div class="info-label" style="margin-bottom: 5px;">The landlord may change the electronic address by serving written notice of the new electronic address on at least one of the tenants listed in this lease in accordance with subsection 15(2) of the act. If the landlord provides an electronic address under this clause, the tenant may use this electronic address to serve the landlord any Notice to Quit or other documents under the act, including Applications to the Director.</div>
+
+    <div class="section-title" style="margin-top: 5px;">7C. How to Serve Notice</div>
+    <div class="input-line" id="serveField">All Notices to Quit or service of documents, except Applications to the Director, must be in writing and served in accordance with Section 15 of the Act.<br>Applications to the Director must be served in accordance with subsections 13(2A), (2B) and (2C) of the Act.</div>
+
+    <div class="emergency-field-group" style="grid-template-columns: 1fr 1fr; margin-top: 5px;">
+        <div class="emergency-field-item">
+            <div class="section-title" style="font-size: 16px; margin-top: 0; margin-bottom: 5px;">8A. Periodic Lease</div>
+            <div class="input-line">NOT APPLICABLE</div>
+        </div>
+        <div class="emergency-field-item">
+            <div class="section-title" style="font-size: 16px; margin-top: 0; margin-bottom: 5px;">8B. Fixed-Term Lease Dates</div>
+            <div class="emergency-field-group" style="grid-template-columns: 1fr 1fr; margin-top: 0;">
+                <div class="emergency-field-item" style="padding: 0;">
+                    <label style="font-size: 14px; margin-bottom: 3px;">Start Date</label>
+                    <div class="input-line" id="leaseStartDateDisplay"></div>
+                </div>
+                <div class="emergency-field-item" style="padding: 0;">
+                    <label style="font-size: 14px; margin-bottom: 3px;">End Date</label>
+                    <div class="input-line" id="leaseEndDateDisplay"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="info-label" style="margin-top: 5px; margin-bottom: 5px;">Any continuation of the tenancy at the end of a fixed-term requires the written consent of the landlord. At the end of the fixed-term, the tenancy is finished and the tenant must vacate.</div>
+
+    <div class="section-title" style="margin-top: 5px;">9. Public Housing</div>
+    <div class="input-line">NOT APPLICABLE</div>
+
+    <div class="section-title" style="margin-top: 5px;">10. Rent</div>
+    <div class="formatted-text" id="rentFieldCombined" style="padding: 5px 0; margin-bottom: 5px;"></div>
+    <div class="info-label" style="margin-bottom: 5px;">A late payment fee, if any, will be charged at no more than 1% per month of the monthly rental.</div>
+
+    <div class="section-title" style="margin-top: 5px;">11. Rent Increases</div>
+    <div class="formatted-text" style="padding: 3px 0; font-size: 11px; line-height: 1.4;">
+        <div class="paragraph" style="margin-bottom: 3px;"><span class="bold">The landlord shall not increase the rent under this lease for 12 months.</span></div>
+        <div class="paragraph" style="margin-bottom: 3px;"><span class="bold">The landlord shall not give a notice of rent increase that provides for a different rent increase amount if the lease is renewed for a different type of term.</span></div>
+        <div class="paragraph" style="margin-bottom: 3px;"><span class="bold">The landlord must give a written notice to the tenant of an increase:</span></div>
+        <div class="list-item" style="margin-bottom: 1px;">(a) 4 months before the the effective date of the increase for a month-to-month or year-to-year lease</div>
+        <div class="list-item" style="margin-bottom: 1px;">(b) 8 weeks before the the effective date of the increase for a week-to-week lease</div>
+        <div class="list-item" style="margin-bottom: 3px;">(c) 7 months before the anniversary date of a manufactured home space lease</div>
+        <div class="paragraph" style="margin-bottom: 3px;"><span class="bold">Note:</span> The landlord may select a date to be the annual rent increase date for all manufactured home spaces owned or managed by the landlord. If an annual rent increase date is used, notice must be given 7 months before this date. The landlord must serve the notice of rent increase on the tenants of the land-lease community.</div>
+        <div class="paragraph" style="margin-bottom: 0;"><span class="bold">If the landlord administers a public housing program and the amount of the tenant's rent is increased solely on the basis of an increase in income, the restrictions on frequency of rental increases and notice requirements do not apply.</span></div>
+    </div>
+
+    <div class="page-footer">
+        <div class="page-footer-left">2023-10 Form P Residential Tenancies Program 1-800-670-4357 www.novascotia.ca/rta</div>
+        <div class="page-footer-right">Page <span class="page-number">2</span>/<span class="total-pages">7</span></div>
+    </div>
+</div>
+
+<!-- ================= PAGE 3 ================= -->
+
+<div class="page" data-page="3">
+    <div class="headerTagBox">
+    <div id="leaseTag">PROPERTY — TENANTS HERE</div>
+        <div class="leaseDatesTag"></div>
+    </div>
+
+    <div class="section-title">12. Rental Incentives</div>
+    <div class="formatted-text" style="padding: 5px 0;">
+        <div class="paragraph" style="margin-bottom: 3px;">In signing this lease, the landlord grants to the tenant the following incentives, which will remain in effect for the duration of the lease:</div>
+        <div class="input-line" style="margin-top: 5px; margin-bottom: 5px;">All Utilities are included in monthly rent</div>
+        <div class="info-label" style="margin-top: 5px; margin-bottom: 3px;">The tenant is not required to repay or return any rental incentive if he or she terminate the lease before the end of the term in accordance with the Residential Tenancies Act or sublets or assigns the residential premises to a tenant with the consent of the landlord.</div>
+    </div>
+
+    <div class="section-title" style="margin-top: 5px;">13. Rent Includes</div>
+    
+    <div class="section-title" style="font-size: 16px; margin-top: 3px;">13A. Appliances:</div>
+    <div class="input-line" style="margin-bottom: 3px;">Stove, Refrigerator, Washer & Dryer, Microwave, and Furniture.</div>
+
+    <div class="emergency-field-group" style="grid-template-columns: 1fr 1fr;">
+        <div class="emergency-field-item">
+            <div class="section-title" style="font-size: 16px; margin-top: 3px; margin-bottom: 3px;">13B. Utilities:</div>
+    <div class="input-line">Heat, Water, Hot Water, Electricity, Wifi</div>
+        </div>
+        <div class="emergency-field-item">
+            <div class="section-title" style="font-size: 16px; margin-top: 3px; margin-bottom: 3px;">13C. Others:</div>
+    <div class="input-line">Lawn care</div>
+        </div>
+    </div>
+
+    <div class="section-title" style="font-size: 16px; margin-top: 3px;">13D. Parking:</div>
+    <div class="input-line" id="parkingField" style="margin-bottom: 3px;"></div>
+    
+    <div class="info-label" style="margin-top: 3px; margin-bottom: 3px;">The landlord is responsible for providing these services and the discontinuance of a service is deemed to be a rental increase.</div>
+
+    <div class="section-title" style="font-size: 16px; margin-top: 3px;">13E. <span class="bold">The tenant is responsible for the following:</span></div>
+    <div class="formatted-text" style="padding: 3px 0;">
+        <div class="list-item" style="margin-bottom: 1px;"><span class="bold">Late payment charges</span></div>
+        <div class="list-item" style="margin-bottom: 1px;"><span class="bold">Snow removal</span></div>
+        <div class="list-item" style="margin-bottom: 1px;"><span class="bold">Tenant Insurance</span></div>
+        <div class="list-item" style="margin-bottom: 1px;"><span class="bold">Garbage removal and separation of recyclables, organics and refuse</span></div>
+        <div class="list-item" style="margin-bottom: 1px;"><span class="bold">Returned cheque charges (not to exceed $75)</span></div>
+        <div class="list-item" style="margin-bottom: 1px;"><span class="bold">Assignment/sublet expenses incurred (not to exceed $75)</span></div>
+        <div class="list-item" style="margin-bottom: 1px;"><span class="bold">Locked out charges/Lost keys (not to exceed $50)</span></div>
+    </div>
+
+    <div class="section-title" style="margin-top: 5px;">14. Additional Obligations</div>
+    <div class="formatted-text" style="padding: 3px 0;">
+        <div class="paragraph" style="text-align: justify; margin-bottom: 3px;">1. The tenant(s) is/are solely responsible for snow cleanup, shoveling, and salting of all staircases, walkways, and driveways associated with the rental unit.</div>
+        <div class="paragraph" style="text-align: justify; margin-bottom: 3px;">2. Follow the municipal (HRM) guidelines to properly separate your garbage, recycling, and organics.</div>
+        <div class="paragraph" style="text-align: justify; margin-bottom: 3px;">3. Laundry and Utility room in the basement and will remain shareble among all tenants.</div>
+        <div class="paragraph" style="text-align: justify; margin-bottom: 3px;">4. Guest Parking is not allowed at any time on driveway.</div>
+        <div class="paragraph" style="text-align: justify; margin-bottom: 3px;">5. Wifi is provided for shared use within the house and not recomended to use it for "WORK FROM HOME".</div>
+    </div>
+
+    <div style="margin-top: 8px; margin-bottom: 10px; font-size: 12px; font-weight: bold; display: flex; align-items: flex-start; gap: 8px; flex-wrap: nowrap;">
+        <div style="white-space: nowrap;">Tenants on lease to sign:</div>
+        <div id="page3TenantNames" style="display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap;"></div>
+    </div>
+
+    <div class="page-footer">
+        <div class="page-footer-left">2023-10 Form P Residential Tenancies Program 1-800-670-4357 www.novascotia.ca/rta</div>
+        <div class="page-footer-right">Page <span class="page-number">3</span>/<span class="total-pages">7</span></div>
+    </div>
+</div>
+
+<!-- ================= PAGE 4 ================= -->
+
+<div class="page" data-page="4">
+    <div class="headerTagBox">
+    <div id="leaseTag">PROPERTY — TENANTS HERE</div>
+        <div class="leaseDatesTag"></div>
+    </div>
+
+    <div class="section-title">15. Security/Damage Deposit</div>
+    <div class="input-line" id="depositField"></div>
+    <div class="info-label" style="margin-top: 5px;">This security/damage deposit will be deposited in a trust account within 3 days of its receipt, and will be returned to the tenant with interest within 10 days of the termination of this lease.<br>The landlord shall file a claim for unpaid rent and/or damages within 10 days of the termination of the lease if the deposit is not returned.</div>
+
+    <div class="section-title">16. Inspection</div>
+    <div class="input-line">
+        Move-in inspection form attached and signed by tenants.
+    </div>
+    <div class="info-label" style="margin-top: 5px;">An inspection of the premises and the preparation of a written inspection report signed by the landlord and tenant no later than 7 days after the start of the tenancy and no later than 7 days after the end of the tenancy is recommended. If a report is prepared it forms part of the lease.<br>An inspection report is attached to the lease.</div>
+
+    <div class="section-title">17A. Statutory Conditions</div>
+    <div class="input-line">
+        As per Residential Tenancies Act.
+    </div>
+    <div class="info-label" style="margin-top: 5px;">The landlord and tenant promise to comply with the statutory conditions set out in Schedule A.</div>
+
+    <div class="section-title">17B. Assigning & Subletting</div>
+    <div class="input-line" id="subletField">The tenant cannot sublet the premises.</div>
+    <div class="info-label" style="margin-top: 5px;">The tenant may assign or sublet the premises, <u>subject to the consent of the landlord</u>. The landlord may not arbitrarily or unreasonably withhold consent or charge for consent unless the landlord has actually incurred expense in granting the consent.</div>
+
+    <div class="section-title" style="margin-top: 5px;">18. Rental Arrears</div>
+    <div class="formatted-text" style="padding: 10px 0; font-size: 13px;">
+        <div class="paragraph" style="text-align: justify; margin-bottom: 10px;">A landlord may give a Notice to Quit where the tenant has not paid rent on or before the 15<sup>th</sup> day after the rent is due, or on or after the 16<sup>th</sup> day after the rent is due, in a fixed-term, year-to-year or month-to-month tenancy. The Notice to Quit becomes effective not earlier than the 15<sup>th</sup> day after it is given to the tenant. Not later than 15 days after receiving the Notice to Quit, the tenant may</div>
+        <div class="paragraph" style="text-align: justify; margin-bottom: 10px;">(a) pay the landlord the rent that is in arrears, in which case the Notice to Quit becomes void and of no effect and the lease continues, or<br>(b) apply to the Director for an order setting aside the Notice to Quit.</div>
+        <div class="paragraph" style="text-align: justify; margin-bottom: 10px;">If the tenant does not pay the rental arrears or make an Application to the Director by the end of the 15<sup>th</sup> day after receiving the Notice to Quit, the tenancy is terminated and the tenant must vacate the premises by the effective date of the notice.</div>
+        <div class="paragraph" style="text-align: justify;">A landlord may give a Notice to Quit where the tenant has not paid rent on or before the 7<sup>th</sup> day after the rent is due, or on or after the 8<sup>th</sup> day after the rent is due, in a week-to-week tenancy. The Notice to Quit becomes effective not earlier than the 7<sup>th</sup> day after it is given to the tenant.</div>
+    </div>
+
+    <div class="page-footer">
+        <div class="page-footer-left">2023-10 Form P Residential Tenancies Program 1-800-670-4357 www.novascotia.ca/rta</div>
+        <div class="page-footer-right">Page <span class="page-number">4</span>/<span class="total-pages">7</span></div>
+    </div>
+</div>
+
+<!-- ================= PAGE 5 ================= -->
+
+<div class="page" data-page="5">
+    <div class="headerTagBox">
+    <div id="leaseTag">PROPERTY — TENANTS HERE</div>
+        <div class="leaseDatesTag"></div>
+    </div>
+
+    <div class="section-title">19. Tenant Notice to Quit</div>
+    <div class="formatted-text" style="padding: 10px 0;">
+        <div class="list-item" style="text-align: justify; margin-bottom: 5px;">The notice must cover a full month.</div>
+        <div class="list-item" style="text-align: justify; margin-bottom: 5px;">The move-out date must be the last day of a rental month.</div>
+        <div class="list-item" style="text-align: justify;">If the notice is given after the rental month has already started, the notice applies to the next month.</div>
+    </div>
+
+    <div class="section-title">20. Landlord Notice to Quit</div>
+    <div class="formatted-text" style="padding: 10px 0;">
+        <div class="paragraph" style="text-align: justify; font-size: 12.5px;">A landlord may not give a notice to quit except in accordance with Section 10 of the Residential Tenancies Act.</div>
+    </div>
+
+    <div class="section-title">21. General</div>
+    <div class="formatted-text" style="padding: 10px 0;">
+        <div class="paragraph" style="text-align: justify;">This lease is for the benefit of and is binding on the landlord and tenant and their heirs, executors, administrators, assigns and personal representatives.</div>
+    </div>
+
+    <div class="section-title">22A. Tenants responsible for complying with terms and conditions</div>
+    <div id="tenantSignaturesContainer"></div>
+    <div class="info-label" style="margin-top: 10px; font-size: 13px; font-weight: bold; white-space: nowrap; text-align: center;">Any or all tenants signing this lease take full responsibility for complying with all of its terms and conditions.</div>
+
+    <div class="section-title" style="margin-top: 15px;">22B. Manager's/Landlord's Signature</div>
+    <div id="managerSignatureContainer"></div>
+    <div class="info-label" style="margin-top: 10px;">Two copies of lease are signed. Paper copy is provided to tenant(s).</div>
+
+    <div class="page-footer">
+        <div class="page-footer-left">2023-10 Form P Residential Tenancies Program 1-800-670-4357 www.novascotia.ca/rta</div>
+        <div class="page-footer-right">Page <span class="page-number">5</span>/<span class="total-pages">7</span></div>
+    </div>
+    </div>
+
+<!-- ================= PAGE 6 - INSPECTION REPORT ================= -->
+
+<div class="page" data-page="6">
+    <div class="headerTagBox">
+    <div id="leaseTag">PROPERTY — TENANTS HERE</div>
+        <div class="leaseDatesTag"></div>
+    </div>
+
+    <div class="section-title" style="font-size: 13px; margin-bottom: 3px; margin-top: 0;">Residential Tenancies - Rental Unit Condition Report</div>
+    <div style="font-size: 10px; margin-bottom: 3px; font-style: italic; line-height: 1.3;">Use this report to create a detailed description of the condition of the premises at the start and the end of the lease. It will benefit both the landlord and the tenant at the end of the lease agreement.</div>
+    
+    <!-- Abbreviations Legend -->
+    <div style="margin-top: 2px; margin-bottom: 2px;">
+        <div style="background-color: #800020; color: white; padding: 2px 3px; font-size: 9px; font-weight: bold; text-align: center; line-height: 1.3;"><strong class="flashing-text">Conditional Codes: B: Broken, M: Missing, D: Damaged, G: Good, S: Scratched/Marked</strong></div>
+        <div style="background-color: #800020; color: white; padding: 2px 3px; font-size: 9px; font-weight: bold; text-align: center; line-height: 1.3;"><strong class="flashing-text">Cleanliness Codes: C: Clean, DT: Dirty, ST: Stained</strong></div>
+    </div>
+    
+    <div id="inspectionReportContainer" style="margin-bottom: 0; max-height: 260mm; overflow: hidden;">
+        <!-- Inspection report content from Excel will be inserted here -->
+    </div>
+
+    <div class="page-footer">
+        <div class="page-footer-left">2023-10 Form P Residential Tenancies Program 1-800-670-4357 www.novascotia.ca/rta</div>
+        <div class="page-footer-right">Page <span class="page-number">6</span>/<span class="total-pages">7</span></div>
+    </div>
+</div>
+
+<!-- ================= PAGE 7 - INSPECTION ACKNOWLEDGMENT ================= -->
+
+<div class="page" data-page="7">
+    <div class="headerTagBox">
+    <div id="leaseTag">PROPERTY — TENANTS HERE</div>
+        <div class="leaseDatesTag"></div>
+    </div>
+
+    <div class="formatted-text" style="padding: 5px 0; font-size: 15px; text-align: justify; line-height: 1.3; margin-top: 15px;">
+        <div class="paragraph" style="margin-bottom: 6px;">I hereby acknowledge and agree that upon taking possession of the premises, the Landlord and I have conducted a thorough inspection and found the property, including all electrical systems, plumbing ﬁxtures, and appliances, to be in good working order, except as explicitly noted in the accompanying inspection report. This acknowledgment covers all rooms and facilities, including living areas, kitchen appliances, bathroom ﬁxtures, and heating and cooling systems.</div>
+        <div class="paragraph" style="margin-bottom: 6px;">I understand and accept that it is my responsibility to maintain the premises in the condition it was received, barring normal wear and tear. In the event that any damage occurs to the property as a result of my actions or negligence, or that of my guests, whether directly or indirectly, I understand that it is my responsibility to cover the full cost of necessary repairs and maintenance. This includes, but is not limited to, structural damages, damage to ﬁxtures and appliances, and any harm caused by misuse or neglect.</div>
+        <div class="paragraph" style="margin-bottom: 6px;">Speciﬁcally, I conﬁrm that all sinks, toilets, and drains are currently in good working order. I acknowledge that any blockages or plumbing issues arising from my negligence or improper use will be rectiﬁed by the landlord, with all associated costs billed to me. This includes costs related to professional services, parts, and any additional labor required to restore the plumbing to its proper function.</div>
+        <div class="paragraph" style="margin-bottom: 6px;">Furthermore, I understand that the landlord's property insurance policy does not extend coverage to my personal belongings. It is my responsibility to secure renter's insurance to protect my personal property against loss or damage due to theft, ﬁre, ﬂood, or other risks. Additionally, I recognize that I am not indemniﬁed under the landlord's insurance for any damages I may cause to the landlord's property or to adjacent properties.</div>
+        <div class="paragraph" style="margin-bottom: 6px;">Should my negligence result in incidents such as a ﬂood or ﬁre, I am aware that I will be held ﬁnancially responsible for the repair and restitution costs to restore the damaged property, including potential damages to neighboring units or properties.</div>
+        <div class="paragraph" style="margin-bottom: 10px;">By signing this agreement, I agree to fulﬁll these responsibilities and to act in a way that prevents damage and ensures the premises remain safe and well-maintained.</div>
+    </div>
+
+    <div id="inspectionSignaturesContainer" style="margin-top: 20px;">
+        <!-- Tenant signatures will be inserted here -->
+    </div>
+    <div style="margin-top: 15px;">
+        <div class="input-line" style="margin-bottom: 5px; font-size: 15px;">Date (YYYY-MM-DD): _____________________________</div>
+    </div>
+
+    <div class="page-footer">
+        <div class="page-footer-left">2023-10 Form P Residential Tenancies Program 1-800-670-4357 www.novascotia.ca/rta</div>
+        <div class="page-footer-right">Page <span class="page-number">7</span>/<span class="total-pages">7</span></div>
+    </div>
+</div>
+
+</div> <!-- end pdfContent -->
+
+<!-- BOTTOM PDF BUTTON -->
+<div class="button-container">
+    <button class="pdf-button" onclick="generatePDF()">📄 Generate PDF</button>
+    <button class="pdf-button" onclick="generateExcelTemplate()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">📊 Download Excel Template</button>
+    <button class="pdf-button" onclick="finalizeLease()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">✅ Finalize Lease</button>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+
+let masterData = {};
+let inspectionReportData = null; // Store inspection report workbook for export
+
+// ====== HELPER FUNCTION: Add superscripts to duplicate tenant names ======
+// Superscript characters: ¹, ², ³, ⁴, ⁵, ⁶, ⁷, ⁸, ⁹, ¹⁰, etc.
+function addSuperscriptsToDuplicateNames(tenants) {
+    if (!tenants || tenants.length === 0) return tenants;
+    
+    // Create a map to track name occurrences
+    const nameCount = {};
+    const nameIndex = {};
+    
+    // First pass: count occurrences of each name
+    tenants.forEach(tenant => {
+        const name = (tenant.name || "").trim();
+        if (name) {
+            nameCount[name] = (nameCount[name] || 0) + 1;
+        }
+    });
+    
+    // Second pass: add superscripts to duplicates
+    const superscriptChars = ['¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹', '¹⁰', '¹¹', '¹²'];
+    
+    return tenants.map(tenant => {
+        const originalName = (tenant.name || "").trim();
+        if (!originalName) return tenant;
+        
+        // Only add superscript if name appears more than once
+        if (nameCount[originalName] > 1) {
+            // Initialize index for this name if not exists
+            if (nameIndex[originalName] === undefined) {
+                nameIndex[originalName] = 0;
+            }
+            nameIndex[originalName]++;
+            
+            // Get superscript character (1-based index)
+            const superscriptIndex = nameIndex[originalName] - 1;
+            const superscript = superscriptIndex < superscriptChars.length 
+                ? superscriptChars[superscriptIndex] 
+                : `⁽${nameIndex[originalName]}⁾`;
+            
+            return {
+                ...tenant,
+                name: originalName + superscript
+            };
+        }
+        
+        return tenant;
+    });
+}
+
+// ====== NORMALIZED DATA CONVERSION FUNCTIONS ======
+// Convert normalized Excel sheets to flat key-value format
+function convertNormalizedToFlat(propertySheet, tenantSheet, managerSuperSheet) {
+    const flatMap = {};
+    
+    // Convert Property sheet
+    if (propertySheet && propertySheet.length > 1) {
+        // Find header row (typically first row, but might have empty rows)
+        let headerRowIdx = 0;
+        for (let i = 0; i < Math.min(5, propertySheet.length); i++) {
+            const row = propertySheet[i];
+            if (row && row.some(cell => cell && String(cell).trim().length > 0)) {
+                const rowText = row.map(c => String(c || '').toLowerCase()).join(' ');
+                // Look for property-related headers
+                if (rowText.includes('property') || rowText.includes('tag') || rowText.includes('landlord') || 
+                    (rowText.includes('name') && rowText.includes('address'))) {
+                    headerRowIdx = i;
+                    break;
+                }
+            }
+        }
+        // If no header found, assume first non-empty row is header
+        if (headerRowIdx === 0 && propertySheet[0] && propertySheet[0].some(cell => cell && String(cell).trim().length > 0)) {
+            headerRowIdx = 0;
+        }
+        
+        const headers = propertySheet[headerRowIdx] || [];
+        // Property sheet structure: Property_Tag, Property_Address, Landlord_Name, Landlord_Address, Landlord_Phone
+        const propTagIdx = headers.findIndex(h => h && /property.*tag|^tag$/i.test(String(h)));
+        // Handle both "Property_Address" and typo "Propert_Address"
+        const propAddrIdx = headers.findIndex(h => h && /propert.*address|^address$/i.test(String(h)) && !/landlord/i.test(String(h)));
+        const landlordNameIdx = headers.findIndex(h => h && /landlord.*name/i.test(String(h)));
+        const landlordAddrIdx = headers.findIndex(h => h && /landlord.*address/i.test(String(h)));
+        const landlordPhoneIdx = headers.findIndex(h => h && /landlord.*phone/i.test(String(h)));
+        
+        // If we can't find specific columns, try to infer from position
+        const dataStartRow = headerRowIdx + 1;
+        for (let i = dataStartRow; i < propertySheet.length; i++) {
+            const row = propertySheet[i];
+            if (!row || row.length === 0) continue;
+            
+            // Skip empty rows
+            if (!row.some(cell => cell && String(cell).trim().length > 0)) continue;
+            
+            // Extract data - Expected order: Property_Tag, Property_Address, Landlord_Name, Landlord_Address, Landlord_Phone
+            let propTag = '';
+            let propAddr = '';
+            let landlordName = '';
+            let landlordAddr = '';
+            let landlordPhone = '';
+            
+            // Property_Tag is typically column 0 (first column)
+            if (propTagIdx >= 0 && row[propTagIdx]) {
+                propTag = String(row[propTagIdx]).trim();
+            } else if (row[0]) {
+                propTag = String(row[0]).trim();
+            }
+            
+            // Property_Address is typically column 1
+            if (propAddrIdx >= 0 && row[propAddrIdx]) {
+                propAddr = String(row[propAddrIdx]).trim();
+            } else if (row[1]) {
+                propAddr = String(row[1]).trim();
+            }
+            
+            // Landlord_Name is typically column 2
+            if (landlordNameIdx >= 0 && row[landlordNameIdx]) {
+                landlordName = String(row[landlordNameIdx]).trim();
+            } else if (row[2]) {
+                landlordName = String(row[2]).trim();
+            }
+            
+            // Landlord_Address is typically column 3
+            if (landlordAddrIdx >= 0 && row[landlordAddrIdx]) {
+                landlordAddr = String(row[landlordAddrIdx]).trim();
+            } else if (row[3]) {
+                landlordAddr = String(row[3]).trim();
+            }
+            
+            // Landlord_Phone is typically column 4
+            if (landlordPhoneIdx >= 0 && row[landlordPhoneIdx]) {
+                landlordPhone = String(row[landlordPhoneIdx]).trim();
+            } else if (row[4]) {
+                landlordPhone = String(row[4]).trim();
+            }
+            
+            // Use Property_Tag as the identifier (key) instead of Property_Letter
+            // Add property if we have at least one field (tag, address, or landlord name)
+            if (propTag || propAddr || landlordName) {
+                // Sanitize Property_Tag to use as key (remove special chars, spaces)
+                const tagKey = propTag ? propTag.replace(/[^A-Za-z0-9]/g, '_') : `PROP_${i - dataStartRow}`;
+                
+                // Store Property_Address
+                if (propAddr) {
+                    flatMap[`Property_${tagKey}_Address`] = propAddr;
+                }
+                // Property_${tagKey} contains the property address (for display in selector)
+                const propertyValue = propAddr || propTag || landlordName || "";
+                flatMap[`Property_${tagKey}`] = propertyValue;
+                // Store the original Property_Tag
+                if (propTag) {
+                    flatMap[`Property_${tagKey}_Tag`] = propTag;
+                }
+                // Store landlord information keyed by Property_Tag
+                if (landlordName) {
+                    flatMap[`Landlord_${tagKey}_Name`] = landlordName;
+                    if (landlordAddr) flatMap[`Landlord_${tagKey}_Address`] = landlordAddr;
+                    if (landlordPhone) flatMap[`Landlord_${tagKey}_Phone`] = landlordPhone;
+                }
+            }
+        }
+    }
+    
+    // Convert Tenant sheet
+    if (tenantSheet && tenantSheet.length > 1) {
+        // Find header row
+        let headerRowIdx = 0;
+        for (let i = 0; i < Math.min(3, tenantSheet.length); i++) {
+            const row = tenantSheet[i];
+            if (row && row.some(cell => cell && String(cell).trim().length > 0)) {
+                const rowText = row.map(c => String(c || '').toLowerCase()).join(' ');
+                if (rowText.includes('tenant') || rowText.includes('name') || rowText.includes('email') || rowText.includes('phone')) {
+                    headerRowIdx = i;
+                    break;
+                }
+            }
+        }
+        
+        const headers = tenantSheet[headerRowIdx] || [];
+        const tenantIdIdx = headers.findIndex(h => h && /id|tenant_id/i.test(String(h)));
+        // Name can be "Name", "Tenant_Name", or similar - match any column with "name" that's not email/phone
+        const nameIdx = headers.findIndex(h => {
+            const hStr = String(h || '').trim().toLowerCase();
+            return hStr && /name/i.test(hStr) && !/email|phone/i.test(hStr);
+        });
+        // Email can be "Email", "Tenant_Email", or similar
+        const emailIdx = headers.findIndex(h => {
+            const hStr = String(h || '').trim().toLowerCase();
+            return hStr && /email/i.test(hStr);
+        });
+        // Phone can be "Phone", "Tenant_Phone", or similar
+        const phoneIdx = headers.findIndex(h => {
+            const hStr = String(h || '').trim().toLowerCase();
+            return hStr && /phone/i.test(hStr) && !/email/i.test(hStr);
+        });
+        // Address can be "Address", "Old_Address", "Tenant_Old_Address", or similar
+        const addressIdx = headers.findIndex(h => {
+            const hStr = String(h || '').trim().toLowerCase();
+            return hStr && /address|old_address/i.test(hStr);
+        });
+        // Job can be "Job", "Job_Desc", "Tenant_Job_Desc", "Occupation", or similar
+        const jobIdx = headers.findIndex(h => {
+            const hStr = String(h || '').trim().toLowerCase();
+            return hStr && /job|occupation|desc/i.test(hStr);
+        });
+        
+        const dataStartRow = headerRowIdx + 1;
+        let tenantCounter = 1;
+        for (let i = dataStartRow; i < tenantSheet.length; i++) {
+            const row = tenantSheet[i];
+            if (!row || row.length === 0) continue;
+            
+            // Skip empty rows
+            if (!row.some(cell => cell && String(cell).trim().length > 0)) continue;
+            
+            let tenantId = '';
+            if (tenantIdIdx >= 0 && row[tenantIdIdx]) {
+                tenantId = String(row[tenantIdIdx]).trim();
+            }
+            if (!tenantId) tenantId = String(tenantCounter++);
+            
+            // Try column indices first, then fallback to positional
+            // Expected order: Tenant_ID, Name, Email, Phone, Old_Address, Job
+            let name = '';
+            let email = '';
+            let phone = '';
+            let address = '';
+            let job = '';
+            
+            // Name is typically column 1 (after ID in column 0)
+            if (nameIdx >= 0 && row[nameIdx]) {
+                name = String(row[nameIdx]).trim();
+                // Validate it's not an email (contains @)
+                if (name.includes('@')) {
+                    // This might be wrong column, try positional
+                    name = '';
+                }
+            }
+            // Fallback to positional: column 1 should be Name
+            if (!name && row[1] && !String(row[1]).includes('@')) {
+                name = String(row[1]).trim();
+            }
+            
+            // Email is typically column 2
+            if (emailIdx >= 0 && row[emailIdx]) {
+                email = String(row[emailIdx]).trim();
+            } else if (row[2] && String(row[2]).includes('@')) {
+                email = String(row[2]).trim();
+            }
+            
+            // Phone is typically column 3
+            if (phoneIdx >= 0 && row[phoneIdx]) {
+                phone = String(row[phoneIdx]).trim();
+            } else if (row[3] && !String(row[3]).includes('@')) {
+                phone = String(row[3]).trim();
+            }
+            
+            if (addressIdx >= 0 && row[addressIdx]) {
+                address = String(row[addressIdx]).trim();
+            } else if (row[4]) {
+                address = String(row[4]).trim();
+            }
+            
+            if (jobIdx >= 0 && row[jobIdx]) {
+                job = String(row[jobIdx]).trim();
+            } else if (row[5]) {
+                job = String(row[5]).trim();
+            }
+            
+            if (name || email || phone) {
+                flatMap[`Tenant_${tenantId}_Name`] = name;
+                flatMap[`Tenant_${tenantId}_Email`] = email;
+                flatMap[`Tenant_${tenantId}_Phone`] = phone;
+                if (address) flatMap[`Tenant_${tenantId}_Old_Address`] = address;
+                if (job) flatMap[`Tenant_${tenantId}_Job`] = job;
+            }
+        }
+    }
+    
+    // Convert Manager_Superintendent sheet
+    if (managerSuperSheet && managerSuperSheet.length > 1) {
+        // Find header row
+        let headerRowIdx = 0;
+        for (let i = 0; i < Math.min(3, managerSuperSheet.length); i++) {
+            const row = managerSuperSheet[i];
+            if (row && row.some(cell => cell && String(cell).trim().length > 0)) {
+                const rowText = row.map(c => String(c || '').toLowerCase()).join(' ');
+                if (rowText.includes('manager') || rowText.includes('superintendent') || rowText.includes('superintendant') || rowText.includes('suprintendent')) {
+                    headerRowIdx = i;
+                    break;
+                }
+            }
+        }
+        
+        const headers = managerSuperSheet[headerRowIdx] || [];
+        const mgrNameIdx = headers.findIndex(h => h && /manager.*name/i.test(String(h)));
+        const mgrPhoneIdx = headers.findIndex(h => h && /manager.*phone/i.test(String(h)));
+        const supNameIdx = headers.findIndex(h => h && /super.*name|suprintendent.*name/i.test(String(h)));
+        const supPhoneIdx = headers.findIndex(h => h && /super.*phone|suprintendent.*phone/i.test(String(h)));
+        const supAddrIdx = headers.findIndex(h => h && /super.*address|suprintendent.*address/i.test(String(h)));
+        
+        // Expected order: Manager_Name, Manager_Phone, Superintendent_Name, Superintendent_Phone, (Superintendent_Address - optional)
+        
+        // Get first data row after header
+        const dataStartRow = headerRowIdx + 1;
+        for (let i = dataStartRow; i < managerSuperSheet.length; i++) {
+            const row = managerSuperSheet[i];
+            if (!row || row.length === 0) continue;
+            if (!row.some(cell => cell && String(cell).trim().length > 0)) continue;
+            
+            // Try column indices first, then fallback to positional
+            if (mgrNameIdx >= 0 && row[mgrNameIdx]) {
+                flatMap["Manager_Name"] = String(row[mgrNameIdx]).trim();
+            } else if (row[0] && !flatMap["Manager_Name"]) {
+                flatMap["Manager_Name"] = String(row[0]).trim();
+            }
+            
+            if (mgrPhoneIdx >= 0 && row[mgrPhoneIdx]) {
+                flatMap["Manager_Phone"] = String(row[mgrPhoneIdx]).trim();
+            } else if (row[1] && !flatMap["Manager_Phone"]) {
+                flatMap["Manager_Phone"] = String(row[1]).trim();
+            }
+            
+            if (supNameIdx >= 0 && row[supNameIdx]) {
+                flatMap["Superintendent_Name"] = String(row[supNameIdx]).trim();
+            } else if (row[2] && !flatMap["Superintendent_Name"]) {
+                flatMap["Superintendent_Name"] = String(row[2]).trim();
+            }
+            
+            if (supPhoneIdx >= 0 && row[supPhoneIdx]) {
+                flatMap["Superintendent_Phone"] = String(row[supPhoneIdx]).trim();
+            } else if (row[3] && !flatMap["Superintendent_Phone"]) {
+                flatMap["Superintendent_Phone"] = String(row[3]).trim();
+            }
+            
+            if (supAddrIdx >= 0 && row[supAddrIdx]) {
+                flatMap["Superintendent_Address"] = String(row[supAddrIdx]).trim();
+            } else if (row[4] && !flatMap["Superintendent_Address"]) {
+                flatMap["Superintendent_Address"] = String(row[4]).trim();
+            }
+            
+            // Only process first data row for manager/superintendent
+            break;
+        }
+    }
+    
+    return flatMap;
+}
+
+// Convert flat key-value format to normalized Excel sheets
+function convertFlatToNormalized(flatMap) {
+    const propertyRows = [["Property_Tag", "Property_Address", "Landlord_Name", "Landlord_Address", "Landlord_Phone"]];
+    const tenantRows = [["Tenant_Name", "Tenant_Email", "Tenant_Phone", "Tenant_Old_Address", "Tenant_Job_Desc"]];
+    // Manager_Superintendent sheet structure: Manager_Name, Manager_Phone, Superintendent_Name, Superintendent_Phone, (Superintendent_Address - optional)
+    const managerSuperRows = [["Manager_Name", "Manager_Phone", "Superintendent_Name", "Superintendent_Phone"]];
+    
+    // Extract properties - iterate through all Property_* keys
+    const propertyKeys = Object.keys(flatMap).filter(k => k.startsWith('Property_') && !k.includes('_Tag') && !k.includes('_Address'));
+    const processedTags = new Set();
+    
+    propertyKeys.forEach(propKey => {
+        // Extract tag key from Property_${tagKey}
+        const tagKey = propKey.replace('Property_', '');
+        if (processedTags.has(tagKey)) return;
+        processedTags.add(tagKey);
+        
+        const propAddrKey = `Property_${tagKey}_Address`;
+        const propTagKey = `Property_${tagKey}_Tag`;
+        const landlordNameKey = `Landlord_${tagKey}_Name`;
+        const landlordAddrKey = `Landlord_${tagKey}_Address`;
+        const landlordPhoneKey = `Landlord_${tagKey}_Phone`;
+        
+        // Get Property_Tag value (the actual tag like "15SM")
+        const propTag = flatMap[propTagKey] || tagKey;
+        const propAddress = flatMap[propAddrKey] || flatMap[propKey] || "";
+        const landlordName = flatMap[landlordNameKey] || "";
+        const landlordAddr = flatMap[landlordAddrKey] || "";
+        const landlordPhone = flatMap[landlordPhoneKey] || "";
+        
+        if (propTag || propAddress || landlordName) {
+            propertyRows.push([
+                propTag, // Property_Tag
+                propAddress, // Property_Address
+                landlordName, // Landlord_Name
+                landlordAddr, // Landlord_Address
+                landlordPhone // Landlord_Phone
+            ]);
+        }
+    });
+    
+    // Extract tenants
+    for (let i = 1; i <= 50; i++) {
+        const name = flatMap[`Tenant_${i}_Name`];
+        if (name || flatMap[`Tenant_${i}_Email`] || flatMap[`Tenant_${i}_Phone`]) {
+            tenantRows.push([
+                name || "",
+                flatMap[`Tenant_${i}_Email`] || "",
+                flatMap[`Tenant_${i}_Phone`] || "",
+                flatMap[`Tenant_${i}_Old_Address`] || "",
+                flatMap[`Tenant_${i}_Job`] || ""
+            ]);
+        }
+    }
+    
+    // Extract manager and superintendent
+    managerSuperRows.push([
+        flatMap["Manager_Name"] || "",
+        flatMap["Manager_Phone"] || "",
+        flatMap["Superintendent_Name"] || "",
+        flatMap["Superintendent_Phone"] || ""
+    ]);
+    
+    return {
+        property: propertyRows,
+        tenant: tenantRows,
+        managerSuper: managerSuperRows
+    };
+}
+// Persisted finalized leases (kept in localStorage and merged from uploads)
+function getLeaseRecords() {
+    try {
+        return JSON.parse(localStorage.getItem("leaseRecords") || "[]");
+    } catch (e) {
+        return [];
+    }
+}
+function setLeaseRecords(records) {
+    try {
+        localStorage.setItem("leaseRecords", JSON.stringify(records || []));
+    } catch (e) {}
+}
+
+function clearAllLeaseRecords() {
+    if (confirm("Are you sure you want to delete ALL lease records and reset all lease counters? This cannot be undone.")) {
+        // Clear all lease records
+        localStorage.setItem("leaseRecords", "[]");
+        
+        // Clear all lease counter keys from localStorage
+        // Lease counters are stored as: leaseCounter:${propertyTag}:${mon}
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith("leaseCounter:")) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
+        // Also clear current lease ID if stored
+        localStorage.removeItem("leaseIdCurrent");
+        localStorage.removeItem("leaseGeneratedAt");
+        
+        alert("All lease records have been deleted and all lease counters have been reset. New leases will start from 001.");
+        // Note: To view/manage leases, use the Manage Master Records dropdown which opens 11_Manage_Master_Data.html
+    }
+}
+
+// ====== MASTER DATA EDITOR ======
+function toggleMasterDropdown() {
+    const dd = document.getElementById("masterDropdown");
+    const btn = document.getElementById("manageMasterBtn");
+    if (!dd || !btn) return;
+    
+    const isOpen = dd.style.display === "block";
+    dd.style.display = isOpen ? "none" : "block";
+    
+    // Remove any existing listeners
+    if (window.masterDropdownCloseHandler) {
+        document.removeEventListener("click", window.masterDropdownCloseHandler);
+        window.masterDropdownCloseHandler = null;
+    }
+    
+    // Add listener only when opening
+    if (!isOpen) {
+        window.masterDropdownCloseHandler = function(e) {
+            // Check if click is outside dropdown and button
+            if (!dd.contains(e.target) && !btn.contains(e.target)) {
+                dd.style.display = "none";
+                document.removeEventListener("click", window.masterDropdownCloseHandler);
+                window.masterDropdownCloseHandler = null;
+            }
+        };
+        // Use setTimeout to avoid immediate closure when clicking the button
+        setTimeout(() => {
+            document.addEventListener("click", window.masterDropdownCloseHandler);
+        }, 0);
+    }
+}
+
+// Helper function to download edited master data
+function downloadEditedMaster() {
+    // Reuse generateExcelTemplate using current masterData map
+    generateExcelTemplate();
+}
+
+// ====== CRUD MODALS REMOVED ======
+// All CRUD modal functionality (Properties, Tenants, Managers, Leases, Inspection Report)
+// has been moved to 11_Manage_Master_Data.html
+// Use the "Manage Master Records" dropdown to access these modals which now open in a separate page
+
+// ====== HANDLE COMBINED EXCEL FILE UPLOAD (Master Data + Inspection Report) ======
+function setupFileUpload() {
+    const combinedExcelFileInput = document.getElementById("combinedExcelFile");
+    if (!combinedExcelFileInput) {
+        console.error("combinedExcelFile input element not found!");
+        return;
+    }
+    
+    combinedExcelFileInput.addEventListener("change", function(evt) {
+        const file = evt.target.files[0];
+        if (!file) {
+            console.log("No file selected");
+            return;
+        }
+        
+        console.log("File selected:", file.name, "Size:", file.size, "Type:", file.type);
+        
+        const reader = new FileReader();
+        const combinedUploadInfo = document.getElementById("combinedUploadInfo");
+        const combinedUploadLabel = document.getElementById("combinedUploadLabel");
+        
+        // Show loading message
+        if (combinedUploadInfo) {
+            combinedUploadInfo.innerHTML = "⏳ Reading file...";
+            combinedUploadInfo.style.color = "#6b7280";
+        }
+        
+        reader.onerror = function(error) {
+            console.error("FileReader error:", error);
+            if (combinedUploadInfo) {
+                combinedUploadInfo.innerHTML = "✗ Error reading file. Please try again.";
+                combinedUploadInfo.style.color = "red";
+            }
+        };
+        
+        reader.onload = function(e) {
+            console.log("File read successfully, size:", e.target.result.byteLength);
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type:"array"});
+                
+                let propertySheetName = null;
+                let tenantSheetName = null;
+                let managerSuperSheetName = null;
+                let inspectionSheetName = null;
+                let leaseRecordsSheetName = null;
+                let messages = [];
+                
+                // Find normalized sheets (case-insensitive, handle spaces/underscores)
+                propertySheetName = workbook.SheetNames.find(name => {
+                    const normalized = name.trim().toLowerCase().replace(/\s+/g, "_");
+                    return normalized === "property";
+                });
+                tenantSheetName = workbook.SheetNames.find(name => {
+                    const normalized = name.trim().toLowerCase().replace(/\s+/g, "_");
+                    return normalized === "tenant";
+                });
+                managerSuperSheetName = workbook.SheetNames.find(name => {
+                    const normalized = name.trim().toLowerCase().replace(/\s+/g, "_");
+                    return normalized === "manager_superintendent" || 
+                           normalized === "manager_superintendant" ||
+                           normalized === "manager_suprintendent" ||  // Handle typo variant
+                           normalized.includes("manager") && normalized.includes("super");
+                });
+                
+                // Fallback: Try to find old "Master Data" sheet format for backward compatibility (but don't show error if not found)
+                let masterDataSheetName = workbook.SheetNames.find(name => {
+                    const normalized = name.trim().toLowerCase().replace(/\s+/g, "_");
+                    return normalized === "master_data" || normalized === "masterdata";
+                });
+                
+                // Find Inspection Report sheet (with underscore)
+                inspectionSheetName = workbook.SheetNames.find(name => {
+                    const normalized = name.trim().toLowerCase().replace(/\s+/g, "_");
+                    return normalized === "inspection_report" || normalized === "inspectionreport" || name.trim().toLowerCase() === "inspection report";
+                });
+                if (!inspectionSheetName) {
+                    inspectionSheetName = workbook.SheetNames.find(name => name.trim().toLowerCase().includes("inspection"));
+                }
+                console.log("Looking for Inspection Report sheet. Found:", inspectionSheetName, "Available sheets:", workbook.SheetNames);
+                
+                // Find Lease Records sheet (with underscore)
+                leaseRecordsSheetName = workbook.SheetNames.find(name => name.trim().toLowerCase().replace(/\s+/g, "_") === "lease_records" || name.trim().toLowerCase() === "lease records");
+                
+                // Process normalized sheets or fallback to old format
+                let map = {};
+                
+                if (propertySheetName && tenantSheetName && managerSuperSheetName) {
+                    // New normalized format
+                    const propertySheet = XLSX.utils.sheet_to_json(workbook.Sheets[propertySheetName], {header:1, defval:""});
+                    const tenantSheet = XLSX.utils.sheet_to_json(workbook.Sheets[tenantSheetName], {header:1, defval:""});
+                    const managerSuperSheet = XLSX.utils.sheet_to_json(workbook.Sheets[managerSuperSheetName], {header:1, defval:""});
+                    
+                    map = convertNormalizedToFlat(propertySheet, tenantSheet, managerSuperSheet);
+                    
+                    // Debug: Count extracted properties
+                    const propertyCount = Object.keys(map).filter(k => /^Property_[A-J]$/.test(k) && map[k]).length;
+                    messages.push(`✓ Normalized data loaded from: Property (${propertyCount} properties), Tenant, Manager_Superintendent sheets`);
+                } else if (masterDataSheetName) {
+                    // Old format (backward compatibility)
+                    const masterSheet = workbook.Sheets[masterDataSheetName];
+                    const rows = XLSX.utils.sheet_to_json(masterSheet, {header:1});
+                    
+                    for (let i=0; i<rows.length; i++) {
+                        if (rows[i][0] && rows[i][1]) {
+                            map[ rows[i][0].trim() ] = rows[i][1];
+                        }
+                    }
+                    messages.push("✓ Master Data loaded from: " + masterDataSheetName + " (old format)");
+                } else {
+                    // Provide helpful error message
+                    const foundSheets = workbook.SheetNames.join(", ");
+                    messages.push("⚠ No recognized data sheets found. Expected sheets: 'Property', 'Tenant', 'Manager_Superintendent'. Found sheets: " + foundSheets);
+                }
+                
+                masterData = map;
+                try {
+                    // Overwrite persistent storage with new data
+                    localStorage.setItem("masterDataCache", JSON.stringify(map));
+                } catch (e) {
+                    console.error("Error saving to persistent storage:", e);
+                }
+                window.master = map;
+                validateExcel(map);
+                populateSelectors(map);
+                
+                // Check if this is a transactional file (has Current_Lease sheet or Selected_Property field)
+                let currentLeaseSheet = workbook.Sheets["Current_Lease"];
+                if (currentLeaseSheet) {
+                    const currentLeaseRows = XLSX.utils.sheet_to_json(currentLeaseSheet, {header:1});
+                    for (let i=0; i<currentLeaseRows.length; i++) {
+                        if (currentLeaseRows[i][0] && currentLeaseRows[i][1]) {
+                            map[ currentLeaseRows[i][0].trim() ] = currentLeaseRows[i][1];
+                        }
+                    }
+                }
+                
+                if (map["Selected_Property"]) {
+                    populateFormFields();
+                }
+                
+                // Process Inspection Report sheet
+                if (inspectionSheetName) {
+                    try {
+                        const inspectionSheet = workbook.Sheets[inspectionSheetName];
+                        if (inspectionSheet) {
+                            // Convert inspection sheet to base64 for storage
+                            const inspectionWb = XLSX.utils.book_new();
+                            XLSX.utils.book_append_sheet(inspectionWb, inspectionSheet, inspectionSheetName);
+                            const inspectionBase64 = XLSX.write(inspectionWb, { type: 'base64', bookType: 'xlsx' });
+                            localStorage.setItem("inspectionReportData", inspectionBase64);
+                            
+                            // Update UI
+                            const inspectionReportContainer = document.getElementById("inspectionReportContainer");
+                            if (inspectionReportContainer) {
+                                const html = XLSX.utils.sheet_to_html(inspectionSheet, {id: "inspection-table", editable: false});
+                                if (html && html.trim().length > 0) {
+                                    inspectionReportContainer.innerHTML = html;
+                                    // Apply styling to table
+                                    const tables = inspectionReportContainer.querySelectorAll('table');
+                                    tables.forEach(table => {
+                                        table.style.width = '100%';
+                                        table.style.borderCollapse = 'collapse';
+                                        table.style.fontSize = '10px';
+                                        const rows = table.querySelectorAll('tr');
+                                        rows.forEach((row) => {
+                                            const rowText = row.textContent.trim().toLowerCase();
+                                            if (rowText.includes('residential tenancies') || 
+                                                rowText.includes('use this report') ||
+                                                rowText.includes('detailed description')) {
+                                                row.remove();
+                                            }
+                                        });
+                                        const updatedRows = table.querySelectorAll('tr');
+                                        updatedRows.forEach((row) => {
+                                            const cells = row.querySelectorAll('td, th');
+                                            cells.forEach((cell) => {
+                                                cell.style.border = '1px solid #000';
+                                                cell.style.padding = '2px 4px';
+                                            });
+                                        });
+                                    });
+                                }
+                            }
+                            messages.push("✓ Inspection Report loaded from: " + inspectionSheetName);
+                        } else {
+                            messages.push("⚠ Inspection Report sheet is empty");
+                        }
+                    } catch (e) {
+                        messages.push("⚠ Error processing Inspection Report: " + e.message);
+                    }
+                } else {
+                    messages.push("⚠ Inspection Report sheet not found");
+                }
+                
+                // Update UI
+                if (combinedUploadLabel) {
+                    combinedUploadLabel.classList.add("has-file");
+                }
+                combinedUploadInfo.innerHTML = messages.join("<br>");
+                combinedUploadInfo.classList.add("has-file");
+                combinedUploadInfo.style.color = "#059669";
+                
+                // Allow re-selecting the same file
+                try { evt.target.value = ""; } catch (e) {}
+            } catch (error) {
+                console.error("Error reading combined Excel file:", error);
+                combinedUploadInfo.innerHTML = "✗ Error reading file: " + error.message;
+                combinedUploadInfo.style.color = "red";
+            }
+        };
+        
+        try {
+            reader.readAsArrayBuffer(file);
+        } catch (error) {
+            console.error("Error starting file read:", error);
+            if (combinedUploadInfo) {
+                combinedUploadInfo.innerHTML = "✗ Error: " + error.message;
+                combinedUploadInfo.style.color = "red";
+            }
+        }
+    });
+}
+
+// Setup file upload when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupFileUpload);
+} else {
+    setupFileUpload();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Load masterData from localStorage on page load
+    try {
+        const cached = localStorage.getItem("masterDataCache");
+        if (cached) {
+            masterData = JSON.parse(cached) || {};
+            window.master = masterData;
+            
+            // Show status message that data was loaded from persistent storage
+            const info = document.getElementById("combinedUploadInfo");
+            if (info) {
+                info.innerHTML = "✓ Master Data loaded from persistent storage.";
+                info.style.color = "#059669";
+            }
+            
+            // Validate and populate selectors (validateExcel will append counts to the message above)
+            validateExcel(masterData);
+            populateSelectors(masterData);
+            
+            // Populate form fields with default values from master data
+            populateFormFields();
+        }
+    } catch (e) {
+        console.error("Error loading master data from persistent storage:", e);
+    }
+    
+    // Function to refresh dropdowns from localStorage when page becomes visible
+    function refreshDropdownsFromStorage() {
+        try {
+            const cached = localStorage.getItem("masterDataCache");
+            if (cached) {
+                const updatedMasterData = JSON.parse(cached) || {};
+                // Only refresh if masterData has actually changed
+                const currentDataStr = JSON.stringify(masterData);
+                const newDataStr = JSON.stringify(updatedMasterData);
+                if (currentDataStr !== newDataStr) {
+                    masterData = updatedMasterData;
+                    window.master = masterData;
+                    
+                    // Refresh dropdowns
+                    validateExcel(masterData);
+                    populateSelectors(masterData);
+                    
+                    // Update form fields if needed
+                    populateFormFields();
+                    
+                    console.log("✓ Dropdowns refreshed from persistent storage");
+                }
+            }
+        } catch (e) {
+            console.error("Error refreshing dropdowns:", e);
+        }
+    }
+    
+    // Refresh dropdowns when page becomes visible (user returns from other pages)
+    document.addEventListener("visibilitychange", function() {
+        if (!document.hidden) {
+            refreshDropdownsFromStorage();
+        }
+    });
+    
+    // Also refresh when window gains focus (additional check)
+    window.addEventListener("focus", function() {
+        refreshDropdownsFromStorage();
+    });
+    
+    // Restore cached dates if present (without overwriting selected ones)
+    const start = localStorage.getItem("leaseStartDate");
+    const end = localStorage.getItem("leaseEndDate");
+    const sIn = document.getElementById("leaseStartDate");
+    const eIn = document.getElementById("leaseEndDate");
+    if (sIn && start && !sIn.value) sIn.value = start;
+    if (eIn && end && !eIn.value) eIn.value = end;
+    updateLeaseDates();
+    
+    // Load inspection report data from persistent storage
+    try {
+        const cachedInspectionReport = localStorage.getItem("inspectionReportData");
+        if (cachedInspectionReport) {
+            // Convert base64 back to workbook
+            const wb = XLSX.read(cachedInspectionReport, { type: 'base64' });
+            inspectionReportData = wb;
+            
+            // Find inspection report sheet
+            const inspectionSheetName = wb.SheetNames.find(name => {
+                const normalized = name.trim().toLowerCase().replace(/\s+/g, "_");
+                return normalized === "inspection_report" || normalized === "inspectionreport" || name.trim().toLowerCase() === "inspection report";
+            }) || wb.SheetNames.find(name => name.trim().toLowerCase().includes("inspection")) || wb.SheetNames[0];
+            
+            if (inspectionSheetName) {
+                const inspectionSheet = wb.Sheets[inspectionSheetName];
+                if (inspectionSheet) {
+                    // Convert sheet to HTML table
+                    const html = XLSX.utils.sheet_to_html(inspectionSheet, {id: "inspection-table", editable: false});
+                    const inspectionReportContainer = document.getElementById("inspectionReportContainer");
+                    
+                    if (inspectionReportContainer && html && html.trim().length > 0) {
+                        inspectionReportContainer.innerHTML = html;
+                        // Apply styling
+                        const tables = inspectionReportContainer.querySelectorAll('table');
+                        tables.forEach(table => {
+                            table.style.width = '100%';
+                            table.style.borderCollapse = 'collapse';
+                            table.style.marginBottom = '0';
+                            table.style.marginTop = '0';
+                            table.style.fontSize = '10px';
+                            table.style.pageBreakInside = 'auto';
+                            table.style.tableLayout = 'fixed';
+                            
+                            const rows = table.querySelectorAll('tr');
+                            
+                            // Remove rows that contain title, instructions, or abbreviations
+                            const rowsToRemove = [];
+                            rows.forEach((row) => {
+                                const rowText = row.textContent.trim().toLowerCase();
+                                if (rowText.includes('residential tenancies') || 
+                                    rowText.includes('use this report') || 
+                                    rowText.includes('detailed description') ||
+                                    rowText.includes('conditional abbr') ||
+                                    rowText.includes('cleanliness abbr')) {
+                                    rowsToRemove.push(row);
+                                }
+                            });
+                            
+                            rowsToRemove.forEach(row => row.remove());
+                            
+                            // Apply styling to cells
+                            const updatedRows = table.querySelectorAll('tr');
+                            updatedRows.forEach((row, rowIndex) => {
+                                const cells = row.querySelectorAll('td, th');
+                                cells.forEach((cell, cellIndex) => {
+                                    cell.style.border = '1px solid #000';
+                                    cell.style.padding = '2px 4px';
+                                    cell.style.textAlign = cellIndex === 0 ? 'left' : 'center';
+                                    cell.style.verticalAlign = 'top';
+                                });
+                            });
+                        });
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Error loading inspection report from persistent storage:", e);
+    }
+});
+
+// No viewport-based repositioning needed for the fixed header layout
+
+// Setup file upload when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupFileUpload);
+} else {
+    // DOM is already ready
+    setupFileUpload();
+}
+
+// Old Inspection Report Upload Handler - REMOVED (now handled by combined upload)
+
+function validateExcel(map) {
+    // Check for normalized data structure (converted to flat format)
+    let warnings = "";
+    let hasProperty = false;
+    let tenantCount = 0;
+    let activeTenantCount = 0;
+    let hasManager = false;
+    
+    // Check for properties - look for Property_* keys (excluding _Tag and _Address)
+    const propertyKeys = Object.keys(map).filter(k => 
+        k.startsWith('Property_') && 
+        !k.includes('_Tag') && 
+        !k.includes('_Address')
+    );
+    hasProperty = propertyKeys.length > 0;
+    
+    // Check for tenants - use same method as populateSelectors (Tenant_ID based)
+    const tenantIds = new Set();
+    Object.keys(map).forEach(key => {
+        const match = key.match(/^Tenant_(.+?)_(ID|Name|Email|Phone|Old_Address|Job_Desc|Job|Active|Current_Status)$/);
+        if (match) {
+            tenantIds.add(match[1]);
+        }
+    });
+    
+    // Count all tenants and active tenants
+    tenantIds.forEach(tenantId => {
+        const name = map[`Tenant_${tenantId}_Name`] || "";
+        if (name) {
+            tenantCount++;
+            
+            // Check if tenant is active using Current_Status
+            const currentStatus = map[`Tenant_${tenantId}_Current_Status`] || "";
+            const activeValue = map[`Tenant_${tenantId}_Active`];
+            
+            let isActive = true; // Default to active
+            if (currentStatus) {
+                const statusLower = String(currentStatus).toLowerCase();
+                isActive = !(statusLower === 'inactive' || statusLower === '0' || statusLower === 'false');
+            } else if (activeValue !== undefined && activeValue !== null) {
+                const activeLower = String(activeValue).toLowerCase();
+                isActive = !(activeLower === '0' || activeLower === 'false' || activeLower === 'inactive');
+            }
+            
+            if (isActive) {
+                activeTenantCount++;
+            }
+        }
+    });
+    
+    // Check for manager
+    if (map["Manager_Name"] || map["Manager_Phone"]) {
+        hasManager = true;
+    }
+    
+    // Build status messages - always show counts when data exists
+    let statusMessages = [];
+    
+    if (hasProperty) {
+        statusMessages.push(`✓ ${propertyKeys.length} properties found in database`);
+    } else {
+        warnings += "⚠ No properties found in database\n";
+    }
+    
+    if (tenantCount > 0) {
+        statusMessages.push(`✓ ${activeTenantCount} active tenant${activeTenantCount !== 1 ? 's' : ''} found in database${tenantCount !== activeTenantCount ? ` (${tenantCount} total)` : ''}`);
+    } else {
+        warnings += "⚠ No tenants found in database\n";
+    }
+    
+    if (hasManager) {
+        statusMessages.push(`✓ Manager information found in database`);
+    } else {
+        warnings += "⚠ No manager information found in database\n";
+    }
+    
+    const warningsDiv = document.getElementById("excelWarnings");
+    if (warnings) {
+        warningsDiv.innerHTML = `<div style="color: #dc2626;">${warnings.replace(/\n/g, '<br>')}</div>`;
+    } else {
+        warningsDiv.innerHTML = '';
+    }
+    
+    // Show status messages (counts) - always display these
+    const info = document.getElementById("combinedUploadInfo");
+    if (info && statusMessages.length > 0) {
+        const existingText = info.innerHTML;
+        // If there's already a message about loading from persistent storage, append to it
+        // Otherwise, show the counts
+        if (existingText.includes('loaded from persistent storage')) {
+            // Keep the existing message and add counts below it
+            info.innerHTML = existingText + '<br>' + statusMessages.join('<br>');
+            info.style.color = "#059669";
+        } else if (!existingText.includes('Successfully imported')) {
+            // Show counts if no other upload message exists
+            info.innerHTML = statusMessages.join('<br>');
+            info.style.color = "#059669";
+        }
+        // If there's already a "Successfully imported" message, don't overwrite it
+    }
+}
+
+// ====== CREATE SELECTORS ======
+function populateSelectors(map) {
+    // Populate Property Selector - use Property_Tag as identifier
+    const propertySelect = document.getElementById("propertySelect");
+    propertySelect.innerHTML = "<option value=''>-- Select Property --</option>";
+    
+    // Find all Property_* keys (excluding _Tag and _Address suffixes)
+    const propertyKeys = Object.keys(map).filter(k => 
+        k.startsWith('Property_') && 
+        !k.includes('_Tag') && 
+        !k.includes('_Address')
+    );
+    
+    propertyKeys.forEach(propKey => {
+        const tagKey = propKey.replace('Property_', '');
+        const propTag = map[`Property_${tagKey}_Tag`] || tagKey;
+        const propAddress = map[`Property_${tagKey}_Address`] || map[propKey] || "";
+        
+        if (propAddress || propTag) {
+        const option = document.createElement("option");
+            option.value = propKey; // Store as Property_${tagKey} for lookup
+            option.textContent = propAddress || propTag;
+            option.dataset.tag = propTag; // Store the actual tag value
+        propertySelect.appendChild(option);
+    }
+    });
+    
+    // Populate Landlord Selector with Name and Address combined - keyed by Property_Tag
+    const landlordSelect = document.getElementById("landlordSelect");
+    landlordSelect.innerHTML = "<option value=''>-- Select Landlord --</option>";
+    
+    propertyKeys.forEach(propKey => {
+        const tagKey = propKey.replace('Property_', '');
+        const landlordNameKey = `Landlord_${tagKey}_Name`;
+        const landlordName = map[landlordNameKey] || "";
+        
+        if (landlordName) {
+        const option = document.createElement("option");
+            option.value = propKey; // Use Property_${tagKey} as value to link property and landlord
+            const landlordAddr = map[`Landlord_${tagKey}_Address`] || "";
+            option.textContent = landlordAddr ? `${landlordName} — ${landlordAddr}` : landlordName;
+            option.dataset.address = landlordAddr;
+        landlordSelect.appendChild(option);
+    }
+    });
+    
+    // Populate Tenant Selectors - Use Tenant_ID as unique identifier and Current_Status for active/inactive
+    // Find all tenant IDs by scanning all masterData keys - same approach as modal forms
+    const tenantIds = new Set();
+    Object.keys(map).forEach(key => {
+        // Match any tenant field to extract the ID part (Tenant_ID, Tenant_Name, etc.)
+        const match = key.match(/^Tenant_(.+?)_(ID|Name|Email|Phone|Old_Address|Job_Desc|Job|Active|Current_Status)$/);
+        if (match) {
+            tenantIds.add(match[1]); // Use the ID part (could be number or string)
+        }
+    });
+    
+    const tenants = [];
+    // Convert to array and process each tenant - same logic as modal forms
+    Array.from(tenantIds).sort((a, b) => {
+        const numA = parseFloat(a);
+        const numB = parseFloat(b);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return String(a).localeCompare(String(b));
+    }).forEach(tenantId => {
+        const id = map[`Tenant_${tenantId}_ID`] || tenantId;
+        const name = map[`Tenant_${tenantId}_Name`] || "";
+        const email = map[`Tenant_${tenantId}_Email`] || "";
+        const phone = map[`Tenant_${tenantId}_Phone`] || "";
+        const address = map[`Tenant_${tenantId}_Old_Address`] || "";
+        
+        // Use Current_Status if available, otherwise fall back to Active field
+        const currentStatus = map[`Tenant_${tenantId}_Current_Status`] || "";
+        const activeValue = map[`Tenant_${tenantId}_Active`];
+        
+        // Determine if tenant is active - same logic as modal forms
+        let isActive = true; // Default to active
+        if (currentStatus) {
+            const statusLower = String(currentStatus).toLowerCase();
+            isActive = !(statusLower === 'inactive' || statusLower === '0' || statusLower === 'false');
+        } else if (activeValue !== undefined && activeValue !== null) {
+            // Fallback to Active field if Current_Status not available
+            const activeLower = String(activeValue).toLowerCase();
+            isActive = !(activeLower === '0' || activeLower === 'false' || activeLower === 'inactive');
+        }
+        
+        // Only include active tenants that have at least a name
+        if (isActive && name) {
+            tenants.push({
+                id: tenantId, // Use Tenant_ID as the unique identifier
+                tenantId: id,
+                name: name,
+                email: email,
+                phone: phone,
+                address: address
+            });
+        }
+    });
+    
+    // Sort tenants by name (case-insensitive)
+    tenants.sort((a, b) => {
+        const nameA = (a.name || "").toLowerCase();
+        const nameB = (b.name || "").toLowerCase();
+        return nameA.localeCompare(nameB);
+    });
+    
+    // Limit to 50 active tenants
+    const activeTenants = tenants.slice(0, 50);
+
+    // Note: Superscripts removed per user request - Tenant_ID is the unique identifier
+    const tenantsWithSuperscripts = activeTenants;
+
+    const tenantDiv = document.getElementById("tenantSelectors");
+    tenantDiv.innerHTML = "";
+    tenantDiv.style.gridTemplateColumns = "repeat(2, 1fr)"; // 2 columns for 2 rows
+    for (let i=1; i<=4; i++) {
+        const selectorItem = document.createElement("div");
+        selectorItem.className = "selector-item";
+        
+        const label = document.createElement("label");
+        label.textContent = `Tenant ${i}`;
+        label.setAttribute("for", `tenantSelect${i}`);
+        
+        const sel = document.createElement("select");
+        sel.id = `tenantSelect${i}`;
+        sel.innerHTML = "<option value=''>-- Select Tenant --</option>" +
+            tenantsWithSuperscripts.map(t => {
+                const name = t.name || "";
+                const phone = t.phone || "";
+                const email = t.email || "";
+                return `<option value="${t.id}">${name} — ${phone} — ${email}</option>`;
+            }).join("");
+        sel.addEventListener("change", function() {
+            localStorage.removeItem("leaseIdCurrent");
+            // Default occupant i to match tenant i if occupant is currently empty
+            const occSel = document.getElementById(`occupantSelect${i}`);
+            if (occSel && !occSel.value) {
+                occSel.value = this.value || "";
+            }
+            populateFormFields();
+        });
+        
+        selectorItem.appendChild(label);
+        selectorItem.appendChild(sel);
+        tenantDiv.appendChild(selectorItem);
+    }
+
+    // Populate Occupant Selectors - Use same filtered active tenants
+    const occDiv = document.getElementById("occupantSelectors");
+    occDiv.innerHTML = "";
+    occDiv.style.gridTemplateColumns = "repeat(4, 1fr)"; // 4 columns for 1 row
+    for (let i=1; i<=4; i++) {
+        const selectorItem = document.createElement("div");
+        selectorItem.className = "selector-item";
+        
+        const label = document.createElement("label");
+        label.textContent = `Occupant ${i}`;
+        label.setAttribute("for", `occupantSelect${i}`);
+        
+        const sel = document.createElement("select");
+        sel.id = `occupantSelect${i}`;
+        sel.innerHTML = "<option value=''>-- Select Occupant --</option>" +
+            tenantsWithSuperscripts.map(t => `<option value="${t.id}">${t.name}</option>`).join("");
+        sel.addEventListener("change", function() {
+            localStorage.removeItem("leaseIdCurrent");
+            populateFormFields();
+        });
+        
+        selectorItem.appendChild(label);
+        selectorItem.appendChild(sel);
+        occDiv.appendChild(selectorItem);
+    }
+    // Initialize occupants to match selected tenants by default (editable after)
+    for (let i=1; i<=4; i++) {
+        const tSel = document.getElementById(`tenantSelect${i}`);
+        const oSel = document.getElementById(`occupantSelect${i}`);
+        if (tSel && oSel && !oSel.value && tSel.value) {
+            oSel.value = tSel.value;
+        }
+    }
+    
+    // Add event listeners to property and landlord selectors
+    propertySelect.addEventListener("change", function() {
+        localStorage.removeItem("leaseIdCurrent");
+        populateFormFields();
+    });
+    landlordSelect.addEventListener("change", function() {
+        localStorage.removeItem("leaseIdCurrent");
+        populateFormFields();
+    });
+    
+    // Add event listener to property type selector
+    const propertyTypeSelect = document.getElementById("propertyTypeSelect");
+    if (propertyTypeSelect) {
+        propertyTypeSelect.addEventListener("change", populateFormFields);
+    }
+    
+    // Add event listeners to date pickers
+    const leaseStartDate = document.getElementById("leaseStartDate");
+    const leaseEndDate = document.getElementById("leaseEndDate");
+    
+    if (leaseStartDate) {
+        leaseStartDate.addEventListener("change", function() {
+            localStorage.removeItem("leaseIdCurrent");
+            try { localStorage.setItem("leaseStartDate", this.value || ""); } catch (e) {}
+            updateLeaseDates();
+        });
+    }
+    if (leaseEndDate) {
+        leaseEndDate.addEventListener("change", function() {
+            localStorage.removeItem("leaseIdCurrent");
+            try { localStorage.setItem("leaseEndDate", this.value || ""); } catch (e) {}
+            updateLeaseDates();
+        });
+    }
+    
+    // Add event listeners to rent fields
+    const monthlyRentInput = document.getElementById("monthlyRentInput");
+    const rentFrequencySelect = document.getElementById("rentFrequencySelect");
+    
+    if (monthlyRentInput) {
+        monthlyRentInput.addEventListener("input", updateRentFields);
+    }
+    if (rentFrequencySelect) {
+        rentFrequencySelect.addEventListener("change", updateRentFields);
+    }
+    
+    // Security deposit manual override detection
+    const securityDepositInput = document.getElementById("securityDepositInput");
+    if (securityDepositInput) {
+        securityDepositInput.addEventListener("input", function() {
+            window.depositManuallyEdited = true;
+            updateDepositDisplay();
+        });
+    }
+    
+    // Add event listener to parking dropdown
+    const parkingInput = document.getElementById("parkingInput");
+    if (parkingInput) {
+        parkingInput.addEventListener("change", function() {
+            const parkingField = document.getElementById("parkingField");
+            if (parkingField) {
+                parkingField.textContent = this.value;
+            }
+        });
+    }
+    
+    // Security deposit input handled above (manual override + display update)
+    
+    // Add event listeners to emergency contact input fields
+    const emergencyNameInput = document.getElementById("emergencyNameInput");
+    const emergencyEmailInput = document.getElementById("emergencyEmailInput");
+    const emergencyPhoneInput = document.getElementById("emergencyPhoneInput");
+    
+    if (emergencyNameInput) {
+        emergencyNameInput.addEventListener("input", function() {
+            document.getElementById("emergencyNameField").value = this.value;
+        });
+    }
+    if (emergencyEmailInput) {
+        emergencyEmailInput.addEventListener("input", function() {
+            document.getElementById("emergencyEmailField").value = this.value;
+        });
+    }
+    if (emergencyPhoneInput) {
+        emergencyPhoneInput.addEventListener("input", function() {
+            document.getElementById("emergencyPhoneField").value = this.value;
+        });
+    }
+}
+
+// ====== FORMAT DATE ======
+function formatDate(dateString) {
+    if (!dateString) return "";
+    
+    // Handle YYYY-MM-DD format
+    const date = new Date(dateString + 'T00:00:00'); // Add time to avoid timezone issues
+    if (isNaN(date.getTime())) return dateString; // Return original if invalid
+    
+    const months = ["January", "February", "March", "April", "May", "June",
+                   "July", "August", "September", "October", "November", "December"];
+    
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    
+    return `${day} ${month} ${year}`;
+}
+
+// ====== UPDATE LEASE DATES ======
+function updateLeaseDates() {
+    const startDateInput = document.getElementById("leaseStartDate");
+    const endDateInput = document.getElementById("leaseEndDate");
+    const startDateDisplay = document.getElementById("leaseStartDateDisplay");
+    const endDateDisplay = document.getElementById("leaseEndDateDisplay");
+    const leaseDatesTags = document.querySelectorAll(".leaseDatesTag");
+    const currentLeaseId = localStorage.getItem("leaseIdCurrent") || "";
+    // We store generation timestamp for records but do not show it in the header
+    
+    // Fallback to cached values if inputs are empty
+    const cachedStart = localStorage.getItem("leaseStartDate") || "";
+    const cachedEnd = localStorage.getItem("leaseEndDate") || "";
+    const startDateRaw = (startDateInput && startDateInput.value) ? startDateInput.value : cachedStart;
+    const endDateRaw = (endDateInput && endDateInput.value) ? endDateInput.value : cachedEnd;
+    if (startDateInput && !startDateInput.value && cachedStart) startDateInput.value = cachedStart;
+    if (endDateInput && !endDateInput.value && cachedEnd) endDateInput.value = cachedEnd;
+    
+    if (startDateDisplay) {
+        startDateDisplay.textContent = formatDate(startDateRaw);
+    }
+    
+    if (endDateDisplay) {
+        endDateDisplay.textContent = formatDate(endDateRaw);
+    }
+    
+    const startFormatted = formatDate(startDateRaw);
+    const endFormatted = formatDate(endDateRaw);
+    const bothEmpty = (!startFormatted && !endFormatted);
+    leaseDatesTags.forEach(tag => {
+        // If both dates are empty, don't overwrite existing text (preserve previously set dates)
+        if (bothEmpty) return;
+        const idPrefix = currentLeaseId ? `||${currentLeaseId}||` : "";
+        const idPart = currentLeaseId ? `${idPrefix}` : "";
+        // Do not append timestamp in header line
+        tag.textContent = `${idPart}${currentLeaseId ? "  " : ""}Lease: ${startFormatted || "—"} — ${endFormatted || "—"}`;
+    });
+    
+    // No dynamic positioning; this line is fixed within header
+}
+
+
+// ====== UPDATE RENT FIELDS ======
+function updateRentFields() {
+    const monthlyRentInput = document.getElementById("monthlyRentInput");
+    const rentFrequencySelect = document.getElementById("rentFrequencySelect");
+    const rentFieldCombined = document.getElementById("rentFieldCombined");
+    const securityDepositInput = document.getElementById("securityDepositInput");
+    
+    const monthlyRent = monthlyRentInput ? monthlyRentInput.value : "";
+    const frequency = rentFrequencySelect ? rentFrequencySelect.value : "";
+    
+    // Combine all three rent fields into one paragraph
+    if (rentFieldCombined) {
+        let rentText = "";
+        if (monthlyRent) {
+            const amount = parseFloat(monthlyRent).toFixed(2);
+            rentText += `The periodic rent is <span style="font-weight: bold; text-decoration: underline; font-size: 1.15em;">$${amount}</span>. `;
+        }
+        if (frequency) {
+            rentText += `The rent is agreed to be paid on <span style="font-weight: bold; text-decoration: underline; font-size: 1.15em;">${frequency}</span>. `;
+            rentText += `The Rent is <span style="font-weight: bold; text-decoration: underline; font-size: 1.15em;">due on 1st day</span> of the chosen frequency.`;
+        }
+        rentFieldCombined.innerHTML = rentText.trim();
+    }
+    
+    // Auto-calc security deposit (50% of rent) unless user has overridden
+    if (monthlyRentInput && securityDepositInput && !window.depositManuallyEdited) {
+        const rentNum = parseFloat(monthlyRentInput.value);
+        if (!isNaN(rentNum)) {
+            const deposit = (rentNum * 0.5);
+            securityDepositInput.value = deposit.toFixed(2);
+        }
+    }
+    updateDepositDisplay();
+}
+
+function updateDepositDisplay() {
+    const securityDepositInput = document.getElementById("securityDepositInput");
+    const depositField = document.getElementById("depositField");
+    if (!depositField) return;
+    const val = securityDepositInput ? securityDepositInput.value : "";
+    if (val && !isNaN(parseFloat(val))) {
+        depositField.textContent = `$${parseFloat(val).toFixed(2)}`;
+    } else {
+        depositField.textContent = "";
+    }
+}
+// ====== FINALIZE LEASE AND GENERATE LEASE ID ======
+function getSelectedPropertyTag() {
+    const propertySelect = document.getElementById("propertySelect");
+    if (!propertySelect) return "";
+    const selectedProperty = propertySelect.value;
+    const map = masterData || {};
+    if (selectedProperty) {
+        // Extract tagKey from selectedProperty (e.g., "Property_15SM" -> "15SM")
+        const tagKey = selectedProperty.replace('Property_', '');
+        return map[`Property_${tagKey}_Tag`] || tagKey || "";
+    }
+    return "";
+}
+
+function getMonthAbbrevUpper(dateObj) {
+    const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    return months[dateObj.getMonth()];
+}
+
+function pad3(n) {
+    return String(n).padStart(3, "0");
+}
+
+function generateUniqueLeaseId(propertyTag) {
+    const mon = getMonthAbbrevUpper(new Date());
+    const counterKey = `leaseCounter:${propertyTag}:${mon}`;
+    const current = parseInt(localStorage.getItem(counterKey) || "0", 10) || 0;
+    const next = current + 1;
+    localStorage.setItem(counterKey, String(next));
+    return `${propertyTag}-${mon}-${pad3(next)}`;
+}
+
+function finalizeLease() {
+    const propertyTag = getSelectedPropertyTag();
+    if (!propertyTag) {
+        alert("Please select a property (with a valid tag) before finalizing the lease.");
+        return;
+    }
+    if (!confirm("Is this lease final? This will generate a Lease ID.")) {
+        return;
+    }
+    const leaseId = generateUniqueLeaseId(propertyTag);
+    localStorage.setItem("leaseIdCurrent", leaseId);
+    // Store generation timestamp in required format YYYY-MM-DD @ HH-MM-SS
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth()+1).padStart(2,'0');
+    const d = String(now.getDate()).padStart(2,'0');
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+    const ss = String(now.getSeconds()).padStart(2,'0');
+    const genTs = `${y}-${m}-${d} @ ${hh}-${mm}-${ss}`;
+    localStorage.setItem("leaseGeneratedAt", genTs);
+    // Refresh header tags to include Lease ID
+    populateFormFields();
+    updateLeaseDates();
+    alert(`Lease finalized.\nLease ID: ${leaseId}`);
+    
+    // Store a lightweight lease record in localStorage
+    try {
+        const landlordSelect = document.getElementById("landlordSelect");
+        const landlordKey = landlordSelect ? landlordSelect.value : "";
+        const landlordName = (masterData || {})[landlordKey] || "";
+        // Get tenant names with superscripts from dropdown (which already has superscripts applied)
+        const tenantList = [];
+        for (let i = 1; i <= 4; i++) {
+            const sel = document.getElementById(`tenantSelect${i}`);
+            if (sel && sel.value) {
+                const id = sel.value; // Use Tenant_ID directly (not parseInt)
+                const name = (masterData || {})[`Tenant_${id}_Name`] || "";
+                if (name) {
+                    // Get the display name from the select option (which has superscripts from Tenants sheet)
+                    const option = sel.options[sel.selectedIndex];
+                    let displayName = option ? option.textContent.split(" — ")[0] : name;
+                    // Clean numbers in parentheses (these are IDs, not superscripts)
+                    displayName = displayName.replace(/\(\s*\d+\s*\)/g, '').trim();
+                    // Remove trailing digits that are not superscripts (preserve superscripts like ¹, ², ³)
+                    if (displayName && /[0-9]$/.test(displayName) && !/[¹²³⁴⁵⁶⁷⁸⁹⁰]$/.test(displayName)) {
+                        displayName = displayName.replace(/\d+$/, '').trim();
+                    }
+                    // Preserve superscripts from dropdown - they come from Tenants sheet
+                    // Only clean if we didn't get it from dropdown
+                    if (!option) {
+                        // If no option, get name from masterData and we'll let the modal add superscripts
+                        displayName = displayName.replace(/[¹²³⁴⁵⁶⁷⁸⁹⁰⁽⁾]/g, '').trim();
+                    }
+                    // Final cleanup of extra spaces (but preserve superscripts)
+                    displayName = displayName.replace(/\s+/g, ' ').trim();
+                    tenantList.push(displayName);
+                }
+            }
+        }
+        const tenantNames = tenantList.join(", ");
+        const leaseStart = (document.getElementById("leaseStartDate") || {}).value || "";
+        const leaseEnd = (document.getElementById("leaseEndDate") || {}).value || "";
+        const rent = (document.getElementById("monthlyRentInput") || {}).value || "";
+        const deposit = (document.getElementById("securityDepositInput") || {}).value || "";
+        const record = {
+            Lease_ID: leaseId,
+            Property_Tag: propertyTag,
+            Landlord: landlordName,
+            Tenants: tenantNames,
+            Lease_Start_Date: leaseStart,
+            Lease_End_Date: leaseEnd,
+            Monthly_Rent: rent,
+            Security_Deposit: deposit,
+            Notes: (masterData || {})["Lease_Notes"] || "",
+            Created_At: genTs
+        };
+        const key = "leaseRecords";
+        const prev = JSON.parse(localStorage.getItem(key) || "[]");
+        prev.push(record);
+        localStorage.setItem(key, JSON.stringify(prev));
+    } catch (e) {}
+}
+
+// ====== POPULATE FORM FIELDS ======
+function populateFormFields() {
+    const map = masterData;
+    if (!map) return;
+    
+    // Get selected property - now uses Property_Tag as key (e.g., Property_15SM)
+    const propertySelect = document.getElementById("propertySelect");
+    const selectedProperty = propertySelect.value;
+    // Extract tagKey from selectedProperty (e.g., "Property_15SM" -> "15SM")
+    const tagKey = selectedProperty ? selectedProperty.replace('Property_', '') : "";
+    // Use Property_Address if available, otherwise fall back to Property_${tagKey} value
+    const propertyAddressKey = tagKey ? `Property_${tagKey}_Address` : "";
+    const propertyAddress = (propertyAddressKey && map[propertyAddressKey]) ? map[propertyAddressKey] : (map[selectedProperty] || "");
+    
+    // Get selected landlord - now linked to Property_Tag
+    const landlordSelect = document.getElementById("landlordSelect");
+    const selectedLandlord = landlordSelect.value;
+    const landlordTagKey = selectedLandlord ? selectedLandlord.replace('Property_', '') : "";
+    const landlordNameKey = landlordTagKey ? `Landlord_${landlordTagKey}_Name` : "";
+    const landlordName = landlordNameKey ? map[landlordNameKey] || "" : "";
+    const selectedOption = landlordSelect.options[landlordSelect.selectedIndex];
+    const landlordAddress = selectedOption ? (selectedOption.dataset.address || (landlordTagKey ? map[`Landlord_${landlordTagKey}_Address`] || "" : "")) : "";
+    
+    // Get selected tenants - use Tenant_ID directly (not parseInt since it may be non-numeric)
+    const selectedTenants = [];
+    for (let i=1; i<=4; i++) {
+        const tenantSel = document.getElementById(`tenantSelect${i}`);
+        if (tenantSel && tenantSel.value) {
+            const tenantId = tenantSel.value; // Use Tenant_ID as-is (string or number)
+            const tenant = {
+                name: map[`Tenant_${tenantId}_Name`] || "",
+                email: map[`Tenant_${tenantId}_Email`] || "",
+                phone: map[`Tenant_${tenantId}_Phone`] || "",
+                address: map[`Tenant_${tenantId}_Old_Address`] || ""
+            };
+            if (tenant.name) selectedTenants.push(tenant);
+        }
+    }
+    
+    // Get selected occupants - use Tenant_ID directly
+    const selectedOccupants = [];
+    for (let i=1; i<=4; i++) {
+        const occSel = document.getElementById(`occupantSelect${i}`);
+        if (occSel && occSel.value) {
+            const tenantId = occSel.value; // Use Tenant_ID as-is (string or number)
+            const name = map[`Tenant_${tenantId}_Name`] || "";
+            if (name) selectedOccupants.push(name);
+        }
+    }
+    
+    // Update lease tag with Property Tag instead of full address
+    const leaseTag = document.querySelectorAll("#leaseTag");
+    const tenantNames = selectedTenants.map(t => t.name).join(", ");
+    
+    // Get Property Tag based on selected property - now uses Property_Tag
+    let propertyTag = "";
+    if (selectedProperty && tagKey) {
+        propertyTag = map[`Property_${tagKey}_Tag`] || tagKey;
+    }
+    
+    // Inject header without Lease ID; Lease ID shows separately on left
+    const currentLeaseId = localStorage.getItem("leaseIdCurrent") || "";
+    leaseTag.forEach(tag => {
+        if (propertyTag) {
+            tag.textContent = `${propertyTag} — ${tenantNames || "TENANTS"}`;
+        } else {
+            tag.textContent = "PROPERTY — TENANTS HERE";
+        }
+    });
+    
+    // Update meta line (Lease ID + Lease Dates) on every page, right-aligned second row
+    updateLeaseDates();
+    
+    // 1. Parties (Landlord and Tenants)
+    // Display Landlord Name and Address separately
+    document.getElementById("landlordNameDisplay").textContent = landlordName || "";
+    document.getElementById("landlordAddressDisplay").textContent = landlordAddress || "";
+    
+    // Display Tenant Names in separate text boxes
+    const tenantNamesContainer = document.getElementById("tenantNamesContainer");
+    tenantNamesContainer.innerHTML = "";
+    
+    if (selectedTenants.length > 0) {
+        selectedTenants.forEach((tenant) => {
+            const tenantField = document.createElement("div");
+            tenantField.className = "input-line";
+            tenantField.style.marginBottom = "3px";
+            // Show tenant name with phone number like Property Manager format
+            let tenantText = tenant.name;
+            if (tenant.phone) {
+                tenantText += ` — ${tenant.phone}`;
+            }
+            tenantField.textContent = tenantText;
+            tenantNamesContainer.appendChild(tenantField);
+        });
+    } else {
+        // Show at least one empty field if no tenants selected
+        const tenantField = document.createElement("div");
+        tenantField.className = "input-line";
+        tenantField.textContent = "";
+        tenantNamesContainer.appendChild(tenantField);
+    }
+    
+    // 2. Occupants
+    document.getElementById("occupantsField").textContent = selectedOccupants.join(", ") || "";
+    
+    // 3A. Property Address
+    document.getElementById("premisesField").textContent = propertyAddress || "";
+    
+    // 3B. Type of Rental
+    const propertyTypeSelect = document.getElementById("propertyTypeSelect");
+    const propertyType = propertyTypeSelect ? propertyTypeSelect.value : "";
+    document.getElementById("propertyTypeField").textContent = propertyType || "";
+    
+    // 4. Emergency Contact - Single emergency contact for the lease (not per tenant)
+    const emergencyNameInput = document.getElementById("emergencyNameInput");
+    const emergencyEmailInput = document.getElementById("emergencyEmailInput");
+    const emergencyPhoneInput = document.getElementById("emergencyPhoneInput");
+    
+    // Load from Excel if available (single emergency contact fields)
+    if (emergencyNameInput) {
+        emergencyNameInput.value = map["Emergency_Contact_Name"] || emergencyNameInput.value || "Not Provided";
+    }
+    if (emergencyEmailInput) {
+        emergencyEmailInput.value = map["Emergency_Contact_Email"] || emergencyEmailInput.value || "Not Provided";
+    }
+    if (emergencyPhoneInput) {
+        emergencyPhoneInput.value = map["Emergency_Contact_Phone"] || emergencyPhoneInput.value || "Not Provided";
+    }
+    
+    // Sync to form display fields
+    document.getElementById("emergencyNameField").value = emergencyNameInput ? emergencyNameInput.value : "";
+    document.getElementById("emergencyEmailField").value = emergencyEmailInput ? emergencyEmailInput.value : "";
+    document.getElementById("emergencyPhoneField").value = emergencyPhoneInput ? emergencyPhoneInput.value : "";
+    
+    // 5. Property Manager
+    let managerText = "";
+    if (map["Manager_Name"]) {
+        managerText = map["Manager_Name"];
+        if (map["Manager_Phone"]) {
+            managerText += ` — ${map["Manager_Phone"]}`;
+        }
+    }
+    document.getElementById("managerField").textContent = managerText;
+    
+    // 6. Superintendent
+    let superText = "";
+    if (map["Superintendent_Name"]) {
+        superText = map["Superintendent_Name"];
+        if (map["Superintendent_Phone"]) {
+            superText += ` — ${map["Superintendent_Phone"]}`;
+        }
+    }
+    document.getElementById("superField").textContent = superText;
+    
+    // 7A. Electronic Address (Landlord to Tenant) - One field per selected tenant
+    const emailLTContainer = document.getElementById("emailLTContainer");
+    emailLTContainer.innerHTML = "";
+    
+    if (selectedTenants.length > 0) {
+        // Create one field for each selected tenant
+        selectedTenants.forEach((tenant, index) => {
+            const emailField = document.createElement("div");
+            emailField.className = "input-line";
+            emailField.style.marginBottom = "2px";
+            emailField.textContent = tenant.email || ""; // Show email if available, otherwise empty
+            emailLTContainer.appendChild(emailField);
+        });
+    } else {
+        // If no tenants selected, show one empty field
+        const emailField = document.createElement("div");
+        emailField.className = "input-line";
+        emailField.textContent = "";
+        emailLTContainer.appendChild(emailField);
+    }
+    
+    // 7B. Electronic Address (Tenant to Landlord) - Fixed value
+    document.getElementById("emailTL").textContent = "omagarwal.properties@gmail.com";
+    
+    // 7C. How to Serve Notice - Fixed non-editable text
+    document.getElementById("serveField").innerHTML = "All Notices to Quit or service of documents, except Applications to the Director, must be in writing and served in accordance with Section 15 of the Act.<br>Applications to the Director must be served in accordance with subsections 13(2A), (2B) and (2C) of the Act.";
+    
+    // 8B. Fixed-Term Lease Dates
+    const leaseStartDateInput = document.getElementById("leaseStartDate");
+    const leaseEndDateInput = document.getElementById("leaseEndDate");
+    
+    // Load dates from Excel if available, otherwise use date picker values
+    if (map["Lease_Start_Date"] && leaseStartDateInput) {
+        // Convert Excel date to YYYY-MM-DD format if needed
+        let startDate = map["Lease_Start_Date"];
+        if (startDate && !startDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            // Try to parse and convert to YYYY-MM-DD
+            const parsedDate = new Date(startDate);
+            if (!isNaN(parsedDate.getTime())) {
+                startDate = parsedDate.toISOString().split('T')[0];
+            }
+        }
+        leaseStartDateInput.value = startDate || "";
+    }
+    
+    if (map["Lease_End_Date"] && leaseEndDateInput) {
+        // Convert Excel date to YYYY-MM-DD format if needed
+        let endDate = map["Lease_End_Date"];
+        if (endDate && !endDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            // Try to parse and convert to YYYY-MM-DD
+            const parsedDate = new Date(endDate);
+            if (!isNaN(parsedDate.getTime())) {
+                endDate = parsedDate.toISOString().split('T')[0];
+            }
+        }
+        leaseEndDateInput.value = endDate || "";
+    }
+    
+    // Update display with formatted dates
+    updateLeaseDates();
+    
+    // 10. Rent
+    const monthlyRentInput = document.getElementById("monthlyRentInput");
+    const rentFrequencySelect = document.getElementById("rentFrequencySelect");
+    
+    // Load from Excel if available
+    if (map["Monthly_Rent"] && monthlyRentInput) {
+        monthlyRentInput.value = map["Monthly_Rent"];
+    }
+    if (map["Rent_Frequency"] && rentFrequencySelect) {
+        rentFrequencySelect.value = map["Rent_Frequency"];
+    } else if (rentFrequencySelect && !rentFrequencySelect.value) {
+        // Set default to Monthly if no value from Excel
+        rentFrequencySelect.value = "Monthly";
+    }
+    
+    // Update rent fields display
+    updateRentFields();
+    
+    // 12. Rental Incentives - Fixed content, no need to update from Excel
+    
+    // 13. Rent Includes - Fixed content for 13A, 13B, 13C
+    // 13D. Parking - Load from Excel if available, otherwise use input value
+    const parkingInput = document.getElementById("parkingInput");
+    const parkingField = document.getElementById("parkingField");
+    
+    if (parkingInput) {
+        if (map["Parking"]) {
+        parkingInput.value = map["Parking"];
+        }
+        if (!parkingInput.value) {
+            parkingInput.value = "Parking spot is not allocated, no guest parking allowed on driveway.";
+        }
+    }
+    
+    if (parkingField) {
+        const parkingValue = parkingInput ? parkingInput.value : (map["Parking"] || "Parking spot is not allocated, no guest parking allowed on driveway.");
+        parkingField.textContent = parkingValue;
+    }
+    
+    // 14. Additional Obligations - Fixed content, no need to update from Excel
+    
+    // 15. Security Deposit
+    const securityDepositInput = document.getElementById("securityDepositInput");
+    const depositField = document.getElementById("depositField");
+    
+    // Load from Excel if available, otherwise use input value
+    if (securityDepositInput) {
+        if (map["Security_Deposit"]) {
+        securityDepositInput.value = map["Security_Deposit"];
+        } else if (!window.depositManuallyEdited) {
+            const mr = document.getElementById("monthlyRentInput");
+            const rentNum = mr ? parseFloat(mr.value) : NaN;
+            if (!isNaN(rentNum)) {
+                securityDepositInput.value = (rentNum * 0.5).toFixed(2);
+            }
+        }
+    }
+    
+    // Update display field
+    updateDepositDisplay();
+    
+    // 17B. Assigning & Subletting
+    const subletField = document.getElementById("subletField");
+    if (subletField) {
+        subletField.textContent = map["Subletting_Terms"] || "The tenant cannot sublet the premises.";
+    }
+    
+    // 19. Tenant Notice to Quit - Fixed content, no text box needed
+    
+    // 22A. Tenant Signatures
+    const tenantSignaturesContainer = document.getElementById("tenantSignaturesContainer");
+    if (tenantSignaturesContainer) {
+        tenantSignaturesContainer.innerHTML = "";
+        selectedTenants.forEach((tenant, index) => {
+            const signatureDiv = document.createElement("div");
+            signatureDiv.style.marginBottom = "25px";
+            signatureDiv.style.display = "flex";
+            signatureDiv.style.justifyContent = "space-between";
+            signatureDiv.style.alignItems = "flex-start";
+            signatureDiv.style.gap = "20px";
+            signatureDiv.innerHTML = `
+                <div style="flex: 1; font-weight: bold; padding-top: 5px;">${tenant.name}</div>
+                <div style="flex: 1;">
+                    <div style="margin-bottom: 3px;">Signature:</div>
+                    <div style="min-height: 20px;">_____________________________</div>
+                </div>
+                <div style="flex: 1;">
+                    <div style="margin-bottom: 3px;">Date (YYYY-MM-DD):</div>
+                    <div style="min-height: 20px;">_____________________________</div>
+                </div>
+            `;
+            tenantSignaturesContainer.appendChild(signatureDiv);
+        });
+    }
+    
+    // 22B. Manager Signature
+    const managerSignatureContainer = document.getElementById("managerSignatureContainer");
+    if (managerSignatureContainer) {
+        let managerText = "";
+        if (map["Manager_Name"]) {
+            managerText = map["Manager_Name"];
+        }
+        managerSignatureContainer.innerHTML = "";
+        const signatureDiv = document.createElement("div");
+        signatureDiv.style.marginBottom = "25px";
+        signatureDiv.style.display = "flex";
+        signatureDiv.style.justifyContent = "space-between";
+        signatureDiv.style.alignItems = "flex-start";
+        signatureDiv.style.gap = "20px";
+        signatureDiv.innerHTML = `
+            <div style="flex: 1; font-weight: bold; padding-top: 5px;">${managerText || "Manager Name"}</div>
+            <div style="flex: 1;">
+                <div style="margin-bottom: 3px;">Signature:</div>
+                <div style="min-height: 20px;">_____________________________</div>
+            </div>
+            <div style="flex: 1;">
+                <div style="margin-bottom: 3px;">Date (YYYY-MM-DD):</div>
+                <div style="min-height: 20px;">_____________________________</div>
+            </div>
+        `;
+        managerSignatureContainer.appendChild(signatureDiv);
+    }
+    
+    // Update Page 3 tenant names list
+    const page3TenantNames = document.getElementById("page3TenantNames");
+    if (page3TenantNames) {
+        if (selectedTenants && selectedTenants.length > 0) {
+            page3TenantNames.innerHTML = "";
+            selectedTenants.forEach((tenant, index) => {
+                // Create a container for each name with signature line above
+                const nameContainer = document.createElement("div");
+                nameContainer.style.display = "inline-flex";
+                nameContainer.style.flexDirection = "column";
+                nameContainer.style.alignItems = "flex-start";
+                nameContainer.style.marginRight = "5px";
+                
+                // Signature line above name
+                const signatureLine = document.createElement("div");
+                signatureLine.style.width = "100px";
+                signatureLine.style.height = "1px";
+                signatureLine.style.backgroundColor = "#000";
+                signatureLine.style.marginBottom = "2px";
+                
+                // Name text
+                const nameText = document.createElement("span");
+                nameText.textContent = tenant.name;
+                nameText.style.fontSize = "12px";
+                
+                nameContainer.appendChild(signatureLine);
+                nameContainer.appendChild(nameText);
+                page3TenantNames.appendChild(nameContainer);
+                
+                // Add comma separator except for last name
+                if (index < selectedTenants.length - 1) {
+                    const comma = document.createTextNode(", ");
+                    page3TenantNames.appendChild(comma);
+                }
+            });
+        } else {
+            page3TenantNames.textContent = "";
+        }
+    }
+    
+    // Update lease tag on page 6 and 7 (Inspection Report pages) (no Lease ID here)
+    const page6LeaseTag = document.querySelectorAll('.page[data-page="6"] #leaseTag');
+    page6LeaseTag.forEach(tag => {
+        if (propertyTag) {
+            tag.textContent = `${propertyTag} — ${tenantNames || "TENANTS"}`;
+        } else {
+            tag.textContent = "PROPERTY — TENANTS HERE";
+        }
+    });
+    
+    const page7LeaseTag = document.querySelectorAll('.page[data-page="7"] #leaseTag');
+    page7LeaseTag.forEach(tag => {
+        if (propertyTag) {
+            tag.textContent = `${propertyTag} — ${tenantNames || "TENANTS"}`;
+        } else {
+            tag.textContent = "PROPERTY — TENANTS HERE";
+        }
+    });
+    
+    // Refresh meta line (Lease ID + dates)
+    updateLeaseDates();
+    
+    // Inspection Report - Will be loaded via separate file upload or from localStorage
+    // Only show placeholder if container is empty (don't overwrite if already loaded from localStorage)
+    const inspectionReportContainer = document.getElementById("inspectionReportContainer");
+    if (inspectionReportContainer && !inspectionReportContainer.innerHTML.trim()) {
+        // Check if we have inspection report data in localStorage
+        const hasCachedInspection = localStorage.getItem("inspectionReportData");
+        if (!hasCachedInspection) {
+            inspectionReportContainer.innerHTML = "<div class='input-line'>Please upload an Inspection Report Excel file using the upload button in the control panel.</div>";
+        }
+    }
+    
+    // Inspection Report Signatures - Same tenants as lease
+    const inspectionSignaturesContainer = document.getElementById("inspectionSignaturesContainer");
+    if (inspectionSignaturesContainer) {
+        inspectionSignaturesContainer.innerHTML = "";
+        inspectionSignaturesContainer.style.fontSize = "15px"; // Reduced by 30% for Page 7
+        if (selectedTenants && selectedTenants.length > 0) {
+            selectedTenants.forEach((tenant, index) => {
+                const signatureDiv = document.createElement("div");
+                signatureDiv.style.marginBottom = "12px";
+                signatureDiv.style.display = "flex";
+                signatureDiv.style.justifyContent = "space-between";
+                signatureDiv.style.alignItems = "flex-start";
+                signatureDiv.style.gap = "15px";
+                signatureDiv.innerHTML = `
+                    <div style="flex: 1; font-weight: bold; padding-top: 3px; font-size: 17px;">${tenant.name}</div>
+                    <div style="flex: 1;">
+                        <div style="margin-bottom: 2px; font-size: 17px;">Signature:</div>
+                        <div style="min-height: 18px;">_____________________________</div>
+                    </div>
+                `;
+                inspectionSignaturesContainer.appendChild(signatureDiv);
+            });
+        } else {
+            // Fallback if no tenants selected yet
+            inspectionSignaturesContainer.innerHTML = "<div style='font-size: 17px; color: #666;'>Tenant signatures will appear here after selecting tenants.</div>";
+        }
+    }
+}
+
+// ====== UPDATE PAGE NUMBERS ======
+function updatePageNumbers() {
+    const pages = document.querySelectorAll('.page');
+    const totalPages = pages.length;
+    
+    pages.forEach((page, index) => {
+        const footer = page.querySelector('.page-footer');
+        if (footer) {
+            const pageNumber = footer.querySelector('.page-number');
+            const totalPagesSpan = footer.querySelector('.total-pages');
+            if (pageNumber) pageNumber.textContent = (index + 1).toString();
+            if (totalPagesSpan) totalPagesSpan.textContent = totalPages.toString();
+        }
+    });
+}
+
+// Update page numbers on page load
+// Column resizer functionality for Excel-like tables
+function initColumnResizers() {
+    const tables = document.querySelectorAll('.excel-table');
+    tables.forEach(table => {
+        const tableId = table.id || 'default';
+        const headers = table.querySelectorAll('thead th.resizable');
+        
+        // Load saved column widths
+        try {
+            const savedWidths = JSON.parse(localStorage.getItem(`columnWidths_${tableId}`) || '{}');
+            headers.forEach((header, index) => {
+                if (savedWidths[index]) {
+                    const width = savedWidths[index];
+                    header.style.width = width + 'px';
+                    // Update all cells in this column
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const cell = row.children[index];
+                        if (cell) {
+                            cell.style.width = width + 'px';
+                        }
+                    });
+                }
+            });
+        } catch (e) {
+            console.error("Error loading column widths:", e);
+        }
+        
+        headers.forEach((header, index) => {
+            // Remove existing resizer if any
+            const existingResizer = header.querySelector('.column-resizer');
+            if (existingResizer) {
+                existingResizer.remove();
+            }
+            
+            const resizer = document.createElement('div');
+            resizer.className = 'column-resizer';
+            header.appendChild(resizer);
+            
+            let startX, startWidth, th;
+            
+            resizer.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                th = header;
+                startX = e.pageX;
+                startWidth = th.offsetWidth;
+                resizer.classList.add('active');
+                
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+            });
+            
+            function resize(e) {
+                if (!th) return;
+                const width = startWidth + (e.pageX - startX);
+                if (width >= 50) { // Minimum width
+                    th.style.width = width + 'px';
+                    // Update all cells in this column
+                    const colIndex = Array.from(th.parentElement.children).indexOf(th);
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const cell = row.children[colIndex];
+                        if (cell) {
+                            cell.style.width = width + 'px';
+                        }
+                    });
+                }
+            }
+            
+            function stopResize() {
+                resizer.classList.remove('active');
+                document.removeEventListener('mousemove', resize);
+                document.removeEventListener('mouseup', stopResize);
+                
+                // Save column widths to localStorage
+                try {
+                    const savedWidths = {};
+                    headers.forEach((h, idx) => {
+                        savedWidths[idx] = parseInt(h.style.width) || h.offsetWidth;
+                    });
+                    localStorage.setItem(`columnWidths_${tableId}`, JSON.stringify(savedWidths));
+                } catch (e) {
+                    console.error("Error saving column widths:", e);
+                }
+            }
+        });
+    });
+}
+
+// Column resizers will be initialized when modals are opened
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Starting a new preparation session: ensure no stale Lease ID shows up
+    localStorage.removeItem("leaseIdCurrent");
+    updatePageNumbers();
+    
+    // Set default dates ONLY if fields are empty and no cached dates exist
+    // Users can always change these dates manually - they are fully editable
+    const startDateInput = document.getElementById("leaseStartDate");
+    const endDateInput = document.getElementById("leaseEndDate");
+    
+    // Check if there are cached dates in localStorage first
+    const cachedStart = localStorage.getItem("leaseStartDate");
+    const cachedEnd = localStorage.getItem("leaseEndDate");
+    
+    // Only set defaults if both the field AND localStorage are empty
+    if (startDateInput && !startDateInput.value && !cachedStart) {
+        const now = new Date();
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const startDateStr = nextMonth.getFullYear() + '-' + 
+                            String(nextMonth.getMonth() + 1).padStart(2, '0') + '-' + 
+                            String(nextMonth.getDate()).padStart(2, '0');
+        startDateInput.value = startDateStr;
+        localStorage.setItem("leaseStartDate", startDateStr);
+    }
+    
+    if (endDateInput && !endDateInput.value && !cachedEnd) {
+        const now = new Date();
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const endDate = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 3, 0); // Last day of month 3 months after
+        const endDateStr = endDate.getFullYear() + '-' + 
+                          String(endDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(endDate.getDate()).padStart(2, '0');
+        endDateInput.value = endDateStr;
+        localStorage.setItem("leaseEndDate", endDateStr);
+    }
+    
+    updateLeaseDates();
+    
+    // Load master data from persistent storage (localStorage)
+    try {
+        const cached = localStorage.getItem("masterDataCache");
+        if (cached) {
+            masterData = JSON.parse(cached) || {};
+            window.master = masterData;
+            
+            // Show status message that data was loaded from persistent storage first
+            const info = document.getElementById("combinedUploadInfo");
+            if (info) {
+                info.innerHTML = "✓ Master Data loaded from persistent storage.";
+                info.style.color = "#059669";
+            }
+            
+            // Validate and populate selectors (validateExcel will append counts to the message above)
+            validateExcel(masterData);
+            populateSelectors(masterData);
+            
+            // Populate form fields with default values from master data
+            populateFormFields();
+        }
+    } catch (e) {
+        console.error("Error loading master data from persistent storage:", e);
+    }
+    
+    // Function to refresh dropdowns from localStorage when page becomes visible
+    function refreshDropdownsFromStorage() {
+        try {
+            const cached = localStorage.getItem("masterDataCache");
+            if (cached) {
+                const updatedMasterData = JSON.parse(cached) || {};
+                // Only refresh if masterData has actually changed
+                const currentDataStr = JSON.stringify(masterData);
+                const newDataStr = JSON.stringify(updatedMasterData);
+                if (currentDataStr !== newDataStr) {
+                    masterData = updatedMasterData;
+                    window.master = masterData;
+                    
+                    // Refresh dropdowns
+                    validateExcel(masterData);
+                    populateSelectors(masterData);
+                    
+                    // Update form fields if needed
+                    populateFormFields();
+                    
+                    console.log("✓ Dropdowns refreshed from persistent storage");
+                }
+            }
+        } catch (e) {
+            console.error("Error refreshing dropdowns:", e);
+        }
+    }
+    
+    // Refresh dropdowns when page becomes visible (user returns from other pages)
+    document.addEventListener("visibilitychange", function() {
+        if (!document.hidden) {
+            refreshDropdownsFromStorage();
+        }
+    });
+    
+    // Also refresh when window gains focus (additional check)
+    window.addEventListener("focus", function() {
+        refreshDropdownsFromStorage();
+    });
+    
+    // Restore cached dates if present (without overwriting selected ones)
+    const start = localStorage.getItem("leaseStartDate");
+    const end = localStorage.getItem("leaseEndDate");
+    const sIn = document.getElementById("leaseStartDate");
+    const eIn = document.getElementById("leaseEndDate");
+    if (sIn && start && !sIn.value) sIn.value = start;
+    if (eIn && end && !eIn.value) eIn.value = end;
+    updateLeaseDates();
+    
+    // Load inspection report data from persistent storage
+    try {
+        const cachedInspectionReport = localStorage.getItem("inspectionReportData");
+        if (cachedInspectionReport) {
+            // Convert base64 back to workbook
+            const wb = XLSX.read(cachedInspectionReport, { type: 'base64' });
+            inspectionReportData = wb;
+            
+            // Find inspection report sheet
+            const inspectionSheetName = wb.SheetNames.find(name => {
+                const normalized = name.trim().toLowerCase().replace(/\s+/g, "_");
+                return normalized === "inspection_report" || normalized === "inspectionreport" || name.trim().toLowerCase() === "inspection report";
+            }) || wb.SheetNames.find(name => name.trim().toLowerCase().includes("inspection")) || wb.SheetNames[0];
+            
+            if (inspectionSheetName) {
+                const inspectionSheet = wb.Sheets[inspectionSheetName];
+                if (inspectionSheet) {
+                    // Convert sheet to HTML table
+                    const html = XLSX.utils.sheet_to_html(inspectionSheet, {id: "inspection-table", editable: false});
+                    const inspectionReportContainer = document.getElementById("inspectionReportContainer");
+                    
+                    if (inspectionReportContainer && html && html.trim().length > 0) {
+                        inspectionReportContainer.innerHTML = html;
+                        // Apply styling
+                        const tables = inspectionReportContainer.querySelectorAll('table');
+                        tables.forEach(table => {
+                            table.style.width = '100%';
+                            table.style.borderCollapse = 'collapse';
+                            table.style.marginBottom = '0';
+                            table.style.marginTop = '0';
+                            table.style.fontSize = '10px';
+                            table.style.pageBreakInside = 'auto';
+                            table.style.tableLayout = 'fixed';
+                            
+                            const rows = table.querySelectorAll('tr');
+                            
+                            // Remove rows that contain title, instructions, or abbreviations
+                            const rowsToRemove = [];
+                            rows.forEach((row) => {
+                                const rowText = row.textContent.trim().toLowerCase();
+                                if (rowText.includes('residential tenancies') || 
+                                    rowText.includes('use this report') || 
+                                    rowText.includes('detailed description') ||
+                                    rowText.includes('conditional abbr') ||
+                                    rowText.includes('cleanliness abbr')) {
+                                    rowsToRemove.push(row);
+                                }
+                            });
+                            
+                            rowsToRemove.forEach(row => row.remove());
+                            
+                            // Apply styling to cells
+                            const updatedRows = table.querySelectorAll('tr');
+                            updatedRows.forEach((row, rowIndex) => {
+                                const cells = row.querySelectorAll('td, th');
+                                cells.forEach((cell, cellIndex) => {
+                                    cell.style.border = '1px solid #000';
+                                    cell.style.padding = '2px 4px';
+                                    cell.style.textAlign = cellIndex === 0 ? 'left' : 'center';
+                                    cell.style.verticalAlign = 'top';
+                                });
+                            });
+                        });
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Error loading inspection report from persistent storage:", e);
+    }
+});
+
+// No viewport-based repositioning needed for the fixed header layout
+
+// ====== GENERATE PDF ======
+function generatePDF() {
+    // Hide control panel and buttons for printing
+    const controlPanel = document.querySelector('.control-panel');
+    const buttonContainers = document.querySelectorAll('.button-container');
+    const header = document.querySelector('.header');
+    // Ensure date displays are up to date before printing
+    try { updateLeaseDates(); } catch (e) {}
+    
+    // Store original display states
+    const originalDisplay = {
+        controlPanel: controlPanel ? controlPanel.style.display : '',
+        header: header ? header.style.display : '',
+        buttons: []
+    };
+    
+    buttonContainers.forEach(btn => {
+        originalDisplay.buttons.push(btn.style.display);
+        btn.style.display = 'none';
+    });
+    
+    if (controlPanel) controlPanel.style.display = 'none';
+    if (header) header.style.display = 'none';
+    
+    // Trigger print dialog
+    window.print();
+    
+    // Restore display after a short delay (print dialog is async)
+    setTimeout(() => {
+        if (controlPanel) controlPanel.style.display = originalDisplay.controlPanel;
+        if (header) header.style.display = originalDisplay.header;
+        buttonContainers.forEach((btn, index) => {
+            btn.style.display = originalDisplay.buttons[index] || '';
+        });
+    }, 500);
+}
+
+// ====== EXTRACT INSPECTION REPORT FROM PAGE 6/7 ======
+function extractInspectionReportFromPage() {
+    const inspectionReportContainer = document.getElementById("inspectionReportContainer");
+    if (!inspectionReportContainer) {
+        return null;
+    }
+    
+    // Find the table in the container
+    const table = inspectionReportContainer.querySelector('table');
+    if (!table) {
+        return null;
+    }
+    
+    const rows = table.querySelectorAll('tr');
+    if (rows.length === 0) {
+        return null;
+    }
+    
+    const sheetData = [];
+    
+    // Add empty rows 1-5 (to match Excel structure)
+    for (let i = 0; i < 5; i++) {
+        sheetData.push(["", "", "", "", ""]);
+    }
+    
+    // Identify column mapping from header row
+    let sectionColIndex = 0;
+    let comment1ColIndex = -1;
+    let code1ColIndex = -1;
+    let comment2ColIndex = -1;
+    let code2ColIndex = -1;
+    
+    // Find header row and map columns
+    let headerRowIndex = -1;
+    for (let i = 0; i < Math.min(3, rows.length); i++) {
+        const row = rows[i];
+        const cells = row.querySelectorAll('td, th');
+        if (cells.length === 0) continue;
+        
+        const cellTexts = Array.from(cells).map(cell => cell.textContent.trim().toLowerCase());
+        const rowText = cellTexts.join(' ');
+        
+        // Check if this is a header row
+        if (rowText.includes('section') || rowText.includes('comment') || rowText.includes('code')) {
+            headerRowIndex = i;
+            
+            // Map columns based on header content
+            cells.forEach((cell, idx) => {
+                const cellText = cell.textContent.trim().toLowerCase();
+                if (cellText.includes('section')) {
+                    sectionColIndex = idx;
+                } else if (cellText.includes('condition at beginning') || cellText.includes('begin')) {
+                    if (cellText.includes('comment')) {
+                        comment1ColIndex = idx;
+                    } else if (cellText.includes('code')) {
+                        code1ColIndex = idx;
+                    }
+                } else if (cellText.includes('condition at end') || cellText.includes('end')) {
+                    if (cellText.includes('comment')) {
+                        comment2ColIndex = idx;
+                    } else if (cellText.includes('code')) {
+                        code2ColIndex = idx;
+                    }
+                } else if (cellText.includes('comment') && comment1ColIndex === -1) {
+                    comment1ColIndex = idx;
+                } else if (cellText.includes('code') && code1ColIndex === -1) {
+                    code1ColIndex = idx;
+                }
+            });
+            
+            // If we couldn't find specific columns, use default mapping
+            if (comment1ColIndex === -1 && cells.length > 1) comment1ColIndex = 1;
+            if (code1ColIndex === -1 && cells.length > 2) code1ColIndex = 2;
+            if (comment2ColIndex === -1 && cells.length > 3) comment2ColIndex = 3;
+            if (code2ColIndex === -1 && cells.length > 4) code2ColIndex = 4;
+            
+            break;
+        }
+    }
+    
+    // Add header row (Row 6)
+    sheetData.push(["Sections", "Comment", "Code", "Comment", "Code"]);
+    
+    // Process data rows (skip header rows)
+    for (let i = headerRowIndex + 1; i < rows.length; i++) {
+        const row = rows[i];
+        const cells = row.querySelectorAll('td, th');
+        
+        if (cells.length === 0) continue;
+        
+        // Extract cell text content
+        const cellTexts = Array.from(cells).map(cell => cell.textContent.trim());
+        
+        // Skip rows that are clearly headers/instructions
+        const rowText = cellTexts.join(' ').toLowerCase();
+        if (rowText.includes('residential tenancies') || 
+            rowText.includes('use this report') || 
+            rowText.includes('detailed description') ||
+            rowText.includes('conditional codes') ||
+            rowText.includes('cleanliness codes')) {
+            continue;
+        }
+        
+        // Map cells to: Sections, Comment, Code, Comment, Code (5 columns)
+        let section = (sectionColIndex >= 0 && sectionColIndex < cellTexts.length) ? cellTexts[sectionColIndex] : "";
+        let comment1 = (comment1ColIndex >= 0 && comment1ColIndex < cellTexts.length) ? cellTexts[comment1ColIndex] : "";
+        let code1 = (code1ColIndex >= 0 && code1ColIndex < cellTexts.length) ? cellTexts[code1ColIndex] : "";
+        let comment2 = (comment2ColIndex >= 0 && comment2ColIndex < cellTexts.length) ? cellTexts[comment2ColIndex] : "";
+        let code2 = (code2ColIndex >= 0 && code2ColIndex < cellTexts.length) ? cellTexts[code2ColIndex] : "";
+        
+        // Fallback: if column mapping failed, use sequential mapping
+        if (comment1ColIndex === -1 && cellTexts.length > 1) comment1 = cellTexts[1] || "";
+        if (code1ColIndex === -1 && cellTexts.length > 2) code1 = cellTexts[2] || "";
+        if (comment2ColIndex === -1 && cellTexts.length > 3) comment2 = cellTexts[3] || "";
+        if (code2ColIndex === -1 && cellTexts.length > 4) code2 = cellTexts[4] || "";
+        
+        // Only add row if there's some data
+        if (section || comment1 || code1 || comment2 || code2) {
+            sheetData.push([section, comment1, code1, comment2, code2]);
+        }
+    }
+    
+    // If we have at least the header row, return the data
+    if (sheetData.length > 5) {
+        return sheetData;
+    }
+    
+    return null;
+}
+
+// ====== GENERATE EXCEL TEMPLATE ======
+function generateExcelTemplate() {
+    // Check if master data is loaded
+    const map = masterData || {};
+    
+    // Convert flat format to normalized sheets
+    const normalized = convertFlatToNormalized(map);
+    
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    
+    // Add Property sheet
+    const propertyWs = XLSX.utils.aoa_to_sheet(normalized.property);
+    propertyWs['!cols'] = [
+        {wch: 15}, // Property_Tag
+        {wch: 40}, // Property_Address
+        {wch: 25}, // Landlord_Name
+        {wch: 40}, // Landlord_Address
+        {wch: 18}  // Landlord_Phone
+    ];
+    XLSX.utils.book_append_sheet(wb, propertyWs, "Property");
+    
+    // Add Tenant sheet
+    const tenantWs = XLSX.utils.aoa_to_sheet(normalized.tenant);
+    tenantWs['!cols'] = [
+        {wch: 25}, // Tenant_Name
+        {wch: 30}, // Tenant_Email
+        {wch: 18}, // Tenant_Phone
+        {wch: 40}, // Tenant_Old_Address
+        {wch: 40}  // Tenant_Job_Desc
+    ];
+    XLSX.utils.book_append_sheet(wb, tenantWs, "Tenant");
+    
+    // Add Manager_Superintendent sheet
+    const managerSuperWs = XLSX.utils.aoa_to_sheet(normalized.managerSuper);
+    managerSuperWs['!cols'] = [
+        {wch: 25}, // Manager_Name
+        {wch: 18}, // Manager_Phone
+        {wch: 25}, // Superintendent_Name
+        {wch: 18}  // Superintendent_Phone
+    ];
+    XLSX.utils.book_append_sheet(wb, managerSuperWs, "Manager_Superintendent");
+    
+    // Extract Inspection Report from page 6/7 (currently displayed data)
+    const extractedInspectionData = extractInspectionReportFromPage();
+    
+    // Add Inspection Report as sheet if available
+    if (extractedInspectionData && extractedInspectionData.length > 0) {
+        // Use extracted data from page 6/7
+        const clonedSheet = XLSX.utils.aoa_to_sheet(extractedInspectionData);
+        clonedSheet['!cols'] = [
+            {wch: 40}, // Sections
+            {wch: 15}, // Begin Code
+            {wch: 30}, // Begin Comment
+            {wch: 15}, // End Code
+            {wch: 30}  // End Comment
+        ];
+        XLSX.utils.book_append_sheet(wb, clonedSheet, "Inspection_Report");
+    } else if (inspectionReportData && inspectionReportData.SheetNames.length > 0) {
+        // Fallback to stored inspectionReportData
+        const inspectionSheetName = inspectionReportData.SheetNames[0];
+        const inspectionSheet = inspectionReportData.Sheets[inspectionSheetName];
+        // Clone the sheet by converting to JSON and back to preserve structure
+        const sheetData = XLSX.utils.sheet_to_json(inspectionSheet, {header: 1, defval: "", raw: false});
+        const clonedSheet = XLSX.utils.aoa_to_sheet(sheetData);
+        // Copy column widths if they exist
+        if (inspectionSheet['!cols']) {
+            clonedSheet['!cols'] = inspectionSheet['!cols'];
+        }
+        XLSX.utils.book_append_sheet(wb, clonedSheet, "Inspection_Report");
+    }
+    
+    // Add Lease Records sheet from persisted records
+    const records = getLeaseRecords();
+    const headers = [
+        "Lease_ID","Property_Tag","Landlord","Tenants",
+        "Lease_Start_Date","Lease_End_Date","Monthly_Rent",
+        "Security_Deposit","Notes","Created_At"
+    ];
+    const rows = [headers];
+    records.forEach(r => rows.push(headers.map(h => r[h] || "")));
+    const lrWs = XLSX.utils.aoa_to_sheet(rows);
+    lrWs['!cols'] = [
+        {wch:20},{wch:12},{wch:25},{wch:40},
+        {wch:14},{wch:14},{wch:14},
+        {wch:20},{wch:22}
+    ];
+    XLSX.utils.book_append_sheet(wb, lrWs, "Lease_Records");
+    
+    // Generate Excel file and download
+    const fileName = Object.keys(map).length > 0 ? "NS_Lease_Master_Data.xlsx" : "NS_Lease_Master_Data_Template.xlsx";
+    XLSX.writeFile(wb, fileName);
+    
+    // Show message if no data loaded
+    if (Object.keys(map).length === 0) {
+        alert("No master data loaded. Please upload your master data file first, then click this button again to download with your values.");
+    }
+}
+
+// ====== DOWNLOAD CURRENT LEASE (TRANSACTIONAL FILE) ======
+function downloadCurrentLease() {
+    const map = masterData || {};
+    
+    // Get current form values
+    const propertySelect = document.getElementById("propertySelect");
+    const selectedProperty = propertySelect ? propertySelect.value : "";
+    const propertyAddress = map[selectedProperty] || "";
+    
+    const landlordSelect = document.getElementById("landlordSelect");
+    const selectedLandlord = landlordSelect ? landlordSelect.value : "";
+    const landlordName = map[selectedLandlord] || "";
+    const selectedOption = landlordSelect ? landlordSelect.options[landlordSelect.selectedIndex] : null;
+    const landlordAddress = selectedOption ? (selectedOption.dataset.address || map[`${selectedLandlord}_Address`] || "") : "";
+    
+    // Get selected tenants
+    const selectedTenants = [];
+    const selectedTenantIds = [];
+    for (let i=1; i<=4; i++) {
+        const tenantSel = document.getElementById(`tenantSelect${i}`);
+        if (tenantSel && tenantSel.value) {
+            const tenantId = tenantSel.value; // Use Tenant_ID directly (not parseInt)
+            selectedTenantIds.push(tenantId);
+            const tenant = {
+                id: tenantId,
+                name: map[`Tenant_${tenantId}_Name`] || "",
+                email: map[`Tenant_${tenantId}_Email`] || "",
+                phone: map[`Tenant_${tenantId}_Phone`] || "",
+                address: map[`Tenant_${tenantId}_Old_Address`] || ""
+            };
+            if (tenant.name) selectedTenants.push(tenant);
+        }
+    }
+    
+    // Get property tag - extract tagKey from selectedProperty (e.g., "Property_15SM" -> "15SM")
+    let propertyTag = "";
+    if (selectedProperty && tagKey) {
+        propertyTag = map[`Property_${tagKey}_Tag`] || tagKey || "";
+    }
+    
+    // Get current form field values
+    const propertyTypeSelect = document.getElementById("propertyTypeSelect");
+    const propertyType = propertyTypeSelect ? propertyTypeSelect.value : "";
+    
+    const emergencyNameInput = document.getElementById("emergencyNameInput");
+    const emergencyEmailInput = document.getElementById("emergencyEmailInput");
+    const emergencyPhoneInput = document.getElementById("emergencyPhoneInput");
+    const emergencyName = emergencyNameInput ? emergencyNameInput.value : "";
+    const emergencyEmail = emergencyEmailInput ? emergencyEmailInput.value : "";
+    const emergencyPhone = emergencyPhoneInput ? emergencyPhoneInput.value : "";
+    
+    const leaseStartDateInput = document.getElementById("leaseStartDate");
+    const leaseEndDateInput = document.getElementById("leaseEndDate");
+    const leaseStartDate = leaseStartDateInput ? leaseStartDateInput.value : "";
+    const leaseEndDate = leaseEndDateInput ? leaseEndDateInput.value : "";
+    
+    const monthlyRentInput = document.getElementById("monthlyRentInput");
+    const rentFrequencySelect = document.getElementById("rentFrequencySelect");
+    const monthlyRent = monthlyRentInput ? monthlyRentInput.value : "";
+    const rentFrequency = rentFrequencySelect ? rentFrequencySelect.value : "";
+    
+    const parkingInput = document.getElementById("parkingInput");
+    const parking = parkingInput ? parkingInput.value : "";
+    
+    const securityDepositInput = document.getElementById("securityDepositInput");
+    const securityDeposit = securityDepositInput ? securityDepositInput.value : "";
+    
+    // Create workbook with normalized format
+    const wb = XLSX.utils.book_new();
+    
+    // Convert flat format to normalized sheets for master data
+    const normalized = convertFlatToNormalized(map);
+    
+    // Add Property sheet
+    const propertyWs = XLSX.utils.aoa_to_sheet(normalized.property);
+    propertyWs['!cols'] = [
+        {wch: 15}, // Property_Tag
+        {wch: 40}, // Property_Address
+        {wch: 25}, // Landlord_Name
+        {wch: 40}, // Landlord_Address
+        {wch: 18}  // Landlord_Phone
+    ];
+    XLSX.utils.book_append_sheet(wb, propertyWs, "Property");
+    
+    // Add Tenant sheet
+    const tenantWs = XLSX.utils.aoa_to_sheet(normalized.tenant);
+    tenantWs['!cols'] = [
+        {wch: 25}, // Tenant_Name
+        {wch: 30}, // Tenant_Email
+        {wch: 18}, // Tenant_Phone
+        {wch: 40}, // Tenant_Old_Address
+        {wch: 40}  // Tenant_Job_Desc
+    ];
+    XLSX.utils.book_append_sheet(wb, tenantWs, "Tenant");
+    
+    // Add Manager_Superintendent sheet
+    const managerSuperWs = XLSX.utils.aoa_to_sheet(normalized.managerSuper);
+    managerSuperWs['!cols'] = [
+        {wch: 25}, // Manager_Name
+        {wch: 18}, // Manager_Phone
+        {wch: 25}, // Superintendent_Name
+        {wch: 18}  // Superintendent_Phone
+    ];
+    XLSX.utils.book_append_sheet(wb, managerSuperWs, "Manager_Superintendent");
+    
+    // Add Current Lease sheet with transactional data
+    const currentLeaseFields = [
+        ["Selected_Property", selectedProperty],
+        ["Selected_Property_Address", propertyAddress],
+        ["Selected_Landlord", selectedLandlord],
+        ["Selected_Landlord_Name", landlordName],
+        ["Selected_Landlord_Address", landlordAddress],
+        ["Property_Type", propertyType],
+        ["Lease_Start_Date", leaseStartDate],
+        ["Lease_End_Date", leaseEndDate],
+        ["Monthly_Rent", monthlyRent],
+        ["Rent_Frequency", rentFrequency],
+        ["Parking", parking],
+        ["Security_Deposit", securityDeposit],
+        ["Emergency_Contact_Name", emergencyName],
+        ["Emergency_Contact_Email", emergencyEmail],
+        ["Emergency_Contact_Phone", emergencyPhone],
+    ];
+    // Add selected tenant IDs
+    selectedTenantIds.forEach((tenantId, index) => {
+        currentLeaseFields.push([`Selected_Tenant_${index + 1}_ID`, tenantId.toString()]);
+    });
+    const currentLeaseWs = XLSX.utils.aoa_to_sheet(currentLeaseFields);
+    currentLeaseWs['!cols'] = [{ wch: 35 }, { wch: 50 }];
+    XLSX.utils.book_append_sheet(wb, currentLeaseWs, "Current_Lease");
+    
+    // Extract Inspection Report from page 6/7 (currently displayed data)
+    const extractedInspectionData = extractInspectionReportFromPage();
+    
+    // Add Inspection Report as sheet if available
+    if (extractedInspectionData && extractedInspectionData.length > 0) {
+        // Use extracted data from page 6/7
+        const clonedSheet = XLSX.utils.aoa_to_sheet(extractedInspectionData);
+        clonedSheet['!cols'] = [
+            {wch: 40}, // Sections
+            {wch: 15}, // Begin Code
+            {wch: 30}, // Begin Comment
+            {wch: 15}, // End Code
+            {wch: 30}  // End Comment
+        ];
+        XLSX.utils.book_append_sheet(wb, clonedSheet, "Inspection_Report");
+    } else if (inspectionReportData && inspectionReportData.SheetNames.length > 0) {
+        // Fallback to stored inspectionReportData
+        const inspectionSheetName = inspectionReportData.SheetNames[0];
+        const inspectionSheet = inspectionReportData.Sheets[inspectionSheetName];
+        const sheetData = XLSX.utils.sheet_to_json(inspectionSheet, {header: 1, defval: "", raw: false});
+        const clonedSheet = XLSX.utils.aoa_to_sheet(sheetData);
+        if (inspectionSheet['!cols']) {
+            clonedSheet['!cols'] = inspectionSheet['!cols'];
+        }
+        XLSX.utils.book_append_sheet(wb, clonedSheet, "Inspection_Report");
+    }
+    
+    // Add Lease Records sheet from persisted records
+    const records = getLeaseRecords();
+    const headers = [
+        "Lease_ID","Property_Tag","Landlord","Tenants",
+        "Lease_Start_Date","Lease_End_Date","Monthly_Rent",
+        "Security_Deposit","Notes","Created_At"
+    ];
+    const rows = [headers];
+    records.forEach(r => rows.push(headers.map(h => r[h] || "")));
+    const lrWs = XLSX.utils.aoa_to_sheet(rows);
+    lrWs['!cols'] = [
+        {wch:20},{wch:12},{wch:25},{wch:40},
+        {wch:14},{wch:14},{wch:14},
+        {wch:20},{wch:22}
+    ];
+    XLSX.utils.book_append_sheet(wb, lrWs, "Lease_Records");
+    
+    // Generate filename: Lease_Property_Tag_Tenants_Firstname_Tenant_FirstName_YYYY_MM_DD.xlsx
+    let fileName = "Lease_";
+    
+    // Add property tag
+    if (propertyTag) {
+        fileName += propertyTag.replace(/\s+/g, "_") + "_";
+    }
+    
+    // Add tenant first names
+    if (selectedTenants.length > 0) {
+        const tenantFirstNames = selectedTenants.map(t => {
+            const firstName = t.name.split(" ")[0];
+            return firstName.replace(/\s+/g, "_");
+        });
+        fileName += tenantFirstNames.join("_") + "_";
+    }
+    
+    // Add current date YYYY_MM_DD
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    fileName += `${year}_${month}_${day}.xlsx`;
+    
+    // Generate Excel file and download
+    XLSX.writeFile(wb, fileName);
+}
+
+// ====== DOWNLOAD LEASE RECORDS LOG ======
+function downloadLeaseRecords() {
+    const key = "leaseRecords";
+    const records = JSON.parse(localStorage.getItem(key) || "[]");
+    if (!records || records.length === 0) {
+        alert("No finalized lease records found yet.");
+        return;
+    }
+    // Convert array of objects to sheet
+    const headers = [
+        "Lease_ID","Property_Tag","Landlord","Tenants",
+        "Lease_Start_Date","Lease_End_Date","Monthly_Rent",
+        "Security_Deposit","Notes","Created_At"
+    ];
+    const rows = [headers];
+    records.forEach(r => {
+        rows.push(headers.map(h => r[h] || ""));
+    });
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [
+        {wch:20},{wch:12},{wch:25},{wch:40},
+        {wch:14},{wch:14},{wch:14},
+        {wch:16},{wch:50},{wch:22}
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, "Lease_Records");
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth()+1).padStart(2,'0');
+    const d = String(today.getDate()).padStart(2,'0');
+    XLSX.writeFile(wb, `Lease_Records_${y}_${m}_${d}.xlsx`);
+}
+
+</script>
+
+</body>
+</html>
+
+

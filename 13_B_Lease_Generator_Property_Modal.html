@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Properties Modal - NS Lease Generator</title>
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body { 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        margin: 0; 
+        padding: 20px; 
+        background: #f5f5f5;
+    }
+
+    .pdf-button {
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        margin: 5px;
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    .pdf-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .excel-table-container {
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        overflow: auto;
+        background: #fff;
+        position: relative;
+    }
+    
+    .excel-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 13px;
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    
+    .excel-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: #f3f4f6;
+    }
+    
+    .excel-table th {
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-bottom: 2px solid #9ca3af;
+        padding: 6px 8px;
+        text-align: left;
+        font-weight: 600;
+        color: #111827;
+        position: relative;
+        user-select: none;
+        white-space: nowrap;
+        min-width: 80px;
+    }
+    
+    .excel-table th.resizable {
+        padding-right: 18px;
+    }
+    
+    .excel-table td {
+        border: 1px solid #d1d5db;
+        padding: 4px 6px;
+        background: #fff;
+        vertical-align: middle;
+    }
+    
+    .excel-table tbody tr:hover {
+        background: #f9fafb;
+    }
+    
+    .excel-table tbody tr:nth-child(even) {
+        background: #fafafa;
+    }
+    
+    .excel-table input {
+        width: 100%;
+        border: none;
+        padding: 4px 6px;
+        background: transparent;
+        font-size: 13px;
+        font-family: inherit;
+        outline: none;
+    }
+    
+    .excel-table input:focus {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+    }
+    
+    .column-resizer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 4px;
+        height: 100%;
+        cursor: col-resize;
+        background: transparent;
+        z-index: 1;
+    }
+
+    .column-resizer:hover {
+        background: #3b82f6;
+    }
+
+    .column-resizer.active {
+        background: #2563eb;
+    }
+</style>
+</head>
+<body>
+    <h1>Properties Modal Test</h1>
+    <button class="pdf-button" onclick="openPropertiesCRUD()">Open Properties Modal</button>
+
+    <!-- PROPERTIES CRUD MODAL -->
+    <div id="propertiesCRUDBackdrop" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 50;"></div>
+    <div id="propertiesCRUDModal" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 1200px; max-width: 95vw; max-height: 90vh; overflow: auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.25); z-index: 51; padding: 20px;">
+        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 15px;">
+            <h3 style="margin:0;">🏠 Manage Properties</h3>
+            <button class="pdf-button" onclick="closePropertiesCRUD()" style="background:#ef4444;">✖ Close</button>
+        </div>
+        <div class="excel-table-container" style="max-height: 60vh; margin-bottom: 10px;">
+            <table class="excel-table" id="propertiesTable">
+                <thead>
+                    <tr>
+                        <th class="resizable" style="width: 150px;">Property_Tag</th>
+                        <th class="resizable" style="width: 250px;">Property_Address</th>
+                        <th class="resizable" style="width: 200px;">Landlord_Name</th>
+                        <th class="resizable" style="width: 250px;">Landlord_Address</th>
+                        <th class="resizable" style="width: 150px;">Landlord_Phone</th>
+                        <th style="width: 100px; text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="propertiesCRUDBody"></tbody>
+            </table>
+        </div>
+        <div style="display:flex; justify-content: space-between; align-items:center; margin-top:15px;">
+            <button class="pdf-button" onclick="addPropertyRow()" style="background:#10b981;">＋ Add Property</button>
+            <div style="display:flex; gap:8px;">
+                <button class="pdf-button" onclick="savePropertiesCRUD()" style="background:#3b82f6;">✔ Save & Apply</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+let masterData = {};
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Initialize column resizers
+function initColumnResizers() {
+    const tables = document.querySelectorAll('.excel-table');
+    tables.forEach(table => {
+        const tableId = table.id || 'default';
+        const headers = table.querySelectorAll('thead th.resizable');
+        
+        // Load saved column widths
+        try {
+            const savedWidths = JSON.parse(localStorage.getItem(`columnWidths_${tableId}`) || '{}');
+            headers.forEach((header, index) => {
+                if (savedWidths[index]) {
+                    const width = savedWidths[index];
+                    header.style.width = width + 'px';
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const cell = row.children[index];
+                        if (cell) {
+                            cell.style.width = width + 'px';
+                        }
+                    });
+                }
+            });
+        } catch (e) {
+            console.error("Error loading column widths:", e);
+        }
+        
+        headers.forEach((header, index) => {
+            const existingResizer = header.querySelector('.column-resizer');
+            if (existingResizer) {
+                existingResizer.remove();
+            }
+            
+            const resizer = document.createElement('div');
+            resizer.className = 'column-resizer';
+            header.appendChild(resizer);
+            
+            let startX, startWidth, th;
+            
+            resizer.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                th = header;
+                startX = e.pageX;
+                startWidth = th.offsetWidth;
+                resizer.classList.add('active');
+                
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+            });
+            
+            function resize(e) {
+                if (!th) return;
+                const width = startWidth + (e.pageX - startX);
+                if (width >= 50) {
+                    th.style.width = width + 'px';
+                    const colIndex = Array.from(th.parentElement.children).indexOf(th);
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const cell = row.children[colIndex];
+                        if (cell) {
+                            cell.style.width = width + 'px';
+                        }
+                    });
+                }
+            }
+            
+            function stopResize() {
+                resizer.classList.remove('active');
+                document.removeEventListener('mousemove', resize);
+                document.removeEventListener('mouseup', stopResize);
+                
+                try {
+                    const savedWidths = {};
+                    headers.forEach((h, idx) => {
+                        savedWidths[idx] = parseInt(h.style.width) || h.offsetWidth;
+                    });
+                    localStorage.setItem(`columnWidths_${tableId}`, JSON.stringify(savedWidths));
+                } catch (e) {
+                    console.error("Error saving column widths:", e);
+                }
+            }
+        });
+    });
+}
+
+function openPropertiesCRUD() {
+    // Ensure masterData is loaded from localStorage
+    try {
+        const cached = localStorage.getItem("masterDataCache");
+        if (cached) {
+            masterData = JSON.parse(cached) || {};
+        }
+    } catch (e) {
+        console.error("Error loading masterData:", e);
+    }
+    
+    // Ensure masterData is an object
+    if (!masterData || typeof masterData !== 'object') {
+        masterData = {};
+    }
+    
+    const tbody = document.getElementById("propertiesCRUDBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    
+    // Load existing properties from masterData - now uses Property_Tag as key
+    const props = [];
+    const propertyKeys = Object.keys(masterData).filter(k => 
+        k.startsWith('Property_') && 
+        !k.includes('_Tag') && 
+        !k.includes('_Address')
+    );
+    
+    propertyKeys.forEach(propKey => {
+        const tagKey = propKey.replace('Property_', '');
+        const propTag = masterData[`Property_${tagKey}_Tag`] || tagKey;
+        const propAddress = masterData[`Property_${tagKey}_Address`] || masterData[propKey] || "";
+        const landlordNameKey = `Landlord_${tagKey}_Name`;
+        const landlordAddrKey = `Landlord_${tagKey}_Address`;
+        const landlordPhoneKey = `Landlord_${tagKey}_Phone`;
+        
+        props.push({
+            tagKey: tagKey,
+            tag: propTag,
+            address: propAddress,
+            landlordName: masterData[landlordNameKey] || "",
+            landlordAddress: masterData[landlordAddrKey] || "",
+            landlordPhone: masterData[landlordPhoneKey] || ""
+        });
+    });
+    
+    // If no properties exist, add one empty row
+    if (props.length === 0) {
+        props.push({
+            tagKey: "",
+            tag: "", address: "",
+            landlordName: "", landlordAddress: "", landlordPhone: ""
+        });
+    }
+    
+    props.forEach(prop => {
+        appendPropertyRow(prop);
+    });
+    
+    document.getElementById("propertiesCRUDBackdrop").style.display = "block";
+    document.getElementById("propertiesCRUDModal").style.display = "block";
+    setTimeout(initColumnResizers, 100);
+}
+
+function appendPropertyRow(prop) {
+    const tbody = document.getElementById("propertiesCRUDBody");
+    const tr = document.createElement("tr");
+    tr.dataset.tagKey = prop.tagKey || '';
+    tr.innerHTML = `
+        <td><input type="text" value="${escapeHtml(prop.tag || "")}" placeholder="Property_Tag" class="prop-tag"></td>
+        <td><input type="text" value="${escapeHtml(prop.address || "")}" placeholder="Property_Address" class="prop-address"></td>
+        <td><input type="text" value="${escapeHtml(prop.landlordName || "")}" placeholder="Landlord_Name" class="prop-landlord-name"></td>
+        <td><input type="text" value="${escapeHtml(prop.landlordAddress || "")}" placeholder="Landlord_Address" class="prop-landlord-addr"></td>
+        <td><input type="text" value="${escapeHtml(prop.landlordPhone || "")}" placeholder="Landlord_Phone" class="prop-landlord-phone"></td>
+        <td style="text-align:center;">
+            <button class="pdf-button" style="background:#ef4444; padding:4px 8px; font-size:11px;" onclick="this.closest('tr').remove()">🗑</button>
+        </td>`;
+    tbody.appendChild(tr);
+}
+
+function addPropertyRow() {
+    appendPropertyRow({
+        tagKey: "",
+        tag: "", address: "",
+        landlordName: "", landlordAddress: "", landlordPhone: ""
+    });
+}
+
+function savePropertiesCRUD() {
+    const rows = Array.from(document.querySelectorAll("#propertiesCRUDBody tr"));
+    
+    // Clear existing property data - find all Property_* keys
+    const propertyKeys = Object.keys(masterData).filter(k => 
+        k.startsWith('Property_') || k.startsWith('Landlord_')
+    );
+    propertyKeys.forEach(key => delete masterData[key]);
+    
+    rows.forEach((row) => {
+        const tag = row.querySelector(".prop-tag").value.trim();
+        const address = row.querySelector(".prop-address").value.trim();
+        const landlordName = row.querySelector(".prop-landlord-name").value.trim();
+        const landlordAddr = row.querySelector(".prop-landlord-addr").value.trim();
+        const landlordPhone = row.querySelector(".prop-landlord-phone").value.trim();
+        // Use Property_Tag as the key identifier
+        if (tag || address || landlordName) {
+            // Sanitize tag to use as key (remove special chars, spaces)
+            const tagKey = tag ? tag.replace(/[^A-Za-z0-9]/g, '_') : `PROP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            
+            // Store property data
+            masterData[`Property_${tagKey}`] = address || tag || "";
+            if (address) masterData[`Property_${tagKey}_Address`] = address;
+            if (tag) masterData[`Property_${tagKey}_Tag`] = tag;
+            
+            // Store landlord data
+            if (landlordName) {
+                masterData[`Landlord_${tagKey}_Name`] = landlordName;
+                if (landlordAddr) masterData[`Landlord_${tagKey}_Address`] = landlordAddr;
+                if (landlordPhone) masterData[`Landlord_${tagKey}_Phone`] = landlordPhone;
+            }
+        }
+    });
+    
+    try { localStorage.setItem("masterDataCache", JSON.stringify(masterData)); } catch (e) {}
+    closePropertiesCRUD();
+    alert("✓ Properties saved to localStorage!");
+}
+
+function closePropertiesCRUD() {
+    document.getElementById("propertiesCRUDBackdrop").style.display = "none";
+    document.getElementById("propertiesCRUDModal").style.display = "none";
+}
+
+// Close modal when clicking backdrop
+document.getElementById("propertiesCRUDBackdrop").addEventListener('click', function(e) {
+    if (e.target === this) {
+        closePropertiesCRUD();
+    }
+});
+</script>
+</body>
+</html>
+
+
+
+
+
+

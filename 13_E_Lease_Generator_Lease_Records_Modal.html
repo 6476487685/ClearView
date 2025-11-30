@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lease Records Modal - NS Lease Generator</title>
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body { 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        margin: 0; 
+        padding: 20px; 
+        background: #f5f5f5;
+    }
+
+    .pdf-button {
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        margin: 5px;
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    .pdf-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .excel-table-container {
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        overflow: auto;
+        background: #fff;
+        position: relative;
+    }
+    
+    .excel-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 13px;
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    
+    .excel-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: #f3f4f6;
+    }
+    
+    .excel-table th {
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-bottom: 2px solid #9ca3af;
+        padding: 6px 8px;
+        text-align: left;
+        font-weight: 600;
+        color: #111827;
+        position: relative;
+        user-select: none;
+        white-space: nowrap;
+        min-width: 80px;
+    }
+    
+    .excel-table th.resizable {
+        padding-right: 18px;
+    }
+    
+    .excel-table td {
+        border: 1px solid #d1d5db;
+        padding: 4px 6px;
+        background: #fff;
+        vertical-align: middle;
+    }
+    
+    .excel-table tbody tr:hover {
+        background: #f9fafb;
+    }
+    
+    .excel-table input,
+    .excel-table textarea {
+        width: 100%;
+        border: none;
+        padding: 4px 6px;
+        background: transparent;
+        font-size: 13px;
+        font-family: inherit;
+        outline: none;
+    }
+    
+    .excel-table input:focus,
+    .excel-table textarea:focus {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+    }
+    
+    .column-resizer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 4px;
+        height: 100%;
+        cursor: col-resize;
+        background: transparent;
+        z-index: 1;
+    }
+
+    .column-resizer:hover {
+        background: #3b82f6;
+    }
+
+    .column-resizer.active {
+        background: #2563eb;
+    }
+</style>
+</head>
+<body>
+    <h1>Lease Records Modal Test</h1>
+    <button class="pdf-button" onclick="openLeasesCRUD()">Open Lease Records Modal</button>
+
+    <!-- LEASES CRUD MODAL -->
+    <div id="leasesCRUDBackdrop" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 50;"></div>
+    <div id="leasesCRUDModal" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 95vw; max-width: 1400px; max-height: 75vh; background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.25); z-index: 51; padding: 18px; flex-direction: column; overflow: hidden;">
+        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 15px; flex-shrink: 0;">
+            <h3 style="margin:0;">📋 Manage Leases</h3>
+            <button class="pdf-button" onclick="closeLeasesCRUD()" style="background:#ef4444;">✖ Close</button>
+        </div>
+        <div class="excel-table-container" style="flex: 1; overflow: auto; margin-bottom: 10px; min-height: 0;">
+            <table class="excel-table" id="leasesTable">
+                <thead>
+                    <tr>
+                        <th class="resizable" style="width: 150px;">Lease_ID</th>
+                        <th class="resizable" style="width: 120px;">Property_Tag</th>
+                        <th class="resizable" style="width: 180px;">Landlord</th>
+                        <th class="resizable" style="width: 200px;">Tenants</th>
+                        <th class="resizable" style="width: 120px;">Lease_Start_Date</th>
+                        <th class="resizable" style="width: 120px;">Lease_End_Date</th>
+                        <th class="resizable" style="width: 120px;">Monthly_Rent</th>
+                        <th class="resizable" style="width: 130px;">Security_Deposit</th>
+                        <th class="resizable" style="width: 200px;">Notes</th>
+                        <th style="width: 100px; text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="leasesCRUDBody"></tbody>
+            </table>
+        </div>
+        <div style="display:flex; justify-content: space-between; align-items:center; margin-top:15px; flex-shrink: 0;">
+            <div style="font-size: 12px; color:#666;">Leases are created when you finalize a lease. You can edit Notes here.</div>
+            <div style="display:flex; gap:8px;">
+                <button class="pdf-button" onclick="saveLeasesCRUD()" style="background:#3b82f6;">✔ Save Changes</button>
+                <button class="pdf-button" onclick="clearAllLeaseRecords()" style="background:#ef4444;">🗑 Clear All Records</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+let masterData = {};
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Helper function to add superscripts to duplicate tenant names
+function addSuperscriptsToDuplicateNames(tenants) {
+    if (!tenants || tenants.length === 0) return tenants;
+    
+    const nameCount = {};
+    const nameIndex = {};
+    
+    tenants.forEach(tenant => {
+        const name = (tenant.name || "").trim();
+        if (name) {
+            nameCount[name] = (nameCount[name] || 0) + 1;
+        }
+    });
+    
+    const superscriptChars = ['¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹', '¹⁰', '¹¹', '¹²'];
+    
+    return tenants.map(tenant => {
+        const originalName = (tenant.name || "").trim();
+        if (!originalName) return tenant;
+        
+        if (nameCount[originalName] > 1) {
+            if (nameIndex[originalName] === undefined) {
+                nameIndex[originalName] = 0;
+            }
+            nameIndex[originalName]++;
+            
+            const superscriptIndex = nameIndex[originalName] - 1;
+            const superscript = superscriptIndex < superscriptChars.length 
+                ? superscriptChars[superscriptIndex] 
+                : `⁽${nameIndex[originalName]}⁾`;
+            
+            return {
+                ...tenant,
+                name: originalName + superscript
+            };
+        }
+        
+        return tenant;
+    });
+}
+
+// Lease Records functions
+function getLeaseRecords() {
+    try {
+        return JSON.parse(localStorage.getItem("leaseRecords") || "[]");
+    } catch (e) {
+        return [];
+    }
+}
+
+function setLeaseRecords(records) {
+    try {
+        localStorage.setItem("leaseRecords", JSON.stringify(records || []));
+    } catch (e) {}
+}
+
+function clearAllLeaseRecords() {
+    if (confirm("Are you sure you want to delete ALL lease records and reset all lease counters? This cannot be undone.")) {
+        setLeaseRecords([]);
+        openLeasesCRUD();
+        alert("All lease records cleared!");
+    }
+}
+
+// Initialize column resizers
+function initColumnResizers() {
+    const tables = document.querySelectorAll('.excel-table');
+    tables.forEach(table => {
+        const tableId = table.id || 'default';
+        const headers = table.querySelectorAll('thead th.resizable');
+        
+        try {
+            const savedWidths = JSON.parse(localStorage.getItem(`columnWidths_${tableId}`) || '{}');
+            headers.forEach((header, index) => {
+                if (savedWidths[index]) {
+                    const width = savedWidths[index];
+                    header.style.width = width + 'px';
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const cell = row.children[index];
+                        if (cell) {
+                            cell.style.width = width + 'px';
+                        }
+                    });
+                }
+            });
+        } catch (e) {
+            console.error("Error loading column widths:", e);
+        }
+        
+        headers.forEach((header, index) => {
+            const existingResizer = header.querySelector('.column-resizer');
+            if (existingResizer) {
+                existingResizer.remove();
+            }
+            
+            const resizer = document.createElement('div');
+            resizer.className = 'column-resizer';
+            header.appendChild(resizer);
+            
+            let startX, startWidth, th;
+            
+            resizer.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                th = header;
+                startX = e.pageX;
+                startWidth = th.offsetWidth;
+                resizer.classList.add('active');
+                
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+            });
+            
+            function resize(e) {
+                if (!th) return;
+                const width = startWidth + (e.pageX - startX);
+                if (width >= 50) {
+                    th.style.width = width + 'px';
+                    const colIndex = Array.from(th.parentElement.children).indexOf(th);
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const cell = row.children[colIndex];
+                        if (cell) {
+                            cell.style.width = width + 'px';
+                        }
+                    });
+                }
+            }
+            
+            function stopResize() {
+                resizer.classList.remove('active');
+                document.removeEventListener('mousemove', resize);
+                document.removeEventListener('mouseup', stopResize);
+                
+                try {
+                    const savedWidths = {};
+                    headers.forEach((h, idx) => {
+                        savedWidths[idx] = parseInt(h.style.width) || h.offsetWidth;
+                    });
+                    localStorage.setItem(`columnWidths_${tableId}`, JSON.stringify(savedWidths));
+                } catch (e) {
+                    console.error("Error saving column widths:", e);
+                }
+            }
+        });
+    });
+}
+
+function openLeasesCRUD() {
+    // Load masterData
+    try {
+        const cached = localStorage.getItem("masterDataCache");
+        if (cached) {
+            masterData = JSON.parse(cached) || {};
+        }
+    } catch (e) {
+        console.error("Error loading masterData:", e);
+    }
+    
+    const tbody = document.getElementById("leasesCRUDBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    
+    // Load lease records from localStorage
+    const records = getLeaseRecords();
+    
+    if (records.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:#666;">No lease records found. Finalize a lease to create a record.</td></tr>`;
+    } else {
+        // Helper function to clean tenant names
+        function cleanTenantName(name) {
+            if (!name) return '';
+            let cleaned = String(name).trim();
+            cleaned = cleaned.replace(/\(\s*\d+\s*\)/g, '').trim();
+            if (cleaned && /[0-9]$/.test(cleaned) && !/[¹²³⁴⁵⁶⁷⁸⁹⁰]$/.test(cleaned)) {
+                cleaned = cleaned.replace(/\d+$/, '').trim();
+            }
+            cleaned = cleaned.replace(/^\d+\s*[-_]\s*/, '').trim();
+            cleaned = cleaned.replace(/\s+/g, ' ').trim();
+            return cleaned;
+        }
+        
+        // Get all tenants from masterData and apply superscripts
+        const tenantsFromMaster = [];
+        let tenantId = 1;
+        while (masterData[`Tenant_${tenantId}_Name`]) {
+            const name = masterData[`Tenant_${tenantId}_Name`] || "";
+            const email = masterData[`Tenant_${tenantId}_Email`] || "";
+            const phone = masterData[`Tenant_${tenantId}_Phone`] || "";
+            if (name) {
+                tenantsFromMaster.push({
+                    id: tenantId,
+                    name: name.trim(),
+                    email: email.trim(),
+                    phone: phone.trim()
+                });
+            }
+            tenantId++;
+        }
+        
+        const tenantsWithSuperscripts = addSuperscriptsToDuplicateNames(tenantsFromMaster);
+        
+        // Build tenant name map
+        const tenantNameMap = {};
+        tenantsWithSuperscripts.forEach(tenant => {
+            const cleanedName = cleanTenantName(tenant.name).toLowerCase();
+            if (!tenantNameMap[cleanedName]) {
+                tenantNameMap[cleanedName] = [];
+            }
+            tenantNameMap[cleanedName].push({
+                nameWithSuperscript: tenant.name,
+                email: tenant.email,
+                phone: tenant.phone
+            });
+        });
+        
+        // Process each lease record
+        records.forEach((record, recordIndex) => {
+            const processedRecord = { ...record };
+            if (processedRecord.Tenants) {
+                const originalNames = record.Tenants.split(',').map(n => n.trim()).filter(Boolean);
+                const names = originalNames.map(originalName => {
+                    const hasSuperscript = /[¹²³⁴⁵⁶⁷⁸⁹⁰⁽⁾]/.test(originalName);
+                    if (hasSuperscript) {
+                        return originalName;
+                    }
+                    const cleaned = cleanTenantName(originalName);
+                    if (!cleaned) return '';
+                    const cleanedLower = cleaned.toLowerCase();
+                    const matches = tenantNameMap[cleanedLower];
+                    if (matches && matches.length > 0) {
+                        return matches[0].nameWithSuperscript;
+                    }
+                    return cleaned;
+                }).filter(Boolean);
+                processedRecord.Tenants = names.join(", ");
+            }
+            appendLeaseRow(processedRecord, recordIndex);
+        });
+    }
+    
+    document.getElementById("leasesCRUDBackdrop").style.display = "block";
+    document.getElementById("leasesCRUDModal").style.display = "flex";
+    setTimeout(() => {
+        initColumnResizers();
+    }, 100);
+}
+
+function appendLeaseRow(record, index) {
+    const tbody = document.getElementById("leasesCRUDBody");
+    const tr = document.createElement("tr");
+    tr.dataset.leaseIndex = index;
+    
+    tr.innerHTML = `
+        <td style="padding: 4px; border: 1px solid #d1d5db;">
+            <input type="text" value="${escapeHtml(record.Lease_ID || "")}" readonly 
+                   style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" 
+                   class="lease-id">
+        </td>
+        <td style="padding: 4px; border: 1px solid #d1d5db;">
+            <input type="text" value="${escapeHtml(record.Property_Tag || "")}" readonly 
+                   style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" 
+                   class="lease-property-tag">
+        </td>
+        <td style="padding: 4px; border: 1px solid #d1d5db;">
+            <input type="text" value="${escapeHtml(record.Landlord || "")}" readonly 
+                   style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" 
+                   class="lease-landlord">
+        </td>
+        <td style="padding: 4px; border: 1px solid #d1d5db;">
+            <textarea readonly 
+                      style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; min-height: 40px; resize: vertical; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; box-sizing: border-box; font-family: inherit;" 
+                      class="lease-tenants">${escapeHtml(record.Tenants || "")}</textarea>
+        </td>
+        <td style="padding: 4px; border: 1px solid #d1d5db;">
+            <input type="text" value="${escapeHtml(record.Lease_Start_Date || "")}" readonly 
+                   style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" 
+                   class="lease-start">
+        </td>
+        <td style="padding: 4px; border: 1px solid #d1d5db;">
+            <input type="text" value="${escapeHtml(record.Lease_End_Date || "")}" readonly 
+                   style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" 
+                   class="lease-end">
+        </td>
+        <td style="padding: 4px; border: 1px solid #d1d5db;">
+            <input type="text" value="${escapeHtml(record.Monthly_Rent || "")}" readonly 
+                   style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" 
+                   class="lease-rent">
+        </td>
+        <td style="padding: 4px; border: 1px solid #d1d5db;">
+            <input type="text" value="${escapeHtml(record.Security_Deposit || "")}" readonly 
+                   style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" 
+                   class="lease-deposit">
+        </td>
+        <td style="padding: 4px; border: 1px solid #d1d5db;">
+            <textarea placeholder="Notes" 
+                      style="width: 100%; border: none; background: #fff; padding: 4px; font-size: 13px; min-height: 40px; resize: vertical; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; box-sizing: border-box; font-family: inherit;" 
+                      class="lease-notes">${escapeHtml(record.Notes || "")}</textarea>
+        </td>
+        <td style="padding: 4px; border: 1px solid #d1d5db; text-align: center;">
+            <button class="pdf-button" style="background:#ef4444; padding: 4px 8px; font-size: 11px; border: none; cursor: pointer;" onclick="deleteLeaseRow(this)">🗑</button>
+        </td>`;
+    tbody.appendChild(tr);
+}
+
+function deleteLeaseRow(btn) {
+    if (!confirm("Are you sure you want to delete this lease record?")) return;
+    const tr = btn.closest("tr");
+    const index = parseInt(tr.dataset.leaseIndex);
+    const records = getLeaseRecords();
+    records.splice(index, 1);
+    setLeaseRecords(records);
+    tr.remove();
+    
+    // Re-index remaining rows
+    const remainingRows = Array.from(document.querySelectorAll("#leasesCRUDBody tr"));
+    remainingRows.forEach((row, idx) => {
+        row.dataset.leaseIndex = idx;
+    });
+    
+    // Reload the modal
+    openLeasesCRUD();
+}
+
+function saveLeasesCRUD() {
+    const rows = Array.from(document.querySelectorAll("#leasesCRUDBody tr"));
+    const records = getLeaseRecords();
+    
+    rows.forEach(row => {
+        const index = parseInt(row.dataset.leaseIndex);
+        if (index >= 0 && index < records.length) {
+            const notesTextarea = row.querySelector(".lease-notes");
+            if (notesTextarea) {
+                records[index].Notes = notesTextarea.value.trim();
+            }
+        }
+    });
+    
+    setLeaseRecords(records);
+    closeLeasesCRUD();
+    alert("✓ Lease records updated!");
+}
+
+function closeLeasesCRUD() {
+    document.getElementById("leasesCRUDBackdrop").style.display = "none";
+    document.getElementById("leasesCRUDModal").style.display = "none";
+}
+
+// Close modal when clicking backdrop
+document.getElementById("leasesCRUDBackdrop").addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeLeasesCRUD();
+    }
+});
+</script>
+</body>
+</html>
+
+
+
+
+
+

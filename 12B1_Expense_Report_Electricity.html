@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ClearView — Electricity Expense Report</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="assets/xlsx.full.min.js"></script>
+  <script src="pdf_utils.js"></script>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --border-light: #f3f4f6;
+      --surface: #ffffff;
+      --bg: #f9fafb;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --divider: #e2e8f0;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    
+    /* Header */
+    .header {
+      background: var(--surface);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      font-weight: 400;
+      position: relative;
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
+    }
+    
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      align-items: flex-start;
+    }
+    
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #b87333;
+      letter-spacing: -0.02em;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+      margin: 0;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    button {
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.1s ease;
+      font-family: inherit;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    button.black, button.primary {
+      background: var(--text-primary);
+      color: #fff;
+    }
+    
+    button.black:hover, button.primary:hover {
+      background: #374151;
+    }
+    
+    /* Main Content */
+    .main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .report-header {
+      margin-bottom: 24px;
+    }
+    
+    .report-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .report-header p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    /* Filters Card */
+    .filters-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+    
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .filter-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .filter-group select,
+    .filter-group input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      background: var(--surface);
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+    
+    .filter-group select:focus,
+    .filter-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .filter-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+    
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text-primary);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--border-light);
+    }
+    
+    /* Report Table */
+    .report-table-container {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    
+    .expense-report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    .expense-report-table thead {
+      background: var(--border-light);
+    }
+    
+    .expense-report-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    
+    .expense-report-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-primary);
+    }
+    
+    .expense-report-table tbody tr:hover {
+      background: var(--bg);
+    }
+    
+    .expense-report-table tfoot tr {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    
+    .expense-report-table tfoot tr:last-child {
+      background-color: #e0e0e0;
+      font-size: 16px;
+    }
+    
+    .tag-header-row {
+      background-color: #e3f2fd;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    
+    .subtotal-row {
+      background-color: #fff2cc;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <h1 class="header-title">Electricity Expense Report</h1>
+      <button class="black" onclick="window.location.href='12_Reports_Dashboard.html'">← Back to Reports Dashboard</button>
+    </div>
+  </header>
+  
+  <main class="main-content">
+    <!-- Report Header -->
+    <div class="report-header">
+      <h2>Electricity Expense Report</h2>
+      <p>Generate and export electricity expense reports filtered by Expanse_Ac_Tag</p>
+    </div>
+    
+    <!-- Expense Report Filters -->
+    <div class="filters-card">
+      <h3 style="margin: 0 0 16px 0; font-size: 16px;">Report Filters</h3>
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="filterYear">Year (Quick Select)</label>
+          <select id="filterYear">
+            <option value="">Select Year</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterTag">Expanse_Ac_Tag</label>
+          <select id="filterTag">
+            <option value="">All Tags</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterFromDate">From Date</label>
+          <input type="date" id="filterFromDate">
+        </div>
+        <div class="filter-group">
+          <label for="filterToDate">To Date</label>
+          <input type="date" id="filterToDate">
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="btnGenerateReport">Generate Report</button>
+        <button class="btn btn-secondary" id="btnClearFilters">Clear</button>
+      </div>
+    </div>
+    
+    <!-- Export Buttons -->
+    <div class="filters-card" style="margin-top: 20px;">
+      <h3 style="margin: 0 0 16px 0; font-size: 16px;">Export Options</h3>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="btnPrint" style="background: #3b82f6;">🖨️ Print</button>
+        <button class="btn btn-primary" id="btnPDF" style="background: #ef4444;">📄 PDF</button>
+        <button class="btn btn-primary" id="btnExcel" style="background: #10b981;">📊 Excel</button>
+      </div>
+    </div>
+    
+    <!-- Expense Report Table -->
+    <div class="report-table-container">
+      <table id="expenseReportTable" class="expense-report-table">
+        <thead>
+          <tr>
+            <th>Expanse_Ac_Tag</th>
+            <th>Amount_Paid</th>
+            <th>Paid_Date</th>
+            <th>Mode_Txn</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              Click "Generate Report" to view electricity expense data
+            </td>
+          </tr>
+        </tbody>
+        <tfoot id="expenseReportTotal" style="display: none;">
+          <!-- Total will be inserted here -->
+        </tfoot>
+      </table>
+    </div>
+  </main>
+  
+  <script>
+    // Store current report data for export
+    let currentExpenseReportData = [];
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      initExpenseReport();
+      document.getElementById('btnPrint').addEventListener('click', printExpenseReport);
+      document.getElementById('btnPDF').addEventListener('click', exportExpenseReportPDF);
+      document.getElementById('btnExcel').addEventListener('click', exportExpenseReportExcel);
+    });
+    
+    // ===== ELECTRICITY EXPENSE REPORT MODULE =====
+    function initExpenseReport() {
+      // Populate filters
+      populateExpenseReportFilters();
+      
+      // Event listeners
+      document.getElementById('btnGenerateReport').addEventListener('click', generateExpenseReport);
+      document.getElementById('btnClearFilters').addEventListener('click', clearExpenseFilters);
+    }
+    
+    function populateExpenseReportFilters() {
+      console.log('[Electricity Expense Report] === Populating Filters ===');
+      const records = JSON.parse(localStorage.getItem('expense_records') || '[]');
+      console.log('[Electricity Expense Report] Total records found:', records.length);
+      
+      // Filter by category: Utility-Bill-Electricity
+      const electricityRecords = records.filter(r => {
+        const category = r.Expense_Category || r.Expanse_Category || r.cat || '';
+        return category === 'Utility-Bill-Electricity';
+      });
+      
+      console.log('[Electricity Expense Report] Electricity records found:', electricityRecords.length);
+      
+      // Populate years from Paid_Date
+      const yearValues = electricityRecords.map(r => {
+        const dateValue = r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '';
+        if (!dateValue) return null;
+        
+        // Convert to string - handle Date objects, strings, or other types
+        let dateStr = '';
+        if (dateValue instanceof Date) {
+          dateStr = dateValue.toISOString().split('T')[0];
+        } else if (typeof dateValue === 'string') {
+          dateStr = dateValue;
+        } else {
+          dateStr = String(dateValue);
+        }
+        
+        // Ensure we have a valid string
+        if (!dateStr || typeof dateStr !== 'string') {
+          return null;
+        }
+        
+        // Handle YYYY-MM-DD format
+        if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+          return dateStr.substring(0, 4);
+        }
+        // Handle DD/MM/YYYY or MM/DD/YYYY format
+        if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+          const parts = dateStr.split('/');
+          return parts[parts.length - 1];
+        }
+        // Try to extract first 4 digits as year
+        const yearMatch = dateStr.match(/^\d{4}/);
+        if (yearMatch) {
+          return yearMatch[0];
+        }
+        
+        return null;
+      }).filter(Boolean).filter(y => y.length === 4 && parseInt(y) >= 1900 && parseInt(y) <= 2100);
+      
+      const years = [...new Set(yearValues)].sort((a, b) => b.localeCompare(a));
+      console.log('[Electricity Expense Report] Unique years found:', years.length, years);
+      
+      const yearSelect = document.getElementById('filterYear');
+      if (yearSelect) {
+        if (years.length > 0) {
+          yearSelect.innerHTML = '<option value="">Select Year</option>' + 
+            years.map(y => `<option value="${y}">${y}</option>`).join('');
+          console.log('[Electricity Expense Report] ✓ Years populated in dropdown');
+        } else {
+          yearSelect.innerHTML = '<option value="">No years found in data</option>';
+          console.warn('[Electricity Expense Report] ⚠ No valid years found in records.');
+        }
+      }
+      
+      // Get unique Expanse_Ac_Tag values
+      const tags = [...new Set(electricityRecords.map(r => {
+        return r.Expense_Tag || r.Expanse_Ac_Tag || r.tag || '';
+      }).filter(Boolean))].sort();
+      
+      console.log('[Electricity Expense Report] Unique tags found:', tags.length, tags);
+      
+      const tagSelect = document.getElementById('filterTag');
+      if (tagSelect) {
+        tagSelect.innerHTML = '<option value="">All Tags</option>' + 
+          tags.map(tag => `<option value="${tag}">${tag}</option>`).join('');
+        console.log('[Electricity Expense Report] ✓ Tags populated in dropdown');
+      } else {
+        console.error('[Electricity Expense Report] ERROR: filterTag element not found!');
+      }
+      
+      // Set up year selector after populating
+      setTimeout(() => {
+        setupYearSelector();
+      }, 100);
+    }
+    
+    function setupYearSelector() {
+      const yearSelect = document.getElementById('filterYear');
+      if (!yearSelect) {
+        console.error('[Electricity Expense Report] ERROR: filterYear element not found!');
+        return;
+      }
+      
+      // Remove any existing event listeners by cloning and replacing the element
+      const newYearSelect = yearSelect.cloneNode(true);
+      if (yearSelect.parentNode) {
+        yearSelect.parentNode.replaceChild(newYearSelect, yearSelect);
+      }
+      
+      // Attach event listener to the new element
+      newYearSelect.addEventListener('change', function() {
+        console.log('[Electricity Expense Report] Year dropdown changed to:', this.value);
+        const fromDateEl = document.getElementById('filterFromDate');
+        const toDateEl = document.getElementById('filterToDate');
+        
+        if (this.value && fromDateEl && toDateEl) {
+          const fromDate = `${this.value}-01-01`;
+          const toDate = `${this.value}-12-31`;
+          fromDateEl.value = fromDate;
+          toDateEl.value = toDate;
+          console.log('[Electricity Expense Report] Date range set to:', fromDate, 'to', toDate);
+        } else if (!this.value && fromDateEl && toDateEl) {
+          // Clear dates if year is deselected
+          fromDateEl.value = '';
+          toDateEl.value = '';
+          console.log('[Electricity Expense Report] Date range cleared');
+        }
+      });
+      
+      console.log('[Electricity Expense Report] ✓ Year selector event listener attached');
+    }
+    
+    function generateExpenseReport() {
+      console.log('[Electricity Expense Report] === Generating Report ===');
+      let records = JSON.parse(localStorage.getItem('expense_records') || '[]');
+      
+      // Fix existing dates in records (convert numeric dates to YYYY-MM-DD)
+      records = records.map(r => ({
+        ...r,
+        paidDate: convertExcelDateToYYYYMMDD(r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '')
+      }));
+      
+      // Filter by category: Utility-Bill-Electricity
+      let filteredRecords = records.filter(r => {
+        const category = r.Expense_Category || r.Expanse_Category || r.cat || '';
+        return category === 'Utility-Bill-Electricity';
+      });
+      
+      console.log('[Electricity Expense Report] Electricity records after category filter:', filteredRecords.length);
+      
+      // Get filters
+      const tagFilter = document.getElementById('filterTag').value;
+      const yearFilter = document.getElementById('filterYear').value;
+      const fromDate = document.getElementById('filterFromDate').value;
+      const toDate = document.getElementById('filterToDate').value;
+      
+      // Filter by tag if selected
+      if (tagFilter) {
+        filteredRecords = filteredRecords.filter(r => {
+          const tag = r.Expense_Tag || r.Expanse_Ac_Tag || r.tag || '';
+          return tag === tagFilter;
+        });
+      }
+      
+      // Filter by year or date range
+      filteredRecords = filteredRecords.filter(r => {
+        const paidDate = r.paidDate || convertExcelDateToYYYYMMDD(r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '');
+        if (!paidDate) return true; // Include records without dates if no date filter is applied
+        
+        // Filter by year if selected
+        if (yearFilter) {
+          const recordYear = paidDate.substring(0, 4);
+          if (recordYear !== yearFilter) return false;
+        }
+        
+        // Filter by date range if provided
+        if (fromDate && paidDate && paidDate < fromDate) return false;
+        if (toDate && paidDate && paidDate > toDate) return false;
+        
+        return true;
+      });
+      
+      console.log('[Electricity Expense Report] Filtered records after all filters:', filteredRecords.length);
+      
+      // Sort by tag, then by paid date
+      filteredRecords.sort((a, b) => {
+        const tagA = (a.Expense_Tag || a.Expanse_Ac_Tag || a.tag || '').toLowerCase();
+        const tagB = (b.Expense_Tag || b.Expanse_Ac_Tag || b.tag || '').toLowerCase();
+        if (tagA !== tagB) {
+          return tagA.localeCompare(tagB);
+        }
+        const dateA = a.paidDate || convertExcelDateToYYYYMMDD(a.Expense_Paid_Date || a.Expanse_Paid_Date || a.paid || '');
+        const dateB = b.paidDate || convertExcelDateToYYYYMMDD(b.Expense_Paid_Date || b.Expanse_Paid_Date || b.paid || '');
+        return dateA.localeCompare(dateB);
+      });
+      
+      // Store data for export
+      currentExpenseReportData = filteredRecords;
+      
+      // Render report
+      renderExpenseReport(filteredRecords, tagFilter);
+    }
+    
+    function renderExpenseReport(records, tagFilter) {
+      const tbody = document.querySelector('#expenseReportTable tbody');
+      const tfoot = document.getElementById('expenseReportTotal');
+      
+      if (!tbody) {
+        console.error('[Electricity Expense Report] ERROR: tbody not found!');
+        return;
+      }
+      
+      if (records.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              No electricity expense data found for the selected filters
+            </td>
+          </tr>
+        `;
+        tfoot.style.display = 'none';
+        return;
+      }
+      
+      // Group by tag
+      const groupedByTag = {};
+      records.forEach(record => {
+        const tag = record.Expense_Tag || record.Expanse_Ac_Tag || record.tag || '';
+        if (!groupedByTag[tag]) {
+          groupedByTag[tag] = [];
+        }
+        groupedByTag[tag].push(record);
+      });
+      
+      const sortedTags = Object.keys(groupedByTag).sort();
+      let rows = '';
+      let grandTotal = 0;
+      
+      // Render grouped by tag
+      sortedTags.forEach(tag => {
+        const tagRecords = groupedByTag[tag];
+        let tagSubtotal = 0;
+        
+        // Tag header row
+        rows += `
+          <tr class="tag-header-row">
+            <td colspan="4" style="padding: 12px; border-bottom: 2px solid #1976d2;">
+              Expanse_Ac_Tag: ${tag}
+            </td>
+          </tr>
+        `;
+        
+        // Data rows for this tag
+        tagRecords.forEach(record => {
+          const amountPaid = parseFloat(record.Expense_Amount_Paid || record.Amount_Paid || record.amt || 0);
+          const paidDate = formatDateForDisplay(record.Expense_Paid_Date || record.Expanse_Paid_Date || record.paid || '');
+          const modeTxn = record.Expense_Mode || record.Mode_Txn || record.mode || '';
+          
+          tagSubtotal += amountPaid;
+          grandTotal += amountPaid;
+          
+          rows += `
+            <tr>
+              <td>${tag}</td>
+              <td style="text-align: right;">${amountPaid.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+              <td>${paidDate}</td>
+              <td>${modeTxn}</td>
+            </tr>
+          `;
+        });
+        
+        // Subtotal row for this tag
+        rows += `
+          <tr class="subtotal-row">
+            <td colspan="3" style="text-align: right; padding-right: 20px; font-weight: 600;">Subtotal for ${tag}:</td>
+            <td style="text-align: right; font-weight: 600;">${tagSubtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          </tr>
+        `;
+        
+        // Add spacing between tags
+        rows += `
+          <tr style="height: 10px;">
+            <td colspan="4"></td>
+          </tr>
+        `;
+      });
+      
+      tbody.innerHTML = rows;
+      
+      // Generate grand total row
+      const grandTotalRow = `
+        <tr style="background-color: #e0e0e0; font-weight: bold; font-size: 16px;">
+          <td colspan="3" style="text-align: right;">Grand Total:</td>
+          <td style="text-align: right;">${grandTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        </tr>
+      `;
+      
+      tfoot.innerHTML = grandTotalRow;
+      tfoot.style.display = 'table-footer-group';
+      
+      console.log('[Electricity Expense Report] ✓ Report rendered with', records.length, 'records');
+    }
+    
+    function clearExpenseFilters() {
+      document.getElementById('filterYear').value = '';
+      document.getElementById('filterTag').value = '';
+      document.getElementById('filterFromDate').value = '';
+      document.getElementById('filterToDate').value = '';
+      
+      const tbody = document.querySelector('#expenseReportTable tbody');
+      const tfoot = document.getElementById('expenseReportTotal');
+      
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              Click "Generate Report" to view electricity expense data
+            </td>
+          </tr>
+        `;
+      }
+      
+      if (tfoot) {
+        tfoot.style.display = 'none';
+        tfoot.innerHTML = '';
+      }
+      
+      currentExpenseReportData = [];
+      
+      console.log('[Electricity Expense Report] ✓ Filters cleared');
+    }
+    
+    // Helper function to convert Excel serial dates to YYYY-MM-DD format
+    function convertExcelDateToYYYYMMDD(value){
+      if(!value || value==='')return '';
+      // If already a date string in YYYY-MM-DD format, return as is
+      if(typeof value==='string' && /^\d{4}-\d{2}-\d{2}$/.test(value))return value;
+      // If it's a valid date string (other formats), parse it
+      const dateStr=String(value).trim();
+      if(dateStr.match(/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}$/)){
+        const parts=dateStr.split(/[-\/]/);
+        const year=parts[0];
+        const month=String(parts[1]).padStart(2,'0');
+        const day=String(parts[2]).padStart(2,'0');
+        return `${year}-${month}-${day}`;
+      }
+      // If it's a number (Excel serial date), convert it
+      const num=Number(value);
+      if(!isNaN(num) && num>0){
+        const excelEpoch=new Date(1899,11,30);
+        const jsDate=new Date(excelEpoch.getTime()+num*86400000);
+        if(!isNaN(jsDate.getTime())){
+          const year=jsDate.getFullYear();
+          const month=String(jsDate.getMonth()+1).padStart(2,'0');
+          const day=String(jsDate.getDate()).padStart(2,'0');
+          return `${year}-${month}-${day}`;
+        }
+      }
+      // Try parsing as a regular date string
+      try {
+        const parsedDate = new Date(value);
+        if(!isNaN(parsedDate.getTime())){
+          const year=parsedDate.getFullYear();
+          const month=String(parsedDate.getMonth()+1).padStart(2,'0');
+          const day=String(parsedDate.getDate()).padStart(2,'0');
+          return `${year}-${month}-${day}`;
+        }
+      } catch(e) {
+        // Ignore parsing errors
+      }
+      return value;
+    }
+    
+    // Helper function to format date for display
+    function formatDateForDisplay(value){
+      return convertExcelDateToYYYYMMDD(value);
+    }
+    
+    // ===== EXPORT FUNCTIONS =====
+    
+    function printExpenseReport() {
+      if (currentExpenseReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      const reportTable = document.getElementById('expenseReportTable');
+      if (!reportTable) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      const printWindow = window.open('', '_blank');
+      const tagFilter = document.getElementById('filterTag').value || 'All Tags';
+      const yearFilter = document.getElementById('filterYear').value || '';
+      const fromDate = document.getElementById('filterFromDate').value || '';
+      const toDate = document.getElementById('filterToDate').value || '';
+      
+      let filterInfo = `<strong>Expanse_Ac_Tag:</strong> ${tagFilter} | <strong>Category:</strong> Utility-Bill-Electricity`;
+      if (yearFilter) {
+        filterInfo += ` | <strong>Year:</strong> ${yearFilter}`;
+      }
+      if (fromDate && toDate) {
+        filterInfo += ` | <strong>Date Range:</strong> ${fromDate} to ${toDate}`;
+      }
+      
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Electricity Expense Report</title>
+          <style>
+            @page { size: landscape; margin: 15mm; }
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; font-size: 10px; }
+            th { background: #4472C4; color: #fff; padding: 8px 6px; border: 1px solid #BFBFBF; font-weight: 600; }
+            td { padding: 6px; border: 1px solid #BFBFBF; }
+            .tag-header-row { background: #e3f2fd; font-weight: bold; }
+            .subtotal-row { background: #fff2cc; font-weight: 600; }
+            tfoot tr { background-color: #e0e0e0; font-weight: bold; font-size: 16px; }
+            @media print {
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1 style="text-align: center; font-size: 16px; font-weight: bold;">Electricity Expense Report</h1>
+          <div style="text-align: center; margin-bottom: 20px; color: #666;">
+            <p>${filterInfo}</p>
+            <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+          </div>
+          ${reportTable.outerHTML}
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+    
+    function exportExpenseReportPDF() {
+      if (!currentExpenseReportData || currentExpenseReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      if (!window.jspdf || !window.PDFUtils) {
+        alert('PDF libraries not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4'); // landscape, millimeters, A4
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      
+      // Helper function to format dates
+      function formatDate(dateStr) {
+        if (!dateStr) return '';
+        if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          return dateStr.replace(/-/g, '/');
+        }
+        const date = new Date(dateStr);
+        if (Number.isNaN(date.getTime())) {
+          return String(dateStr || '');
+        }
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}/${month}/${day}`;
+      }
+      
+      // Title
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Electricity Expense Report', pageWidth / 2, 10, { align: 'center' });
+      
+      // Filter criteria
+      const tagFilter = document.getElementById('filterTag').value || 'All Tags';
+      const yearFilter = document.getElementById('filterYear').value || '';
+      const fromDate = document.getElementById('filterFromDate').value || '';
+      const toDate = document.getElementById('filterToDate').value || '';
+      
+      const filterCriteria = [
+        { label: 'Category', value: 'Utility-Bill-Electricity', color: [68, 114, 196] },
+        { label: 'Expanse_Ac_Tag', value: tagFilter, color: [112, 173, 71] }
+      ];
+      
+      if (yearFilter) {
+        filterCriteria.push({ label: 'Year', value: yearFilter, color: [146, 208, 80] });
+      }
+      if (fromDate) {
+        filterCriteria.push({ label: 'From Date', value: formatDate(fromDate), color: [146, 208, 80] });
+      }
+      if (toDate) {
+        filterCriteria.push({ label: 'To Date', value: formatDate(toDate), color: [112, 48, 160] });
+      }
+      
+      // Draw Filter Criteria using PDFUtils
+      const filterY = window.PDFUtils.drawFilterCriteria(doc, filterCriteria, 18, pageWidth);
+      
+      // Headers
+      const headers = ['Expanse_Ac_Tag', 'Amount_Paid', 'Paid_Date', 'Mode_Txn'];
+      
+      // Prepare data for column width calculation
+      const data = currentExpenseReportData.map(r => ({
+        tag: String(r.Expense_Tag || r.Expanse_Ac_Tag || r.tag || ''),
+        amount: String(parseFloat(r.Expense_Amount_Paid || r.Amount_Paid || r.amt || 0).toFixed(2)),
+        date: String(formatDate(r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '')),
+        mode: String(r.Expense_Mode || r.Mode_Txn || r.mode || '')
+      }));
+      
+      // Calculate optimal column widths
+      const dataArrayForMeasurement = data.map(row => [row.tag, row.amount, row.date, row.mode]);
+      
+      const colWidths = window.PDFUtils.calculateOptimalColumnWidths(
+        doc,
+        dataArrayForMeasurement,
+        headers,
+        formatDate,
+        {
+          fixedWidthColumns: [1], // Amount_Paid column
+          fixedWidthValues: [25.4], // Amount: 1 inch (25.4mm)
+          fontSize: 7,
+          padding: 12,
+          minWidth: 12
+        }
+      );
+      
+      // Adjust Amount column to exactly 1 inch
+      colWidths[1] = 25.4;
+      
+      // Calculate start position
+      const filterCriteriaCount = filterCriteria.length;
+      const filterRows = filterCriteriaCount > 0 ? Math.ceil(filterCriteriaCount / 3) : 0;
+      const filterTotalHeight = filterRows > 0 ? (filterRows * 10) : 8;
+      let currentY = 32 + filterTotalHeight + 15;
+      let currentPage = 1;
+      const state = { currentPage: 1, totalPagesEstimate: 1, currentY };
+      
+      // Calculate total table width and center it
+      const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+      const tableStartX = (pageWidth - totalTableWidth) / 2;
+      
+      // Helper function to add footer
+      function addFooter() {
+        window.PDFUtils.drawFooter(doc, state.currentPage, state.totalPagesEstimate, currentExpenseReportData.length, pageWidth, {
+          generationDate: new Date()
+        });
+      }
+      
+      // Helper function to add new page and redraw headers
+      function addNewPage() {
+        state.currentY = window.PDFUtils.addNewPageWithHeaders(
+          doc, headers, colWidths, tableStartX, 30, state, addFooter, {
+            headerHeight: 8,
+            fontSize: 9,
+            pageWidth: pageWidth,
+            autoCenter: true
+          }
+        );
+        currentY = state.currentY;
+        tableHeaderDrawn = true;
+      }
+      
+      // Add initial footer
+      addFooter();
+      
+      // Group by tag
+      const groupedByTag = {};
+      currentExpenseReportData.forEach(r => {
+        const tag = r.Expense_Tag || r.Expanse_Ac_Tag || r.tag || '';
+        if (!groupedByTag[tag]) {
+          groupedByTag[tag] = [];
+        }
+        groupedByTag[tag].push(r);
+      });
+      
+      const sortedTags = Object.keys(groupedByTag).sort();
+      let globalRowIndex = 0;
+      let tableHeaderDrawn = false;
+      let grandTotal = 0;
+      
+      // Render data by tag groups (one account per page)
+      sortedTags.forEach(tag => {
+        const tagRecords = groupedByTag[tag];
+        let tagSubtotal = 0;
+        
+        // Force each account (tag) to start on a new page after the first
+        if (tableHeaderDrawn) {
+          addNewPage();
+        }
+        
+        // Draw tag header card
+        const cardHeight = 8;
+        if (currentY + cardHeight > pageHeight - 25) {
+          addNewPage();
+          tableHeaderDrawn = false;
+        }
+        
+        doc.setFillColor(112, 173, 71);
+        doc.rect(tableStartX, currentY, totalTableWidth, cardHeight, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Expanse_Ac_Tag: ${tag}`, tableStartX + totalTableWidth / 2, currentY + (cardHeight / 2) + 3.5, { align: 'center' });
+        currentY += cardHeight + 1;
+        
+        // Draw table header once
+        if (!tableHeaderDrawn) {
+          if (currentY + 8 > pageHeight - 25) {
+            addNewPage();
+          }
+          currentY = window.PDFUtils.drawTableHeaders(doc, headers, colWidths, tableStartX, currentY, {
+            headerHeight: 8,
+            fontSize: 9,
+            pageWidth: pageWidth,
+            autoCenter: true
+          });
+          tableHeaderDrawn = true;
+        }
+        
+        // Render tag's data rows
+        tagRecords.forEach((r) => {
+          const amountPaid = parseFloat(r.Expense_Amount_Paid || r.Amount_Paid || r.amt || 0);
+          const paidDate = formatDate(r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '');
+          const modeTxn = r.Expense_Mode || r.Mode_Txn || r.mode || '';
+          
+          tagSubtotal += amountPaid;
+          grandTotal += amountPaid;
+          
+          const rowData = [
+            tag,
+            amountPaid.toFixed(2),
+            paidDate,
+            modeTxn
+          ];
+          
+          const rowHeightInfo = window.PDFUtils.calculateDynamicRowHeight(doc, rowData, colWidths, {
+            baseHeight: 5,
+            lineSpacing: 4,
+            padding: 4
+          });
+          
+          if (currentY + rowHeightInfo.cellHeight > pageHeight - 25) {
+            addNewPage();
+          }
+          
+          currentY = window.PDFUtils.renderTableRowWithDynamicHeight(doc, {
+            rowY: currentY,
+            currentY: currentY,
+            rowData: rowData,
+            colWidths: colWidths,
+            tableStartX: tableStartX,
+            totalTableWidth: totalTableWidth,
+            rowIndex: globalRowIndex,
+            checkPageBreak: null
+          }, {
+            baseHeight: 5,
+            lineSpacing: 4,
+            padding: 4,
+            fontSize: 7
+          });
+          
+          currentY += 1;
+          globalRowIndex++;
+        });
+        
+        // Tag subtotal row
+        if (currentY + 8 > pageHeight - 25) {
+          addNewPage();
+        }
+        
+        doc.setFillColor(255, 242, 204);
+        doc.rect(tableStartX, currentY, totalTableWidth, 8, 'F');
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Subtotal for ${tag}:`, tableStartX + 2, currentY + 5);
+        doc.text(tagSubtotal.toFixed(2), tableStartX + totalTableWidth - 2, currentY + 5, { align: 'right' });
+        currentY += 11;
+        
+        state.currentY = currentY;
+      });
+      
+      // Grand total row
+      if (currentY + 8 > pageHeight - 25) {
+        addNewPage();
+      }
+      
+      doc.setFillColor(224, 224, 224);
+      doc.rect(tableStartX, currentY, totalTableWidth, 8, 'F');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('Grand Total:', tableStartX + 2, currentY + 5);
+      doc.text(grandTotal.toFixed(2), tableStartX + totalTableWidth - 2, currentY + 5, { align: 'right' });
+      
+      // Update final page count and redraw all footers
+      state.totalPagesEstimate = doc.internal.pages.length - 1;
+      for (let i = 1; i <= state.totalPagesEstimate; i++) {
+        doc.setPage(i);
+        window.PDFUtils.drawFooter(doc, i, state.totalPagesEstimate, currentExpenseReportData.length, pageWidth, {
+          generationDate: new Date()
+        });
+      }
+      
+      doc.save('Electricity_Expense_Report_' + new Date().toISOString().split('T')[0] + '.pdf');
+    }
+    
+    function exportExpenseReportExcel() {
+      if (!currentExpenseReportData || currentExpenseReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      if (typeof XLSX === 'undefined') {
+        alert('Excel library not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      const tagFilter = document.getElementById('filterTag').value || 'All Tags';
+      const yearFilter = document.getElementById('filterYear').value || '';
+      const fromDate = document.getElementById('filterFromDate').value || '';
+      const toDate = document.getElementById('filterToDate').value || '';
+      
+      // Prepare data for Excel
+      const headers = ['Expanse_Ac_Tag', 'Amount_Paid', 'Paid_Date', 'Mode_Txn'];
+      
+      // Group by tag
+      const groupedByTag = {};
+      currentExpenseReportData.forEach(r => {
+        const tag = r.Expense_Tag || r.Expanse_Ac_Tag || r.tag || '';
+        if (!groupedByTag[tag]) {
+          groupedByTag[tag] = [];
+        }
+        groupedByTag[tag].push(r);
+      });
+      
+      const sortedTags = Object.keys(groupedByTag).sort();
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Build filter info line
+      let filterInfo = `Category: Utility-Bill-Electricity | Expanse_Ac_Tag: ${tagFilter}`;
+      if (yearFilter) {
+        filterInfo += ` | Year: ${yearFilter}`;
+      }
+      if (fromDate && toDate) {
+        filterInfo += ` | Date Range: ${fromDate} to ${toDate}`;
+      }
+      
+      // Create worksheet data
+      const wsData = [
+        ['Electricity Expense Report'],
+        [filterInfo],
+        [`Generated: ${new Date().toLocaleString()}`],
+        []
+      ];
+      
+      let grandTotal = 0;
+      
+      // Add data by tag
+      sortedTags.forEach(tag => {
+        wsData.push([`Expanse_Ac_Tag: ${tag}`]);
+        wsData.push(headers);
+        
+        const tagRecords = groupedByTag[tag];
+        let tagSubtotal = 0;
+        
+        tagRecords.forEach(r => {
+          const amountPaid = parseFloat(r.Expense_Amount_Paid || r.Amount_Paid || r.amt || 0);
+          const paidDate = formatDateForDisplay(r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '');
+          const modeTxn = r.Expense_Mode || r.Mode_Txn || r.mode || '';
+          
+          tagSubtotal += amountPaid;
+          grandTotal += amountPaid;
+          
+          wsData.push([
+            tag,
+            amountPaid,
+            paidDate,
+            modeTxn
+          ]);
+        });
+        
+        // Add subtotal
+        wsData.push(['', '', `Subtotal for ${tag}:`, tagSubtotal]);
+        wsData.push([]);
+      });
+      
+      // Add grand total
+      wsData.push(['', '', 'Grand Total:', grandTotal]);
+      
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 30 }, // Expanse_Ac_Tag
+        { wch: 15 }, // Amount_Paid
+        { wch: 15 }, // Paid_Date
+        { wch: 15 }  // Mode_Txn
+      ];
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Electricity Expense');
+      
+      // Generate filename
+      const fileName = `Electricity_Expense_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
+      
+      // Save file
+      XLSX.writeFile(wb, fileName);
+    }
+  </script>
+</body>
+</html>
+

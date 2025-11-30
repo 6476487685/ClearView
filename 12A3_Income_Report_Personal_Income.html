@@ -1,0 +1,2256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ClearView — Personal Income Report</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="assets/xlsx.full.min.js"></script>
+  <script src="pdf_utils.js"></script>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --border-light: #f3f4f6;
+      --surface: #ffffff;
+      --bg: #f9fafb;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --divider: #e2e8f0;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    
+    /* Header */
+    .header {
+      background: var(--surface);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      font-weight: 400;
+      position: relative;
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
+    }
+    
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      align-items: flex-start;
+    }
+    
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #b87333;
+      letter-spacing: -0.02em;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+      margin: 0;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    button {
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.1s ease;
+      font-family: inherit;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    button.black, button.primary {
+      background: var(--text-primary);
+      color: #fff;
+    }
+    
+    button.black:hover, button.primary:hover {
+      background: #374151;
+    }
+    
+    /* Main Content */
+    .main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .report-header {
+      margin-bottom: 24px;
+    }
+    
+    .report-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .report-header p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    /* Filters Card */
+    .filters-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+    
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .filter-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .filter-group select,
+    .filter-group input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      background: var(--surface);
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+    
+    .filter-group select:focus,
+    .filter-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .filter-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+    
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text-primary);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--border-light);
+    }
+    
+    /* Report Table */
+    .report-table-container {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    
+    .income-report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    .income-report-table thead {
+      background: var(--border-light);
+    }
+    
+    .income-report-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    
+    .income-report-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-primary);
+    }
+    
+    .income-report-table tbody tr:hover {
+      background: var(--bg);
+    }
+    
+    .income-report-table tfoot tr {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    
+    .income-report-table tfoot tr:last-child {
+      background-color: #e0e0e0;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <h1 class="header-title">Personal Income Report</h1>
+      <button class="black" onclick="window.location.href='12_Reports_Dashboard.html'">← Back to Reports Dashboard</button>
+    </div>
+  </header>
+  
+  <main class="main-content">
+    <!-- Report Header -->
+    <div class="report-header">
+      <h2>Personal Income Report</h2>
+      <p>Generate and export income transaction reports</p>
+    </div>
+    
+    <!-- Income Report Filters -->
+    <div class="filters-card">
+      <h3 style="margin: 0 0 16px 0; font-size: 16px;">Report Filters</h3>
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="filterYear">Year (Quick Select)</label>
+          <select id="filterYear">
+            <option value="">Select Year</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterHolder">Ac_Holder</label>
+          <select id="filterHolder">
+            <option value="">All Holders</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterFromDate">From Date</label>
+          <input type="date" id="filterFromDate">
+        </div>
+        <div class="filter-group">
+          <label for="filterToDate">To Date</label>
+          <input type="date" id="filterToDate">
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="btnGenerateReport">Generate Report</button>
+        <button class="btn btn-secondary" id="btnClearFilters">Clear</button>
+      </div>
+    </div>
+    
+    <!-- Export Buttons -->
+    <div class="filters-card" style="margin-top: 20px;">
+      <h3 style="margin: 0 0 16px 0; font-size: 16px;">Export Options</h3>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="btnPrint" style="background: #3b82f6;">🖨️ Print</button>
+        <button class="btn btn-primary" id="btnPDF" style="background: #ef4444;">📄 PDF</button>
+        <button class="btn btn-primary" id="btnExcel" style="background: #10b981;">📊 Excel</button>
+      </div>
+    </div>
+    
+    <!-- Income Report Table -->
+    <div class="report-table-container">
+      <table id="incomeReportTable" class="income-report-table">
+        <thead>
+          <!-- Headers will be generated dynamically for each currency group -->
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              Click "Generate Report" to view income data
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+  
+  <script>
+    // Store current report data for export
+    let currentIncomeReportData = null;
+    let filteredIncomeRecords = [];
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      initIncomeReport();
+      document.getElementById('btnPrint').addEventListener('click', printIncomeReport);
+      document.getElementById('btnPDF').addEventListener('click', exportIncomeReportPDF);
+      document.getElementById('btnExcel').addEventListener('click', exportIncomeReportExcel);
+    });
+    
+    // ===== PERSONAL INCOME REPORT MODULE =====
+    function initIncomeReport() {
+      // Populate filters first
+      populateIncomeReportFilters();
+      
+      // Set up year selector AFTER populating (to ensure dropdown exists and has options)
+      // Use setTimeout to ensure DOM is fully updated after innerHTML assignment
+      setTimeout(() => {
+        setupYearSelector();
+      }, 100);
+      
+      // Event listeners
+      document.getElementById('btnGenerateReport').addEventListener('click', generateIncomeReport);
+      document.getElementById('btnClearFilters').addEventListener('click', clearIncomeFilters);
+    }
+    
+    function populateIncomeReportFilters() {
+      console.log('[Income Report] === Populating Filters ===');
+      const records = JSON.parse(localStorage.getItem('income_records') || '[]');
+      console.log('[Income Report] Total records found:', records.length);
+      
+      // Populate holders
+      const holders = [...new Set(records.map(r => r.holder).filter(Boolean))].sort();
+      console.log('[Income Report] Unique holders found:', holders.length, holders);
+      const holderSelect = document.getElementById('filterHolder');
+      if (holderSelect) {
+        holderSelect.innerHTML = '<option value="">All Holders</option>' + 
+          holders.map(h => `<option value="${h}">${h}</option>`).join('');
+        console.log('[Income Report] ✓ Holders populated in dropdown');
+      } else {
+        console.error('[Income Report] ERROR: filterHolder element not found!');
+      }
+      
+      // Populate years - handle multiple date formats
+      console.log('[Income Report] Extracting years from records...');
+      console.log('[Income Report] Sample record dates:', records.slice(0, 5).map(r => r.paid));
+      
+      const yearValues = records.map(r => {
+        const dateValue = r.paid || r.incomeDate || r.date || '';
+        if (!dateValue) return null;
+        
+        // Convert to string - handle Date objects, strings, or other types
+        let dateStr = '';
+        if (dateValue instanceof Date) {
+          // Format as YYYY-MM-DD if it's a Date object
+          dateStr = dateValue.toISOString().split('T')[0];
+        } else if (typeof dateValue === 'string') {
+          dateStr = dateValue;
+        } else {
+          // Convert to string for any other type
+          dateStr = String(dateValue);
+        }
+        
+        // Ensure we have a valid string
+        if (!dateStr || typeof dateStr !== 'string') {
+          return null;
+        }
+        
+        // Handle YYYY-MM-DD format
+        if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+          return dateStr.substring(0, 4);
+        }
+        // Handle DD/MM/YYYY or MM/DD/YYYY format
+        if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+          const parts = dateStr.split('/');
+          // Assume YYYY is the last part (works for both formats)
+          return parts[parts.length - 1];
+        }
+        // Try to extract first 4 digits as year
+        const yearMatch = dateStr.match(/^\d{4}/);
+        if (yearMatch) {
+          return yearMatch[0];
+        }
+        
+        return null;
+      }).filter(Boolean).filter(y => y.length === 4 && parseInt(y) >= 1900 && parseInt(y) <= 2100);
+      
+      console.log('[Income Report] Raw year values:', yearValues.slice(0, 10), '... (showing first 10)');
+      console.log('[Income Report] Total year values extracted:', yearValues.length);
+      
+      const years = [...new Set(yearValues)].sort((a, b) => b.localeCompare(a));
+      console.log('[Income Report] Unique years found:', years.length, years);
+      
+      const yearSelect = document.getElementById('filterYear');
+      if (yearSelect) {
+        if (years.length > 0) {
+          yearSelect.innerHTML = '<option value="">Select Year</option>' + 
+            years.map(y => `<option value="${y}">${y}</option>`).join('');
+          console.log('[Income Report] ✓ Years populated in dropdown:', years);
+          console.log('[Income Report] Year dropdown options:', yearSelect.options.length);
+        } else {
+          yearSelect.innerHTML = '<option value="">No years found in data</option>';
+          console.warn('[Income Report] ⚠ No valid years found in records. Check date format in income_records.');
+        }
+      } else {
+        console.error('[Income Report] ERROR: filterYear element not found!');
+      }
+    }
+    
+    function setupYearSelector() {
+      const yearSelect = document.getElementById('filterYear');
+      if (!yearSelect) {
+        console.error('[Income Report] ERROR: filterYear element not found in setupYearSelector!');
+        return;
+      }
+      
+      // Remove any existing event listeners by cloning and replacing the element
+      const newYearSelect = yearSelect.cloneNode(true);
+      if (yearSelect.parentNode) {
+        yearSelect.parentNode.replaceChild(newYearSelect, yearSelect);
+      }
+      
+      // Attach event listener to the new element
+      newYearSelect.addEventListener('change', function() {
+        console.log('[Income Report] Year dropdown changed to:', this.value);
+        const fromDateEl = document.getElementById('filterFromDate');
+        const toDateEl = document.getElementById('filterToDate');
+        
+        if (this.value && fromDateEl && toDateEl) {
+          const fromDate = `${this.value}-01-01`;
+          const toDate = `${this.value}-12-31`;
+          fromDateEl.value = fromDate;
+          toDateEl.value = toDate;
+          console.log('[Income Report] Date range set to:', fromDate, 'to', toDate);
+        } else if (!this.value && fromDateEl && toDateEl) {
+          // Clear dates if year is deselected
+          fromDateEl.value = '';
+          toDateEl.value = '';
+          console.log('[Income Report] Date range cleared');
+        } else {
+          console.error('[Income Report] ERROR: Date filter elements not found!');
+        }
+      });
+      
+      console.log('[Income Report] ✓ Year selector event listener attached');
+    }
+    
+    function generateRentalIncomeReport() {
+      console.log('[Rental Income Report] === Generating Report ===');
+      const records = JSON.parse(localStorage.getItem('income_records') || '[]');
+      
+      // Get filter values
+      const propertyFilter = document.getElementById('rentalProperty').value;
+      const categoryFilter = document.getElementById('rentalCategory').value;
+      const holderFilter = document.getElementById('rentalHolder').value;
+      
+      // Always filter by Income-Rent-Receivable category (default and disabled)
+      const fixedCategory = 'Income-Rent-Receivable';
+      
+      // Filter records based on Income_Ac_Tag ending with selected property
+      let filteredRecords = records.filter(record => {
+        const tag = record.tag || '';
+        
+        // If no property selected (All Properties), include all 3 properties
+        let tagMatches = false;
+        if (!propertyFilter) {
+          // Show all properties: 15SM, 15SM-BSMT, and 208AMA
+          tagMatches = (tag.endsWith('15SM') || tag.endsWith('208AMA'));
+        } else {
+          // Check if Income_Ac_Tag ends with the selected property
+          if (propertyFilter === '15SM-BSMT') {
+            tagMatches = tag.endsWith('15SM-BSMT');
+          } else if (propertyFilter === '15SM') {
+            tagMatches = tag.endsWith('15SM') && !tag.endsWith('15SM-BSMT'); // Exclude 15SM-BSMT
+          } else if (propertyFilter === '208AMA') {
+            tagMatches = tag.endsWith('208AMA');
+          }
+        }
+        
+        if (!tagMatches) return false;
+        
+        // Apply fixed category filter (Income-Rent-Receivable)
+        if (record.cat !== fixedCategory) return false;
+        
+        // Apply holder filter (only if a specific holder is selected)
+        if (holderFilter && record.holder !== holderFilter) return false;
+        
+        return true;
+      });
+      
+      console.log('[Rental Income Report] Filtered records:', filteredRecords.length);
+      
+      // If no property selected (All Properties), group by holders
+      let consolidatedArray;
+      if (!propertyFilter) {
+        // Group by holder first, then consolidate within each holder group
+        const holderGroups = {};
+        
+        filteredRecords.forEach(record => {
+          const holder = record.holder || 'Unknown';
+          
+          if (!holderGroups[holder]) {
+            holderGroups[holder] = {};
+          }
+          
+          const desc = record.desc || 'Unknown';
+          const tag = record.tag || '';
+          const currency = record.cur || 'Unknown';
+          const acStatus = record.acstatus || '';
+          
+          // Create a unique key combining description, tag, currency, and acStatus
+          const key = `${desc}|${tag}|${currency}|${acStatus}`;
+          
+          if (!holderGroups[holder][key]) {
+            holderGroups[holder][key] = {
+              holder: holder,
+              desc: desc,
+              tag: tag,
+              currency: currency,
+              acStatus: acStatus,
+              amount: 0
+            };
+          }
+          
+          holderGroups[holder][key].amount += parseFloat(record.amt || 0);
+        });
+        
+        // Convert to array, grouped by holder
+        consolidatedArray = [];
+        Object.keys(holderGroups).sort().forEach(holder => {
+          const holderData = Object.values(holderGroups[holder]).sort((a, b) => {
+            if (a.desc !== b.desc) return a.desc.localeCompare(b.desc);
+            if (a.tag !== b.tag) return a.tag.localeCompare(b.tag);
+            if (a.currency !== b.currency) return a.currency.localeCompare(b.currency);
+            return a.acStatus.localeCompare(b.acStatus);
+          });
+          consolidatedArray.push(...holderData);
+        });
+      } else {
+        // Single property selected - consolidate by Income_Description as before
+        const consolidatedData = {};
+        
+        filteredRecords.forEach(record => {
+          const desc = record.desc || 'Unknown';
+          const tag = record.tag || '';
+          const currency = record.cur || 'Unknown';
+          const acStatus = record.acstatus || '';
+          
+          // Create a unique key combining description, tag, currency, and acStatus
+          const key = `${desc}|${tag}|${currency}|${acStatus}`;
+          
+          if (!consolidatedData[key]) {
+            consolidatedData[key] = {
+              holder: record.holder || 'Unknown',
+              desc: desc,
+              tag: tag,
+              currency: currency,
+              acStatus: acStatus,
+              amount: 0
+            };
+          }
+          
+          consolidatedData[key].amount += parseFloat(record.amt || 0);
+        });
+        
+        // Convert to array and sort by description (primary), then by other fields
+        consolidatedArray = Object.values(consolidatedData).sort((a, b) => {
+          if (a.desc !== b.desc) return a.desc.localeCompare(b.desc);
+          if (a.tag !== b.tag) return a.tag.localeCompare(b.tag);
+          if (a.currency !== b.currency) return a.currency.localeCompare(b.currency);
+          return a.acStatus.localeCompare(b.acStatus);
+        });
+      }
+      
+      // Store data for export
+      currentRentalReportData = consolidatedArray;
+      
+      // Render table
+      renderRentalIncomeReport(consolidatedArray, !propertyFilter);
+    }
+    
+    function renderRentalIncomeReport(data, groupedByHolder = false) {
+      const tbody = document.querySelector('#rentalIncomeReportTable tbody');
+      const tfoot = document.getElementById('rentalIncomeTotal');
+      
+      if (!tbody) {
+        console.error('[Rental Income Report] ERROR: tbody not found!');
+        return;
+      }
+      
+      if (data.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              No rental income data found for the selected filters
+            </td>
+          </tr>
+        `;
+        tfoot.style.display = 'none';
+        return;
+      }
+      
+      let totalAmount = 0;
+      const totalByCurrency = {};
+      
+      let rows = '';
+      
+      if (groupedByHolder) {
+        // Group data by holder
+        const holderGroups = {};
+        data.forEach(item => {
+          const holder = item.holder || 'Unknown';
+          if (!holderGroups[holder]) {
+            holderGroups[holder] = [];
+          }
+          holderGroups[holder].push(item);
+          
+          // Track totals
+          const amount = parseFloat(item.amount || 0);
+          totalAmount += amount;
+          if (!totalByCurrency[item.currency]) {
+            totalByCurrency[item.currency] = 0;
+          }
+          totalByCurrency[item.currency] += amount;
+        });
+        
+        // Render each holder group
+        Object.keys(holderGroups).sort().forEach((holder, holderIndex) => {
+          const holderItems = holderGroups[holder];
+          
+          // Holder header row
+          rows = rows + `
+            <tr style="background-color: #e3f2fd; font-weight: bold; font-size: 14px;">
+              <td colspan="5" style="padding: 12px; border-bottom: 2px solid #1976d2;">
+                Ac_Holder: ${holder}
+              </td>
+            </tr>
+          `;
+          
+          // Holder data rows
+          holderItems.forEach(item => {
+            const amount = parseFloat(item.amount || 0);
+            rows = rows + `
+              <tr>
+                <td>${item.desc || ''}</td>
+                <td>${item.tag || ''}</td>
+                <td>${item.currency || ''}</td>
+                <td style="text-align: right;">${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td>${item.acStatus || ''}</td>
+              </tr>
+            `;
+          });
+          
+          // Calculate holder subtotals
+          const holderTotalByCurrency = {};
+          holderItems.forEach(item => {
+            const amount = parseFloat(item.amount || 0);
+            if (!holderTotalByCurrency[item.currency]) {
+              holderTotalByCurrency[item.currency] = 0;
+            }
+            holderTotalByCurrency[item.currency] += amount;
+          });
+          
+          // Holder subtotal rows
+          Object.keys(holderTotalByCurrency).sort().forEach(currency => {
+            const currencyAmount = holderTotalByCurrency[currency];
+            rows = rows + `
+              <tr style="background-color: #f5f5f5; font-weight: bold;">
+                <td colspan="2" style="text-align: right; padding-right: 20px;">Subtotal for ${holder} (${currency}):</td>
+                <td></td>
+                <td style="text-align: right;">${currencyAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td></td>
+              </tr>
+            `;
+          });
+          
+          // Add spacing between holders
+          if (holderIndex < Object.keys(holderGroups).length - 1) {
+            rows = rows + `
+              <tr style="height: 10px;">
+                <td colspan="5"></td>
+              </tr>
+            `;
+          }
+        });
+      } else {
+        // Not grouped by holder - render normally
+        data.forEach(item => {
+          const amount = parseFloat(item.amount || 0);
+          totalAmount += amount;
+          
+          if (!totalByCurrency[item.currency]) {
+            totalByCurrency[item.currency] = 0;
+          }
+          totalByCurrency[item.currency] += amount;
+          
+          rows = rows + `
+            <tr>
+              <td>${item.desc || ''}</td>
+              <td>${item.tag || ''}</td>
+              <td>${item.currency || ''}</td>
+              <td style="text-align: right;">${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+              <td>${item.acStatus || ''}</td>
+            </tr>
+          `;
+        });
+      }
+      
+      tbody.innerHTML = rows;
+      
+      // Generate grand totals row
+      const totalRows = Object.keys(totalByCurrency).sort().map(currency => {
+        const amount = totalByCurrency[currency];
+        return `
+          <tr style="background-color: #f0f0f0; font-weight: bold;">
+            <td colspan="3" style="text-align: right;">Total (${currency}):</td>
+            <td style="text-align: right;">${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            <td></td>
+          </tr>
+        `;
+      }).join('');
+      
+      const grandTotalRow = `
+        <tr style="background-color: #e0e0e0; font-weight: bold; font-size: 16px;">
+          <td colspan="3" style="text-align: right;">Grand Total:</td>
+          <td style="text-align: right;">${totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td></td>
+        </tr>
+      `;
+      
+      tfoot.innerHTML = totalRows + grandTotalRow;
+      tfoot.style.display = 'table-footer-group';
+      
+      console.log('[Rental Income Report] ✓ Report rendered with', data.length, 'consolidated rows');
+    }
+    
+    function clearRentalIncomeFilters() {
+      document.getElementById('rentalProperty').value = '';
+      // Keep category fixed to Income-Rent-Receivable (disabled)
+      document.getElementById('rentalCategory').value = 'Income-Rent-Receivable';
+      document.getElementById('rentalHolder').value = '';
+      
+      // Clear stored report data
+      currentRentalReportData = [];
+      
+      const tbody = document.querySelector('#rentalIncomeReportTable tbody');
+      const tfoot = document.getElementById('rentalIncomeTotal');
+      
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              Select property (or leave as "All Properties") and click "Generate Rental Report" to view rental income data
+            </td>
+          </tr>
+        `;
+      }
+      
+      if (tfoot) {
+        tfoot.style.display = 'none';
+        tfoot.innerHTML = '';
+      }
+      
+      console.log('[Rental Income Report] ✓ Filters cleared');
+    }
+    
+    // ===== EXPORT FUNCTIONS =====
+    
+    function printRentalReport() {
+      if (currentRentalReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      const printWindow = window.open('', '_blank');
+      const propertyFilter = document.getElementById('rentalProperty').value || 'All Properties';
+      const holderFilter = document.getElementById('rentalHolder').value || 'All Holders';
+      
+      // Get table and tfoot elements
+      const table = document.getElementById('rentalIncomeReportTable');
+      const tfoot = document.getElementById('rentalIncomeTotal');
+      
+      // Clone table for printing
+      const tableClone = table.cloneNode(true);
+      
+      // Ensure tfoot is visible in clone
+      if (tfoot && tableClone.tFoot) {
+        tableClone.tFoot.style.display = 'table-footer-group';
+      }
+      
+      // Create table HTML with tfoot included
+      let tableHTML = tableClone.outerHTML;
+      
+      // Remove the style="display: none;" from tfoot if present
+      tableHTML = tableHTML.replace(/style="display:\s*none;?"/gi, '');
+      
+      printWindow.document.write('<!DOCTYPE html><html><head><title>Rental Collection Report - Print</title>');
+      printWindow.document.write('<style>');
+      printWindow.document.write('body { font-family: Arial, sans-serif; padding: 20px; }');
+      printWindow.document.write('h1 { text-align: center; margin-bottom: 10px; }');
+      printWindow.document.write('.report-info { text-align: center; margin-bottom: 20px; color: #666; }');
+      printWindow.document.write('table { width: 100%; border-collapse: collapse; margin-top: 20px; }');
+      printWindow.document.write('th { background-color: #f0f0f0; padding: 10px; text-align: left; border: 1px solid #ddd; font-weight: bold; }');
+      printWindow.document.write('td { padding: 8px; border: 1px solid #ddd; }');
+      printWindow.document.write('tfoot tr { background-color: #f0f0f0; font-weight: bold; }');
+      printWindow.document.write('tfoot tr:last-child { background-color: #e0e0e0; font-size: 16px; }');
+      printWindow.document.write('@media print { body { margin: 0; padding: 15px; } @page { margin: 1cm; } }');
+      printWindow.document.write('</style></head><body>');
+      printWindow.document.write('<h1>Rental Collection Report</h1>');
+      printWindow.document.write('<div class="report-info">');
+      printWindow.document.write('<p><strong>Property:</strong> ' + propertyFilter + ' | <strong>Ac_Holder:</strong> ' + holderFilter + '</p>');
+      printWindow.document.write('<p><strong>Category:</strong> Income-Rent-Receivable</p>');
+      printWindow.document.write('<p><strong>Generated:</strong> ' + new Date().toLocaleString() + '</p>');
+      printWindow.document.write('</div>');
+      printWindow.document.write(tableHTML);
+      printWindow.document.write('<scr' + 'ipt>window.onload = function() { window.print(); };</scr' + 'ipt>');
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+    }
+    
+    // Note: The generateIncomeReport, renderIncomeReport, calculateOptimalColumnWidths, 
+    // applyAutoColumnWidths, and exportIncomeReportPDF functions need to be copied 
+    // from 12_Reports.html (lines 952-2709) to complete this report.
+    // For now, using a simplified PDF export that uses pdf_utils.js
+    
+    function exportIncomeReportPDF() {
+      // Use the full PDF export function from 12_Reports.html which uses pdf_utils.js
+      // This is a simplified version that calls the full implementation
+      if (!currentIncomeReportData || currentIncomeReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      if (!window.jspdf || !window.PDFUtils) {
+        alert('PDF libraries not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      // Call the full implementation - for now, use the exportIncomeReportPDFNew logic
+      // Simplified version using pdf_utils.js
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4'); // landscape, millimeters, A4
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      
+      // Helper function to format dates
+      function formatDate(dateStr) {
+        if (!dateStr) return '';
+        if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          return dateStr.replace(/-/g, '/');
+        }
+        const date = new Date(dateStr);
+        if (Number.isNaN(date.getTime())) {
+          return String(dateStr || '');
+        }
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}/${month}/${day}`;
+      }
+      
+      // Helper function to get current filter criteria as array of objects
+      function getFilterCriteria() {
+        const criteria = [];
+        const holderFilter = document.getElementById('filterHolder')?.value || '';
+        const fromDate = document.getElementById('filterFromDate')?.value || '';
+        const toDate = document.getElementById('filterToDate')?.value || '';
+        const yearFilter = document.getElementById('filterYear')?.value || '';
+        
+        if (yearFilter) criteria.push({ label: 'Year', value: yearFilter, color: [112, 173, 71] }); // Green
+        if (holderFilter) criteria.push({ label: 'Holder', value: holderFilter, color: [68, 114, 196] }); // Blue
+        if (fromDate) criteria.push({ label: 'Date From', value: formatDate(fromDate), color: [146, 208, 80] }); // Light Green
+        if (toDate) criteria.push({ label: 'Date To', value: formatDate(toDate), color: [112, 48, 160] }); // Purple
+        return criteria;
+      }
+      
+      // Title
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Personal Income Report', pageWidth / 2, 20, { align: 'center' });
+      
+      // Draw Filter Criteria using PDFUtils
+      const filterCriteria = getFilterCriteria();
+      const filterY = window.PDFUtils.drawFilterCriteria(doc, filterCriteria, 32, pageWidth);
+      
+      // Prepare data - flatten records for column width calculation
+      const data = currentIncomeReportData.map(r => ({
+        category: String(r.cat || ''),
+        tag: String(r.tag || ''),
+        date: String(formatDate(r.paid || '')),
+        mode: String(r.mode || ''),
+        holder: String(r.holder || ''),
+        amount: String(parseFloat(r.amt || 0).toFixed(2)),
+        currency: String(r.cur || 'Unknown')
+      }));
+      
+      // Headers
+      const headers = ['#', 'Income_Category', 'Income_Ac_Tag', 'Income_Date', 'Mode_Txn', 'Ac_Holder', 'Amount'];
+      
+      // Calculate optimal column widths using PDFUtils
+      const dataArrayForMeasurement = data.map((row, idx) => [
+        String(idx + 1),
+        row.category,
+        row.tag,
+        row.date,
+        row.mode,
+        row.holder,
+        row.amount
+      ]);
+      
+      const colWidths = window.PDFUtils.calculateOptimalColumnWidths(
+        doc,
+        dataArrayForMeasurement,
+        headers,
+        formatDate,
+        {
+          fixedWidthColumns: [0, 6], // # column and Amount column
+          fixedWidthValues: [12, 25.4], // #: 12mm, Amount: 1 inch (25.4mm)
+          fontSize: 7,
+          padding: 12,
+          minWidth: 12
+        }
+      );
+      
+      // Adjust Amount column to exactly 1 inch
+      colWidths[6] = 25.4;
+      
+      // Calculate start position
+      const filterCriteriaCount = filterCriteria.length;
+      const filterRows = filterCriteriaCount > 0 ? Math.ceil(filterCriteriaCount / 3) : 0;
+      const filterTotalHeight = filterRows > 0 ? (filterRows * 10) : 8;
+      let currentY = 32 + filterTotalHeight + 15;
+      let currentPage = 1;
+      const state = { currentPage: 1, totalPagesEstimate: 1, currentY };
+      
+      // Calculate total table width and center it
+      const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+      const tableStartX = (pageWidth - totalTableWidth) / 2;
+      
+      // Helper function to add footer
+      function addFooter() {
+        window.PDFUtils.drawFooter(doc, state.currentPage, state.totalPagesEstimate, currentIncomeReportData.length, pageWidth, {
+          generationDate: new Date()
+        });
+      }
+      
+      // Helper function to add new page and redraw headers
+      function addNewPage() {
+        state.currentY = window.PDFUtils.addNewPageWithHeaders(
+          doc, headers, colWidths, tableStartX, 30, state, addFooter, {
+            headerHeight: 8,
+            fontSize: 9,
+            pageWidth: pageWidth,
+            autoCenter: true
+          }
+        );
+        currentY = state.currentY;
+        tableHeaderDrawn = true;
+      }
+      
+      // Add initial footer
+      addFooter();
+      
+      // Get holder filter to determine grouping
+      const holderFilter = document.getElementById('filterHolder')?.value || '';
+      const groupByHolder = !holderFilter || holderFilter === '';
+      
+      // Group by currency and optionally by holder
+      const groupedByCurrency = {};
+      currentIncomeReportData.forEach(r => {
+        const currency = r.cur || 'Unknown';
+        if (!groupedByCurrency[currency]) {
+          groupedByCurrency[currency] = groupByHolder ? {} : [];
+        }
+        
+        if (groupByHolder) {
+          const holder = r.holder || 'Unknown';
+          if (!groupedByCurrency[currency][holder]) {
+            groupedByCurrency[currency][holder] = [];
+          }
+          groupedByCurrency[currency][holder].push(r);
+        } else {
+          groupedByCurrency[currency].push(r);
+        }
+      });
+      
+      const sortedCurrencies = Object.keys(groupedByCurrency).sort();
+      let globalRowIndex = 0;
+      let tableHeaderDrawn = false;
+      
+      // Render data by currency groups
+      sortedCurrencies.forEach(currency => {
+        const currencyData = groupedByCurrency[currency];
+        let currencySubtotal = 0;
+        
+        if (groupByHolder && !Array.isArray(currencyData)) {
+          // Grouped by holder within currency
+          const sortedHolders = Object.keys(currencyData).sort();
+          
+          sortedHolders.forEach(holder => {
+            const holderRecords = currencyData[holder];
+            if (!holderRecords || holderRecords.length === 0) return;
+            
+            // Draw Currency & Holder header cards
+            const cardWidth = totalTableWidth / 2;
+            const cardHeight = 8;
+            
+            if (currentY + cardHeight > pageHeight - 25) {
+              addNewPage();
+              tableHeaderDrawn = false;
+            }
+            
+            // Left card - Currency (green)
+            doc.setFillColor(112, 173, 71);
+            doc.rect(tableStartX, currentY, cardWidth, cardHeight, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Currency: ${currency}`, tableStartX + cardWidth / 2, currentY + (cardHeight / 2) + 3.5, { align: 'center' });
+            
+            // Right card - Holder (yellow)
+            doc.setFillColor(255, 192, 0);
+            doc.rect(tableStartX + cardWidth, currentY, cardWidth, cardHeight, 'F');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Holder: ${holder}`, tableStartX + cardWidth + cardWidth / 2, currentY + (cardHeight / 2) + 3.5, { align: 'center' });
+            
+            currentY += cardHeight + 1;
+            
+            // Draw table header once per currency group
+            if (!tableHeaderDrawn) {
+              if (currentY + 8 > pageHeight - 25) {
+                addNewPage();
+              }
+              currentY = window.PDFUtils.drawTableHeaders(doc, headers, colWidths, tableStartX, currentY, {
+                headerHeight: 8,
+                fontSize: 9,
+                pageWidth: pageWidth,
+                autoCenter: true
+              });
+              tableHeaderDrawn = true;
+            }
+            
+            // Render holder's data rows
+            holderRecords.forEach((r) => {
+              const rowData = [
+                String(globalRowIndex + 1),
+                String(r.cat || ''),
+                String(r.tag || ''),
+                formatDate(r.paid || ''),
+                String(r.mode || ''),
+                String(r.holder || ''),
+                String(parseFloat(r.amt || 0).toFixed(2))
+              ];
+              
+              const rowHeightInfo = window.PDFUtils.calculateDynamicRowHeight(doc, rowData, colWidths, {
+                baseHeight: 5,
+                lineSpacing: 4,
+                padding: 4
+              });
+              
+              if (currentY + rowHeightInfo.cellHeight > pageHeight - 25) {
+                addNewPage();
+              }
+              
+              currentY = window.PDFUtils.renderTableRowWithDynamicHeight(doc, {
+                rowY: currentY,
+                currentY: currentY,
+                rowData: rowData,
+                colWidths: colWidths,
+                tableStartX: tableStartX,
+                totalTableWidth: totalTableWidth,
+                rowIndex: globalRowIndex,
+                checkPageBreak: null
+              }, {
+                baseHeight: 5,
+                lineSpacing: 4,
+                padding: 4,
+                fontSize: 7
+              });
+              
+              currentY += 1;
+              globalRowIndex++;
+              currencySubtotal += parseFloat(r.amt || 0);
+            });
+            
+            // Holder subtotal row
+            const holderSubtotal = holderRecords.reduce((sum, r) => sum + parseFloat(r.amt || 0), 0);
+            
+            if (currentY + 8 > pageHeight - 25) {
+              addNewPage();
+            }
+            
+            doc.setFillColor(255, 230, 153);
+            doc.rect(tableStartX, currentY, totalTableWidth, 8, 'F');
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Subtotal (${holder}):`, tableStartX + 2, currentY + 5);
+            doc.text(holderSubtotal.toFixed(2), tableStartX + totalTableWidth - 2, currentY + 5, { align: 'right' });
+            currentY += 10;
+          });
+          
+          // Currency subtotal row
+          if (currentY + 8 > pageHeight - 25) {
+            addNewPage();
+          }
+          
+          doc.setFillColor(255, 242, 204);
+          doc.rect(tableStartX, currentY, totalTableWidth, 8, 'F');
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(0, 0, 0);
+          doc.text(`Subtotal (${currency}):`, tableStartX + 2, currentY + 5);
+          doc.text(currencySubtotal.toFixed(2), tableStartX + totalTableWidth - 2, currentY + 5, { align: 'right' });
+          currentY += 11;
+          
+        } else {
+          // Simple array - no holder grouping
+          const records = Array.isArray(currencyData) ? currencyData : [];
+          
+          // Draw Currency header
+          if (currentY + 8 > pageHeight - 25) {
+            addNewPage();
+            tableHeaderDrawn = true;
+          }
+          
+          doc.setFillColor(112, 173, 71);
+          doc.rect(tableStartX, currentY, totalTableWidth, 8, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'bold');
+          doc.text(`Currency: ${currency}`, tableStartX + totalTableWidth / 2, currentY + 5.5, { align: 'center' });
+          currentY += 9;
+          
+          // Draw table headers
+          if (!tableHeaderDrawn) {
+            if (currentY + 8 > pageHeight - 25) {
+              addNewPage();
+            }
+            currentY = window.PDFUtils.drawTableHeaders(doc, headers, colWidths, tableStartX, currentY, {
+              headerHeight: 8,
+              fontSize: 9,
+              pageWidth: pageWidth,
+              autoCenter: true
+            });
+            tableHeaderDrawn = true;
+          }
+          
+          // Render data rows
+          records.forEach((r) => {
+            const rowData = [
+              String(globalRowIndex + 1),
+              String(r.cat || ''),
+              String(r.tag || ''),
+              formatDate(r.paid || ''),
+              String(r.mode || ''),
+              String(r.holder || ''),
+              String(parseFloat(r.amt || 0).toFixed(2))
+            ];
+            
+            const rowHeightInfo = window.PDFUtils.calculateDynamicRowHeight(doc, rowData, colWidths, {
+              baseHeight: 5,
+              lineSpacing: 4,
+              padding: 4
+            });
+            
+            if (currentY + rowHeightInfo.cellHeight > pageHeight - 25) {
+              addNewPage();
+            }
+            
+            currentY = window.PDFUtils.renderTableRowWithDynamicHeight(doc, {
+              rowY: currentY,
+              currentY: currentY,
+              rowData: rowData,
+              colWidths: colWidths,
+              tableStartX: tableStartX,
+              totalTableWidth: totalTableWidth,
+              rowIndex: globalRowIndex,
+              checkPageBreak: null
+            }, {
+              baseHeight: 5,
+              lineSpacing: 4,
+              padding: 4,
+              fontSize: 7
+            });
+            
+            currentY += 1;
+            globalRowIndex++;
+            currencySubtotal += parseFloat(r.amt || 0);
+          });
+          
+          // Currency subtotal row
+          if (currentY + 8 > pageHeight - 25) {
+            addNewPage();
+          }
+          
+          doc.setFillColor(255, 242, 204);
+          doc.rect(tableStartX, currentY, totalTableWidth, 8, 'F');
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(0, 0, 0);
+          doc.text(`Subtotal (${currency}):`, tableStartX + 2, currentY + 5);
+          doc.text(currencySubtotal.toFixed(2), tableStartX + totalTableWidth - 2, currentY + 5, { align: 'right' });
+          currentY += 11;
+        }
+        
+        state.currentY = currentY;
+      });
+      
+      // Update final page count and redraw all footers
+      state.totalPagesEstimate = doc.internal.pages.length - 1;
+      for (let i = 1; i <= state.totalPagesEstimate; i++) {
+        doc.setPage(i);
+        window.PDFUtils.drawFooter(doc, i, state.totalPagesEstimate, currentIncomeReportData.length, pageWidth, {
+          generationDate: new Date()
+        });
+      }
+      
+      doc.save('Personal_Income_Report_' + new Date().toISOString().split('T')[0] + '.pdf');
+    }
+    
+    // Placeholder functions - these need to be copied from 12_Reports.html:
+    // Helper function to convert Excel serial dates to YYYY-MM-DD format
+    function convertExcelDateToYYYYMMDD(value){
+      if(!value || value==='')return '';
+      // If already a date string in YYYY-MM-DD format, return as is
+      if(typeof value==='string' && /^\d{4}-\d{2}-\d{2}$/.test(value))return value;
+      // If it's a valid date string (other formats), parse it
+      const dateStr=String(value).trim();
+      if(dateStr.match(/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}$/)){
+        const parts=dateStr.split(/[-\/]/);
+        const year=parts[0];
+        const month=String(parts[1]).padStart(2,'0');
+        const day=String(parts[2]).padStart(2,'0');
+        return `${year}-${month}-${day}`;
+      }
+      // If it's a number (Excel serial date), convert it
+      const num=Number(value);
+      if(!isNaN(num) && num>0){
+        const excelEpoch=new Date(1899,11,30);
+        const jsDate=new Date(excelEpoch.getTime()+num*86400000);
+        if(!isNaN(jsDate.getTime())){
+          const year=jsDate.getFullYear();
+          const month=String(jsDate.getMonth()+1).padStart(2,'0');
+          const day=String(jsDate.getDate()).padStart(2,'0');
+          return `${year}-${month}-${day}`;
+        }
+      }
+      // Try parsing as a regular date string
+      try {
+        const parsedDate = new Date(value);
+        if(!isNaN(parsedDate.getTime())){
+          const year=parsedDate.getFullYear();
+          const month=String(parsedDate.getMonth()+1).padStart(2,'0');
+          const day=String(parsedDate.getDate()).padStart(2,'0');
+          return `${year}-${month}-${day}`;
+        }
+      } catch(e) {
+        // Ignore parsing errors
+      }
+      return value;
+    }
+    
+    // Helper function to format date for display (fixes existing bad data)
+    function formatDateForDisplay(value){
+      return convertExcelDateToYYYYMMDD(value);
+    }
+    
+    function generateIncomeReport() {
+      let records = JSON.parse(localStorage.getItem('income_records') || '[]');
+      
+      // Fix existing dates in records (convert numeric dates to YYYY-MM-DD)
+      records = records.map(r => ({
+        ...r,
+        paid: convertExcelDateToYYYYMMDD(r.paid || '')
+      }));
+      
+      const holderFilter = document.getElementById('filterHolder').value;
+      const fromDate = document.getElementById('filterFromDate').value;
+      const toDate = document.getElementById('filterToDate').value;
+      
+      // Filter records (dates are already converted above)
+      filteredIncomeRecords = records.filter(r => {
+        if (holderFilter && r.holder !== holderFilter) return false;
+        const paidDate = r.paid || '';
+        if (fromDate && paidDate && paidDate < fromDate) return false;
+        if (toDate && paidDate && paidDate > toDate) return false;
+        return true;
+      });
+      
+      currentIncomeReportData = filteredIncomeRecords;
+      
+      // Check if holder grouping is needed (when no holder filter is selected)
+      const groupByHolder = !holderFilter || holderFilter === '';
+      
+      // Group by currency and optionally by holder
+      const groupedByCurrency = {};
+      filteredIncomeRecords.forEach(r => {
+        const currency = r.cur || 'Unknown';
+        if (!groupedByCurrency[currency]) {
+          groupedByCurrency[currency] = groupByHolder ? {} : [];
+        }
+        
+        if (groupByHolder) {
+          // Group by holder within currency
+          const holder = r.holder || 'Unknown';
+          if (!groupedByCurrency[currency][holder]) {
+            groupedByCurrency[currency][holder] = [];
+          }
+          groupedByCurrency[currency][holder].push(r);
+        } else {
+          // Simple array for single holder
+          groupedByCurrency[currency].push(r);
+        }
+      });
+      
+      // Sort currencies
+      const sortedCurrencies = Object.keys(groupedByCurrency).sort();
+      
+      // Calculate optimal column widths from longest data strings
+      const columnWidths = calculateOptimalColumnWidths(filteredIncomeRecords);
+      
+      // Render report with column widths - pass groupByHolder flag
+      renderIncomeReport(groupedByCurrency, sortedCurrencies, columnWidths, groupByHolder);
+      
+      // Apply auto-calculated widths to table immediately after rendering
+      setTimeout(() => {
+        applyAutoColumnWidths(columnWidths);
+      }, 50);
+    }
+    
+    function calculateOptimalColumnWidths(records) {
+      if (!records || records.length === 0) {
+        // Default widths if no data (in pixels)
+        return [120, 150, 100, 120, 144, 144]; // Amount = 144px (1.5 inches)
+      }
+      
+      // Column headers
+      const headers = ['Income_Category', 'Income_Ac_Tag', 'Income_Date', 'Mode_Txn', 'Ac_Holder', 'Amount'];
+      // Field mappings: column index -> field name in records
+      const fields = ['cat', 'tag', 'paid', 'mode', 'holder', 'amt'];
+      
+      // Find longest string in each column (including headers)
+      const widths = headers.map((header, index) => {
+        const field = fields[index];
+        
+        // Amount column (index 5): FIXED width of 1.5 inches (144px at 96 DPI)
+        if (field === 'amt') {
+          return 144; // EXACTLY 1.5 inches = 144px at 96 DPI - NO EXPANSION ALLOWED
+        }
+        
+        // For other columns, find longest string
+        let maxLength = header.length; // Start with header length
+        
+        records.forEach(record => {
+          let value = record[field] || '';
+          value = String(value);
+          maxLength = Math.max(maxLength, value.length);
+        });
+        
+        // Calculate width in pixels: character count * estimated char width + generous padding
+        const charWidth = 9; // More generous to ensure no truncation
+        const padding = 50; // Extra generous padding for readability
+        const minWidth = 100; // Minimum column width
+        
+        return Math.max(minWidth, (maxLength * charWidth) + padding);
+      });
+      
+      // Log the calculated widths for debugging
+      console.log('Calculated column widths:', widths);
+      console.log('Amount column width (should be 144px):', widths[5]);
+      
+      // Store in localStorage for PDF generation
+      localStorage.setItem('income_report_auto_column_widths', JSON.stringify(widths));
+      
+      return widths; // Return as array: [width1, width2, width3, width4, width5, width6]
+    }
+    
+    // Apply auto-calculated widths to all table cells - enforce widths strictly
+    function applyAutoColumnWidths(widths) {
+      const table = document.getElementById('incomeReportTable');
+      if (!table || !widths || widths.length === 0) return;
+      
+      // Apply widths to all header rows and data cells with strict enforcement
+      widths.forEach((widthValue, index) => {
+        const widthPx = `${widthValue}px`;
+        
+        // Apply to all header rows in tbody - ENFORCE WIDTHS STRICTLY
+        const headerCells = table.querySelectorAll(`tbody tr.table-header-row td:nth-child(${index + 1})`);
+        headerCells.forEach(cell => {
+          cell.style.width = widthPx;
+          cell.style.minWidth = widthPx;
+          cell.style.maxWidth = widthPx; // CRITICAL: Enforce max-width to prevent expansion
+          cell.style.boxSizing = 'border-box';
+          cell.style.overflow = index === 5 ? 'hidden' : 'visible'; // Amount column: hidden, others: visible
+          cell.style.textOverflow = index === 5 ? 'clip' : 'clip';
+          cell.style.whiteSpace = 'normal';
+        });
+        
+        // Apply to all data cells in this column - ENFORCE WIDTHS STRICTLY
+        const dataCells = table.querySelectorAll(`tbody tr:not(.table-header-row):not(.currency-header):not(.subtotal-row) td:nth-child(${index + 1})`);
+        dataCells.forEach(cell => {
+          cell.style.width = widthPx;
+          cell.style.minWidth = widthPx;
+          cell.style.maxWidth = widthPx; // CRITICAL: Enforce max-width to prevent expansion
+          cell.style.boxSizing = 'border-box';
+          cell.style.overflow = index === 5 ? 'hidden' : 'visible'; // Amount column: hidden, others: visible
+          cell.style.textOverflow = index === 5 ? 'clip' : 'clip';
+          cell.style.whiteSpace = 'normal';
+        });
+        
+        // Also apply to subtotal rows
+        const subtotalCells = table.querySelectorAll(`tbody tr.subtotal-row td:nth-child(${index + 1})`);
+        subtotalCells.forEach(cell => {
+          cell.style.width = widthPx;
+          cell.style.minWidth = widthPx;
+          cell.style.maxWidth = widthPx;
+          cell.style.boxSizing = 'border-box';
+        });
+      });
+      
+      // Also apply widths to the first header row directly to establish column widths
+      const firstHeaderRow = table.querySelector('tbody tr.table-header-row');
+      if (firstHeaderRow) {
+        const firstHeaderCells = firstHeaderRow.querySelectorAll('td');
+        firstHeaderCells.forEach((cell, index) => {
+          if (widths[index]) {
+            const widthPx = `${widths[index]}px`;
+            cell.style.width = widthPx;
+            cell.style.minWidth = widthPx;
+            cell.style.maxWidth = widthPx;
+          }
+        });
+      }
+      
+      // CRITICAL: Set table width to exact sum of column widths for fixed layout
+      const totalWidth = widths.reduce((sum, w) => sum + w, 0);
+      table.style.width = `${totalWidth}px`;
+      table.style.minWidth = `${totalWidth}px`;
+      table.style.maxWidth = `${totalWidth}px`;
+      
+      console.log('Applied column widths:', widths);
+      console.log('Total table width:', totalWidth, 'px');
+      console.log('Amount column (index 5) width:', widths[5], 'px (should be 144px)');
+    }
+    
+    function renderIncomeReport(groupedByCurrency, sortedCurrencies, columnWidths, groupByHolder = false) {
+      const table = document.getElementById('incomeReportTable');
+      const thead = table.querySelector('thead');
+      const tbody = table.querySelector('tbody');
+      
+      // Clear existing content
+      thead.innerHTML = ''; // Empty thead - headers will be in tbody for each currency group
+      tbody.innerHTML = '';
+      
+      // Set table width to sum of column widths BEFORE rendering (critical for fixed layout)
+      if (columnWidths && columnWidths.length > 0) {
+        const totalWidth = columnWidths.reduce((sum, w) => sum + w, 0);
+        table.style.width = `${totalWidth}px`;
+        table.style.minWidth = `${totalWidth}px`;
+        table.style.maxWidth = `${totalWidth}px`;
+      }
+      
+      if (sortedCurrencies.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No data found</td></tr>';
+        return;
+      }
+      
+      let isFirstHeader = true; // Track if this is the first header row for width application
+      
+      sortedCurrencies.forEach(currency => {
+        const currencyData = groupedByCurrency[currency];
+        
+        if (!currencyData || (Array.isArray(currencyData) && currencyData.length === 0) || 
+            (!Array.isArray(currencyData) && Object.keys(currencyData).length === 0)) {
+          return; // Skip empty currency groups
+        }
+        
+        // Table header row in tbody (blue bar) - FIRST, before data rows (only shown once per currency group when not grouped by holder)
+        let tableHeaderAdded = false;
+        
+        if (groupByHolder && !Array.isArray(currencyData)) {
+          // Grouped by holder within currency
+          const sortedHolders = Object.keys(currencyData).sort();
+          let currencySubtotal = 0;
+          
+          sortedHolders.forEach(holder => {
+            const holderRecords = currencyData[holder];
+            if (!holderRecords || holderRecords.length === 0) return;
+            
+            // Combined Currency & Holder header row - two cards side by side (green for Currency, yellow for Holder)
+            const combinedHeaderRow = document.createElement('tr');
+            combinedHeaderRow.className = 'combined-header';
+            combinedHeaderRow.innerHTML = `
+              <td colspan="3" style="text-align: center; font-weight: 700; background: #70AD47; color: #fff; padding: 8px 6px; border: none;">Currency: ${currency}</td>
+              <td colspan="3" style="text-align: center; font-weight: 700; background: #FFC000; color: #000; padding: 8px 6px; border: none;">Holder: ${holder}</td>
+            `;
+            tbody.appendChild(combinedHeaderRow);
+            
+            // Table header row (blue bar) - shown once per currency group, before first holder's data
+            if (!tableHeaderAdded) {
+              const tableHeaderRow = document.createElement('tr');
+              tableHeaderRow.className = 'table-header-row';
+              const headers = ['Income_Category', 'Income_Ac_Tag', 'Income_Date', 'Mode_Txn', 'Ac_Holder', 'Amount'];
+              headers.forEach((header, index) => {
+                const td = document.createElement('td');
+                td.textContent = header;
+                td.style.background = '#4472C4';
+                td.style.color = '#fff';
+                td.style.padding = '8px 6px';
+                td.style.fontWeight = '600';
+                td.style.border = '1px solid #BFBFBF';
+                // Apply width to first header row cells (critical for table-layout: fixed)
+                if (isFirstHeader && columnWidths && columnWidths[index]) {
+                  td.style.width = `${columnWidths[index]}px`;
+                  td.style.minWidth = `${columnWidths[index]}px`;
+                  td.style.maxWidth = `${columnWidths[index]}px`;
+                }
+                tableHeaderRow.appendChild(td);
+              });
+              tbody.appendChild(tableHeaderRow);
+              tableHeaderAdded = true;
+              isFirstHeader = false; // Only apply widths to first header
+            }
+            
+            // Data rows for this holder
+            holderRecords.forEach(r => {
+              const tr = document.createElement('tr');
+              // Format date for display (convert Excel serial dates to YYYY-MM-DD)
+              const paidDate = formatDateForDisplay(r.paid || '');
+              tr.innerHTML = `
+                <td>${r.cat || ''}</td>
+                <td>${r.tag || ''}</td>
+                <td>${paidDate}</td>
+                <td>${r.mode || ''}</td>
+                <td>${r.holder || ''}</td>
+                <td style="text-align: right;">${parseFloat(r.amt || 0).toFixed(2)}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+            
+            // Holder subtotal row
+            const holderSubtotal = holderRecords.reduce((sum, r) => sum + parseFloat(r.amt || 0), 0);
+            currencySubtotal += holderSubtotal; // Accumulate for currency subtotal
+            
+            const holderSubtotalRow = document.createElement('tr');
+            holderSubtotalRow.className = 'holder-subtotal-row';
+            holderSubtotalRow.innerHTML = `
+              <td colspan="5" style="text-align: right; font-weight: 600; background: #FFE699;">Subtotal (${holder}):</td>
+              <td style="text-align: right; font-weight: 600; background: #FFE699;">${holderSubtotal.toFixed(2)}</td>
+            `;
+            tbody.appendChild(holderSubtotalRow);
+          });
+          
+          // Currency subtotal row
+          const currencySubtotalRow = document.createElement('tr');
+          currencySubtotalRow.className = 'subtotal-row';
+          currencySubtotalRow.innerHTML = `
+            <td colspan="5" style="text-align: right; font-weight: 600;">Subtotal (${currency}):</td>
+            <td style="text-align: right; font-weight: 600;">${currencySubtotal.toFixed(2)}</td>
+          `;
+          tbody.appendChild(currencySubtotalRow);
+        } else {
+          // Simple array - no holder grouping
+          const records = Array.isArray(currencyData) ? currencyData : [];
+          
+          // Currency header row (green bar) - appears before table header
+          const currencyHeaderRow = document.createElement('tr');
+          currencyHeaderRow.className = 'currency-header';
+          currencyHeaderRow.innerHTML = `<td colspan="6" style="text-align: center; font-weight: 700; background: #70AD47; color: #fff; padding: 8px 6px;">Currency: ${currency}</td>`;
+          tbody.appendChild(currencyHeaderRow);
+          
+          // Table header row (blue bar) - shown before data rows
+          const tableHeaderRow = document.createElement('tr');
+          tableHeaderRow.className = 'table-header-row';
+          const headers = ['Income_Category', 'Income_Ac_Tag', 'Income_Date', 'Mode_Txn', 'Ac_Holder', 'Amount'];
+          headers.forEach((header, index) => {
+            const td = document.createElement('td');
+            td.textContent = header;
+            td.style.background = '#4472C4';
+            td.style.color = '#fff';
+            td.style.padding = '8px 6px';
+            td.style.fontWeight = '600';
+            td.style.border = '1px solid #BFBFBF';
+            // Apply width to first header row cells (critical for table-layout: fixed)
+            if (isFirstHeader && columnWidths && columnWidths[index]) {
+              td.style.width = `${columnWidths[index]}px`;
+              td.style.minWidth = `${columnWidths[index]}px`;
+              td.style.maxWidth = `${columnWidths[index]}px`;
+            }
+            tableHeaderRow.appendChild(td);
+          });
+          tbody.appendChild(tableHeaderRow);
+          isFirstHeader = false; // Only apply widths to first header
+          
+          // Data rows
+          records.forEach(r => {
+            const tr = document.createElement('tr');
+            // Format date for display (convert Excel serial dates to YYYY-MM-DD)
+            const paidDate = formatDateForDisplay(r.paid || '');
+            tr.innerHTML = `
+              <td>${r.cat || ''}</td>
+              <td>${r.tag || ''}</td>
+              <td>${paidDate}</td>
+              <td>${r.mode || ''}</td>
+              <td>${r.holder || ''}</td>
+              <td style="text-align: right;">${parseFloat(r.amt || 0).toFixed(2)}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+          
+          // Currency subtotal row
+          const subtotal = records.reduce((sum, r) => sum + parseFloat(r.amt || 0), 0);
+          const subtotalRow = document.createElement('tr');
+          subtotalRow.className = 'subtotal-row';
+          subtotalRow.innerHTML = `
+            <td colspan="5" style="text-align: right; font-weight: 600;">Subtotal (${currency}):</td>
+            <td style="text-align: right; font-weight: 600;">${subtotal.toFixed(2)}</td>
+          `;
+          tbody.appendChild(subtotalRow);
+        }
+      });
+    }
+    
+    function printIncomeReport() {
+      if (!currentIncomeReportData || currentIncomeReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      const reportTable = document.getElementById('incomeReportTable');
+      if (!reportTable) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Personal Income Report</title>
+          <style>
+            @page { size: landscape; margin: 15mm; }
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; font-size: 10px; }
+            th { background: #4472C4; color: #fff; padding: 8px 6px; border: 1px solid #BFBFBF; font-weight: 600; }
+            td { padding: 6px; border: 1px solid #BFBFBF; }
+            .currency-header { background: #70AD47; color: #fff; font-weight: 700; }
+            .subtotal-row { background: #FFF2CC; font-weight: 600; border-top: 2px solid #FFC000; }
+            .combined-header { font-weight: 700; }
+            @media print {
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1 style="text-align: center; font-size: 16px; font-weight: bold; font-family: 'Century Gothic', Arial, sans-serif;">Personal Income Report</h1>
+          ${reportTable.outerHTML}
+          <div style="margin-top: 20px; display: flex; justify-content: space-between; font-size: 10px;">
+            <div>Generated on ${new Date().toLocaleString()}</div>
+            <div>Page 1/1</div>
+          </div>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+    
+    function exportIncomeReportExcel() {
+      if (!currentIncomeReportData || currentIncomeReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      if (typeof XLSX === 'undefined') {
+        alert('Excel library not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      const holderFilter = document.getElementById('filterHolder').value || 'All Holders';
+      const fromDate = document.getElementById('filterFromDate').value || '';
+      const toDate = document.getElementById('filterToDate').value || '';
+      const yearFilter = document.getElementById('filterYear').value || '';
+      
+      // Prepare data for Excel
+      const headers = ['Income_Category', 'Income_Ac_Tag', 'Income_Date', 'Mode_Txn', 'Ac_Holder', 'Amount'];
+      
+      // Group by currency
+      const groupedByCurrency = {};
+      currentIncomeReportData.forEach(r => {
+        const currency = r.cur || 'Unknown';
+        if (!groupedByCurrency[currency]) {
+          groupedByCurrency[currency] = [];
+        }
+        groupedByCurrency[currency].push(r);
+      });
+      
+      const sortedCurrencies = Object.keys(groupedByCurrency).sort();
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Create worksheet data
+      const wsData = [
+        ['Personal Income Report'],
+        [`Generated: ${new Date().toLocaleString()}`],
+        []
+      ];
+      
+      // Add filter info
+      const filterInfo = [];
+      if (yearFilter) filterInfo.push(`Year: ${yearFilter}`);
+      if (holderFilter && holderFilter !== 'All Holders') filterInfo.push(`Holder: ${holderFilter}`);
+      if (fromDate) filterInfo.push(`From: ${fromDate}`);
+      if (toDate) filterInfo.push(`To: ${toDate}`);
+      if (filterInfo.length > 0) {
+        wsData.push([filterInfo.join(' | ')]);
+        wsData.push([]);
+      }
+      
+      // Add data by currency
+      sortedCurrencies.forEach(currency => {
+        wsData.push([`Currency: ${currency}`]);
+        wsData.push(headers);
+        
+        const records = groupedByCurrency[currency];
+        records.forEach(r => {
+          wsData.push([
+            r.cat || '',
+            r.tag || '',
+            formatDateForDisplay(r.paid || ''),
+            r.mode || '',
+            r.holder || '',
+            parseFloat(r.amt || 0)
+          ]);
+        });
+        
+        // Add subtotal
+        const subtotal = records.reduce((sum, r) => sum + parseFloat(r.amt || 0), 0);
+        wsData.push(['', '', '', '', `Subtotal (${currency}):`, subtotal]);
+        wsData.push([]);
+      });
+      
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 25 }, // Income_Category
+        { wch: 25 }, // Income_Ac_Tag
+        { wch: 15 }, // Income_Date
+        { wch: 15 }, // Mode_Txn
+        { wch: 15 }, // Ac_Holder
+        { wch: 15 }  // Amount
+      ];
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Personal Income Report');
+      
+      // Generate filename
+      const fileName = `Personal_Income_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
+      
+      // Save file
+      XLSX.writeFile(wb, fileName);
+    }
+    
+    function clearIncomeFilters() {
+      document.getElementById('filterYear').value = '';
+      document.getElementById('filterHolder').value = '';
+      document.getElementById('filterFromDate').value = '';
+      document.getElementById('filterToDate').value = '';
+      
+      const tbody = document.getElementById('incomeReportTable').querySelector('tbody');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">Click "Generate Report" to view income data</td></tr>';
+      
+      currentIncomeReportData = null;
+      filteredIncomeRecords = [];
+    }
+    
+    // Old function - to be removed
+    function exportRentalReportPDF_OLD() {
+      // Disabled function - kept for reference
+      return;
+      
+      if (!window.jspdf) {
+        alert('PDF library not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      if (!window.PDFUtils) {
+        alert('PDF utilities not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4'); // landscape orientation
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 10;
+      const tableStartX = margin;
+      
+      // Get filter values (empty string means "All Properties")
+      const propertyFilterElement = document.getElementById('rentalProperty');
+      const propertyFilter = propertyFilterElement ? (propertyFilterElement.value || '') : '';
+      const holderFilterElement = document.getElementById('rentalHolder');
+      const holderFilter = holderFilterElement ? (holderFilterElement.value || 'All Holders') : 'All Holders';
+      
+      // Title
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Rental Collection Report', pageWidth / 2, 20, { align: 'center' });
+      
+      // Prepare filter criteria for PDFUtils.drawFilterCriteria
+      const filterCriteria = [
+        { label: 'Property', value: propertyFilter, color: [68, 114, 196] }, // Blue
+        { label: 'Ac_Holder', value: holderFilter, color: [112, 173, 71] }, // Green
+        { label: 'Category', value: 'Income-Rent-Receivable', color: [146, 208, 80] } // Light Green
+      ];
+      
+      // Draw filter criteria using PDFUtils
+      let currentY = window.PDFUtils.drawFilterCriteria(doc, filterCriteria, 32, pageWidth);
+      
+      // Prepare data for column width calculation
+      const dataArrayForMeasurement = currentRentalReportData.map(item => [
+        String(item.desc || ''),
+        String(item.tag || ''),
+        String(item.currency || ''),
+        String(parseFloat(item.amount || 0).toFixed(2)),
+        String(item.acStatus || '')
+      ]);
+      
+      // Headers
+      const headers = ['Income_Description', 'Income_Ac_Tag', 'Currency', 'Amount', 'Ac_Status'];
+      
+      // Calculate optimal column widths using PDFUtils
+      const colWidths = window.PDFUtils.calculateOptimalColumnWidths(
+        doc,
+        dataArrayForMeasurement,
+        headers,
+        null,
+        {
+          fixedWidthColumns: [2, 3], // Currency and Amount columns
+          fixedWidthValues: [20, 25.4], // Currency: 20mm, Amount: 1 inch (25.4mm)
+          fontSize: 7,
+          padding: 12,
+          minWidth: 15
+        }
+      );
+      
+      // Ensure Amount column is exactly 1 inch
+      colWidths[3] = 25.4;
+      
+      const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+      
+      // Start Y position after filters
+      currentY = currentY + 5; // Add spacing after filters
+      
+      // State for page tracking
+      const state = {
+        currentPage: 1,
+        totalPagesEstimate: 1,
+        currentY: currentY
+      };
+      
+      // Function to check and add page break
+      const checkPageBreak = (y, rowHeight) => {
+        const footerSpace = 25;
+        if (y + rowHeight > pageHeight - footerSpace) {
+          // Add new page with headers - use stored centered position
+          state.currentY = window.PDFUtils.addNewPageWithHeaders(
+            doc,
+            headers,
+            colWidths,
+            actualTableStartX,
+            30,
+            state,
+            () => {
+              window.PDFUtils.drawFooter(
+                doc,
+                state.currentPage,
+                state.totalPagesEstimate,
+                currentRentalReportData.length,
+                pageWidth,
+                { generationDate: new Date() }
+              );
+            },
+            { 
+              headerHeight: 8, 
+              fontSize: 9,
+              pageWidth: pageWidth,
+              autoCenter: true
+            }
+          );
+          return state.currentY;
+        }
+        return y;
+      };
+      
+      // Draw table headers using PDFUtils with auto-centering enabled
+      state.currentY = window.PDFUtils.drawTableHeaders(
+        doc,
+        headers,
+        colWidths,
+        tableStartX,
+        state.currentY,
+        { 
+          headerHeight: 8, 
+          fontSize: 9,
+          pageWidth: pageWidth,
+          autoCenter: true
+        }
+      );
+      
+      // Get the actual (possibly centered) table start X position
+      const actualTableStartX = doc._centeredTableStartX || tableStartX;
+      
+      // Note: propertyFilter is already declared above at line 785
+      // Calculate totals
+      let totalAmount = 0;
+      const totalByCurrency = {};
+      const totalByProperty = {}; // For property-based subtotals when "All Properties" is selected
+      
+      currentRentalReportData.forEach(item => {
+        const amount = parseFloat(item.amount || 0);
+        totalAmount += amount;
+        
+        if (!totalByCurrency[item.currency]) {
+          totalByCurrency[item.currency] = 0;
+        }
+        totalByCurrency[item.currency] += amount;
+        
+        // Calculate property-based totals if "All Properties" is selected
+        if (!propertyFilter && item.tag) {
+          let propertyKey = '';
+          if (item.tag.endsWith('15SM-BSMT')) {
+            propertyKey = '15SM-BSMT';
+          } else if (item.tag.endsWith('15SM')) {
+            propertyKey = '15SM';
+          } else if (item.tag.endsWith('208AMA')) {
+            propertyKey = '208AMA';
+          }
+          
+          if (propertyKey) {
+            if (!totalByProperty[propertyKey]) {
+              totalByProperty[propertyKey] = 0;
+            }
+            totalByProperty[propertyKey] += amount;
+          }
+        }
+      });
+      
+      // Render data rows using PDFUtils
+      currentRentalReportData.forEach((item, index) => {
+        const rowData = [
+          item.desc || '',
+          item.tag || '',
+          item.currency || '',
+          parseFloat(item.amount || 0).toFixed(2),
+          item.acStatus || ''
+        ];
+        
+        // Check page break
+        state.currentY = checkPageBreak(state.currentY, 10); // Estimate row height
+        
+        // Render row with dynamic height - use actual (possibly centered) table start X
+        state.currentY = window.PDFUtils.renderTableRowWithDynamicHeight(
+          doc,
+          {
+            currentY: state.currentY,
+            rowData: rowData,
+            colWidths: colWidths,
+            tableStartX: actualTableStartX,
+            totalTableWidth: totalTableWidth,
+            rowIndex: index,
+            checkPageBreak: checkPageBreak
+          },
+          {
+            baseHeight: 5,
+            lineSpacing: 4,
+            padding: 4,
+            fontSize: 7,
+            fontFamily: 'helvetica',
+            fontStyle: 'normal'
+          }
+        );
+        
+        // Add spacing between rows
+        state.currentY += 1;
+      });
+      
+      // Check for page break before summary tiles
+      // Ensure we have enough space for tiles (estimate 40mm for tiles)
+      if (state.currentY > pageHeight - 50) {
+        state.currentY = window.PDFUtils.addNewPageWithHeaders(
+          doc,
+          headers,
+          colWidths,
+          actualTableStartX,
+          30,
+          state,
+          () => {
+            window.PDFUtils.drawFooter(
+              doc,
+              state.currentPage,
+              state.totalPagesEstimate,
+              currentRentalReportData.length,
+              pageWidth,
+              { generationDate: new Date() }
+            );
+          },
+          { 
+            headerHeight: 8, 
+            fontSize: 9,
+            pageWidth: pageWidth,
+            autoCenter: true
+          }
+        );
+      }
+      
+      state.currentY += 10; // Space before summary tiles
+      
+      // Prepare subtotals for tiles
+      // Priority: If "All Properties" selected, show property subtotals; otherwise show currency subtotals
+      const subtotals = [];
+      
+      if (!propertyFilter && Object.keys(totalByProperty).length > 0) {
+        // Show property-based subtotals when "All Properties" is selected
+        const propertyColors = {
+          '15SM': [255, 248, 220],      // Light yellow/beige
+          '15SM-BSMT': [230, 230, 230], // Light grey
+          '208AMA': [220, 255, 220]     // Light green
+        };
+        
+        // Get primary currency (most common currency in the data)
+        const primaryCurrency = Object.keys(totalByCurrency).sort()[0] || '';
+        
+        ['15SM', '15SM-BSMT', '208AMA'].forEach(prop => {
+          if (totalByProperty[prop] !== undefined) {
+            subtotals.push({
+              label: `Subtotal for ${prop}`,
+              amount: totalByProperty[prop],
+              currency: primaryCurrency,
+              bgColor: propertyColors[prop] || [240, 240, 240],
+              textColor: [0, 0, 0]
+            });
+          }
+        });
+      } else {
+        // Show currency-based subtotals
+        const currencyColors = [
+          [255, 248, 220], // Light yellow/beige
+          [230, 230, 230], // Light grey
+          [220, 255, 220]  // Light green
+        ];
+        
+        Object.keys(totalByCurrency).sort().forEach((currency, index) => {
+          const amount = totalByCurrency[currency];
+          subtotals.push({
+            label: `Subtotal`,
+            amount: amount,
+            currency: currency,
+            bgColor: currencyColors[index % currencyColors.length],
+            textColor: [0, 0, 0]
+          });
+        });
+      }
+      
+      // Prepare grand total (no label shown, just amount prominently)
+      const primaryCurrency = Object.keys(totalByCurrency).sort()[0] || '';
+      const grandTotal = {
+        label: '', // No label for grand total, just show amount
+        amount: totalAmount,
+        currency: Object.keys(totalByCurrency).length === 1 ? primaryCurrency : null,
+        bgColor: [0, 0, 0], // Black background
+        textColor: [255, 255, 0] // Yellow text
+      };
+      
+      // Draw summary tiles using PDFUtils
+      state.currentY = window.PDFUtils.drawSummaryTiles(
+        doc,
+        subtotals,
+        grandTotal,
+        state.currentY,
+        pageWidth,
+        {
+          margin: 10,
+          tileHeight: 15,
+          tileSpacing: 5,
+          rowSpacing: 8,
+          fontSize: 10,
+          labelFontSize: 8,
+          borderWidth: 0.5,
+          padding: 3
+        }
+      );
+      
+      // Draw footer on all pages
+      const totalPages = doc.internal.pages.length - 1;
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        window.PDFUtils.drawFooter(
+          doc,
+          i,
+          totalPages,
+          currentRentalReportData.length,
+          pageWidth,
+          { generationDate: new Date() }
+        );
+      }
+      
+      const fileName = `Rental_Collection_Report_${propertyFilter}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+    }
+    
+    function exportRentalReportExcel() {
+      if (currentRentalReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      if (typeof XLSX === 'undefined') {
+        alert('Excel library not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      const propertyFilter = document.getElementById('rentalProperty').value || 'All Properties';
+      const holderFilter = document.getElementById('rentalHolder').value || 'All Holders';
+      
+      // Prepare data for Excel
+      const headers = ['Income_Description', 'Income_Ac_Tag', 'Currency', 'Amount', 'Ac_Status'];
+      const data = currentRentalReportData.map(item => [
+        item.desc || '',
+        item.tag || '',
+        item.currency || '',
+        parseFloat(item.amount || 0),
+        item.acStatus || ''
+      ]);
+      
+      // Calculate totals
+      const totalByCurrency = {};
+      let grandTotal = 0;
+      
+      currentRentalReportData.forEach(item => {
+        const amount = parseFloat(item.amount || 0);
+        grandTotal += amount;
+        
+        if (!totalByCurrency[item.currency]) {
+          totalByCurrency[item.currency] = 0;
+        }
+        totalByCurrency[item.currency] += amount;
+      });
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Create worksheet data
+      const wsData = [
+        ['Rental Collection Report'],
+        [`Property: ${propertyFilter} | Ac_Holder: ${holderFilter}`],
+        [`Category: Income-Rent-Receivable | Generated: ${new Date().toLocaleString()}`],
+        [], // Empty row
+        headers // Headers
+      ];
+      
+      // Add data rows
+      wsData.push(...data);
+      
+      // Add empty row
+      wsData.push([]);
+      
+      // Add totals by currency
+      Object.keys(totalByCurrency).sort().forEach(currency => {
+        const amount = totalByCurrency[currency];
+        wsData.push(['', '', `Total (${currency}):`, amount, '']);
+      });
+      
+      // Add grand total
+      wsData.push(['', '', 'Grand Total:', grandTotal, '']);
+      
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 30 }, // Income_Description
+        { wch: 25 }, // Income_Ac_Tag
+        { wch: 12 }, // Currency
+        { wch: 15 }, // Amount
+        { wch: 15 }  // Ac_Status
+      ];
+      
+      // Merge header cells
+      if (!ws['!merges']) ws['!merges'] = [];
+      ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } });
+      ws['!merges'].push({ s: { r: 1, c: 0 }, e: { r: 1, c: 4 } });
+      ws['!merges'].push({ s: { r: 2, c: 0 }, e: { r: 2, c: 4 } });
+      
+      // Style header row (row 4, index 4)
+      const headerRowIndex = 4;
+      headers.forEach((header, colIndex) => {
+        const cellAddress = XLSX.utils.encode_cell({ r: headerRowIndex, c: colIndex });
+        if (!ws[cellAddress]) ws[cellAddress] = { t: 's', v: header };
+        ws[cellAddress].s = {
+          font: { bold: true },
+          fill: { fgColor: { rgb: "E0E0E0" } },
+          alignment: { horizontal: "center" }
+        };
+      });
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Rental Collection');
+      
+      // Generate filename
+      const fileName = `Rental_Collection_Report_${propertyFilter}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      
+      // Save file
+      XLSX.writeFile(wb, fileName);
+    }
+  </script>
+</body>
+</html>

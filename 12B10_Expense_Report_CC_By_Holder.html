@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ClearView — Credit Card Payments Grouped By Account Holder</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="assets/xlsx.full.min.js"></script>
+  <script src="pdf_utils.js"></script>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --border-light: #f3f4f6;
+      --surface: #ffffff;
+      --bg: #f9fafb;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --divider: #e2e8f0;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    
+    /* Header */
+    .header {
+      background: var(--surface);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      font-weight: 400;
+      position: relative;
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
+    }
+    
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      align-items: flex-start;
+    }
+    
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #b87333;
+      letter-spacing: -0.02em;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+      margin: 0;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    button {
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.1s ease;
+      font-family: inherit;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    button.black, button.primary {
+      background: var(--text-primary);
+      color: #fff;
+    }
+    
+    button.black:hover, button.primary:hover {
+      background: #374151;
+    }
+    
+    /* Main Content */
+    .main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .report-header {
+      margin-bottom: 24px;
+    }
+    
+    .report-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .report-header p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    /* Filters Card */
+    .filters-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+    
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .filter-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .filter-group select,
+    .filter-group input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      background: var(--surface);
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+    
+    .filter-group select:focus,
+    .filter-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .filter-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+    
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text-primary);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--border-light);
+    }
+    
+    /* Report Table */
+    .report-table-container {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    
+    .expense-report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    .expense-report-table thead {
+      background: var(--border-light);
+    }
+    
+    .expense-report-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    
+    .expense-report-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-primary);
+    }
+    
+    .expense-report-table tbody tr:hover {
+      background: var(--bg);
+    }
+    
+    .expense-report-table tfoot tr {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    
+    .expense-report-table tfoot tr:last-child {
+      background-color: #e0e0e0;
+      font-size: 16px;
+    }
+    
+    .tag-header-row {
+      background-color: #e3f2fd;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    
+    .subtotal-row {
+      background-color: #fff2cc;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <h1 class="header-title">Credit Card Payments Grouped By Account Holder</h1>
+      <button class="black" onclick="window.location.href='12_Reports_Dashboard.html'">← Back to Reports Dashboard</button>
+    </div>
+  </header>
+  
+  <main class="main-content">
+    <!-- Report Header -->
+    <div class="report-header">
+      <h2>Credit Card Payments Grouped By Account Holder</h2>
+      <p>Generate and export credit card expense reports consolidated by Account Holder</p>
+    </div>
+    
+    <!-- Expense Report Filters -->
+    <div class="filters-card">
+      <h3 style="margin: 0 0 16px 0; font-size: 16px;">Report Filters</h3>
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="filterYear">Year (Quick Select)</label>
+          <select id="filterYear">
+            <option value="">Select Year</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterHolder">Ac_Holder</label>
+          <select id="filterHolder">
+            <option value="">All Holders</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterFromDate">From Date</label>
+          <input type="date" id="filterFromDate">
+        </div>
+        <div class="filter-group">
+          <label for="filterToDate">To Date</label>
+          <input type="date" id="filterToDate">
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="btnGenerateReport">Generate Report</button>
+        <button class="btn btn-secondary" id="btnClearFilters">Clear</button>
+      </div>
+    </div>
+    
+    <!-- Export Buttons -->
+    <div class="filters-card" style="margin-top: 20px;">
+      <h3 style="margin: 0 0 16px 0; font-size: 16px;">Export Options</h3>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="btnPrint" style="background: #3b82f6;">🖨️ Print</button>
+        <button class="btn btn-primary" id="btnPDF" style="background: #ef4444;">📄 PDF</button>
+        <button class="btn btn-primary" id="btnExcel" style="background: #10b981;">📊 Excel</button>
+      </div>
+    </div>
+    
+    <!-- Expense Report Table -->
+    <div class="report-table-container">
+      <table id="expenseReportTable" class="expense-report-table">
+        <thead>
+          <tr>
+            <th>Expanse_Ac_Tag</th>
+            <th>Ac_Status</th>
+            <th>Total Amount_Paid</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              Click "Generate Report" to view credit card expense data
+            </td>
+          </tr>
+        </tbody>
+        <tfoot id="expenseReportTotal" style="display: none;">
+          <!-- Total will be inserted here -->
+        </tfoot>
+      </table>
+    </div>
+  </main>
+  
+  <script>
+    // Store current report data for export
+    let currentExpenseReportData = [];
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      initExpenseReport();
+      document.getElementById('btnPrint').addEventListener('click', printExpenseReport);
+      document.getElementById('btnPDF').addEventListener('click', exportExpenseReportPDF);
+      document.getElementById('btnExcel').addEventListener('click', exportExpenseReportExcel);
+    });
+    
+    // ===== ELECTRICITY EXPENSE REPORT MODULE =====
+    function initExpenseReport() {
+      // Populate filters
+      populateExpenseReportFilters();
+      
+      // Event listeners
+      document.getElementById('btnGenerateReport').addEventListener('click', generateExpenseReport);
+      document.getElementById('btnClearFilters').addEventListener('click', clearExpenseFilters);
+    }
+    
+    function populateExpenseReportFilters() {
+      console.log('[Credit Card By Holder Expense Report] === Populating Filters ===');
+      const records = JSON.parse(localStorage.getItem('expense_records') || '[]');
+      console.log('[Credit Card By Holder Expense Report] Total records found:', records.length);
+      
+      // Filter by category: Credit Cards/BT
+      const creditCardRecords = records.filter(r => {
+        const category = r.Expense_Category || r.Expanse_Category || r.cat || '';
+        return category === 'Credit Cards/BT';
+      });
+      
+      console.log('[Credit Card By Holder Expense Report] Credit Card records found:', creditCardRecords.length);
+      
+      // Debug: Log sample record to understand data structure
+      if (creditCardRecords.length > 0) {
+        console.log('[Credit Card By Holder Expense Report] Sample record:', creditCardRecords[0]);
+        console.log('[Credit Card By Holder Expense Report] Sample date value:', creditCardRecords[0].Expense_Paid_Date || creditCardRecords[0].Expanse_Paid_Date || creditCardRecords[0].paid);
+        console.log('[Credit Card By Holder Expense Report] Sample holder value:', creditCardRecords[0].Expense_Holder || creditCardRecords[0].Ac_Holder || creditCardRecords[0].holder);
+      }
+      
+      // Populate years from Paid_Date - use convertExcelDateToYYYYMMDD to handle all date formats
+      const yearValues = creditCardRecords.map(r => {
+        const dateValue = r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '';
+        if (!dateValue) return null;
+        
+        // Convert using the same function used in generateExpenseReport
+        let dateStr = '';
+        try {
+          dateStr = convertExcelDateToYYYYMMDD(dateValue);
+        } catch (e) {
+          console.warn('[Credit Card By Holder Expense Report] Error converting date:', dateValue, e);
+          return null;
+        }
+        
+        if (!dateStr || dateStr === '') return null;
+        
+        // Extract year from YYYY-MM-DD format
+        if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+          return dateStr.substring(0, 4);
+        }
+        
+        return null;
+      }).filter(Boolean).filter(y => y && y.length === 4 && parseInt(y) >= 1900 && parseInt(y) <= 2100);
+      
+      const years = [...new Set(yearValues)].sort((a, b) => b.localeCompare(a));
+      console.log('[Credit Card By Holder Expense Report] Unique years found:', years.length, years);
+      
+      const yearSelect = document.getElementById('filterYear');
+      if (yearSelect) {
+        if (years.length > 0) {
+          yearSelect.innerHTML = '<option value="">Select Year</option>' + 
+            years.map(y => `<option value="${y}">${y}</option>`).join('');
+          console.log('[Credit Card By Holder Expense Report] ✓ Years populated in dropdown');
+        } else {
+          yearSelect.innerHTML = '<option value="">No years found in data</option>';
+          console.warn('[Credit Card By Holder Expense Report] ⚠ No valid years found in records.');
+        }
+      }
+      
+      // Get unique Ac_Holder values - check all possible field name variations
+      const holders = [...new Set(creditCardRecords.map(r => {
+        // Check all possible field name variations based on the data structure
+        return r.Expense_Holder || r.Ac_Holder || r.holder || r.Holder || '';
+      }).filter(Boolean))].sort();
+      
+      console.log('[Credit Card By Holder Expense Report] Unique holders found:', holders.length, holders);
+      console.log('[Credit Card By Holder Expense Report] Sample record fields:', creditCardRecords.length > 0 ? Object.keys(creditCardRecords[0]) : 'No records');
+      if (creditCardRecords.length > 0) {
+        console.log('[Credit Card By Holder Expense Report] Sample record:', creditCardRecords[0]);
+      }
+      
+      const holderSelect = document.getElementById('filterHolder');
+      if (holderSelect) {
+        holderSelect.innerHTML = '<option value="">All Holders</option>' + 
+          holders.map(holder => `<option value="${holder}">${holder}</option>`).join('');
+        console.log('[Credit Card By Holder Expense Report] ✓ Holders populated in dropdown');
+      } else {
+        console.error('[Credit Card By Holder Expense Report] ERROR: filterHolder element not found!');
+      }
+      
+      // Set up year selector after populating
+      setTimeout(() => {
+        setupYearSelector();
+      }, 100);
+    }
+    
+    function setupYearSelector() {
+      const yearSelect = document.getElementById('filterYear');
+      if (!yearSelect) {
+        console.error('[Credit Card By Holder Expense Report] ERROR: filterYear element not found!');
+        return;
+      }
+      
+      // Remove any existing event listeners by cloning and replacing the element
+      const newYearSelect = yearSelect.cloneNode(true);
+      if (yearSelect.parentNode) {
+        yearSelect.parentNode.replaceChild(newYearSelect, yearSelect);
+      }
+      
+      // Attach event listener to the new element
+      newYearSelect.addEventListener('change', function() {
+        console.log('[Credit Card By Holder Expense Report] Year dropdown changed to:', this.value);
+        const fromDateEl = document.getElementById('filterFromDate');
+        const toDateEl = document.getElementById('filterToDate');
+        
+        if (this.value && fromDateEl && toDateEl) {
+          const fromDate = `${this.value}-01-01`;
+          const toDate = `${this.value}-12-31`;
+          fromDateEl.value = fromDate;
+          toDateEl.value = toDate;
+          console.log('[Electricity Expense Report] Date range set to:', fromDate, 'to', toDate);
+        } else if (!this.value && fromDateEl && toDateEl) {
+          // Clear dates if year is deselected
+          fromDateEl.value = '';
+          toDateEl.value = '';
+          console.log('[Electricity Expense Report] Date range cleared');
+        }
+      });
+      
+      console.log('[Electricity Expense Report] ✓ Year selector event listener attached');
+    }
+    
+    function generateExpenseReport() {
+      console.log('[Credit Card By Holder Expense Report] === Generating Report ===');
+      let records = JSON.parse(localStorage.getItem('expense_records') || '[]');
+      
+      // Fix existing dates in records (convert numeric dates to YYYY-MM-DD)
+      records = records.map(r => ({
+        ...r,
+        paidDate: convertExcelDateToYYYYMMDD(r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '')
+      }));
+      
+      // Filter by category: Credit Cards/BT
+      let filteredRecords = records.filter(r => {
+        const category = r.Expense_Category || r.Expanse_Category || r.cat || '';
+        return category === 'Credit Cards/BT';
+      });
+      
+      console.log('[Credit Card By Holder Expense Report] Credit Card records after category filter:', filteredRecords.length);
+      
+      // Get filters
+      const holderFilter = document.getElementById('filterHolder').value;
+      const yearFilter = document.getElementById('filterYear').value;
+      const fromDate = document.getElementById('filterFromDate').value;
+      const toDate = document.getElementById('filterToDate').value;
+      
+      // Filter by Ac_Holder if selected
+      if (holderFilter) {
+        filteredRecords = filteredRecords.filter(r => {
+          const holder = r.Expense_Holder || r.Ac_Holder || r.holder || '';
+          return holder === holderFilter;
+        });
+      }
+      
+      // Filter by year or date range
+      filteredRecords = filteredRecords.filter(r => {
+        const paidDate = r.paidDate || convertExcelDateToYYYYMMDD(r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '');
+        if (!paidDate) return true; // Include records without dates if no date filter is applied
+        
+        // Filter by year if selected
+        if (yearFilter) {
+          const recordYear = paidDate.substring(0, 4);
+          if (recordYear !== yearFilter) return false;
+        }
+        
+        // Filter by date range if provided
+        if (fromDate && paidDate && paidDate < fromDate) return false;
+        if (toDate && paidDate && paidDate > toDate) return false;
+        
+        return true;
+      });
+      
+      console.log('[Credit Card By Holder Expense Report] Filtered records after all filters:', filteredRecords.length);
+      
+      // Sort by holder, then by paid date
+      filteredRecords.sort((a, b) => {
+        const holderA = (a.Expense_Holder || a.Ac_Holder || a.holder || '').toLowerCase();
+        const holderB = (b.Expense_Holder || b.Ac_Holder || b.holder || '').toLowerCase();
+        if (holderA !== holderB) {
+          return holderA.localeCompare(holderB);
+        }
+        const dateA = a.paidDate || convertExcelDateToYYYYMMDD(a.Expense_Paid_Date || a.Expanse_Paid_Date || a.paid || '');
+        const dateB = b.paidDate || convertExcelDateToYYYYMMDD(b.Expense_Paid_Date || b.Expanse_Paid_Date || b.paid || '');
+        return dateA.localeCompare(dateB);
+      });
+      
+      // Store data for export
+      currentExpenseReportData = filteredRecords;
+      
+      // Render report (consolidated by Account Holder)
+      renderExpenseReport(filteredRecords, holderFilter);
+    }
+    
+    function renderExpenseReport(records, holderFilter) {
+      const tbody = document.querySelector('#expenseReportTable tbody');
+      const tfoot = document.getElementById('expenseReportTotal');
+      
+      if (!tbody) {
+        console.error('[Credit Card By Holder Expense Report] ERROR: tbody not found!');
+        return;
+      }
+      
+      if (records.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="3" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              No credit card expense data found for the selected filters
+            </td>
+          </tr>
+        `;
+        tfoot.style.display = 'none';
+        return;
+      }
+      
+      // Group by Account Holder, then by Card (Expanse_Ac_Tag) - summary report (total per card)
+      const groupedByHolder = {};
+      records.forEach(record => {
+        const holder = record.Expense_Holder || record.Ac_Holder || record.holder || '';
+        const tag = record.Expense_Tag || record.Expanse_Ac_Tag || record.tag || '';
+        
+        if (!groupedByHolder[holder]) {
+          groupedByHolder[holder] = {};
+        }
+        if (!groupedByHolder[holder][tag]) {
+          groupedByHolder[holder][tag] = [];
+        }
+        groupedByHolder[holder][tag].push(record);
+      });
+      
+      const sortedHolders = Object.keys(groupedByHolder).sort();
+      let rows = '';
+      let grandTotal = 0;
+      
+      // Render grouped by Holder -> Card (summary: total per card)
+      sortedHolders.forEach(holder => {
+        const holderCards = groupedByHolder[holder];
+        let holderSubtotal = 0;
+        
+        // Holder header row
+        rows += `
+          <tr class="tag-header-row">
+            <td colspan="3" style="padding: 12px; border-bottom: 2px solid #1976d2; background-color: #e3f2fd; text-align: center;">
+              <strong>Account Holder: ${holder}</strong>
+            </td>
+          </tr>
+        `;
+        
+        const sortedTags = Object.keys(holderCards).sort();
+        
+        sortedTags.forEach(tag => {
+          const cardRecords = holderCards[tag];
+          let cardSubtotal = 0;
+          let acStatus = '';
+          
+          // Calculate total for this card (sum of all payments) and get Ac_Status
+          cardRecords.forEach(record => {
+            const amountPaid = parseFloat(record.Expense_Amount_Paid || record.Amount_Paid || record.amt || 0);
+            cardSubtotal += amountPaid;
+            // Get Ac_Status from the first record (assuming all records for same card have same status)
+            if (!acStatus) {
+              acStatus = record.Expense_Account_Status || record.Ac_Status || record.acstatus || 'Active';
+            }
+          });
+          
+          holderSubtotal += cardSubtotal;
+          grandTotal += cardSubtotal;
+          
+          // Single row showing total for this card with Ac_Status
+          rows += `
+            <tr>
+              <td style="padding-left: 30px;">${tag}</td>
+              <td>${acStatus}</td>
+              <td style="text-align: right;">${cardSubtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            </tr>
+          `;
+        });
+        
+        // Holder total row (matching image format) - text left-aligned, numbers right-aligned
+        rows += `
+          <tr class="subtotal-row" style="background-color: #000000; color: #FFD700;">
+            <td colspan="2" style="text-align: left; padding-left: 20px; font-weight: 700; font-size: 14px; color: #FFD700;">Total Payments by ${holder}</td>
+            <td style="text-align: right; padding-right: 20px; font-weight: 700; font-size: 14px; color: #FFD700;">${holderSubtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          </tr>
+        `;
+        
+        // Add spacing between holders
+        rows += `
+          <tr style="height: 15px;">
+            <td colspan="3"></td>
+          </tr>
+        `;
+      });
+      
+      tbody.innerHTML = rows;
+      
+      // No grand total row - removed as per user request
+      tfoot.style.display = 'none';
+      tfoot.innerHTML = '';
+      
+      console.log('[Credit Card By Holder Expense Report] ✓ Report rendered with', records.length, 'records');
+    }
+    
+    function clearExpenseFilters() {
+      document.getElementById('filterYear').value = '';
+      document.getElementById('filterHolder').value = '';
+      document.getElementById('filterFromDate').value = '';
+      document.getElementById('filterToDate').value = '';
+      
+      const tbody = document.querySelector('#expenseReportTable tbody');
+      const tfoot = document.getElementById('expenseReportTotal');
+      
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              Click "Generate Report" to view credit card expense data
+            </td>
+          </tr>
+        `;
+      }
+      
+      if (tfoot) {
+        tfoot.style.display = 'none';
+        tfoot.innerHTML = '';
+      }
+      
+      currentExpenseReportData = [];
+      
+      console.log('[Credit Card By Holder Expense Report] ✓ Filters cleared');
+    }
+    
+    // Helper function to convert Excel serial dates to YYYY-MM-DD format
+    function convertExcelDateToYYYYMMDD(value){
+      if(!value || value==='')return '';
+      // If already a date string in YYYY-MM-DD format, return as is
+      if(typeof value==='string' && /^\d{4}-\d{2}-\d{2}$/.test(value))return value;
+      // If it's a valid date string (other formats), parse it
+      const dateStr=String(value).trim();
+      if(dateStr.match(/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}$/)){
+        const parts=dateStr.split(/[-\/]/);
+        const year=parts[0];
+        const month=String(parts[1]).padStart(2,'0');
+        const day=String(parts[2]).padStart(2,'0');
+        return `${year}-${month}-${day}`;
+      }
+      // If it's a number (Excel serial date), convert it
+      const num=Number(value);
+      if(!isNaN(num) && num>0){
+        const excelEpoch=new Date(1899,11,30);
+        const jsDate=new Date(excelEpoch.getTime()+num*86400000);
+        if(!isNaN(jsDate.getTime())){
+          const year=jsDate.getFullYear();
+          const month=String(jsDate.getMonth()+1).padStart(2,'0');
+          const day=String(jsDate.getDate()).padStart(2,'0');
+          return `${year}-${month}-${day}`;
+        }
+      }
+      // Try parsing as a regular date string
+      try {
+        const parsedDate = new Date(value);
+        if(!isNaN(parsedDate.getTime())){
+          const year=parsedDate.getFullYear();
+          const month=String(parsedDate.getMonth()+1).padStart(2,'0');
+          const day=String(parsedDate.getDate()).padStart(2,'0');
+          return `${year}-${month}-${day}`;
+        }
+      } catch(e) {
+        // Ignore parsing errors
+      }
+      return value;
+    }
+    
+    // Helper function to format date for display
+    function formatDateForDisplay(value){
+      return convertExcelDateToYYYYMMDD(value);
+    }
+    
+    // ===== EXPORT FUNCTIONS =====
+    
+    function printExpenseReport() {
+      if (currentExpenseReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      const reportTable = document.getElementById('expenseReportTable');
+      if (!reportTable) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      const printWindow = window.open('', '_blank');
+      const holderFilter = document.getElementById('filterHolder').value || 'All Holders';
+      const yearFilter = document.getElementById('filterYear').value || '';
+      const fromDate = document.getElementById('filterFromDate').value || '';
+      const toDate = document.getElementById('filterToDate').value || '';
+      
+        let filterInfo = `<strong>Ac_Holder:</strong> ${holderFilter} | <strong>Category:</strong> Credit Cards/BT`;
+      if (yearFilter) {
+        filterInfo += ` | <strong>Year:</strong> ${yearFilter}`;
+      }
+      if (fromDate && toDate) {
+        filterInfo += ` | <strong>Date Range:</strong> ${fromDate} to ${toDate}`;
+      }
+      
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Credit Card Payments Grouped By Account Holder</title>
+          <style>
+            @page { size: landscape; margin: 15mm; }
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; font-size: 10px; }
+            th { background: #4472C4; color: #fff; padding: 8px 6px; border: 1px solid #BFBFBF; font-weight: 600; }
+            td { padding: 6px; border: 1px solid #BFBFBF; }
+            .tag-header-row { background: #e3f2fd; font-weight: bold; }
+            .subtotal-row { background: #fff2cc; font-weight: 600; }
+            tfoot tr { background-color: #e0e0e0; font-weight: bold; font-size: 16px; }
+            @media print {
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1 style="text-align: center; font-size: 16px; font-weight: bold;">Credit Card Payments Grouped By Account Holder</h1>
+          <div style="text-align: center; margin-bottom: 20px; color: #666;">
+            <p>${filterInfo}</p>
+            <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+          </div>
+          ${reportTable.outerHTML}
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+    
+    function exportExpenseReportPDF() {
+      if (!currentExpenseReportData || currentExpenseReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      if (!window.jspdf || !window.PDFUtils) {
+        alert('PDF libraries not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4'); // landscape, millimeters, A4
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      
+      // Helper function to format dates
+      function formatDate(dateStr) {
+        if (!dateStr) return '';
+        if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          return dateStr.replace(/-/g, '/');
+        }
+        const date = new Date(dateStr);
+        if (Number.isNaN(date.getTime())) {
+          return String(dateStr || '');
+        }
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}/${month}/${day}`;
+      }
+      
+      // Title
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Credit Card Payments Grouped By Account Holder', pageWidth / 2, 10, { align: 'center' });
+      
+      // Filter criteria
+      const holderFilter = document.getElementById('filterHolder').value || 'All Holders';
+      const yearFilter = document.getElementById('filterYear').value || '';
+      const fromDate = document.getElementById('filterFromDate').value || '';
+      const toDate = document.getElementById('filterToDate').value || '';
+      
+      const filterCriteria = [
+        { label: 'Category', value: 'Credit Cards/BT', color: [68, 114, 196] },
+        { label: 'Ac_Holder', value: holderFilter, color: [112, 173, 71] }
+      ];
+      
+      if (yearFilter) {
+        filterCriteria.push({ label: 'Year', value: yearFilter, color: [146, 208, 80] });
+      }
+      if (fromDate) {
+        filterCriteria.push({ label: 'From Date', value: formatDate(fromDate), color: [146, 208, 80] });
+      }
+      if (toDate) {
+        filterCriteria.push({ label: 'To Date', value: formatDate(toDate), color: [112, 48, 160] });
+      }
+      
+      // Draw Filter Criteria using PDFUtils
+      const filterY = window.PDFUtils.drawFilterCriteria(doc, filterCriteria, 18, pageWidth);
+      
+      // Headers - matching image structure
+      const headers = ['Expanse_Ac_Tag', 'Ac_Status', 'Total Amount_Paid'];
+      
+      // Prepare data for column width calculation - group by Holder -> Card (summary: total per card)
+      const groupedByHolder = {};
+      currentExpenseReportData.forEach(r => {
+        const holder = r.Expense_Holder || r.Ac_Holder || r.holder || '';
+        const tag = r.Expense_Tag || r.Expanse_Ac_Tag || r.tag || '';
+        
+        if (!groupedByHolder[holder]) {
+          groupedByHolder[holder] = {};
+        }
+        if (!groupedByHolder[holder][tag]) {
+          groupedByHolder[holder][tag] = [];
+        }
+        groupedByHolder[holder][tag].push(r);
+      });
+      
+      // Build data array for measurement
+      const data = [];
+      Object.keys(groupedByHolder).sort().forEach(holder => {
+        const holderCards = groupedByHolder[holder];
+        Object.keys(holderCards).sort().forEach(tag => {
+          const records = holderCards[tag];
+          const totalAmount = records.reduce((sum, r) => sum + parseFloat(r.Expense_Amount_Paid || r.Amount_Paid || r.amt || 0), 0);
+          const acStatus = records[0].Expense_Account_Status || records[0].Ac_Status || records[0].acstatus || 'Active';
+          data.push({
+            tag: tag,
+            acStatus: acStatus,
+            amount: String(totalAmount.toFixed(2))
+          });
+        });
+      });
+      
+      // Calculate optimal column widths
+      const dataArrayForMeasurement = data.map(row => [row.tag, row.acStatus, row.amount]);
+      
+      const colWidths = window.PDFUtils.calculateOptimalColumnWidths(
+        doc,
+        dataArrayForMeasurement,
+        headers,
+        formatDate,
+        {
+          fixedWidthColumns: [1], // Amount_Paid column
+          fixedWidthValues: [25.4], // Amount: 1 inch (25.4mm)
+          fontSize: 7,
+          padding: 12,
+          minWidth: 12
+        }
+      );
+      
+      // Adjust Amount column to exactly 1 inch
+      colWidths[1] = 25.4;
+      
+      // Add 1cm (10mm) gap between filters and Ac_Holder grouping parameter
+      let currentY = filterY + 10;
+      let currentPage = 1;
+      const state = { currentPage: 1, totalPagesEstimate: 1, currentY };
+      
+      // Calculate total table width and center it
+      const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+      const tableStartX = (pageWidth - totalTableWidth) / 2;
+      
+      // Helper function to add footer
+      function addFooter() {
+        window.PDFUtils.drawFooter(doc, state.currentPage, state.totalPagesEstimate, currentExpenseReportData.length, pageWidth, {
+          generationDate: new Date()
+        });
+      }
+      
+      // Helper function to add new page and redraw headers
+      function addNewPage() {
+        state.currentY = window.PDFUtils.addNewPageWithHeaders(
+          doc, headers, colWidths, tableStartX, 30, state, addFooter, {
+            headerHeight: 8,
+            fontSize: 9,
+            pageWidth: pageWidth,
+            autoCenter: true
+          }
+        );
+        currentY = state.currentY;
+        tableHeaderDrawn = true;
+      }
+      
+      // Add initial footer
+      addFooter();
+      
+      // Reuse groupedByHolder from above (already grouped for column width calculation)
+      // No need to regroup - use the existing groupedByHolder
+      const sortedHolders = Object.keys(groupedByHolder).sort();
+      let globalRowIndex = 0;
+      let grandTotal = 0;
+      
+      // Render data grouped by Holder -> Card (summary: total per card) - matching image structure
+      sortedHolders.forEach((holder, holderIndex) => {
+        const holderCards = groupedByHolder[holder];
+        let holderSubtotal = 0;
+        
+        // Start each Account Holder on a new page (except the first one)
+        if (holderIndex > 0) {
+          addNewPage();
+          currentY = state.currentY;
+        }
+        
+        // Draw "Account Holder: [Name]" header (matching image)
+        if (currentY + 10 > pageHeight - 25) {
+          addNewPage();
+        }
+        doc.setFillColor(176, 224, 230); // Light blue-green background
+        doc.rect(tableStartX, currentY, totalTableWidth, 10, 'F');
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Account Holder: ${holder}`, tableStartX + totalTableWidth / 2, currentY + 6.5, { align: 'center' });
+        currentY += 12;
+        
+        // Draw table headers for this holder (matching image - navy blue with golden text)
+        if (currentY + 8 > pageHeight - 25) {
+          addNewPage();
+        }
+        doc.setFillColor(0, 32, 96); // Navy blue
+        doc.rect(tableStartX, currentY, totalTableWidth, 8, 'F');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 215, 0); // Golden
+        const headerY = currentY + 5.5;
+        doc.text('Expanse_Ac_Tag', tableStartX + colWidths[0] / 2, headerY, { align: 'center' });
+        doc.text('Ac_Status', tableStartX + colWidths[0] + colWidths[1] / 2, headerY, { align: 'center' });
+        doc.text('Total Amount_Paid', tableStartX + colWidths[0] + colWidths[1] + colWidths[2] / 2, headerY, { align: 'center' });
+        currentY += 9;
+        
+        const sortedTags = Object.keys(holderCards).sort();
+        
+        sortedTags.forEach(tag => {
+          const cardRecords = holderCards[tag];
+          let cardSubtotal = 0;
+          let acStatus = '';
+          
+          // Calculate total for this card (sum of all payments) and get Ac_Status
+          cardRecords.forEach((r) => {
+            const amountPaid = parseFloat(r.Expense_Amount_Paid || r.Amount_Paid || r.amt || 0);
+            cardSubtotal += amountPaid;
+            if (!acStatus) {
+              acStatus = r.Expense_Account_Status || r.Ac_Status || r.acstatus || 'Active';
+            }
+          });
+          
+          holderSubtotal += cardSubtotal;
+          grandTotal += cardSubtotal;
+          
+          // Draw row manually with proper alignment
+          if (currentY + 6 > pageHeight - 25) {
+            addNewPage();
+            // Redraw headers if new page
+            doc.setFillColor(0, 32, 96);
+            doc.rect(tableStartX, currentY, totalTableWidth, 8, 'F');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(255, 215, 0);
+            const headerY = currentY + 5.5;
+            doc.text('Expanse_Ac_Tag', tableStartX + colWidths[0] / 2, headerY, { align: 'center' });
+            doc.text('Ac_Status', tableStartX + colWidths[0] + colWidths[1] / 2, headerY, { align: 'center' });
+            doc.text('Total Amount_Paid', tableStartX + colWidths[0] + colWidths[1] + colWidths[2] / 2, headerY, { align: 'center' });
+            currentY += 9;
+          }
+          
+          // Draw row border
+          doc.setDrawColor(200, 200, 200);
+          doc.rect(tableStartX, currentY, totalTableWidth, 6, 'S');
+          
+          // Draw cell content
+          doc.setFontSize(7);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(0, 0, 0);
+          
+          // Column 1: Expanse_Ac_Tag (left aligned)
+          doc.text(tag, tableStartX + 2, currentY + 4);
+          
+          // Column 2: Ac_Status (left aligned)
+          doc.text(acStatus, tableStartX + colWidths[0] + 2, currentY + 4);
+          
+          // Column 3: Total Amount_Paid (right aligned)
+          const amountText = parseFloat(cardSubtotal).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+          doc.text(amountText, tableStartX + colWidths[0] + colWidths[1] + colWidths[2] - 2, currentY + 4, { align: 'right' });
+          
+          currentY += 6;
+          globalRowIndex++;
+        });
+        
+        // Holder total row (matching image - navy blue with golden text)
+        // Text left-aligned, numbers right-aligned
+        if (currentY + 8 > pageHeight - 25) {
+          addNewPage();
+        }
+        doc.setFillColor(0, 32, 96); // Navy blue
+        doc.rect(tableStartX, currentY, totalTableWidth, 8, 'F');
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 215, 0); // Golden
+        // Text left-aligned
+        doc.text(`Total Payments by ${holder}`, tableStartX + 2, currentY + 5, { align: 'left' });
+        // Number right-aligned
+        const amountText = parseFloat(holderSubtotal).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        doc.text(amountText, tableStartX + totalTableWidth - 2, currentY + 5, { align: 'right' });
+        currentY += 12;
+      });
+      
+      state.currentY = currentY;
+      
+      // No grand total row - removed as per user request
+      
+      // Update final page count and redraw all footers
+      state.totalPagesEstimate = doc.internal.pages.length - 1;
+      for (let i = 1; i <= state.totalPagesEstimate; i++) {
+        doc.setPage(i);
+        window.PDFUtils.drawFooter(doc, i, state.totalPagesEstimate, currentExpenseReportData.length, pageWidth, {
+          generationDate: new Date()
+        });
+      }
+      
+      doc.save('Credit_Card_By_Holder_Expense_Report_' + new Date().toISOString().split('T')[0] + '.pdf');
+    }
+    
+    function exportExpenseReportExcel() {
+      if (!currentExpenseReportData || currentExpenseReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      if (typeof XLSX === 'undefined') {
+        alert('Excel library not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      const holderFilter = document.getElementById('filterHolder').value || 'All Holders';
+      const yearFilter = document.getElementById('filterYear').value || '';
+      const fromDate = document.getElementById('filterFromDate').value || '';
+      const toDate = document.getElementById('filterToDate').value || '';
+      
+      // Prepare data for Excel - matching image structure
+      const headers = ['Expanse_Ac_Tag', 'Ac_Status', 'Total Amount_Paid'];
+      
+      // Group by Account Holder -> Card (summary: total per card)
+      const groupedByHolder = {};
+      currentExpenseReportData.forEach(r => {
+        const holder = r.Expense_Holder || r.Ac_Holder || r.holder || '';
+        const tag = r.Expense_Tag || r.Expanse_Ac_Tag || r.tag || '';
+        
+        if (!groupedByHolder[holder]) {
+          groupedByHolder[holder] = {};
+        }
+        if (!groupedByHolder[holder][tag]) {
+          groupedByHolder[holder][tag] = [];
+        }
+        groupedByHolder[holder][tag].push(r);
+      });
+      
+      const sortedHolders = Object.keys(groupedByHolder).sort();
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Build filter info line
+      let filterInfo = `Category: Credit Cards/BT | Ac_Holder: ${holderFilter}`;
+      if (yearFilter) {
+        filterInfo += ` | Year: ${yearFilter}`;
+      }
+      if (fromDate && toDate) {
+        filterInfo += ` | Date Range: ${fromDate} to ${toDate}`;
+      }
+      
+      // Create worksheet data
+      const wsData = [
+        ['Credit Card Payments Grouped By Account Holder'],
+        [filterInfo],
+        [`Generated: ${new Date().toLocaleString()}`],
+        []
+      ];
+      
+      let grandTotal = 0;
+      
+      // Add data grouped by Holder -> Card (summary: total per card) - matching image structure
+      sortedHolders.forEach(holder => {
+        wsData.push([`Account Holder: ${holder}`]);
+        wsData.push(headers);
+        
+        const holderCards = groupedByHolder[holder];
+        let holderSubtotal = 0;
+        
+        const sortedTags = Object.keys(holderCards).sort();
+        
+        sortedTags.forEach(tag => {
+          const cardRecords = holderCards[tag];
+          let cardSubtotal = 0;
+          let acStatus = '';
+          
+          // Calculate total for this card (sum of all payments) and get Ac_Status
+          cardRecords.forEach(r => {
+            const amountPaid = parseFloat(r.Expense_Amount_Paid || r.Amount_Paid || r.amt || 0);
+            cardSubtotal += amountPaid;
+            if (!acStatus) {
+              acStatus = r.Expense_Account_Status || r.Ac_Status || r.acstatus || 'Active';
+            }
+          });
+          
+          holderSubtotal += cardSubtotal;
+          grandTotal += cardSubtotal;
+          
+          // Single row showing total for this card with Ac_Status
+          wsData.push([
+            tag,
+            acStatus,
+            cardSubtotal
+          ]);
+        });
+        
+        // Holder total (matching image format)
+        wsData.push(['', `Total Payments by ${holder}`, holderSubtotal]);
+        wsData.push([]);
+      });
+      
+      // No grand total row - removed as per user request
+      
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 35 }, // Expanse_Ac_Tag
+        { wch: 20 }, // Ac_Status
+        { wch: 18 }  // Total Amount_Paid
+      ];
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'CC Payments By Holder');
+      
+      // Generate filename
+      const fileName = `Credit_Card_By_Holder_Expense_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
+      
+      // Save file
+      XLSX.writeFile(wb, fileName);
+    }
+  </script>
+</body>
+</html>
+

@@ -139,20 +139,14 @@
       background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
     }
     
-    .tab[data-tab="properties"] {
-      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-      border-color: #f97316;
-    }
-    .tab[data-tab="properties"].active {
-      background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-    }
-    
-    .tab[data-tab="tenants"] {
+    .tab[data-tab="property-tenancy"] {
       background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
       border-color: #a855f7;
+      color: white !important;
     }
-    .tab[data-tab="tenants"].active {
+    .tab[data-tab="property-tenancy"].active {
       background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+      color: white !important;
     }
     
     .tab[data-tab="paths"] {
@@ -174,6 +168,109 @@
     .tab-content.active {
       display: block;
     }
+    
+    /* Property-Tenancy Sub-tabs */
+    .property-tenancy-subtabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+    
+    .property-tenancy-subtab {
+      padding: 14px 28px;
+      cursor: pointer;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      position: relative;
+      font-size: 15px;
+    }
+    
+    .property-tenancy-subtab:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .property-tenancy-subtab.active {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      font-weight: 700;
+    }
+    
+    /* Property sub-tab - blue-grey */
+    .property-tenancy-subtab[data-subtab="property"] {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      color: #fff;
+    }
+    .property-tenancy-subtab[data-subtab="property"]:hover {
+      background: linear-gradient(135deg, #475569 0%, #334155 100%);
+    }
+    .property-tenancy-subtab[data-subtab="property"].active {
+      background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+    }
+    
+    /* Tenant sub-tab - orange/peach */
+    .property-tenancy-subtab[data-subtab="tenant"] {
+      background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+      color: #fff;
+    }
+    .property-tenancy-subtab[data-subtab="tenant"]:hover {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    }
+    .property-tenancy-subtab[data-subtab="tenant"].active {
+      background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    }
+    
+    /* Manager sub-tab - grey */
+    .property-tenancy-subtab[data-subtab="manager"] {
+      background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+      color: #fff;
+    }
+    .property-tenancy-subtab[data-subtab="manager"]:hover {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    }
+    .property-tenancy-subtab[data-subtab="manager"].active {
+      background: linear-gradient(135deg, #475569 0%, #334155 100%);
+    }
+    
+    /* Lease Records sub-tab - yellow/cream */
+    .property-tenancy-subtab[data-subtab="lease-records"] {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      color: #1f2937;
+    }
+    .property-tenancy-subtab[data-subtab="lease-records"]:hover {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #fff;
+    }
+    .property-tenancy-subtab[data-subtab="lease-records"].active {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      color: #fff;
+    }
+    
+    /* Inspection Report sub-tab - green */
+    .property-tenancy-subtab[data-subtab="inspection-report"] {
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+      color: #fff;
+    }
+    .property-tenancy-subtab[data-subtab="inspection-report"]:hover {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    .property-tenancy-subtab[data-subtab="inspection-report"].active {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    }
+    
+    .property-tenancy-subcontent {
+      display: none;
+    }
+    
+    .property-tenancy-subcontent.active {
+      display: block;
+    }
+    
     .two-column-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -605,8 +702,7 @@
       <div class="tab" data-tab="income">📊 Income</div>
       <div class="tab" data-tab="investment">📈 Investment</div>
       <div class="tab" data-tab="trading-accounts">📊 Trading A/c</div>
-      <div class="tab" data-tab="properties">🏠 Properties</div>
-      <div class="tab" data-tab="tenants">👥 Tenants</div>
+      <div class="tab" data-tab="property-tenancy">🏠 Property-Tenancy Data</div>
       <div class="tab" data-tab="paths">🔧 Paths</div>
     </div>
 
@@ -633,14 +729,6 @@
 
     <div id="trading-accountsContent" class="tab-content">
       <div class="two-column-grid" id="trading-accountsGrid"></div>
-    </div>
-
-    <div id="propertiesContent" class="tab-content">
-      <div class="two-column-grid" id="propertiesGrid"></div>
-    </div>
-
-    <div id="tenantsContent" class="tab-content">
-      <div class="two-column-grid" id="tenantsGrid"></div>
     </div>
 
     <div id="pathsContent" class="tab-content">
@@ -677,6 +765,203 @@
             <button class="btn btn-primary" onclick="chooseDownloadsFolder()">📁 Choose Folder</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div id="property-tenancyContent" class="tab-content">
+      <!-- Sub-tab Buttons Bar -->
+      <div class="property-tenancy-subtabs">
+        <div class="property-tenancy-subtab active" data-subtab="property" onclick="switchPropertyTenancySubTab('property')">Property</div>
+        <div class="property-tenancy-subtab" data-subtab="tenant" onclick="switchPropertyTenancySubTab('tenant')">Tenant</div>
+        <div class="property-tenancy-subtab" data-subtab="manager" onclick="switchPropertyTenancySubTab('manager')">Manager</div>
+        <div class="property-tenancy-subtab" data-subtab="lease-records" onclick="switchPropertyTenancySubTab('lease-records')">Lease Records</div>
+        <div class="property-tenancy-subtab" data-subtab="inspection-report" onclick="switchPropertyTenancySubTab('inspection-report')">Inspection Report</div>
+      </div>
+
+      <!-- Sub-tab Content Areas -->
+      <div id="propertySubContent" class="property-tenancy-subcontent active">
+        <!-- Property content will be populated here -->
+      </div>
+
+      <div id="tenantSubContent" class="property-tenancy-subcontent">
+        <!-- Tenant content - modal form will be opened on button click -->
+      </div>
+
+      <div id="managerSubContent" class="property-tenancy-subcontent">
+        <!-- Manager content - modal form will be opened on button click -->
+      </div>
+
+      <div id="lease-recordsSubContent" class="property-tenancy-subcontent">
+        <!-- Lease Records content - modal form will be opened on button click -->
+      </div>
+
+      <div id="inspection-reportSubContent" class="property-tenancy-subcontent">
+        <!-- Inspection Report content - modal form will be opened on button click -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Property-Tenancy Modals -->
+  <!-- Properties Modal -->
+  <div id="propertiesCRUDBackdrop" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 1000;"></div>
+  <div id="propertiesCRUDModal" style="display:none; position: fixed; top: 150px; left: 50%; transform: translate(-50%, 0); width: 1200px; max-width: 95vw; max-height: 90vh; overflow: auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.25); z-index: 1001; padding: 20px;">
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 15px;">
+      <h3 id="propertiesModalTitle" style="margin:0;">🏠 Manage Properties</h3>
+      <button class="pdf-button" onclick="closePropertiesCRUD()" style="background:#ef4444;">✖ Close</button>
+    </div>
+    <div class="excel-table-container" style="max-height: 60vh; margin-bottom: 10px;">
+      <table class="excel-table" id="propertiesTable">
+        <thead>
+          <tr>
+            <th class="resizable" style="width: 150px;">Property_Tag</th>
+            <th class="resizable" style="width: 250px;">Property_Address</th>
+            <th class="resizable" style="width: 200px;">Landlord_Name</th>
+            <th class="resizable" style="width: 250px;">Landlord_Address</th>
+            <th class="resizable" style="width: 150px;">Landlord_Phone</th>
+            <th style="width: 100px; text-align: center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="propertiesCRUDBody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-top:15px;">
+      <button class="pdf-button" onclick="addPropertyRow()" style="background:#10b981;">＋ Add Property</button>
+      <div style="display:flex; gap:8px;">
+        <button class="pdf-button" onclick="savePropertiesCRUD()" style="background:#3b82f6;">✔ Save & Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tenants Modal -->
+  <div id="tenantsCRUDBackdrop" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 1000;"></div>
+  <div id="tenantsCRUDModal" style="display:none; position: fixed; top: 150px; left: 50%; transform: translate(-50%, 0); width: 95vw; max-width: 1400px; max-height: 75vh; background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.25); z-index: 1001; padding: 18px; flex-direction: column; overflow: hidden;">
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 15px; flex-shrink: 0;">
+      <h3 id="tenantsModalTitle" style="margin:0;">👥 Manage Tenants</h3>
+      <button class="pdf-button" onclick="closeTenantsCRUD()" style="background:#ef4444;">✖ Close</button>
+    </div>
+    <div class="excel-table-container" style="flex: 1; overflow: auto; margin-bottom: 10px; min-height: 0;">
+      <table class="excel-table" id="tenantsTable">
+        <thead>
+          <tr>
+            <th class="resizable" style="width: 120px;">Tenant_ID</th>
+            <th class="resizable" style="width: 200px;">Tenant_Name</th>
+            <th class="resizable" style="width: 200px;">Tenant_Email</th>
+            <th class="resizable" style="width: 150px;">Tenant_Phone</th>
+            <th class="resizable" style="width: 250px;">Tenant_Old_Address</th>
+            <th class="resizable" style="width: 200px;">Tenant_Job_Desc</th>
+            <th class="resizable" style="width: 120px; text-align: center;">Current_Status</th>
+            <th style="width: 100px; text-align: center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tenantsCRUDBody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-top:15px; flex-shrink: 0;">
+      <button class="pdf-button" onclick="addTenantRow()" style="background:#10b981;">＋ Add Tenant</button>
+      <div style="display:flex; gap:8px;">
+        <button class="pdf-button" onclick="saveTenantsCRUD()" style="background:#3b82f6;">✔ Save & Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Managers Modal -->
+  <div id="managersCRUDBackdrop" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 1000;"></div>
+  <div id="managersCRUDModal" style="display:none; position: fixed; top: 150px; left: 50%; transform: translate(-50%, 0); width: 800px; max-width: 95vw; max-height: 85vh; overflow: auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.25); z-index: 1001; padding: 18px;">
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px;">
+      <h3 id="managersModalTitle" style="margin:0;">👔 Manage Managers & Superintendents</h3>
+      <button class="pdf-button" onclick="closeManagersCRUD()" style="background:#ef4444;">✖ Close</button>
+    </div>
+    <div class="excel-table-container" style="max-height: 60vh; margin-bottom: 10px;">
+      <table class="excel-table" id="managersTable">
+        <thead>
+          <tr>
+            <th class="resizable" style="width: 200px;">Manager_Name</th>
+            <th class="resizable" style="width: 150px;">Manager_Phone</th>
+            <th class="resizable" style="width: 200px;">Superintendent_Name</th>
+            <th class="resizable" style="width: 150px;">Superintendent_Phone</th>
+            <th style="width: 100px; text-align: center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="managersCRUDBody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex; justify-content: space-between; align-items:center;">
+      <button class="pdf-button" onclick="addManagerRow()" style="background:#10b981;">＋ Add Row</button>
+      <div style="display:flex; gap:8px;">
+        <button class="pdf-button" onclick="saveManagersCRUD()" style="background:#3b82f6;">✔ Save</button>
+        <button class="pdf-button" onclick="closeManagersCRUD()" style="background:#6b7280;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lease Records Modal -->
+  <div id="leasesCRUDBackdrop" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 1000;"></div>
+  <div id="leasesCRUDModal" style="display:none; position: fixed; top: 150px; left: 50%; transform: translate(-50%, 0); width: 95vw; max-width: 1400px; max-height: 75vh; background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.25); z-index: 1001; padding: 18px; flex-direction: column; overflow: hidden;">
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 15px; flex-shrink: 0;">
+      <h3 id="leasesModalTitle" style="margin:0;">📋 Manage Leases</h3>
+      <button class="pdf-button" onclick="closeLeasesCRUD()" style="background:#ef4444;">✖ Close</button>
+    </div>
+    <div class="excel-table-container" style="flex: 1; overflow: auto; margin-bottom: 10px; min-height: 0;">
+      <table class="excel-table" id="leasesTable">
+        <thead>
+          <tr>
+            <th class="resizable" style="width: 150px;">Lease_ID</th>
+            <th class="resizable" style="width: 120px;">Property_Tag</th>
+            <th class="resizable" style="width: 180px;">Landlord</th>
+            <th class="resizable" style="width: 200px;">Tenants</th>
+            <th class="resizable" style="width: 120px;">Lease_Start_Date</th>
+            <th class="resizable" style="width: 120px;">Lease_End_Date</th>
+            <th class="resizable" style="width: 120px;">Monthly_Rent</th>
+            <th class="resizable" style="width: 130px;">Security_Deposit</th>
+            <th class="resizable" style="width: 200px;">Notes</th>
+            <th style="width: 100px; text-align: center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="leasesCRUDBody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-top:15px; flex-shrink: 0;">
+      <div style="font-size: 12px; color:#666;">Leases are created when you finalize a lease. You can edit Notes here.</div>
+      <div style="display:flex; gap:8px;">
+        <button class="pdf-button" onclick="saveLeasesCRUD()" style="background:#3b82f6;">✔ Save Changes</button>
+        <button class="pdf-button" onclick="clearAllLeaseRecords()" style="background:#ef4444;">🗑 Clear All Records</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inspection Report Modal -->
+  <div id="inspectionReportCRUDBackdrop" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 1000;"></div>
+  <div id="inspectionReportCRUDModal" style="display:none; position: fixed; top: 150px; left: 50%; transform: translate(-50%, 0); width: 95vw; max-width: 1400px; max-height: 75vh; background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.25); z-index: 1001; padding: 18px; flex-direction: column; overflow: hidden;">
+    <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px; flex-shrink: 0;">
+      <h3 id="inspectionModalTitle" style="margin:0;">📋 Manage Inspection Report</h3>
+      <button class="pdf-button" onclick="closeInspectionReportCRUD()" style="background:#ef4444;">✖ Close</button>
+    </div>
+    <div style="margin-bottom: 10px; padding: 10px; background: #f0f9ff; border-radius: 6px; font-size: 12px; flex-shrink: 0;">
+      <strong>Instructions:</strong> Edit sections, comments, and codes. Use "Add Row" to create new entries. Column headers can be resized by dragging the border between columns.
+      <br><br>
+      <strong class="flashing-text">Conditional Codes: B: Broken, M: Missing, D: Damaged, G: Good, S: Scratched/Marked</strong><br>
+      <strong class="flashing-text">Cleanliness Codes: C: Clean, DT: Dirty, ST: Stained</strong>
+    </div>
+    <div class="excel-table-container" style="flex: 1; overflow: auto; margin-bottom: 10px; min-height: 0;">
+      <table class="excel-table" id="inspectionReportTable">
+        <thead>
+          <tr>
+            <th class="resizable" style="width: 200px;">Sections</th>
+            <th class="resizable" style="width: 120px;" title="Condition at Beginning of Tenancy">Comment</th>
+            <th class="resizable" style="width: 80px;" title="Condition at Beginning of Tenancy">Code</th>
+            <th class="resizable" style="width: 120px;" title="Condition at End of Tenancy">Comment</th>
+            <th class="resizable" style="width: 80px;" title="Condition at End of Tenancy">Code</th>
+            <th style="width: 100px; text-align: center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="inspectionReportCRUDBody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex; justify-content: space-between; align-items:center; flex-shrink: 0;">
+      <button class="pdf-button" onclick="addInspectionRow()" style="background:#10b981;">＋ Add Row</button>
+      <div style="display:flex; gap:8px;">
+        <button class="pdf-button" onclick="saveInspectionReportCRUD()" style="background:#3b82f6;">✔ Save</button>
+        <button class="pdf-button" onclick="closeInspectionReportCRUD()" style="background:#6b7280;">Cancel</button>
       </div>
     </div>
   </div>
@@ -909,6 +1194,181 @@
     // Store folder path variable - persists until file is reloaded
     window.lastExcelFolderPath = localStorage.getItem('last_excel_folder_path') || '';
     
+    // Define helper functions early for Excel loading
+    if (typeof window.extractSqaQuestion === 'undefined') {
+      window.extractColumnValue = function(row, keyCandidates, fallbackToFirst) {
+        if (!row) return '';
+        for (const key of keyCandidates) {
+          const val = row[key];
+          if (val !== undefined && val !== null && String(val).trim()) {
+            return String(val).trim();
+          }
+        }
+        if (fallbackToFirst) {
+          const firstKey = Object.keys(row)[0];
+          return firstKey ? String(row[firstKey] || '').trim() : '';
+        }
+        return '';
+      };
+      
+      window.extractSqaQuestion = function(row) {
+        const keys = ['Security Question','Security Questions','Security Question(s)','Question','Questions','Security_Q'];
+        return window.extractColumnValue(row, keys, true);
+      };
+      
+      window.extractSqaAnswer = function(row) {
+        const keys = ['Security Answer','Security Answers','Security Answer(s)','Answer','Answers','Security_A'];
+        return window.extractColumnValue(row, keys, false);
+      };
+      
+      window.parseSqaValue = function(rawValue) {
+        const text = String(rawValue || '').trim();
+        if (!text) return { question: '', answer: '' };
+        const separatorIndex = text.indexOf('—');
+        if (separatorIndex === -1) {
+          return { question: text, answer: '' };
+        }
+        const question = text.slice(0, separatorIndex).trim();
+        const answer = text.slice(separatorIndex + 1).replace(/^[\s—-]+/, '').trim();
+        return { question, answer };
+      };
+      
+      window.formatSqaValue = function(question, answer) {
+        const q = String(question || '').trim();
+        const a = String(answer || '').trim();
+        if (!q && !a) return '';
+        return a ? `${q} — ${a}` : q;
+      };
+      
+      window.normalizeSqaValues = function(data) {
+        if (!data || !data.common) return;
+        let entries = data.common.SQA;
+        if (!entries) return;
+        if (Array.isArray(entries)) {
+          // Ensure all entries are strings in format "question — answer" or just "question"
+          data.common.SQA = entries.map(e => {
+            if (typeof e === 'string') return e;
+            if (e && typeof e === 'object' && (e.question || e.answer)) {
+              const q = String(e.question || '').trim();
+              const a = String(e.answer || '').trim();
+              return window.formatSqaValue(q, a);
+            }
+            return String(e || '');
+          }).filter(e => e);
+        }
+      };
+      
+      window.defaultParseSqaValue = function(rawValue) {
+        return window.parseSqaValue(rawValue);
+      };
+    }
+    
+    // Shared function to show consolidated import message (defined early so early handler can use it)
+    window.showConsolidatedImportMessage = function(fileName, sheetNames, masterDataForCounting) {
+      const totalSheets = sheetNames.length;
+      const transactionalSheets = sheetNames.filter(s => s.startsWith('Txn_') && s !== 'Txn_Mode' && s !== 'Txn_Status' && !s.includes('Mode') && !s.includes('Status')).length;
+      const hasPathsSheet = sheetNames.includes('Paths');
+      const masterDataSheets = totalSheets - transactionalSheets - (hasPathsSheet ? 1 : 0);
+      
+      // Ensure we have masterData - load from cache if needed
+      let dataForCounting = masterDataForCounting || {};
+      if (!dataForCounting || Object.keys(dataForCounting).length === 0) {
+        try {
+          const cached = localStorage.getItem('masterDataCache');
+          if (cached) dataForCounting = JSON.parse(cached) || {};
+        } catch (e) {}
+      }
+      if (!dataForCounting || Object.keys(dataForCounting).length === 0) {
+        dataForCounting = window.masterData || {};
+      }
+      
+      // Count Property-Tenancy records
+      const propertyKeys = new Set();
+      Object.keys(dataForCounting).forEach(key => {
+        const match = key.match(/^Property_(.+?)_Tag$/);
+        if (match) {
+          propertyKeys.add(match[1]);
+        }
+      });
+      const propertyCount = propertyKeys.size;
+      
+      const tenantIds = new Set();
+      Object.keys(dataForCounting).forEach(key => {
+        const match = key.match(/^Tenant_(.+?)_ID$/);
+        if (match) {
+          tenantIds.add(match[1]);
+        }
+      });
+      const tenantCount = tenantIds.size;
+      
+      const managerCount = (dataForCounting['Manager_Name'] || '').trim() ? 1 : 0;
+      
+      let leaseRecordsCount = 0;
+      try {
+        const leaseRecords = JSON.parse(localStorage.getItem('leaseRecords') || '[]');
+        leaseRecordsCount = Array.isArray(leaseRecords) ? leaseRecords.length : 0;
+      } catch (e) {
+        leaseRecordsCount = 0;
+      }
+      
+      let inspectionReportCount = 0;
+      try {
+        const inspectionData = localStorage.getItem('inspectionReportData');
+        if (inspectionData && typeof XLSX !== 'undefined') {
+          const wb = XLSX.read(inspectionData, { type: 'base64' });
+          const sheetName = wb.SheetNames.find(n => n.toLowerCase().includes('inspection')) || wb.SheetNames[0];
+          if (sheetName) {
+            const sheet = wb.Sheets[sheetName];
+            const sheetData = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
+            inspectionReportCount = sheetData.filter((row, idx) => {
+              if (idx === 0) return false;
+              return row && row.length > 0 && row.some(cell => cell && String(cell).trim());
+            }).length;
+          }
+        }
+      } catch (e) {
+        inspectionReportCount = 0;
+      }
+      
+      // Count fields loaded for each module - check unified structure
+      let unified = {};
+      try {
+        const unifiedData = localStorage.getItem('unified_master_data');
+        if (unifiedData) unified = JSON.parse(unifiedData) || {};
+      } catch (e) {}
+      
+      const moduleFieldCounts = {
+        income: Object.keys((unified.income || {})).length || Object.keys((dataForCounting.income || {})).length,
+        expense: Object.keys((unified.expense || {})).length || Object.keys((dataForCounting.expense || {})).length,
+        investment: Object.keys((unified.investment || {})).length || Object.keys((dataForCounting.investment || {})).length,
+        task: Object.keys((unified.task || {})).length || Object.keys((dataForCounting.task || {})).length,
+        common: Object.keys((unified.common || {})).length || Object.keys((dataForCounting.common || {})).length
+      };
+      
+      // Build consolidated message
+      let message = `Successfully imported master data from Excel file!\n\n`;
+      message += `Total sheets in file: ${totalSheets}\n`;
+      message += `Transactional sheets skipped: ${transactionalSheets}\n`;
+      message += `Master data sheets processed: ${masterDataSheets}${hasPathsSheet ? ' + Paths' : ''}\n\n`;
+      message += `Fields Loaded - Income: ${moduleFieldCounts.income}, Expense: ${moduleFieldCounts.expense}, Investment: ${moduleFieldCounts.investment}, Task: ${moduleFieldCounts.task}, Shared Attributes: ${moduleFieldCounts.common}${hasPathsSheet ? ', Paths: 4' : ''}\n\n`;
+      message += `For Property-Tenancy Data:\n`;
+      message += `Property: ${propertyCount} Records\n`;
+      message += `Tenant: ${tenantCount} Records\n`;
+      message += `Manager: ${managerCount} Records\n`;
+      message += `Lease Records: ${leaseRecordsCount} Records\n`;
+      message += `Inspection Report: ${inspectionReportCount} Records`;
+      
+      const arePathsSet = function() {
+        return !!(localStorage.getItem('project_backup_path') && localStorage.getItem('project_documents_path') && localStorage.getItem('project_downloads_path'));
+      };
+      
+      if (!arePathsSet()) {
+        message += '\n\n⚠️ Please set Project Paths in the "Set/Change Paths" tab!';
+      }
+      
+      alert(message);
+    };
+    
     // Early minimal change handler to verify file selection and XLSX availability
     (function attachEarlyChangeHandler(){
       const input = document.getElementById('excelFileInput');
@@ -997,7 +1457,7 @@
                 Task_Tag: { module: 'common', key: 'Country' },
                 Country: { module: 'common', key: 'Country' }
               };
-              let unified = { task:{}, expense:{}, income:{}, investment:{}, common:{}, tenants:{}, 'trading-accounts':{}, properties:{} };
+              let unified = { task:{}, expense:{}, income:{}, investment:{}, common:{}, 'trading-accounts':{} };
               // Merge existing if present
               try{ const existing = JSON.parse(localStorage.getItem('unified_master_data')||'null'); if (existing) unified = existing; }catch(_){ }
 
@@ -1023,13 +1483,67 @@
                 // Skip Txn_* except Mode/Status
                 if (name.startsWith('Txn_') && !name.includes('Mode') && !name.includes('Status')) return;
                 
+                // Handle Tenant sheet with Tenant_ID and Current_Status
+                if (name === 'Tenant') {
+                  const sheet = wb.Sheets[name];
+                  if (sheet) {
+                    const rows = XLSX.utils.sheet_to_json(sheet);
+                    // Store tenant data in masterDataCache format (will be merged into unified later)
+                    if (!window.masterData) window.masterData = {};
+                    // Clear existing tenant data
+                    Object.keys(window.masterData).forEach(key => {
+                      if (key.match(/^Tenant_(.+?)_/)) {
+                        delete window.masterData[key];
+                      }
+                    });
+                    
+                    rows.forEach((row, index) => {
+                      const tenantIdValue = row['Tenant_ID'] || row['Tenant ID'] || row['TENANT_ID'] || row['Tenant_Id'];
+                      let tenantId = tenantIdValue !== undefined && tenantIdValue !== null && tenantIdValue !== '' 
+                        ? String(tenantIdValue).trim() 
+                        : String(index + 1);
+                      
+                      const tenantData = {
+                        id: tenantId,
+                        name: String(row['Tenant_Name'] || row['Tenant Name'] || row['TENANT_NAME'] || '').trim(),
+                        email: String(row['Tenant_Email'] || row['Tenant Email'] || row['TENANT_EMAIL'] || '').trim(),
+                        phone: String(row['Tenant_Phone'] || row['Tenant Phone'] || row['TENANT_PHONE'] || '').trim(),
+                        address: String(row['Tenant_Old_Address'] || row['Tenant Old Address'] || row['Old_Address'] || row['TENANT_OLD_ADDRESS'] || '').trim(),
+                        job: String(row['Tenant_Job_Desc'] || row['Tenant Job Desc'] || row['Job_Desc'] || row['TENANT_JOB_DESC'] || '').trim(),
+                        currentStatus: String(row['Current_Status'] || row['Current Status'] || row['CURRENT_STATUS'] || row['Status'] || 'Active').trim()
+                      };
+                      
+                      window.masterData[`Tenant_${tenantId}_ID`] = tenantData.id;
+                      window.masterData[`Tenant_${tenantId}_Name`] = tenantData.name;
+                      window.masterData[`Tenant_${tenantId}_Email`] = tenantData.email;
+                      window.masterData[`Tenant_${tenantId}_Phone`] = tenantData.phone;
+                      window.masterData[`Tenant_${tenantId}_Old_Address`] = tenantData.address;
+                      window.masterData[`Tenant_${tenantId}_Job_Desc`] = tenantData.job;
+                      window.masterData[`Tenant_${tenantId}_Current_Status`] = tenantData.currentStatus;
+                      const statusLower = tenantData.currentStatus.toLowerCase();
+                      window.masterData[`Tenant_${tenantId}_Active`] = (statusLower === 'inactive' || statusLower === '0' || statusLower === 'false') ? '0' : '1';
+                    });
+                    
+                    console.log(`[Early] Loaded ${rows.length} tenants`);
+                    // Save to masterDataCache for persistence
+                    try {
+                      localStorage.setItem('masterDataCache', JSON.stringify(window.masterData || {}));
+                    } catch(e) {
+                      console.error('[Early] Error saving tenant data:', e);
+                    }
+                  }
+                  return;
+                }
+                
                 if (name === 'SQA') {
                   const sheet = wb.Sheets[name];
                   if (sheet) {
                     const rows = XLSX.utils.sheet_to_json(sheet);
+                    const extractQ = window.extractSqaQuestion || function(r) { return String(r['Security Question'] || r['Question'] || r[Object.keys(r)[0]] || '').trim(); };
+                    const extractA = window.extractSqaAnswer || function(r) { return String(r['Security Answer'] || r['Answer'] || '').trim(); };
                     const items = rows.map(row => {
-                      const question = extractSqaQuestion(row);
-                      const answer = extractSqaAnswer(row);
+                      const question = extractQ(row);
+                      const answer = extractA(row);
                       if (!question && !answer) return null;
                       return answer ? `${question} — ${answer}` : question;
                     }).filter(Boolean);
@@ -1072,7 +1586,7 @@
                     incKey = 'Income_Ac_Tag'; invKey = 'Investment_Ac_Tag'; expKey = 'Expanse_Ac_Tag'; tenKey = 'Tenant_Ac_Tag';
                   }
                   
-                  ['income', 'investment', 'expense', 'tenants'].forEach(m => {
+                  ['income', 'investment', 'expense'].forEach(m => {
                     const v = m === 'income' ? incomeVals : (m === 'investment' ? investVals : (m === 'expense' ? expVals : tenantVals));
                     const k = m === 'income' ? incKey : (m === 'investment' ? invKey : (m === 'expense' ? expKey : tenKey));
                     if (!unified[m][k]) unified[m][k] = [];
@@ -1103,7 +1617,9 @@
                 unified[mod][key] = Array.from(new Set([...(unified[mod][key]||[]), ...values])).sort();
                 console.log(`[Early] Loaded ${values.length} into ${mod}.${key}`);
               });
-              normalizeSqaValues(unified);
+              if (typeof window.normalizeSqaValues === 'function') {
+                window.normalizeSqaValues(unified);
+              }
               localStorage.setItem('unified_master_data', JSON.stringify(unified));
               localStorage.setItem('last_excel_file_loaded', f.name);
               localStorage.setItem('last_excel_file_source', 'D:');
@@ -1136,17 +1652,12 @@
                 task: Object.values(unified.task||{}).reduce((a,b)=>a+(b?b.length:0),0),
                 common: Object.values(unified.common||{}).reduce((a,b)=>a+(b?b.length:0),0)
               };
-              const summaryMsg =
-                `Successfully imported master data from Excel file!\n\n`+
-                `Total sheets in file: ${totalSheets}\n`+
-                `Transactional sheets skipped: ${transactionalSheets}\n`+
-                `Master data sheets processed: ${masterDataSheets}${hasPathsSheet ? ' + Paths' : ''}\n\n`+
-                `Fields loaded — Income: ${moduleFieldCounts.income}, Expense: ${moduleFieldCounts.expense}, Investment: ${moduleFieldCounts.investment}, Task: ${moduleFieldCounts.task}, Shared Attributes: ${moduleFieldCounts.common}${hasPathsSheet ? ', Paths: 4' : ''}\n`+
-                (!localStorage.getItem('project_backup_path') || !localStorage.getItem('project_documents_path') || !localStorage.getItem('project_downloads_path')
-                  ? `\n\n⚠️ Please set Project Paths in the "Set/Change Paths" tab!`
-                  : '');
-
-              // If main helpers are available, render immediately without reload
+              // Set flag to prevent main handler from processing same file
+              window.excelProcessedByEarlyHandler = true;
+              window.excelProcessedFileName = f.name;
+              window.excelProcessedTimestamp = Date.now();
+              
+              // If main helpers are available, render immediately without reload and show message
               if (typeof window !== 'undefined' && typeof saveMasterData === 'function' && typeof renderTab === 'function') {
                 try {
                   window.masterData = unified;
@@ -1154,14 +1665,24 @@
                   if (typeof updateLastFileDisplay === 'function') updateLastFileDisplay();
                   const currentTab = (document.querySelector('.tab.active')||{getAttribute:()=> 'income'}).getAttribute('data-tab');
                   renderTab(currentTab || 'income');
-                  alert(summaryMsg);
+                  
+                  // Show consolidated message after a short delay to ensure all data is saved
+                  setTimeout(() => {
+                    // Load masterData from cache for counting Property-Tenancy records
+                    let dataForCounting = {};
+                    try {
+                      const cached = localStorage.getItem('masterDataCache');
+                      if (cached) dataForCounting = JSON.parse(cached) || {};
+                    } catch (e) {}
+                    if (typeof window.showConsolidatedImportMessage === 'function') {
+                      window.showConsolidatedImportMessage(f.name, sheetNames, dataForCounting);
+                    }
+                  }, 500);
                 } catch (e) {
                   console.warn('Immediate render failed, reloading...', e);
-                  alert(summaryMsg + '\n\nReloading to render.');
                   location.reload();
                 }
               } else {
-                alert(summaryMsg + '\n\nReloading to render.');
                 location.reload();
               }
             }catch(err){
@@ -1181,6 +1702,18 @@
     (function ensureFallbackRender(){
       if (typeof window.renderTab === 'function') return; // main script present
       console.warn('Main render functions missing; installing fallback renderer');
+      
+      // Define escapeHtml early for use in fallback renderer
+      if (typeof window.escapeHtml === 'undefined') {
+        window.escapeHtml = function(text) {
+          if (text == null) return '';
+          const div = document.createElement('div');
+          div.textContent = text;
+          return div.innerHTML;
+        };
+      }
+      const escapeHtml = window.escapeHtml; // Local reference for convenience
+      
       // Basic structure mirrors the confirmed fields
       const FB_STRUCTURE = {
         expense: { 'Expanse_Category':'Expense Category', 'Expanse_Ac_Tag':'Expense Account Tag' },
@@ -1200,16 +1733,16 @@
           'SQA':'Security Questions & Answers'
         },
         'trading-accounts': {},
-        'properties': {},
-        'tenants': { 'Tenant_Category':'Tenant Category', 'Tenant_Ac_Tag':'Tenant Account Tag' }
       };
       window.initializeMasterData = function(){
         const data = window.masterData || {};
-        ['expense','income','investment','task','common','trading-accounts','properties','tenants'].forEach(m => {
+        ['expense','income','investment','task','common','trading-accounts'].forEach(m => {
           if (!data[m]) data[m] = {};
           Object.keys(FB_STRUCTURE[m] || {}).forEach(k => { if (!Array.isArray(data[m][k])) data[m][k] = []; });
         });
-        normalizeSqaValues(data);
+        if (typeof window.normalizeSqaValues === 'function') {
+          window.normalizeSqaValues(data);
+        }
         window.masterData = data;
       };
       window.saveMasterData = function(){
@@ -1415,7 +1948,7 @@
         if (data){ window.masterData = data; normalizeSqaValues(window.masterData); initializeMasterData(); saveMasterData(); }
       }catch(_){ }
       // Render all tabs once then default to task
-      ['task','expense','income','investment','common','trading-accounts','properties','tenants'].forEach(m => window.renderTab(m));
+      ['task','expense','income','investment','common','trading-accounts'].forEach(m => window.renderTab(m));
       window.switchTab('task');
       // Update file display on load
       setTimeout(function() { window.updateLastFileDisplay(); }, 200);
@@ -1450,10 +1983,10 @@
           if (!confirm('⚠️ FINAL WARNING: This action cannot be undone!\n\nAll master data for Income, Expense, Investment, Task, and Common fields will be permanently deleted.\n\nClick OK to confirm deletion.')) return;
           localStorage.removeItem('unified_master_data');
           ['task_master_data','expense_master_data','income_master_data','investment_master_data','trading_accounts_master_data','properties_master_data','tenants_master_data'].forEach(k=>localStorage.removeItem(k));
-          window.masterData = { task:{}, expense:{}, income:{}, investment:{}, common:{}, 'trading-accounts':{}, properties:{}, tenants:{} };
+          window.masterData = { task:{}, expense:{}, income:{}, investment:{}, common:{}, 'trading-accounts':{} };
           if (typeof initializeMasterData==='function') initializeMasterData();
           if (typeof saveMasterData==='function') saveMasterData();
-          ['income','expense','investment','task','common','trading-accounts','properties','tenants'].forEach(m=>{ if (typeof renderTab==='function') renderTab(m); });
+          ['income','expense','investment','task','common','trading-accounts'].forEach(m=>{ if (typeof renderTab==='function') renderTab(m); });
           window.switchTab && window.switchTab('task');
           alert('All master data cleared.');
         }catch(err){
@@ -1512,13 +2045,6 @@
       },
       'trading-accounts': {
         // Fields will be added later from Excel
-      },
-      'properties': {
-        // Fields will be added later from Excel
-      },
-      'tenants': {
-        'Tenant_Category': 'Tenant Category',
-        'Tenant_Ac_Tag': 'Tenant Account Tag'
       }
     };
 
@@ -1600,11 +2126,36 @@
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       document.getElementById(`${tabName}Content`).classList.add('active');
 
-      // Render the tab content (or load paths for paths tab)
+      // If property-tenancy tab is activated, show the first sub-tab
+      if (tabName === 'property-tenancy') {
+        switchPropertyTenancySubTab('property');
+      }
+
+      // Render the tab content (or load paths for paths tab, or skip for property-tenancy)
       if (tabName === 'paths') {
         loadPaths();
+      } else if (tabName === 'property-tenancy') {
+        // Property-tenancy tab uses modals, not grid rendering - skip renderTab
+        console.log('[Delegation] switching to property-tenancy');
       } else {
         renderTab(tabName);
+      }
+    }
+
+    // Switch Property-Tenancy sub-tabs
+    function switchPropertyTenancySubTab(subTabName) {
+      // Update active sub-tab
+      document.querySelectorAll('.property-tenancy-subtab').forEach(t => t.classList.remove('active'));
+      const subTab = document.querySelector(`.property-tenancy-subtab[data-subtab="${subTabName}"]`);
+      if (subTab) {
+        subTab.classList.add('active');
+      }
+
+      // Update active sub-content
+      document.querySelectorAll('.property-tenancy-subcontent').forEach(c => c.classList.remove('active'));
+      const subContent = document.getElementById(`${subTabName}SubContent`);
+      if (subContent) {
+        subContent.classList.add('active');
       }
     }
 
@@ -1632,8 +2183,6 @@
           investment: JSON.parse(localStorage.getItem('investment_master_data') || '{}'),
           common: {},
           'trading-accounts': JSON.parse(localStorage.getItem('trading_accounts_master_data') || '{}'),
-          properties: JSON.parse(localStorage.getItem('properties_master_data') || '{}'),
-          tenants: JSON.parse(localStorage.getItem('tenants_master_data') || '{}')
         };
         saveMasterData();
       }
@@ -1650,8 +2199,33 @@
       localStorage.setItem('income_master_data', JSON.stringify(masterData.income || {}));
       localStorage.setItem('investment_master_data', JSON.stringify(masterData.investment || {}));
       localStorage.setItem('trading_accounts_master_data', JSON.stringify(masterData['trading-accounts'] || {}));
-      localStorage.setItem('properties_master_data', JSON.stringify(masterData.properties || {}));
-      localStorage.setItem('tenants_master_data', JSON.stringify(masterData.tenants || {}));
+      
+      // Also update masterDataCache with Property, Tenant, and Manager data (flat keys)
+      try {
+        let masterDataCache = {};
+        const cached = localStorage.getItem("masterDataCache");
+        if (cached) {
+          try {
+            masterDataCache = JSON.parse(cached) || {};
+          } catch (e) {
+            masterDataCache = {};
+          }
+        }
+        
+        // Merge Property, Tenant, and Manager data from masterData into masterDataCache
+        Object.keys(masterData).forEach(key => {
+          if (key.startsWith('Property_') || key.startsWith('Landlord_') || 
+              key.startsWith('Tenant_') || 
+              key === 'Manager_Name' || key === 'Manager_Phone' || 
+              key === 'Superintendent_Name' || key === 'Superintendent_Phone') {
+            masterDataCache[key] = masterData[key];
+          }
+        });
+        
+        localStorage.setItem("masterDataCache", JSON.stringify(masterDataCache));
+      } catch (e) {
+        console.error("Error updating masterDataCache in saveMasterData:", e);
+      }
     }
 
     // NEW PATH MANAGEMENT SYSTEM
@@ -1777,7 +2351,20 @@
     // Render a tab
     function renderTab(module) {
       const container = document.getElementById(`${module}Grid`);
+      
+      // Skip rendering if container doesn't exist (e.g., property-tenancy, paths tabs)
+      if (!container) {
+        console.log(`[RenderTab] Skipping render for module "${module}" - no grid container found`);
+        return;
+      }
+      
       container.innerHTML = '';
+
+      // Check if module exists in structure
+      if (!MASTER_DATA_STRUCTURE[module]) {
+        console.warn(`[RenderTab] No structure defined for module "${module}"`);
+        return;
+      }
 
       const fields = MASTER_DATA_STRUCTURE[module];
       const fieldKeys = Object.keys(fields);
@@ -2148,6 +2735,15 @@
           return;
         }
         
+        // Check if early handler already processed this file
+        if (window.excelProcessedByEarlyHandler && 
+            window.excelProcessedFileName === file.name &&
+            Date.now() - window.excelProcessedTimestamp < 5000) {
+          console.log('File already processed by early handler, skipping main handler');
+          e.target.value = ''; // Reset file input
+          return;
+        }
+        
         console.log('File selected:', file.name, file.type, file.size);
         
         // Proceed to read selected Excel file
@@ -2237,6 +2833,198 @@
               return;
             }
             
+            // Handle Property sheet
+            if (sheetName === 'Property') {
+              console.log('✓ Processing Property sheet');
+              const sheet = workbook.Sheets[sheetName];
+              const jsonData = XLSX.utils.sheet_to_json(sheet);
+              
+              if (jsonData.length > 0) {
+                // Clear existing property data
+                Object.keys(masterData).forEach(key => {
+                  if (key.startsWith('Property_') || key.startsWith('Landlord_')) {
+                    delete masterData[key];
+                  }
+                });
+                
+                // Load property data
+                jsonData.forEach((row, index) => {
+                  const propertyTag = String(row['Property_Tag'] || row['Property Tag'] || row['Tag'] || '').trim();
+                  const propertyAddress = String(row['Property_Address'] || row['Property Address'] || row['Address'] || '').trim();
+                  const landlordName = String(row['Landlord_Name'] || row['Landlord Name'] || row['Landlord'] || '').trim();
+                  const landlordAddress = String(row['Landlord_Address'] || row['Landlord Address'] || '').trim();
+                  const landlordPhone = String(row['Landlord_Phone'] || row['Landlord Phone'] || '').trim();
+                  
+                  if (propertyTag || propertyAddress || landlordName) {
+                    const tagKey = propertyTag ? propertyTag.replace(/[^A-Za-z0-9]/g, '_') : `PROP_${index + 1}`;
+                    masterData[`Property_${tagKey}`] = propertyAddress || propertyTag || "";
+                    if (propertyAddress) masterData[`Property_${tagKey}_Address`] = propertyAddress;
+                    if (propertyTag) masterData[`Property_${tagKey}_Tag`] = propertyTag;
+                    if (landlordName) {
+                      masterData[`Landlord_${tagKey}_Name`] = landlordName;
+                      if (landlordAddress) masterData[`Landlord_${tagKey}_Address`] = landlordAddress;
+                      if (landlordPhone) masterData[`Landlord_${tagKey}_Phone`] = landlordPhone;
+                    }
+                  }
+                });
+                
+                console.log(`✓ Loaded ${jsonData.length} properties`);
+                processedSheets.push(sheetName);
+              }
+              return;
+            }
+            
+            // Handle Tenant sheet
+            if (sheetName === 'Tenant') {
+              console.log('✓ Processing Tenant sheet');
+              const sheet = workbook.Sheets[sheetName];
+              const jsonData = XLSX.utils.sheet_to_json(sheet);
+              
+              if (jsonData.length > 0) {
+                // Clear ALL existing tenant data by finding all tenant IDs (support string and numeric IDs)
+                const tenantIdsToDelete = new Set();
+                Object.keys(masterData).forEach(key => {
+                  const match = key.match(/^Tenant_(.+?)_/);
+                  if (match) {
+                    tenantIdsToDelete.add(match[1]);
+                  }
+                });
+                
+                tenantIdsToDelete.forEach(id => {
+                  delete masterData[`Tenant_${id}_ID`];
+                  delete masterData[`Tenant_${id}_Name`];
+                  delete masterData[`Tenant_${id}_Email`];
+                  delete masterData[`Tenant_${id}_Phone`];
+                  delete masterData[`Tenant_${id}_Old_Address`];
+                  delete masterData[`Tenant_${id}_Job_Desc`];
+                  delete masterData[`Tenant_${id}_Job`];
+                  delete masterData[`Tenant_${id}_Active`];
+                  delete masterData[`Tenant_${id}_Current_Status`];
+                });
+                
+                // Load tenant data - use Tenant_ID as unique identifier and Current_Status for active/inactive
+                jsonData.forEach((row, index) => {
+                  // Get Tenant_ID from Excel - this is the unique identifier
+                  let tenantIdValue = row['Tenant_ID'] || row['Tenant ID'] || row['TENANT_ID'] || row['Tenant_Id'];
+                  let tenantId = null;
+                  
+                  if (tenantIdValue !== undefined && tenantIdValue !== null && tenantIdValue !== '') {
+                    tenantId = String(tenantIdValue).trim();
+                    // If it's a number, keep it as string for consistency
+                    if (!tenantId) tenantId = String(index + 1);
+                  } else {
+                    tenantId = String(index + 1);
+                  }
+                  
+                  // Get all fields - match exact Excel column names
+                  const name = String(row['Tenant_Name'] || row['Tenant Name'] || row['TENANT_NAME'] || '').trim();
+                  const email = String(row['Tenant_Email'] || row['Tenant Email'] || row['TENANT_EMAIL'] || '').trim();
+                  const phone = String(row['Tenant_Phone'] || row['Tenant Phone'] || row['TENANT_PHONE'] || '').trim();
+                  const address = String(row['Tenant_Old_Address'] || row['Tenant Old Address'] || row['Old_Address'] || row['TENANT_OLD_ADDRESS'] || '').trim();
+                  const job = String(row['Tenant_Job_Desc'] || row['Tenant Job Desc'] || row['Job_Desc'] || row['TENANT_JOB_DESC'] || '').trim();
+                  const currentStatus = String(row['Current_Status'] || row['Current Status'] || row['CURRENT_STATUS'] || row['Status'] || 'Active').trim();
+                  
+                  // Store using Tenant_ID as the key (not index-based)
+                  // Store Tenant_ID itself for reference
+                  masterData[`Tenant_${tenantId}_ID`] = tenantId;
+                  masterData[`Tenant_${tenantId}_Name`] = name;
+                  masterData[`Tenant_${tenantId}_Email`] = email;
+                  masterData[`Tenant_${tenantId}_Phone`] = phone;
+                  masterData[`Tenant_${tenantId}_Old_Address`] = address;
+                  masterData[`Tenant_${tenantId}_Job_Desc`] = job;
+                  // Store Current_Status (Active/Inactive) instead of Tenant_Active
+                  masterData[`Tenant_${tenantId}_Current_Status`] = currentStatus;
+                  // Keep backward compatibility with Active field for now
+                  const statusLower = currentStatus.toLowerCase();
+                  masterData[`Tenant_${tenantId}_Active`] = (statusLower === 'inactive' || statusLower === '0' || statusLower === 'false' || statusLower === 'no') ? '0' : '1';
+                });
+                
+                console.log(`✓ Loaded ${jsonData.length} tenants from Excel`);
+                processedSheets.push(sheetName);
+              }
+              return;
+            }
+            
+            // Handle Manager_Suprintendent sheet (note: typo in sheet name)
+            if (sheetName === 'Manager_Suprintendent' || sheetName === 'Manager_Superintendent') {
+              console.log('✓ Processing Manager/Superintendent sheet');
+              const sheet = workbook.Sheets[sheetName];
+              const jsonData = XLSX.utils.sheet_to_json(sheet);
+              
+              if (jsonData.length > 0) {
+                // Clear existing manager data
+                delete masterData['Manager_Name'];
+                delete masterData['Manager_Phone'];
+                delete masterData['Superintendent_Name'];
+                delete masterData['Superintendent_Phone'];
+                
+                // Load manager data (take first row)
+                const row = jsonData[0];
+                const managerName = String(row['Manager_Name'] || row['Manager Name'] || row['Manager'] || '').trim();
+                const managerPhone = String(row['Manager_Phone'] || row['Manager Phone'] || '').trim();
+                const superName = String(row['Superintendent_Name'] || row['Superintendent Name'] || row['Superintendent'] || '').trim();
+                const superPhone = String(row['Superintendent_Phone'] || row['Superintendent Phone'] || '').trim();
+                
+                if (managerName) masterData['Manager_Name'] = managerName;
+                if (managerPhone) masterData['Manager_Phone'] = managerPhone;
+                if (superName) masterData['Superintendent_Name'] = superName;
+                if (superPhone) masterData['Superintendent_Phone'] = superPhone;
+                
+                console.log('✓ Loaded manager/superintendent data');
+                processedSheets.push(sheetName);
+              }
+              return;
+            }
+            
+            // Handle Lease_Records sheet
+            if (sheetName === 'Lease_Records' || sheetName === 'Lease Records') {
+              console.log('✓ Processing Lease Records sheet');
+              const sheet = workbook.Sheets[sheetName];
+              const jsonData = XLSX.utils.sheet_to_json(sheet);
+              
+              if (jsonData.length > 0) {
+                const leaseRecords = jsonData.map(row => ({
+                  Lease_ID: String(row['Lease_ID'] || row['Lease ID'] || row['ID'] || '').trim(),
+                  Property_Tag: String(row['Property_Tag'] || row['Property Tag'] || row['Property'] || '').trim(),
+                  Landlord: String(row['Landlord'] || '').trim(),
+                  Tenants: String(row['Tenants'] || row['Tenant'] || '').trim(),
+                  Lease_Start_Date: String(row['Lease_Start_Date'] || row['Lease Start Date'] || row['Start Date'] || '').trim(),
+                  Lease_End_Date: String(row['Lease_End_Date'] || row['Lease End Date'] || row['End Date'] || '').trim(),
+                  Monthly_Rent: String(row['Monthly_Rent'] || row['Monthly Rent'] || row['Rent'] || '').trim(),
+                  Security_Deposit: String(row['Security_Deposit'] || row['Security Deposit'] || row['Deposit'] || '').trim(),
+                  Notes: String(row['Notes'] || row['Note'] || '').trim()
+                }));
+                
+                try {
+                  localStorage.setItem('leaseRecords', JSON.stringify(leaseRecords));
+                  console.log(`✓ Loaded ${leaseRecords.length} lease records`);
+                  processedSheets.push(sheetName);
+                } catch (e) {
+                  console.error('Error saving lease records:', e);
+                }
+              }
+              return;
+            }
+            
+            // Handle Inspection_Report sheet
+            if (sheetName === 'Inspection_Report' || sheetName === 'Inspection Report') {
+              console.log('✓ Processing Inspection Report sheet');
+              const sheet = workbook.Sheets[sheetName];
+              
+              try {
+                // Convert sheet to base64 XLSX format
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, sheet, "Inspection_Report");
+                const wbBase64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+                localStorage.setItem('inspectionReportData', wbBase64);
+                console.log('✓ Loaded inspection report data');
+                processedSheets.push(sheetName);
+              } catch (e) {
+                console.error('Error saving inspection report:', e);
+              }
+              return;
+            }
+            
             // NEW: Handle merged sheets (Ac_Category, Ac_Tag)
             if (sheetName === 'Ac_Category' || sheetName === 'Ac_Tag') {
               console.log(`✓ Processing merged sheet: ${sheetName}`);
@@ -2261,7 +3049,6 @@
               const incomeValues = [];
               const investmentValues = [];
               const expenseValues = [];
-              const tenantValues = [];
               
               jsonData.forEach(row => {
                 const value = String(row[mainColumn] || '').trim();
@@ -2275,30 +3062,27 @@
                   investmentValues.push(value);
                 } else if (classification === 'Expanse' || classification === 'Expense') {
                   expenseValues.push(value);
-                } else if (classification === 'Tenant') {
-                  tenantValues.push(value);
                 }
+                // Tenant classification is ignored - tenants module removed
               });
               
               // Map to appropriate modules and fields
-              let incomeKey = null, investmentKey = null, expenseKey = null, tenantKey = null;
+              let incomeKey = null, investmentKey = null, expenseKey = null;
               
               if (sheetName === 'Ac_Category') {
                 incomeKey = 'Income_Category';
                 investmentKey = 'Investment_Category';
                 expenseKey = 'Expanse_Category';
-                tenantKey = 'Tenant_Category';
               } else if (sheetName === 'Ac_Tag') {
                 incomeKey = 'Income_Ac_Tag';
                 investmentKey = 'Investment_Ac_Tag';
                 expenseKey = 'Expanse_Ac_Tag';
-                tenantKey = 'Tenant_Ac_Tag';
               }
               
               // Load data into appropriate modules
-              ['income', 'investment', 'expense', 'tenants'].forEach(module => {
-                const fieldKey = module === 'income' ? incomeKey : (module === 'investment' ? investmentKey : (module === 'expense' ? expenseKey : tenantKey));
-                const values = module === 'income' ? incomeValues : (module === 'investment' ? investmentValues : (module === 'expense' ? expenseValues : tenantValues));
+              ['income', 'investment', 'expense'].forEach(module => {
+                const fieldKey = module === 'income' ? incomeKey : (module === 'investment' ? investmentKey : expenseKey);
+                const values = module === 'income' ? incomeValues : (module === 'investment' ? investmentValues : expenseValues);
                 
                 if (!masterData[module]) masterData[module] = {};
                 if (!masterData[module][fieldKey]) masterData[module][fieldKey] = [];
@@ -2556,7 +3340,54 @@
           });
 
           normalizeSqaValues(masterData);
-          localStorage.setItem('unified_master_data', JSON.stringify(masterData));
+          
+          // Ensure masterData structure is properly initialized (without overwriting existing data)
+          // This ensures all required module structures exist
+          ['task', 'expense', 'income', 'investment', 'common', 'trading-accounts'].forEach(module => {
+            if (!masterData[module]) {
+              masterData[module] = {};
+            }
+          });
+          
+          // Debug: Log data before saving
+          console.log('📊 Master data before saving:', masterData);
+          console.log('📊 Sample data check - income.Income_Category:', masterData.income?.Income_Category?.length || 0, 'items');
+          console.log('📊 Sample data check - expense.Expanse_Category:', masterData.expense?.Expanse_Category?.length || 0, 'items');
+          
+          // Save to all localStorage keys (unified and module-specific)
+          saveMasterData();
+          
+          // Update masterDataCache with Property, Tenant, and Manager data
+          try {
+            let masterDataCache = {};
+            const cached = localStorage.getItem("masterDataCache");
+            if (cached) {
+              try {
+                masterDataCache = JSON.parse(cached) || {};
+              } catch (e) {
+                masterDataCache = {};
+              }
+            }
+            
+            // Merge Property, Tenant, and Manager data into masterDataCache
+            Object.keys(masterData).forEach(key => {
+              if (key.startsWith('Property_') || key.startsWith('Landlord_') || 
+                  key.startsWith('Tenant_') || 
+                  key === 'Manager_Name' || key === 'Manager_Phone' || 
+                  key === 'Superintendent_Name' || key === 'Superintendent_Phone') {
+                masterDataCache[key] = masterData[key];
+              }
+            });
+            
+            localStorage.setItem("masterDataCache", JSON.stringify(masterDataCache));
+            console.log('✓ Updated masterDataCache with Property/Tenant/Manager data');
+          } catch (e) {
+            console.error("Error updating masterDataCache:", e);
+          }
+          
+          // Verify data was saved
+          const saved = JSON.parse(localStorage.getItem('unified_master_data') || '{}');
+          console.log('✅ Data saved to localStorage. Verification - income.Income_Category:', saved.income?.Income_Category?.length || 0, 'items');
           
           // Save the Excel file name for tooltip
           localStorage.setItem('last_excel_file_loaded', file.name);
@@ -2614,7 +3445,8 @@
             window.opener.updateManageMasterDataTooltip();
           }
           
-          const currentTab = document.querySelector('.tab.active').getAttribute('data-tab');
+          // Re-render all tabs to show the new data
+          const currentTab = document.querySelector('.tab.active')?.getAttribute('data-tab') || 'task';
           renderTab(currentTab);
           
           const totalSheets = sheetNames.length;
@@ -2622,14 +3454,94 @@
           const hasPathsSheet = sheetNames.includes('Paths');
           const masterDataSheets = processedSheets.length;
           
-          // Check if paths are set and show warning if not
-          let message = `Successfully imported master data from Excel file!\n\nTotal sheets in file: ${totalSheets}\nTransactional sheets skipped: ${transactionalSheets}\nMaster data sheets processed: ${masterDataSheets}${hasPathsSheet ? ' (includes Paths)' : ''}`;
+          // Count Property-Tenancy records - use window.masterData or load from cache
+          let dataForCounting = masterData;
+          if (!dataForCounting || Object.keys(dataForCounting).length === 0) {
+            try {
+              const cached = localStorage.getItem('masterDataCache');
+              if (cached) dataForCounting = JSON.parse(cached) || {};
+            } catch (e) {}
+          }
+          if (!dataForCounting) dataForCounting = window.masterData || {};
           
-          if (!arePathsSet()) {
-            message += '\n\n⚠️ Please set Project Paths in the "Set/Change Paths" tab!';
+          const propertyKeys = new Set();
+          Object.keys(dataForCounting).forEach(key => {
+            const match = key.match(/^Property_(.+?)_Tag$/);
+            if (match) {
+              propertyKeys.add(match[1]);
+            }
+          });
+          const propertyCount = propertyKeys.size;
+          
+          const tenantIds = new Set();
+          Object.keys(dataForCounting).forEach(key => {
+            const match = key.match(/^Tenant_(.+?)_ID$/);
+            if (match) {
+              tenantIds.add(match[1]);
+            }
+          });
+          const tenantCount = tenantIds.size;
+          
+          const managerCount = (dataForCounting['Manager_Name'] || '').trim() ? 1 : 0;
+          
+          let leaseRecordsCount = 0;
+          try {
+            const leaseRecords = JSON.parse(localStorage.getItem('leaseRecords') || '[]');
+            leaseRecordsCount = Array.isArray(leaseRecords) ? leaseRecords.length : 0;
+          } catch (e) {
+            leaseRecordsCount = 0;
           }
           
-          alert(message);
+          let inspectionReportCount = 0;
+          try {
+            const inspectionData = localStorage.getItem('inspectionReportData');
+            if (inspectionData && typeof XLSX !== 'undefined') {
+              const wb = XLSX.read(inspectionData, { type: 'base64' });
+              const sheetName = wb.SheetNames.find(n => n.toLowerCase().includes('inspection')) || wb.SheetNames[0];
+              if (sheetName) {
+                const sheet = wb.Sheets[sheetName];
+                const sheetData = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
+                // Count non-empty rows (skip header and empty rows)
+                inspectionReportCount = sheetData.filter((row, idx) => {
+                  if (idx === 0) return false; // Skip header
+                  return row && row.length > 0 && row.some(cell => cell && String(cell).trim());
+                }).length;
+              }
+            }
+          } catch (e) {
+            inspectionReportCount = 0;
+          }
+          
+          // Count fields loaded for each module
+          const moduleFieldCounts = {
+            income: Object.keys((window.masterData && window.masterData.income) || {}).length,
+            expense: Object.keys((window.masterData && window.masterData.expense) || {}).length,
+            investment: Object.keys((window.masterData && window.masterData.investment) || {}).length,
+            task: Object.keys((window.masterData && window.masterData.task) || {}).length,
+            common: Object.keys((window.masterData && window.masterData.common) || {}).length
+          };
+          
+          // Use shared function to show consolidated message
+          if (typeof window.showConsolidatedImportMessage === 'function') {
+            window.showConsolidatedImportMessage(file.name, sheetNames, masterData);
+          } else {
+            // Fallback if function not available
+            let message = `Successfully imported master data from Excel file!\n\n`;
+            message += `Total sheets in file: ${totalSheets}\n`;
+            message += `Transactional sheets skipped: ${transactionalSheets}\n`;
+            message += `Master data sheets processed: ${masterDataSheets}${hasPathsSheet ? ' + Paths' : ''}\n\n`;
+            message += `Fields Loaded - Income: ${moduleFieldCounts.income}, Expense: ${moduleFieldCounts.expense}, Investment: ${moduleFieldCounts.investment}, Task: ${moduleFieldCounts.task}, Shared Attributes: ${moduleFieldCounts.common}${hasPathsSheet ? ', Paths: 4' : ''}\n\n`;
+            message += `For Property-Tenancy Data:\n`;
+            message += `Property: ${propertyCount} Records\n`;
+            message += `Tenant: ${tenantCount} Records\n`;
+            message += `Manager: ${managerCount} Records\n`;
+            message += `Lease Records: ${leaseRecordsCount} Records\n`;
+            message += `Inspection Report: ${inspectionReportCount} Records`;
+            if (!arePathsSet()) {
+              message += '\n\n⚠️ Please set Project Paths in the "Set/Change Paths" tab!';
+            }
+            alert(message);
+          }
           e.target.value = ''; // Reset file input after successful processing
         } catch (error) {
           console.error('Error reading Excel file:', error);
@@ -2672,7 +3584,7 @@
       const secondConfirm = confirm('⚠️ FINAL WARNING: This action cannot be undone!\n\nAll master data for Income, Expense, Investment, Task, and Common fields will be permanently deleted.\n\nClick OK to confirm deletion.');
       if (!secondConfirm) return;
 
-      // Clear all master data
+      // Clear all master data (structured modules only - Property/Tenant/Manager are stored as flat keys in masterDataCache)
       masterData = {
         task: {},
         expense: {},
@@ -2680,8 +3592,6 @@
         investment: {},
         common: {},
         'trading-accounts': {},
-        properties: {},
-        tenants: {}
       };
 
       // Clear localStorage
@@ -2691,8 +3601,15 @@
       localStorage.removeItem('income_master_data');
       localStorage.removeItem('investment_master_data');
       localStorage.removeItem('trading_accounts_master_data');
-      localStorage.removeItem('properties_master_data');
-      localStorage.removeItem('tenants_master_data');
+      
+      // Clear Property-Tenancy Data (stored in masterDataCache)
+      localStorage.removeItem('masterDataCache');
+      
+      // Clear Lease Records
+      localStorage.removeItem('leaseRecords');
+      
+      // Clear Inspection Report
+      localStorage.removeItem('inspectionReportData');
 
       // Clear all paths
       clearAllPaths();
@@ -2703,6 +3620,8 @@
       const currentTab = document.querySelector('.tab.active').getAttribute('data-tab');
       if (currentTab === 'paths') {
         loadPaths();
+      } else if (currentTab === 'property-tenancy') {
+        // Property-tenancy tab uses modals, not grid rendering - skip renderTab
       } else {
         renderTab(currentTab);
       }
@@ -2758,17 +3677,16 @@
           console.warn('Global master data export function not available, using fallback');
           // Fallback to old method if global function not loaded
           const acCategoryData = [['Ac_Category', 'Ac_Classification']];
-          const classifications = ['Income', 'Investment', 'Expanse', 'Tenant'];
+          const classifications = ['Income', 'Investment', 'Expanse'];
           const categoryMapping = {
             'Income': 'Income_Category',
             'Investment': 'Investment_Category',
-            'Expanse': 'Expanse_Category',
-            'Tenant': 'Tenant_Category'
+            'Expanse': 'Expanse_Category'
           };
           
           classifications.forEach(cls => {
             const fieldKey = categoryMapping[cls];
-            const moduleMap = {'Income': 'income', 'Investment': 'investment', 'Expanse': 'expense', 'Tenant': 'tenants'};
+            const moduleMap = {'Income': 'income', 'Investment': 'investment', 'Expanse': 'expense'};
             const moduleName = moduleMap[cls] || '';
             const values = (masterData[moduleName] || {})[fieldKey] || [];
             values.forEach(value => {
@@ -2785,13 +3703,12 @@
           const tagMapping = {
             'Income': 'Income_Ac_Tag',
             'Investment': 'Investment_Ac_Tag',
-            'Expanse': 'Expanse_Ac_Tag',
-            'Tenant': 'Tenant_Ac_Tag'
+            'Expanse': 'Expanse_Ac_Tag'
           };
           
           classifications.forEach(cls => {
             const fieldKey = tagMapping[cls];
-            const moduleMap = {'Income': 'income', 'Investment': 'investment', 'Expanse': 'expense', 'Tenant': 'tenants'};
+            const moduleMap = {'Income': 'income', 'Investment': 'investment', 'Expanse': 'expense'};
             const moduleName = moduleMap[cls] || '';
             const values = (masterData[moduleName] || {})[fieldKey] || [];
             values.forEach(value => {
@@ -2805,7 +3722,7 @@
           }
           
           const acClassificationData = [['Ac_Classification']];
-          const classificationValues = (masterData.common || {})['Ac_Classification'] || ['Income', 'Investment', 'Expanse', 'Tenant'];
+          const classificationValues = (masterData.common || {})['Ac_Classification'] || ['Income', 'Investment', 'Expanse'];
           classificationValues.forEach(value => {
             acClassificationData.push([value]);
           });
@@ -2966,6 +3883,1197 @@
     
     // Update tooltip for Manage Master Data link in index.html
     updateManageMasterDataTooltip();
+
+
+    // Update sub-button click handler to open modals
+    window.switchPropertyTenancySubTab = function(subTabName) {
+      // Close all modals first before opening a new one
+      if (typeof closeAllModals === 'function') {
+        closeAllModals();
+      }
+      
+      // Update active sub-tab
+      document.querySelectorAll('.property-tenancy-subtab').forEach(t => t.classList.remove('active'));
+      const subTab = document.querySelector(`.property-tenancy-subtab[data-subtab="${subTabName}"]`);
+      if (subTab) {
+        subTab.classList.add('active');
+      }
+
+      // Update active sub-content
+      document.querySelectorAll('.property-tenancy-subcontent').forEach(c => c.classList.remove('active'));
+      const subContent = document.getElementById(`${subTabName}SubContent`);
+      if (subContent) {
+        subContent.classList.add('active');
+      }
+
+      // Small delay to ensure previous modal is closed before opening new one
+      setTimeout(function() {
+        // Open corresponding modal
+        if (subTabName === 'property') {
+          if (typeof openPropertiesCRUD === 'function') {
+            openPropertiesCRUD();
+          } else {
+            console.error('openPropertiesCRUD function not found');
+          }
+        } else if (subTabName === 'tenant') {
+          if (typeof openTenantsCRUD === 'function') {
+            openTenantsCRUD();
+          } else {
+            console.error('openTenantsCRUD function not found');
+          }
+        } else if (subTabName === 'manager') {
+          if (typeof openManagersCRUD === 'function') {
+            openManagersCRUD();
+          } else {
+            console.error('openManagersCRUD function not found');
+          }
+        } else if (subTabName === 'lease-records') {
+          if (typeof openLeasesCRUD === 'function') {
+            openLeasesCRUD();
+          } else {
+            console.error('openLeasesCRUD function not found');
+          }
+        } else if (subTabName === 'inspection-report') {
+          if (typeof openInspectionReportCRUD === 'function') {
+            openInspectionReportCRUD();
+          } else {
+            console.error('openInspectionReportCRUD function not found');
+          }
+        }
+      }, 50);
+    };
+  </script>
+
+  <!-- Property-Tenancy Modal Scripts -->
+  <script>
+    // Modal JavaScript functions - extracted from modal files
+    // These functions make the modals work when buttons are clicked
+    
+    // Common helper function (only define once)
+    if (typeof window.escapeHtml === 'undefined') {
+      window.escapeHtml = function(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      };
+    }
+    
+    // Excel-style column resizer - copied from working 5_Task_Index.html implementation
+    if (typeof window.initColumnResizers === 'undefined') {
+      const RESIZER_STYLE_ID = 'modal-column-resizer-style';
+      const resizeStateMap = new Map(); // Track resize state per table
+      
+      const ensureResizerStyles = () => {
+        if (document.getElementById(RESIZER_STYLE_ID)) return;
+        const style = document.createElement('style');
+        style.id = RESIZER_STYLE_ID;
+        style.textContent = `
+          .excel-table thead th.resizable { position: relative; }
+          .excel-table thead th.resizable::after {
+            display: none !important;
+          }
+          .excel-table .column-resizer {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 12px;
+            height: 100%;
+            cursor: col-resize;
+            user-select: none;
+            touch-action: none;
+            z-index: 5;
+          }
+          .excel-table .column-resizer::after {
+            content: '';
+            position: absolute;
+            right: 4px;
+            top: 20%;
+            bottom: 20%;
+            width: 3px;
+            border-radius: 6px;
+            background: rgba(26, 79, 176, 0.45);
+            transition: background 0.15s ease, transform 0.15s ease;
+          }
+          body.table-resizing {
+            cursor: col-resize !important;
+            user-select: none !important;
+          }
+          .excel-table .column-resizer:hover::after,
+          .excel-table .column-resizer:active::after {
+            background: rgba(26, 79, 176, 0.85);
+            transform: scaleX(1.2);
+          }
+        `;
+        document.head.appendChild(style);
+      };
+
+      const parseWidth = (value) => {
+        if (value === null || value === undefined) return null;
+        if (typeof value === 'number') return value;
+        const match = String(value).match(/(\d+)/);
+        return match ? parseInt(match[1], 10) : null;
+      };
+
+      window.initColumnResizers = function() {
+        ensureResizerStyles();
+        const tables = document.querySelectorAll('.excel-table');
+        
+        tables.forEach(table => {
+          const tableId = table.id || 'table_' + Math.random().toString(36).substr(2, 9);
+          const COLUMN_STORAGE_KEY = `columnWidths_${tableId}`;
+          
+          // Initialize resize state for this table
+          if (!resizeStateMap.has(tableId)) {
+            resizeStateMap.set(tableId, {
+              active: false,
+              startX: 0,
+              startWidth: 0,
+              columnIndex: -1,
+              headerCell: null,
+              table: table
+            });
+          }
+          
+          const resizeState = resizeStateMap.get(tableId);
+          
+          const getColumnCells = (index) => {
+            if (!table) return [];
+            return Array.from(table.querySelectorAll(`tbody tr td:nth-child(${index + 1})`));
+          };
+
+          const updateTableWidth = () => {
+            if (!table) return;
+            const headerCells = table.querySelectorAll('thead tr th');
+            const total = Array.from(headerCells).reduce((sum, cell) => {
+              const explicit = parseWidth(cell.style.width);
+              return sum + (explicit || cell.offsetWidth || 0);
+            }, 0);
+            if (total > 0) {
+              table.style.width = `${total}px`;
+              table.style.minWidth = `${total}px`;
+            }
+          };
+
+          const applyColumnWidth = (index, width) => {
+            if (!table) return;
+            const normalizedWidth = Math.max(60, parseInt(width, 10) || 0);
+            const headerCells = table.querySelectorAll('thead tr th');
+            const targetHeader = headerCells[index];
+            if (!targetHeader) return;
+
+            const widthPx = `${normalizedWidth}px`;
+            targetHeader.style.width = widthPx;
+            targetHeader.style.minWidth = widthPx;
+
+            getColumnCells(index).forEach((cell) => {
+              cell.style.width = widthPx;
+              cell.style.minWidth = widthPx;
+            });
+            updateTableWidth();
+          };
+
+          const saveColumnWidths = () => {
+            if (!table) return;
+            const widths = Array.from(table.querySelectorAll('thead tr th')).map((th) => {
+              const applied = parseWidth(th.style.width);
+              return `${applied || th.offsetWidth}px`;
+            });
+            localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(widths));
+          };
+
+          const loadColumnWidths = () => {
+            if (!table) return;
+            const saved = localStorage.getItem(COLUMN_STORAGE_KEY);
+            if (!saved) return;
+            try {
+              const widths = JSON.parse(saved);
+              
+              // Handle both array and object formats
+              if (Array.isArray(widths)) {
+                // New format: array of width strings like ["150px", "200px"]
+                widths.forEach((width, index) => {
+                  if (width) {
+                    applyColumnWidth(index, width);
+                  }
+                });
+              } else if (widths && typeof widths === 'object') {
+                // Old format: object with numeric keys like {0: 150, 1: 200}
+                Object.keys(widths).forEach((key) => {
+                  const index = parseInt(key, 10);
+                  if (!isNaN(index) && widths[key]) {
+                    const width = typeof widths[key] === 'number' ? `${widths[key]}px` : widths[key];
+                    applyColumnWidth(index, width);
+                  }
+                });
+              }
+            } catch (err) {
+              console.warn('Unable to restore saved column widths:', err);
+              // Clear corrupted data
+              try {
+                localStorage.removeItem(COLUMN_STORAGE_KEY);
+              } catch (e) {}
+            }
+          };
+
+          const handlePointerMove = (event) => {
+            if (!resizeState.active || !table) return;
+            event.preventDefault();
+            const delta = event.pageX - resizeState.startX;
+            const newWidth = resizeState.startWidth + delta;
+            applyColumnWidth(resizeState.columnIndex, newWidth);
+          };
+
+          const stopResizing = () => {
+            if (!resizeState.active) return;
+            document.removeEventListener('mousemove', handlePointerMove, true);
+            document.removeEventListener('mouseup', stopResizing, true);
+            document.body.classList.remove('table-resizing');
+            resizeState.active = false;
+            resizeState.headerCell = null;
+            resizeState.columnIndex = -1;
+            saveColumnWidths();
+          };
+
+          const startResizing = (event, headerCell, index) => {
+            if (!table || !headerCell) return;
+            event.preventDefault();
+            resizeState.active = true;
+            resizeState.startX = event.pageX;
+            resizeState.startWidth = headerCell.offsetWidth;
+            resizeState.columnIndex = index;
+            resizeState.headerCell = headerCell;
+            document.body.classList.add('table-resizing');
+            document.addEventListener('mousemove', handlePointerMove, true);
+            document.addEventListener('mouseup', stopResizing, true);
+          };
+
+          // Setup resizers for each resizable column
+          const headerCells = table.querySelectorAll('thead tr th');
+          headerCells.forEach((th, index) => {
+            if (!th.classList.contains('resizable')) return;
+            if (th.querySelector('.column-resizer')) return; // Already has resizer
+            
+            const resizer = document.createElement('div');
+            resizer.className = 'column-resizer';
+            resizer.title = 'Drag to resize column';
+            resizer.addEventListener('mousedown', (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              startResizing(event, th, index);
+            });
+            th.appendChild(resizer);
+          });
+          
+          loadColumnWidths();
+          updateTableWidth();
+        });
+      };
+    }
+    
+    // Ensure masterData is available globally
+    if (typeof window.masterData === 'undefined') {
+      window.masterData = {};
+    }
+    
+    // Load masterData from localStorage
+    try {
+      const cached = localStorage.getItem("masterDataCache");
+      if (cached) {
+        window.masterData = JSON.parse(cached) || {};
+      }
+    } catch (e) {
+      console.error("Error loading masterData:", e);
+    }
+  </script>
+  
+  <!-- Modal JavaScript Functions -->
+  <script>
+    // Helper function
+    if (typeof window.escapeHtml === 'undefined') {
+      window.escapeHtml = function(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      };
+    }
+
+    // Helper function to close all modals
+    function closeAllModals() {
+      // Close all modal backdrops
+      const backdrops = [
+        document.getElementById("propertiesCRUDBackdrop"),
+        document.getElementById("tenantsCRUDBackdrop"),
+        document.getElementById("managersCRUDBackdrop"),
+        document.getElementById("leasesCRUDBackdrop"),
+        document.getElementById("inspectionReportCRUDBackdrop")
+      ];
+      
+      // Close all modals
+      const modals = [
+        document.getElementById("propertiesCRUDModal"),
+        document.getElementById("tenantsCRUDModal"),
+        document.getElementById("managersCRUDModal"),
+        document.getElementById("leasesCRUDModal"),
+        document.getElementById("inspectionReportCRUDModal")
+      ];
+      
+      backdrops.forEach(backdrop => {
+        if (backdrop) backdrop.style.display = "none";
+      });
+      
+      modals.forEach(modal => {
+        if (modal) modal.style.display = "none";
+      });
+    }
+
+    // Helper function to position modals below the page header
+    function positionModalBelowHeader(modalElement) {
+      const header = document.querySelector('header.header');
+      const lastFileInfo = document.getElementById('lastFileInfo');
+      
+      if (modalElement) {
+        let headerBottom = 0;
+        
+        if (header) {
+          const headerRect = header.getBoundingClientRect();
+          headerBottom = headerRect.bottom;
+        }
+        
+        // Add space for lastFileInfo if visible
+        if (lastFileInfo && lastFileInfo.offsetParent !== null) {
+          const fileInfoRect = lastFileInfo.getBoundingClientRect();
+          headerBottom = fileInfoRect.bottom;
+        }
+        
+        const padding = 20; // Space between header and modal
+        const modalTop = headerBottom + padding;
+        
+        // Ensure modal doesn't go off screen - adjust if needed
+        const maxTop = window.innerHeight - 100; // Leave some space at bottom
+        const finalTop = Math.min(modalTop, maxTop);
+        
+        modalElement.style.top = finalTop + 'px';
+        modalElement.style.transform = 'translate(-50%, 0)'; // Only center horizontally
+        modalElement.style.maxHeight = (window.innerHeight - finalTop - 40) + 'px'; // Adjust max height
+      }
+    }
+
+    // Reposition modals on window resize if they're open
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(function() {
+        const openModals = [
+          document.getElementById("propertiesCRUDModal"),
+          document.getElementById("tenantsCRUDModal"),
+          document.getElementById("managersCRUDModal"),
+          document.getElementById("leasesCRUDModal"),
+          document.getElementById("inspectionReportCRUDModal")
+        ];
+        
+        openModals.forEach(modal => {
+          if (modal && modal.style.display !== 'none') {
+            positionModalBelowHeader(modal);
+          }
+        });
+      }, 100);
+    });
+
+    // Property Modal Functions
+    function openPropertiesCRUD() {
+      // Close all other modals first
+      closeAllModals();
+      
+      try {
+        const cached = localStorage.getItem("masterDataCache");
+        if (cached) window.masterData = JSON.parse(cached) || {};
+      } catch (e) {}
+      if (!window.masterData || typeof window.masterData !== 'object') window.masterData = {};
+      
+      const tbody = document.getElementById("propertiesCRUDBody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      
+      const props = [];
+      const propertyKeys = Object.keys(window.masterData).filter(k => 
+        k.startsWith('Property_') && !k.includes('_Tag') && !k.includes('_Address')
+      );
+      
+      propertyKeys.forEach(propKey => {
+        const tagKey = propKey.replace('Property_', '');
+        const propTag = window.masterData[`Property_${tagKey}_Tag`] || tagKey;
+        const propAddress = window.masterData[`Property_${tagKey}_Address`] || window.masterData[propKey] || "";
+        props.push({
+          tagKey: tagKey, tag: propTag, address: propAddress,
+          landlordName: window.masterData[`Landlord_${tagKey}_Name`] || "",
+          landlordAddress: window.masterData[`Landlord_${tagKey}_Address`] || "",
+          landlordPhone: window.masterData[`Landlord_${tagKey}_Phone`] || ""
+        });
+      });
+      
+      if (props.length === 0) {
+        props.push({ tagKey: "", tag: "", address: "", landlordName: "", landlordAddress: "", landlordPhone: "" });
+      }
+      
+      // Count actual records (excluding empty placeholder)
+      const actualPropsCount = props.filter(p => p.tag || p.address || p.landlordName).length;
+      
+      props.forEach(prop => {
+        const tr = document.createElement("tr");
+        tr.dataset.tagKey = prop.tagKey || '';
+        tr.innerHTML = `
+          <td><input type="text" value="${window.escapeHtml(prop.tag || "")}" placeholder="Property_Tag" class="prop-tag"></td>
+          <td><input type="text" value="${window.escapeHtml(prop.address || "")}" placeholder="Property_Address" class="prop-address"></td>
+          <td><input type="text" value="${window.escapeHtml(prop.landlordName || "")}" placeholder="Landlord_Name" class="prop-landlord-name"></td>
+          <td><input type="text" value="${window.escapeHtml(prop.landlordAddress || "")}" placeholder="Landlord_Address" class="prop-landlord-addr"></td>
+          <td><input type="text" value="${window.escapeHtml(prop.landlordPhone || "")}" placeholder="Landlord_Phone" class="prop-landlord-phone"></td>
+          <td style="text-align:center;"><button class="pdf-button" style="background:#ef4444; padding:4px 8px; font-size:11px;" onclick="this.closest('tr').remove(); updatePropertiesModalCount();">🗑</button></td>`;
+        tbody.appendChild(tr);
+      });
+      
+      // Update modal title with count
+      const titleEl = document.getElementById("propertiesModalTitle");
+      if (titleEl) titleEl.textContent = `🏠 Manage Properties (${actualPropsCount})`;
+      
+      document.getElementById("propertiesCRUDBackdrop").style.display = "block";
+      const propertiesModal = document.getElementById("propertiesCRUDModal");
+      propertiesModal.style.display = "block";
+      positionModalBelowHeader(propertiesModal);
+      setTimeout(() => {
+        if (typeof window.initColumnResizers === 'function') {
+          window.initColumnResizers();
+        }
+      }, 100);
+    }
+
+    function addPropertyRow() {
+      const tbody = document.getElementById("propertiesCRUDBody");
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input type="text" placeholder="Property_Tag" class="prop-tag"></td>
+        <td><input type="text" placeholder="Property_Address" class="prop-address"></td>
+        <td><input type="text" placeholder="Landlord_Name" class="prop-landlord-name"></td>
+        <td><input type="text" placeholder="Landlord_Address" class="prop-landlord-addr"></td>
+        <td><input type="text" placeholder="Landlord_Phone" class="prop-landlord-phone"></td>
+        <td style="text-align:center;"><button class="pdf-button" style="background:#ef4444; padding:4px 8px; font-size:11px;" onclick="this.closest('tr').remove(); updatePropertiesModalCount();">🗑</button></td>`;
+      tbody.appendChild(tr);
+      updatePropertiesModalCount();
+    }
+
+    function savePropertiesCRUD() {
+      const rows = Array.from(document.querySelectorAll("#propertiesCRUDBody tr"));
+      const propertyKeys = Object.keys(window.masterData).filter(k => 
+        k.startsWith('Property_') || k.startsWith('Landlord_')
+      );
+      propertyKeys.forEach(key => delete window.masterData[key]);
+      
+      rows.forEach((row) => {
+        const tag = row.querySelector(".prop-tag").value.trim();
+        const address = row.querySelector(".prop-address").value.trim();
+        const landlordName = row.querySelector(".prop-landlord-name").value.trim();
+        const landlordAddr = row.querySelector(".prop-landlord-addr").value.trim();
+        const landlordPhone = row.querySelector(".prop-landlord-phone").value.trim();
+        if (tag || address || landlordName) {
+          const tagKey = tag ? tag.replace(/[^A-Za-z0-9]/g, '_') : `PROP_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          window.masterData[`Property_${tagKey}`] = address || tag || "";
+          if (address) window.masterData[`Property_${tagKey}_Address`] = address;
+          if (tag) window.masterData[`Property_${tagKey}_Tag`] = tag;
+          if (landlordName) {
+            window.masterData[`Landlord_${tagKey}_Name`] = landlordName;
+            if (landlordAddr) window.masterData[`Landlord_${tagKey}_Address`] = landlordAddr;
+            if (landlordPhone) window.masterData[`Landlord_${tagKey}_Phone`] = landlordPhone;
+          }
+        }
+      });
+      
+      try { localStorage.setItem("masterDataCache", JSON.stringify(window.masterData)); } catch (e) {}
+      closePropertiesCRUD();
+      alert("✓ Properties saved!");
+    }
+
+    function closePropertiesCRUD() {
+      const backdrop = document.getElementById("propertiesCRUDBackdrop");
+      const modal = document.getElementById("propertiesCRUDModal");
+      if (backdrop) backdrop.style.display = "none";
+      if (modal) modal.style.display = "none";
+    }
+
+    document.getElementById("propertiesCRUDBackdrop")?.addEventListener('click', function(e) {
+      if (e.target === this) closePropertiesCRUD();
+    });
+
+    // Tenant Modal Functions
+    function addSuperscriptsToDuplicateNames(tenants) {
+      if (!tenants || tenants.length === 0) return tenants;
+      const nameCount = {};
+      const nameIndex = {};
+      tenants.forEach(tenant => {
+        const name = (tenant.name || "").trim();
+        if (name) nameCount[name] = (nameCount[name] || 0) + 1;
+      });
+      const superscriptChars = ['¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹', '¹⁰', '¹¹', '¹²'];
+      return tenants.map(tenant => {
+        const originalName = (tenant.name || "").trim();
+        if (!originalName || nameCount[originalName] <= 1) return tenant;
+        if (nameIndex[originalName] === undefined) nameIndex[originalName] = 0;
+        nameIndex[originalName]++;
+        const superscript = superscriptChars[nameIndex[originalName] - 1] || `⁽${nameIndex[originalName]}⁾`;
+        return { ...tenant, name: originalName + superscript };
+      });
+    }
+
+    function openTenantsCRUD() {
+      // Close all other modals first
+      closeAllModals();
+      
+      try {
+        const cached = localStorage.getItem("masterDataCache");
+        if (cached) window.masterData = JSON.parse(cached) || {};
+      } catch (e) {}
+      if (!window.masterData || typeof window.masterData !== 'object') window.masterData = {};
+      
+      const tbody = document.getElementById("tenantsCRUDBody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      
+      const tenants = [];
+      // Find all tenant IDs by scanning all masterData keys - use Tenant_ID as unique identifier
+      const tenantIds = new Set();
+      Object.keys(window.masterData).forEach(key => {
+        // Match any tenant field to extract the ID part
+        const match = key.match(/^Tenant_(.+?)_(ID|Name|Email|Phone|Old_Address|Job_Desc|Job|Active|Current_Status)$/);
+        if (match) {
+          tenantIds.add(match[1]); // Use the ID part (could be number or string)
+        }
+      });
+      
+      // Convert to array and process each tenant - sort by Tenant_ID if it's numeric, otherwise by ID string
+      Array.from(tenantIds).sort((a, b) => {
+        const numA = parseFloat(a);
+        const numB = parseFloat(b);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return String(a).localeCompare(String(b));
+      }).forEach(tenantId => {
+        const id = window.masterData[`Tenant_${tenantId}_ID`] || tenantId;
+        const name = window.masterData[`Tenant_${tenantId}_Name`] || "";
+        const email = window.masterData[`Tenant_${tenantId}_Email`] || "";
+        const phone = window.masterData[`Tenant_${tenantId}_Phone`] || "";
+        const address = window.masterData[`Tenant_${tenantId}_Old_Address`] || "";
+        const job = window.masterData[`Tenant_${tenantId}_Job_Desc`] || window.masterData[`Tenant_${tenantId}_Job`] || "";
+        // Use Current_Status if available, otherwise fall back to Active
+        const currentStatus = window.masterData[`Tenant_${tenantId}_Current_Status`] || "";
+        const activeValue = window.masterData[`Tenant_${tenantId}_Active`];
+        
+        // Determine status from Current_Status field (Active/Inactive)
+        let status = "Active";
+        if (currentStatus) {
+          const statusLower = String(currentStatus).toLowerCase();
+          status = (statusLower === 'inactive' || statusLower === '0' || statusLower === 'false') ? "Inactive" : "Active";
+        } else if (activeValue !== undefined && activeValue !== null) {
+          // Fallback to Active field if Current_Status not available
+          const activeLower = String(activeValue).toLowerCase();
+          status = (activeLower === '0' || activeLower === 'false' || activeLower === 'inactive') ? "Inactive" : "Active";
+        }
+        
+        tenants.push({
+          id: tenantId, tenantId: id, name: name, email: email, phone: phone, address: address, job: job, currentStatus: status
+        });
+      });
+      
+      tenants.sort((a, b) => ((a.name || "").toLowerCase()).localeCompare((b.name || "").toLowerCase()));
+      if (tenants.length === 0) tenants.push({ id: 1, name: "", email: "", phone: "", address: "", job: "", active: true });
+      
+      // Count actual Active records based on Current_Status
+      const actualTenantsCount = tenants.filter(t => t.name || t.email || t.phone || t.address || t.job).length;
+      const activeTenantsCount = tenants.filter(t => t.currentStatus === "Active").length;
+      
+      // Display tenants without superscript logic - Tenant_ID is the unique identifier
+      tenants.forEach(tenant => {
+        const tr = document.createElement("tr");
+        tr.dataset.tenantId = tenant.id || '';
+        tr.dataset.tenantUniqueId = tenant.tenantId || tenant.id || '';
+        const currentStatus = tenant.currentStatus || "Active";
+        tr.innerHTML = `
+          <td><input type="text" value="${window.escapeHtml(tenant.tenantId || tenant.id || "")}" placeholder="Tenant_ID" class="tenant-id" readonly style="background:#f9fafb;"></td>
+          <td><input type="text" value="${window.escapeHtml(tenant.name || "")}" placeholder="Tenant_Name" class="tenant-name"></td>
+          <td><input type="email" value="${window.escapeHtml(tenant.email || "")}" placeholder="Tenant_Email" class="tenant-email"></td>
+          <td><input type="tel" value="${window.escapeHtml(tenant.phone || "")}" placeholder="Tenant_Phone" class="tenant-phone"></td>
+          <td><input type="text" value="${window.escapeHtml(tenant.address || "")}" placeholder="Tenant_Old_Address" class="tenant-address"></td>
+          <td><input type="text" value="${window.escapeHtml(tenant.job || "")}" placeholder="Tenant_Job_Desc" class="tenant-job"></td>
+          <td style="text-align:center;"><select class="tenant-current-status" style="padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 4px; width: 100%;">
+            <option value="Active" ${currentStatus === "Active" ? 'selected' : ''}>Active</option>
+            <option value="Inactive" ${currentStatus === "Inactive" ? 'selected' : ''}>Inactive</option>
+          </select></td>
+          <td style="text-align:center;"><button class="pdf-button" style="background:#ef4444; padding:4px 8px; font-size:11px;" onclick="this.closest('tr').remove(); updateTenantsModalCount();">🗑</button></td>`;
+        tbody.appendChild(tr);
+      });
+      
+      // Update modal title with count (show Active count)
+      const titleEl = document.getElementById("tenantsModalTitle");
+      if (titleEl) titleEl.textContent = `👥 Manage Tenants (${actualTenantsCount} total, ${activeTenantsCount} Active)`;
+      
+      document.getElementById("tenantsCRUDBackdrop").style.display = "block";
+      const tenantsModal = document.getElementById("tenantsCRUDModal");
+      tenantsModal.style.display = "flex";
+      positionModalBelowHeader(tenantsModal);
+      setTimeout(() => {
+        if (typeof window.initColumnResizers === 'function') {
+          window.initColumnResizers();
+        }
+      }, 100);
+    }
+
+    function addTenantRow() {
+      const tbody = document.getElementById("tenantsCRUDBody");
+      // Find the highest numeric Tenant_ID or use timestamp for new ones
+      const existingIds = Array.from(tbody.querySelectorAll("tr"))
+        .map(tr => {
+          const idInput = tr.querySelector(".tenant-id");
+          if (idInput && idInput.value) {
+            const numId = parseFloat(idInput.value);
+            return isNaN(numId) ? 0 : numId;
+          }
+          return 0;
+        })
+        .filter(id => id > 0);
+      const nextId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : Date.now();
+      const tr = document.createElement("tr");
+      tr.dataset.tenantId = nextId;
+      tr.dataset.tenantUniqueId = nextId;
+      tr.innerHTML = `
+        <td><input type="text" value="${nextId}" placeholder="Tenant_ID" class="tenant-id" readonly style="background:#f9fafb;"></td>
+        <td><input type="text" placeholder="Tenant_Name" class="tenant-name"></td>
+        <td><input type="email" placeholder="Tenant_Email" class="tenant-email"></td>
+        <td><input type="tel" placeholder="Tenant_Phone" class="tenant-phone"></td>
+        <td><input type="text" placeholder="Tenant_Old_Address" class="tenant-address"></td>
+        <td><input type="text" placeholder="Tenant_Job_Desc" class="tenant-job"></td>
+        <td style="text-align:center;"><select class="tenant-current-status" style="padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 4px; width: 100%;">
+          <option value="Active" selected>Active</option>
+          <option value="Inactive">Inactive</option>
+        </select></td>
+        <td style="text-align:center;"><button class="pdf-button" style="background:#ef4444; padding:4px 8px; font-size:11px;" onclick="this.closest('tr').remove(); updateTenantsModalCount();">🗑</button></td>`;
+      tbody.appendChild(tr);
+      updateTenantsModalCount();
+    }
+
+    function saveTenantsCRUD() {
+      const rows = Array.from(document.querySelectorAll("#tenantsCRUDBody tr"));
+      
+      // Clear all existing tenant data by finding all tenant IDs (support string and numeric IDs)
+      const tenantIdsToDelete = new Set();
+      Object.keys(window.masterData).forEach(key => {
+        const match = key.match(/^Tenant_(.+?)_/);
+        if (match) {
+          tenantIdsToDelete.add(match[1]);
+        }
+      });
+      
+      tenantIdsToDelete.forEach(id => {
+        delete window.masterData[`Tenant_${id}_ID`];
+        delete window.masterData[`Tenant_${id}_Name`];
+        delete window.masterData[`Tenant_${id}_Email`];
+        delete window.masterData[`Tenant_${id}_Phone`];
+        delete window.masterData[`Tenant_${id}_Old_Address`];
+        delete window.masterData[`Tenant_${id}_Job_Desc`];
+        delete window.masterData[`Tenant_${id}_Job`];
+        delete window.masterData[`Tenant_${id}_Active`];
+        delete window.masterData[`Tenant_${id}_Current_Status`];
+      });
+      
+      rows.forEach(row => {
+        // Use Tenant_ID from the row (stored in dataset or input field)
+        const tenantIdInput = row.querySelector(".tenant-id");
+        let tenantId = tenantIdInput ? tenantIdInput.value.trim() : '';
+        
+        // If no Tenant_ID in input, use the stored one from dataset
+        if (!tenantId) {
+          tenantId = row.dataset.tenantUniqueId || row.dataset.tenantId || '';
+        }
+        
+        // If still no ID, generate one (shouldn't happen if Excel loaded correctly)
+        if (!tenantId) {
+          tenantId = Date.now().toString();
+        }
+        
+        const name = row.querySelector(".tenant-name").value.trim();
+        const email = row.querySelector(".tenant-email").value.trim();
+        const phone = row.querySelector(".tenant-phone").value.trim();
+        const address = row.querySelector(".tenant-address").value.trim();
+        const job = row.querySelector(".tenant-job").value.trim();
+        const currentStatus = row.querySelector(".tenant-current-status").value || "Active";
+        
+        // Save using Tenant_ID as key
+        window.masterData[`Tenant_${tenantId}_ID`] = tenantId;
+        if (name) window.masterData[`Tenant_${tenantId}_Name`] = name;
+        if (email) window.masterData[`Tenant_${tenantId}_Email`] = email;
+        if (phone) window.masterData[`Tenant_${tenantId}_Phone`] = phone;
+        if (address) window.masterData[`Tenant_${tenantId}_Old_Address`] = address;
+        if (job) window.masterData[`Tenant_${tenantId}_Job_Desc`] = job;
+        // Save Current_Status
+        window.masterData[`Tenant_${tenantId}_Current_Status`] = currentStatus;
+        // Also save Active for backward compatibility
+        window.masterData[`Tenant_${tenantId}_Active`] = (currentStatus === "Inactive") ? "0" : "1";
+      });
+      
+      try { localStorage.setItem("masterDataCache", JSON.stringify(window.masterData)); } catch (e) {}
+      closeTenantsCRUD();
+      alert("✓ Tenants saved!");
+    }
+
+    function closeTenantsCRUD() {
+      const backdrop = document.getElementById("tenantsCRUDBackdrop");
+      const modal = document.getElementById("tenantsCRUDModal");
+      if (backdrop) backdrop.style.display = "none";
+      if (modal) modal.style.display = "none";
+    }
+
+    document.getElementById("tenantsCRUDBackdrop")?.addEventListener('click', function(e) {
+      if (e.target === this) closeTenantsCRUD();
+    });
+
+    // Manager Modal Functions
+    function openManagersCRUD() {
+      // Close all other modals first
+      closeAllModals();
+      
+      try {
+        const cached = localStorage.getItem("masterDataCache");
+        if (cached) window.masterData = JSON.parse(cached) || {};
+      } catch (e) {}
+      if (!window.masterData || typeof window.masterData !== 'object') window.masterData = {};
+      
+      const tbody = document.getElementById("managersCRUDBody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      
+      const manager = {
+        managerName: window.masterData["Manager_Name"] || "",
+        managerPhone: window.masterData["Manager_Phone"] || "",
+        superName: window.masterData["Superintendent_Name"] || "",
+        superPhone: window.masterData["Superintendent_Phone"] || ""
+      };
+      
+      // Count non-empty records
+      const hasManagerData = manager.managerName || manager.managerPhone || manager.superName || manager.superPhone;
+      const managersCount = hasManagerData ? 1 : 0;
+      
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input type="text" value="${window.escapeHtml(manager.managerName || "")}" placeholder="Manager_Name" class="manager-name"></td>
+        <td><input type="text" value="${window.escapeHtml(manager.managerPhone || "")}" placeholder="Manager_Phone" class="manager-phone"></td>
+        <td><input type="text" value="${window.escapeHtml(manager.superName || "")}" placeholder="Superintendent_Name" class="super-name"></td>
+        <td><input type="text" value="${window.escapeHtml(manager.superPhone || "")}" placeholder="Superintendent_Phone" class="super-phone"></td>
+        <td style="text-align:center;"><button class="pdf-button" style="background:#ef4444; padding:4px 8px; font-size:11px;" onclick="this.closest('tr').remove(); updateManagersModalCount();">🗑</button></td>`;
+      tbody.appendChild(tr);
+      
+      // Update modal title with count
+      const titleEl = document.getElementById("managersModalTitle");
+      if (titleEl) titleEl.textContent = `👔 Manage Managers & Superintendents (${managersCount})`;
+      
+      document.getElementById("managersCRUDBackdrop").style.display = "block";
+      const managersModal = document.getElementById("managersCRUDModal");
+      managersModal.style.display = "block";
+      positionModalBelowHeader(managersModal);
+      setTimeout(() => {
+        if (typeof window.initColumnResizers === 'function') {
+          window.initColumnResizers();
+        }
+      }, 100);
+    }
+
+    function addManagerRow() {
+      const tbody = document.getElementById("managersCRUDBody");
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input type="text" placeholder="Manager_Name" class="manager-name"></td>
+        <td><input type="text" placeholder="Manager_Phone" class="manager-phone"></td>
+        <td><input type="text" placeholder="Superintendent_Name" class="super-name"></td>
+        <td><input type="text" placeholder="Superintendent_Phone" class="super-phone"></td>
+        <td style="text-align:center;"><button class="pdf-button" style="background:#ef4444; padding:4px 8px; font-size:11px;" onclick="this.closest('tr').remove(); updateManagersModalCount();">🗑</button></td>`;
+      tbody.appendChild(tr);
+      updateManagersModalCount();
+    }
+
+    function saveManagersCRUD() {
+      const rows = Array.from(document.querySelectorAll("#managersCRUDBody tr"));
+      delete window.masterData["Manager_Name"];
+      delete window.masterData["Manager_Phone"];
+      delete window.masterData["Superintendent_Name"];
+      delete window.masterData["Superintendent_Phone"];
+      
+      if (rows.length > 0) {
+        const row = rows[0];
+        const managerName = row.querySelector(".manager-name").value.trim();
+        const managerPhone = row.querySelector(".manager-phone").value.trim();
+        const superName = row.querySelector(".super-name").value.trim();
+        const superPhone = row.querySelector(".super-phone").value.trim();
+        if (managerName) window.masterData["Manager_Name"] = managerName;
+        if (managerPhone) window.masterData["Manager_Phone"] = managerPhone;
+        if (superName) window.masterData["Superintendent_Name"] = superName;
+        if (superPhone) window.masterData["Superintendent_Phone"] = superPhone;
+      }
+      
+      try { localStorage.setItem("masterDataCache", JSON.stringify(window.masterData)); } catch (e) {}
+      closeManagersCRUD();
+      alert("✓ Managers & Superintendents saved!");
+    }
+
+    function closeManagersCRUD() {
+      const backdrop = document.getElementById("managersCRUDBackdrop");
+      const modal = document.getElementById("managersCRUDModal");
+      if (backdrop) backdrop.style.display = "none";
+      if (modal) modal.style.display = "none";
+    }
+
+    document.getElementById("managersCRUDBackdrop")?.addEventListener('click', function(e) {
+      if (e.target === this) closeManagersCRUD();
+    });
+
+    // Lease Records Modal Functions
+    function getLeaseRecords() {
+      try {
+        return JSON.parse(localStorage.getItem("leaseRecords") || "[]");
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function setLeaseRecords(records) {
+      try {
+        localStorage.setItem("leaseRecords", JSON.stringify(records || []));
+      } catch (e) {}
+    }
+
+    function openLeasesCRUD() {
+      // Close all other modals first
+      closeAllModals();
+      
+      try {
+        const cached = localStorage.getItem("masterDataCache");
+        if (cached) window.masterData = JSON.parse(cached) || {};
+      } catch (e) {}
+      
+      const tbody = document.getElementById("leasesCRUDBody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      
+      const records = getLeaseRecords();
+      const leasesCount = records.length;
+      
+      // Update modal title with count
+      const titleEl = document.getElementById("leasesModalTitle");
+      if (titleEl) titleEl.textContent = `📋 Manage Leases (${leasesCount})`;
+      
+      if (records.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:#666;">No lease records found. Finalize a lease to create a record.</td></tr>`;
+      } else {
+        records.forEach((record, index) => {
+          const tr = document.createElement("tr");
+          tr.dataset.leaseIndex = index;
+          tr.innerHTML = `
+            <td style="padding: 4px; border: 1px solid #d1d5db;"><input type="text" value="${window.escapeHtml(record.Lease_ID || "")}" readonly style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" class="lease-id"></td>
+            <td style="padding: 4px; border: 1px solid #d1d5db;"><input type="text" value="${window.escapeHtml(record.Property_Tag || "")}" readonly style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" class="lease-property-tag"></td>
+            <td style="padding: 4px; border: 1px solid #d1d5db;"><input type="text" value="${window.escapeHtml(record.Landlord || "")}" readonly style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" class="lease-landlord"></td>
+            <td style="padding: 4px; border: 1px solid #d1d5db;"><textarea readonly style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; min-height: 40px; resize: vertical; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; box-sizing: border-box; font-family: inherit;" class="lease-tenants">${window.escapeHtml(record.Tenants || "")}</textarea></td>
+            <td style="padding: 4px; border: 1px solid #d1d5db;"><input type="text" value="${window.escapeHtml(record.Lease_Start_Date || "")}" readonly style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" class="lease-start"></td>
+            <td style="padding: 4px; border: 1px solid #d1d5db;"><input type="text" value="${window.escapeHtml(record.Lease_End_Date || "")}" readonly style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" class="lease-end"></td>
+            <td style="padding: 4px; border: 1px solid #d1d5db;"><input type="text" value="${window.escapeHtml(record.Monthly_Rent || "")}" readonly style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" class="lease-rent"></td>
+            <td style="padding: 4px; border: 1px solid #d1d5db;"><input type="text" value="${window.escapeHtml(record.Security_Deposit || "")}" readonly style="width: 100%; border: none; background: #f9fafb; padding: 4px; font-size: 13px; box-sizing: border-box;" class="lease-deposit"></td>
+            <td style="padding: 4px; border: 1px solid #d1d5db;"><textarea placeholder="Notes" style="width: 100%; border: none; background: #fff; padding: 4px; font-size: 13px; min-height: 40px; resize: vertical; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; box-sizing: border-box; font-family: inherit;" class="lease-notes">${window.escapeHtml(record.Notes || "")}</textarea></td>
+            <td style="padding: 4px; border: 1px solid #d1d5db; text-align: center;"><button class="pdf-button" style="background:#ef4444; padding: 4px 8px; font-size: 11px; border: none; cursor: pointer;" onclick="deleteLeaseRow(this)">🗑</button></td>`;
+          tbody.appendChild(tr);
+        });
+      }
+      
+      document.getElementById("leasesCRUDBackdrop").style.display = "block";
+      const leasesModal = document.getElementById("leasesCRUDModal");
+      leasesModal.style.display = "flex";
+      positionModalBelowHeader(leasesModal);
+      setTimeout(() => {
+        if (typeof window.initColumnResizers === 'function') {
+          window.initColumnResizers();
+        }
+      }, 100);
+    }
+
+    function deleteLeaseRow(btn) {
+      if (!confirm("Are you sure you want to delete this lease record?")) return;
+      const tr = btn.closest("tr");
+      const index = parseInt(tr.dataset.leaseIndex);
+      const records = getLeaseRecords();
+      records.splice(index, 1);
+      setLeaseRecords(records);
+      openLeasesCRUD();
+    }
+    
+    // Helper functions to update modal titles with counts
+    function updatePropertiesModalCount() {
+      const tbody = document.getElementById("propertiesCRUDBody");
+      if (!tbody) return;
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+      const count = rows.filter(row => {
+        const tag = row.querySelector(".prop-tag")?.value.trim();
+        const address = row.querySelector(".prop-address")?.value.trim();
+        const landlordName = row.querySelector(".prop-landlord-name")?.value.trim();
+        return tag || address || landlordName;
+      }).length;
+      const titleEl = document.getElementById("propertiesModalTitle");
+      if (titleEl) titleEl.textContent = `🏠 Manage Properties (${count})`;
+    }
+    
+    function updateTenantsModalCount() {
+      const tbody = document.getElementById("tenantsCRUDBody");
+      if (!tbody) return;
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+      const totalCount = rows.filter(row => {
+        const name = row.querySelector(".tenant-name")?.value.trim();
+        const email = row.querySelector(".tenant-email")?.value.trim();
+        const phone = row.querySelector(".tenant-phone")?.value.trim();
+        const address = row.querySelector(".tenant-address")?.value.trim();
+        const job = row.querySelector(".tenant-job")?.value.trim();
+        return name || email || phone || address || job;
+      }).length;
+      const activeCount = rows.filter(row => {
+        const statusSelect = row.querySelector(".tenant-current-status");
+        return statusSelect && statusSelect.value === "Active";
+      }).length;
+      const titleEl = document.getElementById("tenantsModalTitle");
+      if (titleEl) titleEl.textContent = `👥 Manage Tenants (${totalCount} total, ${activeCount} Active)`;
+    }
+    
+    function updateManagersModalCount() {
+      const tbody = document.getElementById("managersCRUDBody");
+      if (!tbody) return;
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+      const count = rows.filter(row => {
+        const managerName = row.querySelector(".manager-name")?.value.trim();
+        const managerPhone = row.querySelector(".manager-phone")?.value.trim();
+        const superName = row.querySelector(".super-name")?.value.trim();
+        const superPhone = row.querySelector(".super-phone")?.value.trim();
+        return managerName || managerPhone || superName || superPhone;
+      }).length;
+      const titleEl = document.getElementById("managersModalTitle");
+      if (titleEl) titleEl.textContent = `👔 Manage Managers & Superintendents (${count})`;
+    }
+    
+    function updateInspectionModalCount() {
+      const tbody = document.getElementById("inspectionReportCRUDBody");
+      if (!tbody) return;
+      const rows = tbody.querySelectorAll("tr[data-is-section-header='false']");
+      const count = rows.length;
+      const titleEl = document.getElementById("inspectionModalTitle");
+      if (titleEl) titleEl.textContent = `📋 Manage Inspection Report (${count})`;
+    }
+
+    function saveLeasesCRUD() {
+      const rows = Array.from(document.querySelectorAll("#leasesCRUDBody tr"));
+      const records = getLeaseRecords();
+      rows.forEach(row => {
+        const index = parseInt(row.dataset.leaseIndex);
+        if (index >= 0 && index < records.length) {
+          const notesTextarea = row.querySelector(".lease-notes");
+          if (notesTextarea) records[index].Notes = notesTextarea.value.trim();
+        }
+      });
+      setLeaseRecords(records);
+      closeLeasesCRUD();
+      alert("✓ Lease records updated!");
+    }
+
+    function clearAllLeaseRecords() {
+      if (confirm("Are you sure you want to delete ALL lease records? This cannot be undone.")) {
+        setLeaseRecords([]);
+        openLeasesCRUD();
+        alert("All lease records cleared!");
+      }
+    }
+
+    function closeLeasesCRUD() {
+      const backdrop = document.getElementById("leasesCRUDBackdrop");
+      const modal = document.getElementById("leasesCRUDModal");
+      if (backdrop) backdrop.style.display = "none";
+      if (modal) modal.style.display = "none";
+    }
+
+    document.getElementById("leasesCRUDBackdrop")?.addEventListener('click', function(e) {
+      if (e.target === this) closeLeasesCRUD();
+    });
+
+    // Inspection Report Modal Functions
+    function openInspectionReportCRUD() {
+      // Close all other modals first
+      closeAllModals();
+      
+      const tbody = document.getElementById("inspectionReportCRUDBody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      
+      try {
+        const savedData = localStorage.getItem("inspectionReportData");
+        if (savedData && typeof XLSX !== 'undefined') {
+          const wb = XLSX.read(savedData, { type: 'base64' });
+          const sheetName = wb.SheetNames.find(n => n.toLowerCase().includes("inspection")) || wb.SheetNames[0];
+          const sheet = wb.Sheets[sheetName];
+          if (sheet) {
+            const sheetData = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
+            loadInspectionReportData(sheetData);
+          }
+        } else {
+          appendInspectionRow({section: "", comment1: "", code1: "", comment2: "", code2: "", isSectionHeader: false});
+        }
+      } catch (e) {
+        console.error("Error loading inspection report:", e);
+        appendInspectionRow({section: "", comment1: "", code1: "", comment2: "", code2: "", isSectionHeader: false});
+      }
+      
+      // Update modal title with count (count non-section header rows)
+      setTimeout(() => {
+        const tbody = document.getElementById("inspectionReportCRUDBody");
+        if (tbody) {
+          const rows = tbody.querySelectorAll("tr[data-is-section-header='false']");
+          const inspectionCount = rows.length;
+          const titleEl = document.getElementById("inspectionModalTitle");
+          if (titleEl) titleEl.textContent = `📋 Manage Inspection Report (${inspectionCount})`;
+        }
+      }, 50);
+      
+      document.getElementById("inspectionReportCRUDBackdrop").style.display = "block";
+      const inspectionModal = document.getElementById("inspectionReportCRUDModal");
+      inspectionModal.style.display = "flex";
+      positionModalBelowHeader(inspectionModal);
+      setTimeout(() => {
+        if (typeof window.initColumnResizers === 'function') {
+          window.initColumnResizers();
+        }
+      }, 100);
+    }
+
+    function loadInspectionReportData(sheetData) {
+      const tbody = document.getElementById("inspectionReportCRUDBody");
+      if (!sheetData || sheetData.length === 0) return;
+      
+      let headerRowIndex = 5;
+      if (sheetData.length <= headerRowIndex) {
+        for (let i = 0; i < Math.min(10, sheetData.length); i++) {
+          const row = sheetData[i];
+          if (row && row.length >= 5) {
+            const firstCell = String(row[0] || "").trim().toLowerCase();
+            const secondCell = String(row[1] || "").trim().toLowerCase();
+            if (firstCell.includes("section") && (secondCell.includes("comment") || secondCell.includes("code"))) {
+              headerRowIndex = i;
+              break;
+            }
+          }
+        }
+      }
+      
+      let currentSection = "";
+      for (let i = headerRowIndex + 1; i < sheetData.length; i++) {
+        const row = sheetData[i];
+        if (!row || row.length === 0) continue;
+        const section = String(row[0] || "").trim();
+        const comment1 = String(row[1] || "").trim();
+        const code1 = String(row[2] || "").trim();
+        const comment2 = String(row[3] || "").trim();
+        const code2 = String(row[4] || "").trim();
+        const isSectionHeader = section && section.length > 0 && (!comment1 && !code1 && !comment2 && !code2) && (section.toLowerCase().includes("overall") || section.toLowerCase().includes("kitchen") || section.toLowerCase().includes("bathroom") || section.toLowerCase().includes("furniture") || section.toLowerCase().includes("refrigerator"));
+        if (isSectionHeader) {
+          currentSection = section;
+          appendInspectionRow({section: section, comment1: "", code1: "", comment2: "", code2: "", isSectionHeader: true});
+        } else if (section || comment1 || code1 || comment2 || code2) {
+          const fullSection = section || currentSection;
+          appendInspectionRow({section: fullSection, comment1: comment1, code1: code1, comment2: comment2, code2: code2, isSectionHeader: false});
+        }
+      }
+      
+      if (tbody.children.length === 0) {
+        appendInspectionRow({section: "", comment1: "", code1: "", comment2: "", code2: "", isSectionHeader: false});
+      }
+    }
+
+    function appendInspectionRow(data) {
+      const tbody = document.getElementById("inspectionReportCRUDBody");
+      const tr = document.createElement("tr");
+      tr.dataset.isSectionHeader = data.isSectionHeader ? "true" : "false";
+      
+      if (data.isSectionHeader) {
+        tr.style.backgroundColor = "#000080";
+        tr.style.color = "#fff";
+        tr.innerHTML = `
+          <td><input type="text" value="${window.escapeHtml(data.section || "")}" placeholder="Section Name" style="background:#000080; color:#fff; font-weight:bold; border:1px solid #fff;" class="inspection-section"></td>
+          <td colspan="4" style="font-style:italic; padding:4px 6px;">Section Header</td>
+          <td style="text-align:center;"><button class="pdf-button" style="background:#ef4444; padding:4px 8px; font-size:11px;" onclick="this.closest('tr').remove(); updateInspectionModalCount();">🗑</button></td>`;
+      } else {
+        tr.innerHTML = `
+          <td><input type="text" value="${window.escapeHtml(data.section || "")}" placeholder="Sections" class="inspection-section"></td>
+          <td><textarea placeholder="Comment" class="inspection-comment1">${window.escapeHtml(data.comment1 || "")}</textarea></td>
+          <td><input type="text" value="${window.escapeHtml(data.code1 || "")}" placeholder="Code" style="text-align:center;" class="inspection-code1"></td>
+          <td><textarea placeholder="Comment" class="inspection-comment2">${window.escapeHtml(data.comment2 || "")}</textarea></td>
+          <td><input type="text" value="${window.escapeHtml(data.code2 || "")}" placeholder="Code" style="text-align:center;" class="inspection-code2"></td>
+          <td style="text-align:center;"><button class="pdf-button" style="background:#ef4444; padding:4px 8px; font-size:11px;" onclick="this.closest('tr').remove(); updateInspectionModalCount();">🗑</button></td>`;
+      }
+      tbody.appendChild(tr);
+      if (!data.isSectionHeader) {
+        updateInspectionModalCount();
+      }
+    }
+
+    function addInspectionRow() {
+      appendInspectionRow({section: "", comment1: "", code1: "", comment2: "", code2: "", isSectionHeader: false});
+    }
+
+    function saveInspectionReportCRUD() {
+      if (typeof XLSX === 'undefined') {
+        alert("XLSX library not loaded. Cannot save inspection report.");
+        return;
+      }
+      const rows = Array.from(document.querySelectorAll("#inspectionReportCRUDBody tr"));
+      const sheetData = [];
+      for (let i = 0; i < 5; i++) sheetData.push(["", "", "", "", ""]);
+      sheetData.push(["Sections", "Comment", "Code", "Comment", "Code"]);
+      
+      rows.forEach(row => {
+        const isSectionHeader = row.dataset.isSectionHeader === "true";
+        const section = row.querySelector(".inspection-section").value.trim();
+        if (isSectionHeader) {
+          if (section) sheetData.push([section, "", "", "", ""]);
+        } else {
+          const comment1 = row.querySelector(".inspection-comment1").value.trim();
+          const code1 = row.querySelector(".inspection-code1").value.trim();
+          const comment2 = row.querySelector(".inspection-comment2").value.trim();
+          const code2 = row.querySelector(".inspection-code2").value.trim();
+          if (section || comment1 || code1 || comment2 || code2) {
+            sheetData.push([section, comment1, code1, comment2, code2]);
+          }
+        }
+      });
+      
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(sheetData);
+      ws['!cols'] = [{wch: 40}, {wch: 15}, {wch: 30}, {wch: 15}, {wch: 30}];
+      XLSX.utils.book_append_sheet(wb, ws, "Inspection_Report");
+      
+      try {
+        const wbBase64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+        localStorage.setItem("inspectionReportData", wbBase64);
+      } catch (e) {
+        console.error("Error saving inspection report:", e);
+      }
+      
+      closeInspectionReportCRUD();
+      alert("✓ Inspection Report saved!");
+    }
+
+    function closeInspectionReportCRUD() {
+      const backdrop = document.getElementById("inspectionReportCRUDBackdrop");
+      const modal = document.getElementById("inspectionReportCRUDModal");
+      if (backdrop) backdrop.style.display = "none";
+      if (modal) modal.style.display = "none";
+    }
+
+    document.getElementById("inspectionReportCRUDBackdrop")?.addEventListener('click', function(e) {
+      if (e.target === this) closeInspectionReportCRUD();
+    });
   </script>
 </body>
 </html>

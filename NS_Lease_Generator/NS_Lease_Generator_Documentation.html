@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NS Lease Generator - Complete Technical Documentation</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 1in;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f9fafb;
+        }
+        .document-container {
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            page-break-after: avoid;
+            font-size: 32px;
+        }
+        h2 {
+            color: #764ba2;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            page-break-after: avoid;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 8px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #555;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            page-break-after: avoid;
+            font-size: 18px;
+        }
+        h4 {
+            color: #666;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            page-break-after: avoid;
+            font-size: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            page-break-inside: avoid;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        tr:hover {
+            background-color: #f3f4f6;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e83e8c;
+        }
+        .code-block {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            overflow-x: auto;
+            page-break-inside: avoid;
+        }
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 35px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .section {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        .info-box {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+            page-break-inside: avoid;
+        }
+        .warning-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            page-break-inside: avoid;
+        }
+        .success-box {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            page-break-inside: avoid;
+        }
+        .toc {
+            background: #f9fafb;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 30px 0;
+            border: 2px solid #e5e7eb;
+            page-break-inside: avoid;
+        }
+        .toc h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin: 10px 0;
+        }
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            display: block;
+            padding: 5px 0;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+            color: #764ba2;
+        }
+        .app-link {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 15px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .app-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .flowchart {
+            background-color: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            page-break-inside: avoid;
+            font-size: 0.9em;
+        }
+        .diagram {
+            background: white;
+            border: 2px solid #e5e7eb;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            page-break-inside: avoid;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        .highlight {
+            background-color: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        @media print {
+            body {
+                background: white;
+            }
+            .document-container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="document-container">
+        <h1>NS Lease Form P Generator</h1>
+        <h2>Complete Technical Documentation</h2>
+        
+        <div class="info-box">
+            <strong>Document Version:</strong> 3.0<br>
+            <strong>Application Version:</strong> 3.0<br>
+            <strong>Last Updated:</strong> January 2025<br>
+            <strong>Technology Stack:</strong> HTML5, CSS3, JavaScript (ES6+), XLSX.js, jsPDF<br>
+            <strong>Browser Compatibility:</strong> Chrome, Firefox, Edge, Safari (latest versions)<br>
+            <strong>Main Application:</strong> <a href="NS_Lease_FormP_Generator.html" class="app-link">🚀 Open Lease Generator Application</a>
+        </div>
+
+        <div class="toc">
+            <h3>📑 Table of Contents</h3>
+            <ul>
+                <li><a href="#overview">1. Application Overview</a></li>
+                <li><a href="#features">2. Application Features</a></li>
+                <li><a href="#modules">3. Modules and Functions</a></li>
+                <li><a href="#data-dictionary">4. Data Dictionary</a></li>
+                <li><a href="#system-flow">5. System Flowchart</a></li>
+                <li><a href="#data-flow">6. Data Flow Diagram</a></li>
+                <li><a href="#architecture">7. System Architecture</a></li>
+                <li><a href="#user-guide">8. User Guide</a></li>
+                <li><a href="#technical-specs">9. Technical Specifications</a></li>
+            </ul>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- SECTION 1: APPLICATION OVERVIEW -->
+        <div id="overview" class="section">
+            <h2>1. Application Overview</h2>
+            
+            <h3>1.1 Purpose and Scope</h3>
+            <p>The <strong>NS Lease Form P Generator</strong> is a comprehensive web-based application designed to automate the creation and management of residential lease agreements in compliance with Nova Scotia's Residential Tenancies Act. The application streamlines the entire lease generation workflow, from data management to document creation.</p>
+            
+            <div class="info-box">
+                <strong>Primary Objectives:</strong>
+                <ul>
+                    <li>Automate Form P lease document generation (7-page standardized format)</li>
+                    <li>Centralize master data management (Properties, Tenants, Landlords, Managers)</li>
+                    <li>Maintain inspection reports with condition codes and detailed comments</li>
+                    <li>Track lease history and records with unique identifier generation</li>
+                    <li>Provide document management for lease-related files</li>
+                    <li>Support multi-tenant leases (up to 4 tenants and 4 occupants)</li>
+                </ul>
+            </div>
+
+            <h3>1.2 Key Capabilities</h3>
+            <ul>
+                <li><strong>Master Data Management:</strong> Complete CRUD operations for properties, tenants, landlords, managers, and inspection reports</li>
+                <li><strong>Intelligent Form Population:</strong> Auto-population from master data with smart defaults</li>
+                <li><strong>PDF Generation:</strong> Professional 7-page Form P lease documents with proper formatting</li>
+                <li><strong>Excel Integration:</strong> Import/export functionality for master data and lease records</li>
+                <li><strong>Tenancy Data Management:</strong> Document storage and management for leases, personal IDs, communications, and property images</li>
+                <li><strong>Active/Inactive Tenant Management:</strong> Filter tenants by active status in dropdowns</li>
+                <li><strong>Duplicate Name Handling:</strong> Automatic superscript assignment for duplicate tenant names</li>
+                <li><strong>Storage Management:</strong> Automatic cleanup and quota management for browser storage</li>
+            </ul>
+
+            <h3>1.3 Target Users</h3>
+            <ul>
+                <li><strong>Property Managers:</strong> Primary users managing multiple properties and tenants</li>
+                <li><strong>Landlords:</strong> Individual property owners managing their rental units</li>
+                <li><strong>Administrative Staff:</strong> Office personnel handling lease documentation</li>
+            </ul>
+
+            <h3>1.4 Compliance and Standards</h3>
+            <p>The application generates lease documents in compliance with:</p>
+            <ul>
+                <li>Nova Scotia Residential Tenancies Act</li>
+                <li>Form P standard lease format (7 pages)</li>
+                <li>Standard inspection report format with condition codes</li>
+            </ul>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- SECTION 2: APPLICATION FEATURES -->
+        <div id="features" class="section">
+            <h2>2. Application Features</h2>
+
+            <h3>2.1 Master Data Management</h3>
+            <h4>2.1.1 Properties Management</h4>
+            <ul>
+                <li>Add, edit, and delete property records</li>
+                <li>Property Tag (unique identifier)</li>
+                <li>Property Address</li>
+                <li>Linked Landlord information</li>
+                <li>Excel-style table interface with resizable columns</li>
+                <li>Data persistence in localStorage</li>
+            </ul>
+
+            <h4>2.1.2 Tenants Management</h4>
+            <ul>
+                <li>Complete tenant database with CRUD operations</li>
+                <li>Fields: Name, Email, Phone, Old Address, Job Description</li>
+                <li><strong>Active/Inactive Status:</strong> Checkbox to mark tenants as active or inactive</li>
+                <li><strong>Sorted Lists:</strong> Automatic alphabetical sorting in modals and dropdowns</li>
+                <li><strong>Dropdown Filtering:</strong> Only active tenants appear in lease form dropdowns</li>
+                <li><strong>Duplicate Name Handling:</strong> Automatic superscript assignment (¹, ², ³, etc.)</li>
+                <li>Support for up to 50 active tenants in dropdowns</li>
+            </ul>
+
+            <h4>2.1.3 Landlords Management</h4>
+            <ul>
+                <li>Landlord information linked to properties</li>
+                <li>Fields: Name, Address, Phone</li>
+                <li>Automatic association with properties</li>
+            </ul>
+
+            <h4>2.1.4 Managers & Superintendents</h4>
+            <ul>
+                <li>Property manager and superintendent contact information</li>
+                <li>Fields: Name, Phone, Email</li>
+                <li>Separate management from landlords</li>
+            </ul>
+
+            <h4>2.1.5 Inspection Reports</h4>
+            <ul>
+                <li>Detailed condition reports with sections</li>
+                <li>Condition codes: G (Good), F (Fair), P (Poor), N/A</li>
+                <li>Comments field for each section</li>
+                <li>Tooltips explaining condition codes</li>
+                <li>Automatic inclusion in lease PDF (Pages 6-7)</li>
+            </ul>
+
+            <h4>2.1.6 Lease Records</h4>
+            <ul>
+                <li>Track all finalized leases</li>
+                <li>Unique Lease ID generation (PropertyTag-Month-Sequence)</li>
+                <li>Edit notes for existing leases</li>
+                <li>Delete lease records</li>
+                <li>Export lease records to Excel</li>
+            </ul>
+
+            <h3>2.2 Lease Generation Features</h3>
+            <h4>2.2.1 Interactive Form</h4>
+            <ul>
+                <li>Step-by-step lease data entry</li>
+                <li>Dropdown selectors for properties, landlords, and tenants</li>
+                <li>Real-time form validation</li>
+                <li>Auto-population from master data</li>
+            </ul>
+
+            <h4>2.2.2 Smart Date Management</h4>
+            <ul>
+                <li><strong>Start Date:</strong> Defaults to first day of following month</li>
+                <li><strong>End Date:</strong> Defaults to 3 months after start date</li>
+                <li>All dates fully editable by user</li>
+                <li>Date formatting and validation</li>
+            </ul>
+
+            <h4>2.2.3 Rent and Deposit Calculation</h4>
+            <ul>
+                <li>Monthly rent input</li>
+                <li>Security deposit calculation (typically 0.5x monthly rent)</li>
+                <li>Support for various rent frequencies</li>
+                <li>Automatic deposit display</li>
+            </ul>
+
+            <h4>2.2.4 Lease ID Generation</h4>
+            <ul>
+                <li>Automatic unique identifier generation</li>
+                <li>Format: <code>PropertyTag-Month-Sequence</code> (e.g., 208AMA-Nov-001)</li>
+                <li>Sequential numbering per property per month</li>
+                <li>Persistent across sessions</li>
+            </ul>
+
+            <h4>2.2.5 Multi-Tenant Support</h4>
+            <ul>
+                <li>Support for up to 4 tenants per lease</li>
+                <li>Separate occupant management (up to 4 occupants)</li>
+                <li>Tenants and occupants can be different</li>
+                <li>Automatic name formatting with superscripts</li>
+            </ul>
+
+            <h3>2.3 Document Generation</h3>
+            <h4>2.3.1 PDF Generation</h4>
+            <ul>
+                <li>7-page Form P lease document</li>
+                <li>Professional formatting and layout</li>
+                <li>Automatic page numbering</li>
+                <li>Inspection report included (Pages 6-7)</li>
+                <li>Print-ready output</li>
+            </ul>
+
+            <h4>2.3.2 Excel Export</h4>
+            <ul>
+                <li><strong>Master Data Export:</strong> Complete master data with normalized sheets</li>
+                <li><strong>Current Lease Export:</strong> Current lease data with inspection report</li>
+                <li><strong>Lease Records Export:</strong> All finalized lease records</li>
+                <li><strong>Template Download:</strong> Excel templates for data entry</li>
+            </ul>
+
+            <h3>2.4 Tenancy Data Management</h3>
+            <h4>2.4.1 Document Storage</h4>
+            <ul>
+                <li><strong>Leases:</strong> Store lease-related documents (PDFs, images, etc.)</li>
+                <li><strong>Personal IDs:</strong> Store tenant identification documents</li>
+                <li><strong>Communications:</strong> Store communication records</li>
+                <li><strong>Property Images:</strong> Store property-specific images</li>
+            </ul>
+
+            <h4>2.4.2 File Management Features</h4>
+            <ul>
+                <li>Drag-and-drop file upload</li>
+                <li>Image compression (automatic for images)</li>
+                <li>File preview functionality</li>
+                <li>Download files</li>
+                <li>Delete files</li>
+                <li>Reorder files (move up/down)</li>
+                <li>Table view with columns: NAME, TYPE, SIZE, ADDED, ACTIONS</li>
+            </ul>
+
+            <h4>2.4.3 Storage Management</h4>
+            <ul>
+                <li>Automatic storage quota management</li>
+                <li>Automatic cleanup of old files when storage is full</li>
+                <li>Storage usage display</li>
+                <li>Non-blocking error notifications</li>
+            </ul>
+
+            <h3>2.5 User Interface Features</h3>
+            <ul>
+                <li><strong>Responsive Design:</strong> Works on desktop and tablet devices</li>
+                <li><strong>Modern UI:</strong> Gradient backgrounds, smooth animations, hover effects</li>
+                <li><strong>Modal Dialogs:</strong> Excel-style tables in modals for data management</li>
+                <li><strong>Column Resizing:</strong> Resizable table columns with persistence</li>
+                <li><strong>Notifications:</strong> Non-blocking upload and error notifications</li>
+                <li><strong>Tabbed Interface:</strong> Organized tenancy data management with tabs</li>
+                <li><strong>Search and Filter:</strong> Active tenant filtering in dropdowns</li>
+            </ul>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- SECTION 3: MODULES AND FUNCTIONS -->
+        <div id="modules" class="section">
+            <h2>3. Modules and Functions</h2>
+
+            <h3>3.1 Data Management Module</h3>
+            <table>
+                <tr>
+                    <th>Function</th>
+                    <th>Description</th>
+                    <th>Parameters</th>
+                </tr>
+                <tr>
+                    <td><code>setupFileUpload()</code></td>
+                    <td>Initializes Excel file upload handler, processes Property, Tenant, Manager, Inspection Report, and Lease Records sheets</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td><code>validateExcel(map)</code></td>
+                    <td>Validates uploaded Excel data structure and required fields</td>
+                    <td>map: Object containing sheet data</td>
+                </tr>
+                <tr>
+                    <td><code>convertNormalizedToFlat(propertySheet, tenantSheet, managerSuperSheet)</code></td>
+                    <td>Converts normalized Excel sheet structure to flat masterData format</td>
+                    <td>Three sheet data arrays</td>
+                </tr>
+                <tr>
+                    <td><code>convertFlatToNormalized(flatMap)</code></td>
+                    <td>Converts flat masterData format to normalized Excel sheet structure</td>
+                    <td>flatMap: Flat data object</td>
+                </tr>
+                <tr>
+                    <td><code>populateSelectors(map)</code></td>
+                    <td>Populates all form dropdowns from master data</td>
+                    <td>map: Master data object</td>
+                </tr>
+            </table>
+
+            <h3>3.2 CRUD Operations Module</h3>
+            <table>
+                <tr>
+                    <th>Function</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                </tr>
+                <tr>
+                    <td><code>openPropertiesCRUD()</code></td>
+                    <td>Opens Properties management modal</td>
+                    <td>Properties</td>
+                </tr>
+                <tr>
+                    <td><code>addPropertyRow()</code></td>
+                    <td>Adds new property row to table</td>
+                    <td>Properties</td>
+                </tr>
+                <tr>
+                    <td><code>savePropertiesCRUD()</code></td>
+                    <td>Saves property changes to masterData</td>
+                    <td>Properties</td>
+                </tr>
+                <tr>
+                    <td><code>openTenantsCRUD()</code></td>
+                    <td>Opens Tenants management modal with active/inactive status</td>
+                    <td>Tenants</td>
+                </tr>
+                <tr>
+                    <td><code>addTenantRow()</code></td>
+                    <td>Adds new tenant row (defaults to active)</td>
+                    <td>Tenants</td>
+                </tr>
+                <tr>
+                    <td><code>saveTenantsCRUD()</code></td>
+                    <td>Saves tenant changes, applies superscripts, updates dropdowns</td>
+                    <td>Tenants</td>
+                </tr>
+                <tr>
+                    <td><code>openManagersCRUD()</code></td>
+                    <td>Opens Managers/Superintendents management modal</td>
+                    <td>Managers</td>
+                </tr>
+                <tr>
+                    <td><code>openLeasesCRUD()</code></td>
+                    <td>Opens Lease Records management modal</td>
+                    <td>Leases</td>
+                </tr>
+                <tr>
+                    <td><code>openInspectionReportCRUD()</code></td>
+                    <td>Opens Inspection Report management modal</td>
+                    <td>Inspection</td>
+                </tr>
+            </table>
+
+            <h3>3.3 Lease Generation Module</h3>
+            <table>
+                <tr>
+                    <th>Function</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>populateFormFields()</code></td>
+                    <td>Auto-populates form fields from selected property/tenant data</td>
+                </tr>
+                <tr>
+                    <td><code>updateLeaseDates()</code></td>
+                    <td>Updates lease start/end dates with smart defaults</td>
+                </tr>
+                <tr>
+                    <td><code>updateRentFields()</code></td>
+                    <td>Updates rent-related fields and calculations</td>
+                </tr>
+                <tr>
+                    <td><code>updateDepositDisplay()</code></td>
+                    <td>Calculates and displays security deposit</td>
+                </tr>
+                <tr>
+                    <td><code>generateUniqueLeaseId(propertyTag)</code></td>
+                    <td>Generates unique lease ID in format PropertyTag-Month-Sequence</td>
+                </tr>
+                <tr>
+                    <td><code>finalizeLease()</code></td>
+                    <td>Finalizes lease, saves to records, increments counter</td>
+                </tr>
+                <tr>
+                    <td><code>generatePDF()</code></td>
+                    <td>Generates 7-page PDF lease document using jsPDF</td>
+                </tr>
+            </table>
+
+            <h3>3.4 Tenant Name Processing Module</h3>
+            <table>
+                <tr>
+                    <th>Function</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>addSuperscriptsToDuplicateNames(tenants)</code></td>
+                    <td>Adds superscripts (¹, ², ³, etc.) to duplicate tenant names based on Tenants sheet order</td>
+                </tr>
+            </table>
+
+            <h3>3.5 Tenancy Data Management Module</h3>
+            <table>
+                <tr>
+                    <th>Function</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>openTenancyDataManager()</code></td>
+                    <td>Opens tenancy data management modal with tabs</td>
+                </tr>
+                <tr>
+                    <td><code>switchTenancyTab(tabName)</code></td>
+                    <td>Switches between Leases, Personal IDs, Communications, Property Images tabs</td>
+                </tr>
+                <tr>
+                    <td><code>handleTenancyFileUpload(event)</code></td>
+                    <td>Handles file uploads with compression for images</td>
+                </tr>
+                <tr>
+                    <td><code>handleTenancyFileDrop(event)</code></td>
+                    <td>Handles drag-and-drop file uploads</td>
+                </tr>
+                <tr>
+                    <td><code>compressImage(file, maxWidth, maxHeight, quality)</code></td>
+                    <td>Compresses images to reduce storage size</td>
+                </tr>
+                <tr>
+                    <td><code>renderLeasesTable()</code></td>
+                    <td>Renders leases table with NAME, TYPE, SIZE, ADDED, ACTIONS columns</td>
+                </tr>
+                <tr>
+                    <td><code>moveLeaseItem(id, direction)</code></td>
+                    <td>Moves lease items up or down in the list</td>
+                </tr>
+                <tr>
+                    <td><code>deleteTenancyItem(category, id)</code></td>
+                    <td>Deletes items from tenancy data categories</td>
+                </tr>
+                <tr>
+                    <td><code>downloadTenancyFile(category, id)</code></td>
+                    <td>Downloads files from tenancy data</td>
+                </tr>
+                <tr>
+                    <td><code>saveTenancyData()</code></td>
+                    <td>Saves tenancy data to localStorage with automatic cleanup</td>
+                </tr>
+                <tr>
+                    <td><code>loadTenancyData()</code></td>
+                    <td>Loads tenancy data from localStorage</td>
+                </tr>
+            </table>
+
+            <h3>3.6 Export/Download Module</h3>
+            <table>
+                <tr>
+                    <th>Function</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>generateExcelTemplate()</code></td>
+                    <td>Generates Excel template with Property, Tenant, Manager sheets</td>
+                </tr>
+                <tr>
+                    <td><code>downloadCurrentLease()</code></td>
+                    <td>Exports current lease data with inspection report to Excel</td>
+                </tr>
+                <tr>
+                    <td><code>downloadLeaseRecords()</code></td>
+                    <td>Exports all lease records to Excel</td>
+                </tr>
+                <tr>
+                    <td><code>downloadEditedMaster()</code></td>
+                    <td>Exports edited master data to Excel with normalized sheets</td>
+                </tr>
+            </table>
+
+            <h3>3.7 Utility Functions Module</h3>
+            <table>
+                <tr>
+                    <th>Function</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>formatDate(dateString)</code></td>
+                    <td>Formats date string to readable format</td>
+                </tr>
+                <tr>
+                    <td><code>getMonthAbbrevUpper(dateObj)</code></td>
+                    <td>Gets uppercase month abbreviation</td>
+                </tr>
+                <tr>
+                    <td><code>pad3(n)</code></td>
+                    <td>Pads number to 3 digits with leading zeros</td>
+                </tr>
+                <tr>
+                    <td><code>escapeHtml(text)</code></td>
+                    <td>Escapes HTML special characters</td>
+                </tr>
+                <tr>
+                    <td><code>formatFileSize(bytes)</code></td>
+                    <td>Formats file size to human-readable format</td>
+                </tr>
+                <tr>
+                    <td><code>getStorageUsage()</code></td>
+                    <td>Calculates current localStorage usage</td>
+                </tr>
+                <tr>
+                    <td><code>formatStorageSize(bytes)</code></td>
+                    <td>Formats storage size to human-readable format</td>
+                </tr>
+                <tr>
+                    <td><code>isImageFile(filename)</code></td>
+                    <td>Checks if file is an image</td>
+                </tr>
+                <tr>
+                    <td><code>getFileType(filename)</code></td>
+                    <td>Gets file type from filename</td>
+                </tr>
+                <tr>
+                    <td><code>showUploadNotification(message, type)</code></td>
+                    <td>Shows non-blocking upload notification</td>
+                </tr>
+                <tr>
+                    <td><code>hideUploadNotification()</code></td>
+                    <td>Hides upload notification</td>
+                </tr>
+            </table>
+
+            <h3>3.8 Column Resizer Module</h3>
+            <table>
+                <tr>
+                    <th>Function</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>initColumnResizers()</code></td>
+                    <td>Initializes column resizing functionality for tables</td>
+                </tr>
+                <tr>
+                    <td><code>startResize(e, resizer)</code></td>
+                    <td>Starts column resize operation</td>
+                </tr>
+                <tr>
+                    <td><code>doResize(e)</code></td>
+                    <td>Performs column resize during drag</td>
+                </tr>
+                <tr>
+                    <td><code>stopResize()</code></td>
+                    <td>Stops column resize and saves width to localStorage</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- SECTION 4: DATA DICTIONARY -->
+        <div id="data-dictionary" class="section">
+            <h2>4. Data Dictionary</h2>
+
+            <h3>4.1 Master Data Structure (masterData)</h3>
+            <p>The masterData object uses a flat key-value structure for efficient access:</p>
+            
+            <h4>4.1.1 Property Fields</h4>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Example</th>
+                </tr>
+                <tr>
+                    <td><code>Property_{N}_Tag</code></td>
+                    <td>String</td>
+                    <td>Unique property identifier</td>
+                    <td>"208AMA"</td>
+                </tr>
+                <tr>
+                    <td><code>Property_{N}_Address</code></td>
+                    <td>String</td>
+                    <td>Full property address</td>
+                    <td>"123 Main St, Halifax, NS"</td>
+                </tr>
+                <tr>
+                    <td><code>Property_{N}_Landlord_Name</code></td>
+                    <td>String</td>
+                    <td>Landlord name linked to property</td>
+                    <td>"John Smith"</td>
+                </tr>
+            </table>
+
+            <h4>4.1.2 Tenant Fields</h4>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Example</th>
+                </tr>
+                <tr>
+                    <td><code>Tenant_{N}_Name</code></td>
+                    <td>String</td>
+                    <td>Tenant full name</td>
+                    <td>"Jane Doe"</td>
+                </tr>
+                <tr>
+                    <td><code>Tenant_{N}_Email</code></td>
+                    <td>String</td>
+                    <td>Tenant email address</td>
+                    <td>"jane@example.com"</td>
+                </tr>
+                <tr>
+                    <td><code>Tenant_{N}_Phone</code></td>
+                    <td>String</td>
+                    <td>Tenant phone number</td>
+                    <td>"902-555-1234"</td>
+                </tr>
+                <tr>
+                    <td><code>Tenant_{N}_Old_Address</code></td>
+                    <td>String</td>
+                    <td>Previous address</td>
+                    <td>"456 Oak Ave"</td>
+                </tr>
+                <tr>
+                    <td><code>Tenant_{N}_Job_Desc</code></td>
+                    <td>String</td>
+                    <td>Job description</td>
+                    <td>"Software Developer"</td>
+                </tr>
+                <tr>
+                    <td><code>Tenant_{N}_Active</code></td>
+                    <td>Boolean/String</td>
+                    <td>Active status (1/0 or true/false)</td>
+                    <td>"1" or true</td>
+                </tr>
+            </table>
+
+            <h4>4.1.3 Manager Fields</h4>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>Manager_{N}_Name</code></td>
+                    <td>String</td>
+                    <td>Manager/Superintendent name</td>
+                </tr>
+                <tr>
+                    <td><code>Manager_{N}_Phone</code></td>
+                    <td>String</td>
+                    <td>Manager phone number</td>
+                </tr>
+                <tr>
+                    <td><code>Manager_{N}_Email</code></td>
+                    <td>String</td>
+                    <td>Manager email address</td>
+                </tr>
+            </table>
+
+            <h3>4.2 Lease Records Structure</h3>
+            <table>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>Lease_ID</code></td>
+                    <td>String</td>
+                    <td>Unique lease identifier (PropertyTag-Month-Sequence)</td>
+                </tr>
+                <tr>
+                    <td><code>Property_Tag</code></td>
+                    <td>String</td>
+                    <td>Property identifier</td>
+                </tr>
+                <tr>
+                    <td><code>Landlord</code></td>
+                    <td>String</td>
+                    <td>Landlord name</td>
+                </tr>
+                <tr>
+                    <td><code>Tenants</code></td>
+                    <td>String</td>
+                    <td>Comma-separated tenant names</td>
+                </tr>
+                <tr>
+                    <td><code>Lease_Start_Date</code></td>
+                    <td>String</td>
+                    <td>Lease start date</td>
+                </tr>
+                <tr>
+                    <td><code>Lease_End_Date</code></td>
+                    <td>String</td>
+                    <td>Lease end date</td>
+                </tr>
+                <tr>
+                    <td><code>Monthly_Rent</code></td>
+                    <td>Number</td>
+                    <td>Monthly rent amount</td>
+                </tr>
+                <tr>
+                    <td><code>Security_Deposit</code></td>
+                    <td>Number</td>
+                    <td>Security deposit amount</td>
+                </tr>
+                <tr>
+                    <td><code>Notes</code></td>
+                    <td>String</td>
+                    <td>Additional notes (editable)</td>
+                </tr>
+            </table>
+
+            <h3>4.3 Tenancy Data Structure (tenancyData)</h3>
+            <table>
+                <tr>
+                    <th>Category</th>
+                    <th>Structure</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>leases</code></td>
+                    <td>Array of objects</td>
+                    <td>Lease-related documents</td>
+                </tr>
+                <tr>
+                    <td><code>personalIds</code></td>
+                    <td>Array of objects</td>
+                    <td>Personal identification documents</td>
+                </tr>
+                <tr>
+                    <td><code>communications</code></td>
+                    <td>Array of objects</td>
+                    <td>Communication records</td>
+                </tr>
+                <tr>
+                    <td><code>images</code></td>
+                    <td>Array of objects</td>
+                    <td>Property images</td>
+                </tr>
+            </table>
+
+            <h4>4.3.1 Tenancy Data Item Structure</h4>
+            <table>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>id</code></td>
+                    <td>Number</td>
+                    <td>Unique identifier</td>
+                </tr>
+                <tr>
+                    <td><code>name</code></td>
+                    <td>String</td>
+                    <td>File name</td>
+                </tr>
+                <tr>
+                    <td><code>type</code></td>
+                    <td>String</td>
+                    <td>MIME type</td>
+                </tr>
+                <tr>
+                    <td><code>size</code></td>
+                    <td>String</td>
+                    <td>Formatted file size</td>
+                </tr>
+                <tr>
+                    <td><code>sizeBytes</code></td>
+                    <td>Number</td>
+                    <td>File size in bytes</td>
+                </tr>
+                <tr>
+                    <td><code>added</code></td>
+                    <td>String</td>
+                    <td>Date added (localized string)</td>
+                </tr>
+                <tr>
+                    <td><code>base64</code></td>
+                    <td>String</td>
+                    <td>Base64 encoded file data</td>
+                </tr>
+                <tr>
+                    <td><code>file</code></td>
+                    <td>Blob/File</td>
+                    <td>File object (in memory only)</td>
+                </tr>
+                <tr>
+                    <td><code>category</code></td>
+                    <td>String</td>
+                    <td>Category: 'leases', 'personalIds', 'communications', 'images'</td>
+                </tr>
+                <tr>
+                    <td><code>leaseId</code></td>
+                    <td>String</td>
+                    <td>Associated lease ID (for leases category)</td>
+                </tr>
+                <tr>
+                    <td><code>tenantName</code></td>
+                    <td>String</td>
+                    <td>Associated tenant name (for personalIds category)</td>
+                </tr>
+                <tr>
+                    <td><code>propertyTag</code></td>
+                    <td>String</td>
+                    <td>Property tag (for images category)</td>
+                </tr>
+            </table>
+
+            <h3>4.4 Inspection Report Structure</h3>
+            <table>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>Section</code></td>
+                    <td>String</td>
+                    <td>Inspection section name</td>
+                </tr>
+                <tr>
+                    <td><code>Condition</code></td>
+                    <td>String</td>
+                    <td>Condition code: G, F, P, N/A</td>
+                </tr>
+                <tr>
+                    <td><code>Comments</code></td>
+                    <td>String</td>
+                    <td>Additional comments</td>
+                </tr>
+            </table>
+
+            <h3>4.5 LocalStorage Keys</h3>
+            <table>
+                <tr>
+                    <th>Key</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>masterData</code></td>
+                    <td>JSON String</td>
+                    <td>Master data object</td>
+                </tr>
+                <tr>
+                    <td><code>leaseRecords</code></td>
+                    <td>JSON String</td>
+                    <td>Array of lease records</td>
+                </tr>
+                <tr>
+                    <td><code>tenancyData</code></td>
+                    <td>JSON String</td>
+                    <td>Tenancy data object</td>
+                </tr>
+                <tr>
+                    <td><code>leaseStartDate</code></td>
+                    <td>String</td>
+                    <td>Last used lease start date</td>
+                </tr>
+                <tr>
+                    <td><code>columnWidths_{tableId}</code></td>
+                    <td>JSON String</td>
+                    <td>Saved column widths for tables</td>
+                </tr>
+                <tr>
+                    <td><code>leaseCounter_{propertyTag}_{month}</code></td>
+                    <td>Number</td>
+                    <td>Lease sequence counter</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- SECTION 5: SYSTEM FLOWCHART -->
+        <div id="system-flow" class="section">
+            <h2>5. System Flowchart</h2>
+
+            <h3>5.1 Application Initialization Flow</h3>
+            <div class="flowchart">
+START
+  │
+  ├─→ Load HTML/CSS/JavaScript
+  │
+  ├─→ Initialize Event Listeners
+  │   ├─→ File Upload Handler
+  │   ├─→ Form Change Handlers
+  │   ├─→ Button Click Handlers
+  │   └─→ Column Resizers
+  │
+  ├─→ Load Data from localStorage
+  │   ├─→ masterData
+  │   ├─→ leaseRecords
+  │   ├─→ tenancyData
+  │   └─→ Column Widths
+  │
+  ├─→ Populate Form Dropdowns
+  │   ├─→ Property Selector
+  │   ├─→ Landlord Selector
+  │   ├─→ Tenant Selectors (Active only)
+  │   └─→ Occupant Selectors
+  │
+  └─→ READY STATE
+            </div>
+
+            <h3>5.2 Master Data Upload Flow</h3>
+            <div class="flowchart">
+START (User clicks Upload Master Data)
+  │
+  ├─→ User selects Excel file
+  │
+  ├─→ Read Excel file (XLSX.js)
+  │
+  ├─→ Extract Sheets
+  │   ├─→ Properties Sheet
+  │   ├─→ Tenants Sheet
+  │   ├─→ Managers Sheet
+  │   ├─→ Inspection Report Sheet (optional)
+  │   └─→ Lease Records Sheet (optional)
+  │
+  ├─→ Validate Data Structure
+  │   ├─→ Check required fields
+  │   └─→ Validate data types
+  │
+  ├─→ Convert to masterData Format
+  │   ├─→ Normalized → Flat conversion
+  │   └─→ Store in masterData object
+  │
+  ├─→ Process Tenants
+  │   ├─→ Add superscripts to duplicates
+  │   ├─→ Sort alphabetically
+  │   └─→ Filter active/inactive
+  │
+  ├─→ Save to localStorage
+  │
+  ├─→ Populate Form Dropdowns
+  │
+  └─→ Display Success Message
+            </div>
+
+            <h3>5.3 Lease Generation Flow</h3>
+            <div class="flowchart">
+START (User fills lease form)
+  │
+  ├─→ Select Property
+  │   └─→ Auto-populate Landlord
+  │
+  ├─→ Select Tenants (1-4)
+  │   └─→ Apply superscripts if duplicates
+  │
+  ├─→ Enter Lease Details
+  │   ├─→ Start Date (defaults to next month)
+  │   ├─→ End Date (defaults to +3 months)
+  │   ├─→ Monthly Rent
+  │   └─→ Security Deposit (auto-calculated)
+  │
+  ├─→ Generate Lease ID
+  │   ├─→ Format: PropertyTag-Month-Sequence
+  │   └─→ Increment counter
+  │
+  ├─→ User clicks "Generate PDF"
+  │
+  ├─→ Extract Form Data
+  │
+  ├─→ Extract Inspection Report
+  │
+  ├─→ Generate PDF (jsPDF)
+  │   ├─→ Page 1: Parties, Occupants, Property
+  │   ├─→ Page 2: Electronic Address, Dates, Rent
+  │   ├─→ Page 3: Signatures
+  │   ├─→ Page 4-5: Additional Terms
+  │   ├─→ Page 6: Inspection Report
+  │   └─→ Page 7: Inspection Acknowledgment
+  │
+  ├─→ Download PDF
+  │
+  ├─→ Finalize Lease (optional)
+  │   ├─→ Save to leaseRecords
+  │   └─→ Increment counter
+  │
+  └─→ END
+            </div>
+
+            <h3>5.4 File Upload Flow (Tenancy Data)</h3>
+            <div class="flowchart">
+START (User uploads file)
+  │
+  ├─→ Check File Type
+  │   ├─→ Image? → Compress
+  │   └─→ Other? → Store as-is
+  │
+  ├─→ Process File
+  │   ├─→ Images: Compress (800x600, 60% quality)
+  │   ├─→ Convert to Base64
+  │   └─→ Calculate size
+  │
+  ├─→ Create File Data Object
+  │   ├─→ Generate unique ID
+  │   ├─→ Store metadata
+  │   └─→ Store base64 data
+  │
+  ├─→ Add to tenancyData
+  │   ├─→ leases
+  │   ├─→ personalIds
+  │   ├─→ communications
+  │   └─→ images
+  │
+  ├─→ Try Save to localStorage
+  │   ├─→ Success? → Refresh display
+  │   └─→ QuotaExceededError?
+  │       ├─→ Auto-cleanup old files
+  │       ├─→ Retry save
+  │       └─→ Show notification
+  │
+  └─→ END
+            </div>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- SECTION 6: DATA FLOW DIAGRAM -->
+        <div id="data-flow" class="section">
+            <h2>6. Data Flow Diagram</h2>
+
+            <h3>6.1 Master Data Flow</h3>
+            <div class="diagram">
+                <strong>Excel File</strong> → [Upload Handler] → <strong>Sheet Data</strong> → [Validation] → <strong>Normalized Data</strong> → [Conversion] → <strong>masterData Object</strong> → [localStorage] → <strong>Persistent Storage</strong>
+                <br><br>
+                <strong>masterData</strong> → [Populate Selectors] → <strong>Form Dropdowns</strong> → [User Selection] → <strong>Form Fields</strong>
+            </div>
+
+            <h3>6.2 Lease Generation Data Flow</h3>
+            <div class="diagram">
+                <strong>Form Inputs</strong> → [Data Extraction] → <strong>Lease Data Object</strong> → [PDF Generation] → <strong>PDF Document</strong> → [Download]
+                <br><br>
+                <strong>Lease Data</strong> → [Finalize] → <strong>leaseRecords Array</strong> → [localStorage] → <strong>Persistent Storage</strong>
+            </div>
+
+            <h3>6.3 Tenancy Data Flow</h3>
+            <div class="diagram">
+                <strong>File Upload</strong> → [File Processing] → <strong>File Data Object</strong> → [Compression if Image] → <strong>Base64 Data</strong> → [tenancyData Object] → [localStorage] → <strong>Persistent Storage</strong>
+                <br><br>
+                <strong>tenancyData</strong> → [Render Functions] → <strong>UI Display</strong> → [User Actions] → <strong>Updates</strong> → [Save] → <strong>localStorage</strong>
+            </div>
+
+            <h3>6.4 Data Export Flow</h3>
+            <div class="diagram">
+                <strong>masterData / leaseRecords</strong> → [Convert to Normalized] → <strong>Sheet Arrays</strong> → [XLSX.js] → <strong>Excel Workbook</strong> → [Download]
+            </div>
+
+            <h3>6.5 Data Persistence Flow</h3>
+            <div class="diagram">
+                <strong>Application State</strong>
+                <br>│
+                <br>├─→ <strong>masterData</strong> → localStorage → <strong>Persistent</strong>
+                <br>├─→ <strong>leaseRecords</strong> → localStorage → <strong>Persistent</strong>
+                <br>├─→ <strong>tenancyData</strong> → localStorage → <strong>Persistent</strong>
+                <br>└─→ <strong>UI State</strong> (column widths, dates) → localStorage → <strong>Persistent</strong>
+                <br><br>
+                <strong>On Load:</strong> localStorage → [Parse JSON] → <strong>Application State</strong>
+            </div>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- SECTION 7: SYSTEM ARCHITECTURE -->
+        <div id="architecture" class="section">
+            <h2>7. System Architecture</h2>
+
+            <h3>7.1 Technology Stack</h3>
+            <table>
+                <tr>
+                    <th>Layer</th>
+                    <th>Technology</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>Frontend Framework</td>
+                    <td>HTML5, CSS3, JavaScript (ES6+)</td>
+                    <td>Core application structure and logic</td>
+                </tr>
+                <tr>
+                    <td>PDF Generation</td>
+                    <td>jsPDF</td>
+                    <td>Generate 7-page Form P lease documents</td>
+                </tr>
+                <tr>
+                    <td>Excel Processing</td>
+                    <td>XLSX.js (SheetJS)</td>
+                    <td>Read/write Excel files</td>
+                </tr>
+                <tr>
+                    <td>Data Storage</td>
+                    <td>localStorage API</td>
+                    <td>Client-side data persistence</td>
+                </tr>
+                <tr>
+                    <td>File Processing</td>
+                    <td>File API, Blob API</td>
+                    <td>Handle file uploads and downloads</td>
+                </tr>
+                <tr>
+                    <td>Image Processing</td>
+                    <td>Canvas API</td>
+                    <td>Image compression</td>
+                </tr>
+            </table>
+
+            <h3>7.2 Application Structure</h3>
+            <div class="code-block">
+NS_Lease_FormP_Generator.html
+│
+├── HTML Structure
+│   ├── Header Section
+│   │   ├── Logo/Image
+│   │   └── Title
+│   │
+│   ├── Control Panel
+│   │   ├── Upload Master Data Button
+│   │   ├── Generate Excel Template Button
+│   │   ├── Download Current Lease Button
+│   │   ├── Download Lease Records Button
+│   │   ├── Manage Master Records Dropdown
+│   │   │   ├── Properties
+│   │   │   ├── Tenants
+│   │   │   ├── Landlords
+│   │   │   ├── Managers
+│   │   │   ├── Leases
+│   │   │   └── Inspection Report
+│   │   ├── Manage Tenancy Data Button
+│   │   └── Documentation Link
+│   │
+│   ├── Form Section
+│   │   ├── Property Selector
+│   │   ├── Landlord Selector
+│   │   ├── Tenant Selectors (1-4)
+│   │   ├── Occupant Selectors (1-4)
+│   │   ├── Date Fields
+│   │   ├── Rent Fields
+│   │   └── Generate PDF Button
+│   │
+│   └── PDF Preview Area (Hidden)
+│
+├── CSS Styles
+│   ├── Layout Styles
+│   ├── Component Styles
+│   ├── Modal Styles
+│   ├── Table Styles
+│   ├── Animation Styles
+│   └── Print Styles
+│
+└── JavaScript Code
+    ├── Global Variables
+    │   ├── masterData
+    │   ├── tenancyData
+    │   └── leaseRecords
+    │
+    ├── Initialization Functions
+    ├── Data Management Functions
+    ├── CRUD Functions
+    ├── Form Population Functions
+    ├── PDF Generation Functions
+    ├── Export Functions
+    ├── Tenancy Data Functions
+    ├── Utility Functions
+    └── Event Handlers
+            </div>
+
+            <h3>7.3 Component Architecture</h3>
+            <h4>7.3.1 Modal Components</h4>
+            <ul>
+                <li><strong>Properties CRUD Modal:</strong> Excel-style table for property management</li>
+                <li><strong>Tenants CRUD Modal:</strong> Excel-style table with Active checkbox</li>
+                <li><strong>Managers CRUD Modal:</strong> Excel-style table for manager data</li>
+                <li><strong>Leases CRUD Modal:</strong> Excel-style table for lease records</li>
+                <li><strong>Inspection Report CRUD Modal:</strong> Excel-style table with condition codes</li>
+                <li><strong>Tenancy Data Manager Modal:</strong> Tabbed interface for document management</li>
+            </ul>
+
+            <h4>7.3.2 Data Components</h4>
+            <ul>
+                <li><strong>masterData Object:</strong> Central data store for properties, tenants, managers</li>
+                <li><strong>leaseRecords Array:</strong> Collection of finalized lease records</li>
+                <li><strong>tenancyData Object:</strong> Document storage for leases, IDs, communications, images</li>
+            </ul>
+
+            <h3>7.4 Storage Architecture</h3>
+            <h4>7.4.1 localStorage Structure</h4>
+            <ul>
+                <li><strong>Key-Value Pairs:</strong> All data stored as JSON strings</li>
+                <li><strong>Quota Management:</strong> Automatic cleanup when storage is full</li>
+                <li><strong>Data Compression:</strong> Images compressed before storage</li>
+                <li><strong>Size Limits:</strong> Browser-dependent (typically 5-10MB)</li>
+            </ul>
+
+            <h4>7.4.2 Data Persistence Strategy</h4>
+            <ul>
+                <li><strong>Immediate Save:</strong> Data saved immediately after changes</li>
+                <li><strong>Auto-load:</strong> Data loaded on application start</li>
+                <li><strong>Error Handling:</strong> Graceful handling of storage quota errors</li>
+                <li><strong>Cleanup:</strong> Automatic removal of oldest files when needed</li>
+            </ul>
+
+            <h3>7.5 Module Dependencies</h3>
+            <div class="diagram">
+                <strong>Core Application</strong>
+                <br>│
+                <br>├─→ <strong>XLSX.js</strong> (Excel processing)
+                <br>├─→ <strong>jsPDF</strong> (PDF generation)
+                <br>├─→ <strong>localStorage API</strong> (Data persistence)
+                <br>├─→ <strong>File API</strong> (File handling)
+                <br>├─→ <strong>Canvas API</strong> (Image compression)
+                <br>└─→ <strong>DOM API</strong> (UI manipulation)
+            </div>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- SECTION 8: USER GUIDE -->
+        <div id="user-guide" class="section">
+            <h2>8. User Guide</h2>
+
+            <h3>8.1 Getting Started</h3>
+            <h4>8.1.1 Initial Setup</h4>
+            <ol>
+                <li>Open <code>NS_Lease_FormP_Generator.html</code> in a modern web browser (Chrome, Firefox, Edge, or Safari)</li>
+                <li>The application will load with empty form fields</li>
+                <li>Upload your master data Excel file (see section 8.2)</li>
+            </ol>
+
+            <h4>8.1.2 First-Time Use</h4>
+            <ol>
+                <li>Click <strong>"📥 Generate Excel Template"</strong> to download a template</li>
+                <li>Fill in the template with your properties, tenants, and managers</li>
+                <li>Upload the completed template using <strong>"📤 Upload Master Data"</strong></li>
+                <li>Verify data loaded successfully (check status message)</li>
+            </ol>
+
+            <h3>8.2 Managing Master Data</h3>
+            <h4>8.2.1 Uploading Master Data</h4>
+            <ol>
+                <li>Click <strong>"📤 Upload Master Data"</strong></li>
+                <li>Select your Excel file containing Property, Tenant, and Manager sheets</li>
+                <li>Wait for upload confirmation message</li>
+                <li>Data is automatically saved to browser storage</li>
+            </ol>
+
+            <h4>8.2.2 Managing Properties</h4>
+            <ol>
+                <li>Click <strong>"⚙ Manage Master Records ▾"</strong> → <strong>"🏠 Properties"</strong></li>
+                <li>In the modal, you can:
+                    <ul>
+                        <li>Add new properties using <strong>"＋ Add Property"</strong></li>
+                        <li>Edit existing property information</li>
+                        <li>Delete properties</li>
+                        <li>Resize columns by dragging column borders</li>
+                    </ul>
+                </li>
+                <li>Click <strong>"✔ Save & Apply"</strong> to save changes</li>
+                <li>Click <strong>"✖ Close"</strong> to close the modal</li>
+            </ol>
+
+            <h4>8.2.3 Managing Tenants</h4>
+            <ol>
+                <li>Click <strong>"⚙ Manage Master Records ▾"</strong> → <strong>"👥 Tenants"</strong></li>
+                <li>In the modal:
+                    <ul>
+                        <li>Add new tenants (defaults to active)</li>
+                        <li>Edit tenant information</li>
+                        <li>Check/uncheck <strong>"Active"</strong> to control visibility in dropdowns</li>
+                        <li>Only active tenants appear in lease form dropdowns</li>
+                    </ul>
+                </li>
+                <li>Tenants are automatically sorted alphabetically</li>
+                <li>Duplicate names automatically get superscripts (¹, ², ³, etc.)</li>
+                <li>Save changes with <strong>"✔ Save & Apply"</strong></li>
+            </ol>
+
+            <h4>8.2.4 Managing Managers</h4>
+            <ol>
+                <li>Click <strong>"⚙ Manage Master Records ▾"</strong> → <strong>"👔 Managers"</strong></li>
+                <li>Add, edit, or delete manager/superintendent information</li>
+                <li>Save changes</li>
+            </ol>
+
+            <h4>8.2.5 Managing Inspection Reports</h4>
+            <ol>
+                <li>Click <strong>"⚙ Manage Master Records ▾"</strong> → <strong>"📝 Inspection Report"</strong></li>
+                <li>Add inspection sections using <strong>"＋ Add Section"</strong></li>
+                <li>For each section:
+                    <ul>
+                        <li>Enter section name</li>
+                        <li>Select condition code: <strong>G</strong> (Good), <strong>F</strong> (Fair), <strong>P</strong> (Poor), <strong>N/A</strong></li>
+                        <li>Add comments (optional)</li>
+                        <li>Hover over condition codes to see tooltips</li>
+                    </ul>
+                </li>
+                <li>Save changes</li>
+            </ol>
+
+            <h3>8.3 Generating a Lease</h3>
+            <h4>8.3.1 Filling the Lease Form</h4>
+            <ol>
+                <li><strong>Select Property:</strong> Choose from the "3A. Property Address" dropdown</li>
+                <li><strong>Landlord:</strong> Automatically populated based on selected property</li>
+                <li><strong>Select Tenants:</strong> Choose up to 4 tenants from dropdowns (only active tenants shown)</li>
+                <li><strong>Select Occupants:</strong> Choose up to 4 occupants (can be different from tenants)</li>
+                <li><strong>Lease Dates:</strong>
+                    <ul>
+                        <li>Start date defaults to first day of next month</li>
+                        <li>End date defaults to 3 months after start date</li>
+                        <li>Both dates are editable</li>
+                    </ul>
+                </li>
+                <li><strong>Rent Information:</strong>
+                    <ul>
+                        <li>Enter monthly rent</li>
+                        <li>Security deposit is auto-calculated (typically 0.5x monthly rent)</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h4>8.3.2 Generating the PDF</h4>
+            <ol>
+                <li>Review all form fields</li>
+                <li>Click <strong>"📄 Generate PDF"</strong></li>
+                <li>The PDF will automatically download</li>
+                <li>The PDF contains 7 pages:
+                    <ul>
+                        <li>Page 1: Parties, Occupants, Property</li>
+                        <li>Page 2: Electronic Address, Lease Dates, Rent</li>
+                        <li>Page 3: Signatures</li>
+                        <li>Pages 4-5: Additional Terms</li>
+                        <li>Page 6: Inspection Report</li>
+                        <li>Page 7: Inspection Report Acknowledgment</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h4>8.3.3 Finalizing a Lease</h4>
+            <ol>
+                <li>After generating PDF, you can finalize the lease</li>
+                <li>This saves the lease to your records</li>
+                <li>A unique Lease ID is generated (format: PropertyTag-Month-Sequence)</li>
+                <li>You can view and edit finalized leases in <strong>"📋 Leases"</strong> modal</li>
+            </ol>
+
+            <h3>8.4 Managing Tenancy Data</h3>
+            <h4>8.4.1 Accessing Tenancy Data Manager</h4>
+            <ol>
+                <li>Click <strong>"📁 Manage Tenancy Data"</strong></li>
+                <li>The modal opens with tabs: Leases, Personal IDs, Communications, Property Images</li>
+            </ol>
+
+            <h4>8.4.2 Uploading Files</h4>
+            <ol>
+                <li>Select the appropriate tab (Leases, Personal IDs, etc.)</li>
+                <li>Drag and drop files into the upload area, or click <strong>"Choose Files"</strong></li>
+                <li>Supported formats: PDF, DOC, DOCX, XLS, XLSX, TXT, Images (JPG, PNG, GIF)</li>
+                <li>Images are automatically compressed to save space</li>
+                <li>Files are stored in browser storage</li>
+            </ol>
+
+            <h4>8.4.3 Managing Files</h4>
+            <ul>
+                <li><strong>View:</strong> Click on file name to preview</li>
+                <li><strong>Download:</strong> Click download button (⬇️)</li>
+                <li><strong>Reorder:</strong> Use up/down arrows to change order</li>
+                <li><strong>Delete:</strong> Click delete button (🗑️)</li>
+            </ul>
+
+            <h3>8.5 Exporting Data</h3>
+            <h4>8.5.1 Exporting Master Data</h4>
+            <ol>
+                <li>Click <strong>"⚙ Manage Master Records ▾"</strong></li>
+                <li>Make any desired edits</li>
+                <li>Click <strong>"📥 Download Master Data"</strong> in any CRUD modal</li>
+                <li>Excel file downloads with normalized sheet structure</li>
+            </ol>
+
+            <h4>8.5.2 Exporting Current Lease</h4>
+            <ol>
+                <li>Fill out the lease form</li>
+                <li>Click <strong>"📥 Download Current Lease"</strong></li>
+                <li>Excel file downloads with current lease data and inspection report</li>
+            </ol>
+
+            <h4>8.5.3 Exporting Lease Records</h4>
+            <ol>
+                <li>Click <strong>"📥 Download Lease Records"</strong></li>
+                <li>Excel file downloads with all finalized lease records</li>
+            </ol>
+
+            <h3>8.6 Tips and Best Practices</h3>
+            <div class="info-box">
+                <ul>
+                    <li><strong>Regular Backups:</strong> Export master data regularly to Excel for backup</li>
+                    <li><strong>Active Tenant Management:</strong> Mark tenants as inactive when they move out to keep dropdowns clean</li>
+                    <li><strong>Storage Management:</strong> Delete old files from tenancy data if storage is getting full</li>
+                    <li><strong>Lease IDs:</strong> Lease IDs are unique per property per month, so you can generate multiple leases for the same property</li>
+                    <li><strong>Inspection Reports:</strong> Update inspection reports before generating new leases</li>
+                    <li><strong>Column Resizing:</strong> Resize table columns to your preference; widths are saved automatically</li>
+                </ul>
+            </div>
+
+            <h3>8.7 Troubleshooting</h3>
+            <h4>8.7.1 Common Issues</h4>
+            <table>
+                <tr>
+                    <th>Issue</th>
+                    <th>Solution</th>
+                </tr>
+                <tr>
+                    <td>Tenants not appearing in dropdown</td>
+                    <td>Check that tenant is marked as "Active" in Tenants modal</td>
+                </tr>
+                <tr>
+                    <td>Storage quota exceeded error</td>
+                    <td>Delete old files from tenancy data; system will auto-cleanup if possible</td>
+                </tr>
+                <tr>
+                    <td>PDF not generating</td>
+                    <td>Ensure all required fields are filled; check browser console for errors</td>
+                </tr>
+                <tr>
+                    <td>Data not saving</td>
+                    <td>Check browser storage permissions; try clearing cache and reloading</td>
+                </tr>
+                <tr>
+                    <td>Excel upload failing</td>
+                    <td>Verify Excel file has correct sheet names: Properties, Tenants, Managers</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- SECTION 9: TECHNICAL SPECIFICATIONS -->
+        <div id="technical-specs" class="section">
+            <h2>9. Technical Specifications</h2>
+
+            <h3>9.1 Browser Requirements</h3>
+            <table>
+                <tr>
+                    <th>Browser</th>
+                    <th>Minimum Version</th>
+                    <th>Features Required</th>
+                </tr>
+                <tr>
+                    <td>Google Chrome</td>
+                    <td>90+</td>
+                    <td>localStorage, File API, Canvas API</td>
+                </tr>
+                <tr>
+                    <td>Mozilla Firefox</td>
+                    <td>88+</td>
+                    <td>localStorage, File API, Canvas API</td>
+                </tr>
+                <tr>
+                    <td>Microsoft Edge</td>
+                    <td>90+</td>
+                    <td>localStorage, File API, Canvas API</td>
+                </tr>
+                <tr>
+                    <td>Apple Safari</td>
+                    <td>14+</td>
+                    <td>localStorage, File API, Canvas API</td>
+                </tr>
+            </table>
+
+            <h3>9.2 Library Versions</h3>
+            <table>
+                <tr>
+                    <th>Library</th>
+                    <th>Version</th>
+                    <th>CDN/Source</th>
+                </tr>
+                <tr>
+                    <td>XLSX.js (SheetJS)</td>
+                    <td>Latest</td>
+                    <td>CDN (cdnjs.cloudflare.com)</td>
+                </tr>
+                <tr>
+                    <td>jsPDF</td>
+                    <td>Latest</td>
+                    <td>CDN (cdnjs.cloudflare.com)</td>
+                </tr>
+            </table>
+
+            <h3>9.3 Storage Specifications</h3>
+            <h4>9.3.1 localStorage Limits</h4>
+            <ul>
+                <li><strong>Typical Limit:</strong> 5-10 MB per domain</li>
+                <li><strong>Data Format:</strong> JSON strings</li>
+                <li><strong>Persistence:</strong> Persistent across browser sessions</li>
+                <li><strong>Scope:</strong> Per domain/origin</li>
+            </ul>
+
+            <h4>9.3.2 Image Compression Settings</h4>
+            <table>
+                <tr>
+                    <th>Setting</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Max Width</td>
+                    <td>800px</td>
+                    <td>Maximum image width after compression</td>
+                </tr>
+                <tr>
+                    <td>Max Height</td>
+                    <td>600px</td>
+                    <td>Maximum image height after compression</td>
+                </tr>
+                <tr>
+                    <td>Quality</td>
+                    <td>0.6 (60%)</td>
+                    <td>JPEG compression quality</td>
+                </tr>
+                <tr>
+                    <td>Format</td>
+                    <td>JPEG</td>
+                    <td>All images converted to JPEG</td>
+                </tr>
+            </table>
+
+            <h3>9.4 PDF Specifications</h3>
+            <table>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Page Size</td>
+                    <td>Letter (8.5" x 11")</td>
+                </tr>
+                <tr>
+                    <td>Orientation</td>
+                    <td>Portrait</td>
+                </tr>
+                <tr>
+                    <td>Total Pages</td>
+                    <td>7</td>
+                </tr>
+                <tr>
+                    <td>Font Family</td>
+                    <td>Helvetica</td>
+                </tr>
+                <tr>
+                    <td>Font Sizes</td>
+                    <td>10pt, 12pt, 14pt, 16pt</td>
+                </tr>
+                <tr>
+                    <td>Margins</td>
+                    <td>0.5" (all sides)</td>
+                </tr>
+            </table>
+
+            <h3>9.5 Excel File Specifications</h3>
+            <h4>9.5.1 Required Sheets</h4>
+            <ul>
+                <li><strong>Properties:</strong> Property_Tag, Property_Address, Landlord_Name, etc.</li>
+                <li><strong>Tenants:</strong> Tenant_Name, Tenant_Email, Tenant_Phone, Tenant_Old_Address, Tenant_Job_Desc, Active</li>
+                <li><strong>Managers:</strong> Manager_Name, Manager_Phone, Manager_Email</li>
+            </ul>
+
+            <h4>9.5.2 Optional Sheets</h4>
+            <ul>
+                <li><strong>Inspection_Report:</strong> Section, Condition, Comments</li>
+                <li><strong>Lease_Records:</strong> Historical lease data</li>
+            </ul>
+
+            <h3>9.6 Performance Specifications</h3>
+            <table>
+                <tr>
+                    <th>Operation</th>
+                    <th>Typical Time</th>
+                    <th>Notes</th>
+                </tr>
+                <tr>
+                    <td>Excel Upload (100 properties)</td>
+                    <td>&lt; 2 seconds</td>
+                    <td>Depends on file size</td>
+                </tr>
+                <tr>
+                    <td>PDF Generation</td>
+                    <td>&lt; 1 second</td>
+                    <td>7-page document</td>
+                </tr>
+                <tr>
+                    <td>Image Compression (1MB)</td>
+                    <td>&lt; 500ms</td>
+                    <td>Per image</td>
+                </tr>
+                <tr>
+                    <td>Data Save to localStorage</td>
+                    <td>&lt; 100ms</td>
+                    <td>Depends on data size</td>
+                </tr>
+            </table>
+
+            <h3>9.7 Security Considerations</h3>
+            <div class="warning-box">
+                <strong>Important Security Notes:</strong>
+                <ul>
+                    <li>All data is stored locally in the browser (localStorage)</li>
+                    <li>No data is transmitted to external servers</li>
+                    <li>File uploads are processed entirely client-side</li>
+                    <li>Users should regularly export data for backup</li>
+                    <li>Clearing browser data will delete all stored information</li>
+                </ul>
+            </div>
+
+            <h3>9.8 File Format Support</h3>
+            <table>
+                <tr>
+                    <th>Category</th>
+                    <th>Supported Formats</th>
+                </tr>
+                <tr>
+                    <td>Excel Import/Export</td>
+                    <td>.xlsx, .xls</td>
+                </tr>
+                <tr>
+                    <td>PDF Export</td>
+                    <td>.pdf</td>
+                </tr>
+                <tr>
+                    <td>Document Upload</td>
+                    <td>.pdf, .doc, .docx, .xls, .xlsx, .txt</td>
+                </tr>
+                <tr>
+                    <td>Image Upload</td>
+                    <td>.jpg, .jpeg, .png, .gif</td>
+                </tr>
+            </table>
+
+            <h3>9.9 Data Validation Rules</h3>
+            <h4>9.9.1 Required Fields</h4>
+            <ul>
+                <li><strong>Property:</strong> Property_Tag, Property_Address</li>
+                <li><strong>Tenant:</strong> Tenant_Name</li>
+                <li><strong>Lease:</strong> Property, Landlord, at least one Tenant, Start Date, End Date, Monthly Rent</li>
+            </ul>
+
+            <h4>9.9.2 Validation Rules</h4>
+            <ul>
+                <li>Lease End Date must be after Start Date</li>
+                <li>Monthly Rent must be a positive number</li>
+                <li>Email addresses are validated for format (if provided)</li>
+                <li>Phone numbers accept various formats</li>
+            </ul>
+
+            <h3>9.10 Known Limitations</h3>
+            <ul>
+                <li><strong>Storage Limit:</strong> Browser localStorage typically limited to 5-10MB</li>
+                <li><strong>Browser Dependency:</strong> Requires modern browser with JavaScript enabled</li>
+                <li><strong>No Server Backup:</strong> Data only stored locally; users must export for backup</li>
+                <li><strong>Single User:</strong> Not designed for concurrent multi-user access</li>
+                <li><strong>File Size:</strong> Large Excel files may take longer to process</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 60px; padding-top: 30px; border-top: 3px solid #667eea; text-align: center; color: #666;">
+            <p style="font-size: 18px; font-weight: 600; color: #667eea;"><strong>End of Documentation</strong></p>
+            <p style="margin: 10px 0;">NS Lease Form P Generator - Complete Technical Documentation v3.0</p>
+            <p style="margin: 20px 0;"><a href="NS_Lease_FormP_Generator.html" class="app-link">🚀 Open Lease Generator Application</a></p>
+            <p style="font-size: 12px; color: #999; margin-top: 20px;">Last Updated: January 2025 | Document Version: 3.0</p>
+        </div>
+    </div>
+
+    <script>
+        // Add print functionality
+        window.onload = function() {
+            // Add print button
+            const printBtn = document.createElement('button');
+            printBtn.textContent = '🖨️ Print / Save as PDF';
+            printBtn.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s;';
+            printBtn.onmouseover = function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 6px 12px rgba(0,0,0,0.3)';
+            };
+            printBtn.onmouseout = function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 4px 6px rgba(0,0,0,0.2)';
+            };
+            printBtn.onclick = function() {
+                window.print();
+            };
+            document.body.appendChild(printBtn);
+
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        };
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ClearView — Tenant Based Report</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="pdf_utils.js"></script>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --border-light: #f3f4f6;
+      --surface: #ffffff;
+      --bg: #f9fafb;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --divider: #e2e8f0;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    
+    /* Header */
+    .header {
+      background: var(--surface);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      font-weight: 400;
+      position: relative;
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
+    }
+    
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      align-items: flex-start;
+    }
+    
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #b87333;
+      letter-spacing: -0.02em;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+      margin: 0;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    button {
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.1s ease;
+      font-family: inherit;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    button.black, button.primary {
+      background: var(--text-primary);
+      color: #fff;
+    }
+    
+    button.black:hover, button.primary:hover {
+      background: #374151;
+    }
+    
+    /* Main Content */
+    .main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .report-header {
+      margin-bottom: 24px;
+    }
+    
+    .report-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .report-header p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    /* Filters Card */
+    .filters-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+    
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .filter-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .filter-group select,
+    .filter-group input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      background: var(--surface);
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+    
+    .filter-group select:focus,
+    .filter-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .filter-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+    
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text-primary);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--border-light);
+    }
+    
+    /* Report Table */
+    .report-table-container {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    
+    .income-report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    .income-report-table thead {
+      background: var(--border-light);
+    }
+    
+    .income-report-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    
+    .income-report-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-primary);
+    }
+    
+    .income-report-table tbody tr:hover {
+      background: var(--bg);
+    }
+    
+    .income-report-table tfoot tr {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    
+    .income-report-table tfoot tr:last-child {
+      background-color: #e0e0e0;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <h1 class="header-title">Tenant Based Report</h1>
+      <button class="black" onclick="window.location.href='12_Reports_Dashboard.html'">← Back to Reports Dashboard</button>
+    </div>
+  </header>
+  
+  <main class="main-content">
+    <!-- Report Header -->
+    <div class="report-header">
+      <h2>Tenant-Based Monthly Rent Collection</h2>
+      <p>Display monthly rent collections based on tenant grouped by property</p>
+    </div>
+    
+    <!-- Tenant Filters -->
+    <div class="filters-card">
+      <h3 style="margin: 0 0 16px 0; font-size: 16px;">Tenant Filters</h3>
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="tenantSelect">Tenant (Grouped by Property)</label>
+          <select id="tenantSelect">
+            <option value="">Select Tenant</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="btnGenerateTenantReport">Generate Tenant Report</button>
+        <button class="btn btn-secondary" id="btnClearTenantFilters">Clear</button>
+      </div>
+    </div>
+    
+    <!-- Export Buttons -->
+    <div class="filters-card" style="margin-top: 20px;">
+      <h3 style="margin: 0 0 16px 0; font-size: 16px;">Export Options</h3>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="btnPDF" style="background: #ef4444;">📄 PDF</button>
+      </div>
+    </div>
+    
+    <!-- Tenant Report Table -->
+    <div class="report-table-container">
+      <table id="tenantReportTable" class="income-report-table">
+        <thead>
+          <tr>
+            <th>Account Status</th>
+            <th>Income_Date</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="3" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              Select tenant and click "Generate Tenant Report" to view monthly rent collections
+            </td>
+          </tr>
+        </tbody>
+        <tfoot id="tenantTotal" style="display: none;">
+          <!-- Total will be inserted here -->
+        </tfoot>
+      </table>
+    </div>
+  </main>
+  
+  <script>
+    // Store current report data for export
+    let currentTenantReportData = [];
+    
+    // Helper function to convert Excel serial dates to YYYY-MM-DD format
+    function convertExcelDateToYYYYMMDD(value){
+      if(!value || value==='')return '';
+      // If already a date string in YYYY-MM-DD format, return as is
+      if(typeof value==='string' && /^\d{4}-\d{2}-\d{2}$/.test(value))return value;
+      // If it's a valid date string (other formats), parse it
+      const dateStr=String(value).trim();
+      if(dateStr.match(/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}$/)){
+        const parts=dateStr.split(/[-\/]/);
+        const year=parts[0];
+        const month=String(parts[1]).padStart(2,'0');
+        const day=String(parts[2]).padStart(2,'0');
+        return `${year}-${month}-${day}`;
+      }
+      // If it's a number (Excel serial date), convert it
+      const num=Number(value);
+      if(!isNaN(num) && num>0){
+        const excelEpoch=new Date(1899,11,30);
+        const jsDate=new Date(excelEpoch.getTime()+num*86400000);
+        if(!isNaN(jsDate.getTime())){
+          const year=jsDate.getFullYear();
+          const month=String(jsDate.getMonth()+1).padStart(2,'0');
+          const day=String(jsDate.getDate()).padStart(2,'0');
+          return `${year}-${month}-${day}`;
+        }
+      }
+      // Try parsing as a regular date string
+      try {
+        const parsedDate = new Date(value);
+        if(!isNaN(parsedDate.getTime())){
+          const year=parsedDate.getFullYear();
+          const month=String(parsedDate.getMonth()+1).padStart(2,'0');
+          const day=String(parsedDate.getDate()).padStart(2,'0');
+          return `${year}-${month}-${day}`;
+        }
+      } catch(e) {
+        // Ignore parsing errors
+      }
+      return value;
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      initTenantReport();
+      document.getElementById('btnPDF').addEventListener('click', exportTenantReportPDF);
+    });
+    
+    // ===== TENANT REPORT MODULE =====
+    function initTenantReport() {
+      populateTenantFilters();
+      document.getElementById('btnGenerateTenantReport').addEventListener('click', generateTenantReport);
+      document.getElementById('btnClearTenantFilters').addEventListener('click', clearTenantFilters);
+    }
+    
+    function populateTenantFilters() {
+      console.log('[Tenant Report] === Populating Tenant Filters ===');
+      const records = JSON.parse(localStorage.getItem('income_records') || '[]');
+      
+      // Filter only rental income records
+      const rentalRecords = records.filter(r => r.cat === 'Income-Rent-Receivable');
+      
+      // Group tenants by property based on Income_Description and Income_Ac_Tag
+      const tenantsByProperty = {
+        '15SM': {},
+        '15SM-BSMT': {},
+        '208AMA': {}
+      };
+      
+      rentalRecords.forEach(record => {
+        const desc = String(record.desc || '').trim();
+        const tag = String(record.tag || '').trim();
+        
+        if (!desc || !tag) {
+          console.warn('[Tenant Report] Skipping record with missing desc or tag:', record);
+          return; // Skip records without description or tag
+        }
+        
+        // Determine property from tag - check multiple patterns
+        let property = '';
+        const tagLower = tag.toLowerCase();
+        if (tagLower.includes('15sm-bsmt') || tag.endsWith('15SM-BSMT')) {
+          property = '15SM-BSMT';
+        } else if (tagLower.includes('15sm') && !tagLower.includes('bsmt')) {
+          // Check for 15SM but not BSMT
+          property = '15SM';
+        } else if (tagLower.includes('208ama') || tag.endsWith('208AMA')) {
+          property = '208AMA';
+        }
+        
+        if (property && desc) {
+          // Use Income_Description as tenant identifier
+          // Use a unique key to handle multiple tags per description
+          const key = `${desc}|${property}`;
+          if (!tenantsByProperty[property][desc]) {
+            tenantsByProperty[property][desc] = {
+              description: desc,
+              property: property,
+              tag: tag, // Store the first tag found
+              tags: [tag] // Store all tags for this tenant/property combination
+            };
+          } else {
+            // If tenant already exists, add tag to tags array if different
+            if (!tenantsByProperty[property][desc].tags.includes(tag)) {
+              tenantsByProperty[property][desc].tags.push(tag);
+            }
+          }
+        } else {
+          console.warn('[Tenant Report] Could not determine property for record:', {
+            desc: desc,
+            tag: tag
+          });
+        }
+      });
+      
+      // Populate dropdown with tenants grouped by property
+      const tenantSelect = document.getElementById('tenantSelect');
+      if (tenantSelect) {
+        let html = '<option value="">Select Tenant</option>';
+        
+        // Add option groups by property
+        ['15SM', '15SM-BSMT', '208AMA'].forEach(property => {
+          const tenants = Object.keys(tenantsByProperty[property]).sort();
+          if (tenants.length > 0) {
+            html += `<optgroup label="Property: ${property}">`;
+            tenants.forEach(tenantDesc => {
+              const tenantInfo = tenantsByProperty[property][tenantDesc];
+              const value = `${tenantInfo.description}|${tenantInfo.property}|${tenantInfo.tag}`;
+              html += `<option value="${value}">${tenantDesc}</option>`;
+            });
+            html += '</optgroup>';
+          }
+        });
+        
+        tenantSelect.innerHTML = html;
+        console.log('[Tenant Report] ✓ Tenants populated in dropdown');
+      }
+    }
+    
+    function generateTenantReport() {
+      console.log('[Tenant Report] === Generating Tenant Report ===');
+      const records = JSON.parse(localStorage.getItem('income_records') || '[]');
+      
+      const tenantSelect = document.getElementById('tenantSelect');
+      const tenantValue = tenantSelect ? tenantSelect.value : '';
+      
+      if (!tenantValue) {
+        alert('Please select a tenant.');
+        return;
+      }
+      
+      // Parse tenant selection (format: "Description|Property|Tag")
+      const parts = tenantValue.split('|');
+      if (parts.length < 3) {
+        console.error('[Tenant Report] Invalid tenant selection format:', tenantValue);
+        alert('Invalid tenant selection. Please select a tenant from the dropdown.');
+        return;
+      }
+      
+      const [tenantDesc, property, tag] = parts;
+      
+      console.log('[Tenant Report] Searching for:', {
+        tenantDesc: tenantDesc,
+        property: property,
+        tag: tag,
+        totalRecords: records.length,
+        selectedValue: tenantValue
+      });
+      
+      // Filter records for this tenant - make matching more robust
+      const tenantRecords = records.filter(record => {
+        // Normalize values for comparison (trim whitespace, handle null/undefined)
+        const recordDesc = String(record.desc || '').trim();
+        const recordTag = String(record.tag || '').trim();
+        const recordCat = String(record.cat || '').trim();
+        
+        const normalizedTenantDesc = String(tenantDesc || '').trim();
+        const normalizedTag = String(tag || '').trim();
+        
+        // Match by Income_Description and Income_Ac_Tag (case-insensitive comparison)
+        const descMatch = recordDesc.toLowerCase() === normalizedTenantDesc.toLowerCase();
+        
+        // More flexible tag matching - check if record tag matches or ends with selected tag
+        // Also check if tag contains the property identifier
+        let tagMatch = false;
+        if (recordTag === normalizedTag) {
+          tagMatch = true;
+        } else if (recordTag.endsWith(normalizedTag)) {
+          tagMatch = true;
+        } else if (normalizedTag && recordTag.includes(normalizedTag)) {
+          tagMatch = true;
+        } else if (property) {
+          // If tag doesn't match exactly, check if record tag contains property identifier
+          const propertyLower = property.toLowerCase();
+          if (recordTag.toLowerCase().includes(propertyLower)) {
+            tagMatch = true;
+          }
+        }
+        
+        const catMatch = recordCat === 'Income-Rent-Receivable';
+        
+        const matches = descMatch && tagMatch && catMatch;
+        
+        if (matches) {
+          console.log('[Tenant Report] Matched record:', {
+            desc: recordDesc,
+            tag: recordTag,
+            cat: recordCat,
+            paid: record.paid
+          });
+        }
+        
+        return matches;
+      });
+      
+      console.log('[Tenant Report] Filtered records:', tenantRecords.length);
+      
+      console.log('[Tenant Report] Filtered records before sort:', tenantRecords.length);
+      
+      if (tenantRecords.length === 0) {
+        console.warn('[Tenant Report] No records found for tenant:', {
+          tenantDesc: tenantDesc,
+          property: property,
+          tag: tag
+        });
+        // Show all records for debugging
+        const allRentalRecords = records.filter(r => r.cat === 'Income-Rent-Receivable');
+        console.log('[Tenant Report] Available rental records:', allRentalRecords.slice(0, 10).map(r => ({
+          desc: r.desc,
+          tag: r.tag,
+          cat: r.cat
+        })));
+        
+        // Show error message if no records found
+        const tbody = document.querySelector('#tenantReportTable tbody');
+        const tfoot = document.getElementById('tenantTotal');
+        if (tbody) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="3" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                No rent collection data found for "${tenantDesc}" (${property})<br>
+                <small style="margin-top: 10px; display: block; color: var(--text-secondary);">
+                  Please check that the tenant has records with:<br>
+                  - Description: ${tenantDesc}<br>
+                  - Category: Income-Rent-Receivable<br>
+                  - Tag matching: ${tag}
+                </small>
+              </td>
+            </tr>
+          `;
+        }
+        if (tfoot) {
+          tfoot.style.display = 'none';
+        }
+        return;
+      }
+      
+      // Sort by date - ensure dates are strings for comparison
+      tenantRecords.sort((a, b) => {
+        const dateA = String(a.paid || '').trim();
+        const dateB = String(b.paid || '').trim();
+        // Handle empty dates
+        if (!dateA && !dateB) return 0;
+        if (!dateA) return 1; // Empty dates go to end
+        if (!dateB) return -1;
+        // Compare as strings (works for YYYY-MM-DD format)
+        return dateA.localeCompare(dateB);
+      });
+      
+      console.log('[Tenant Report] Filtered and sorted records:', tenantRecords.length);
+      
+      // Store data for export - convert dates to YYYY-MM-DD format
+      currentTenantReportData = tenantRecords.map(r => ({
+        acStatus: r.acstatus || '',
+        incomeDate: convertExcelDateToYYYYMMDD(r.paid || ''),
+        amount: parseFloat(r.amt || 0)
+      }));
+      
+      // Render table
+      renderTenantReport(currentTenantReportData, tenantDesc, property);
+    }
+    
+    function renderTenantReport(data, tenantName, property) {
+      const tbody = document.querySelector('#tenantReportTable tbody');
+      const tfoot = document.getElementById('tenantTotal');
+      
+      if (!tbody) {
+        console.error('[Tenant Report] ERROR: tbody not found!');
+        return;
+      }
+      
+      if (data.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="3" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              No rent collection data found for the selected tenant
+            </td>
+          </tr>
+        `;
+        tfoot.style.display = 'none';
+        return;
+      }
+      
+      // Calculate total
+      let totalAmount = 0;
+      
+      tbody.innerHTML = data.map(item => {
+        totalAmount += item.amount;
+        
+        // Format date - ensure it's in YYYY-MM-DD format (already converted, but ensure format)
+        const dateStr = item.incomeDate || '';
+        
+        return `
+          <tr>
+            <td>${item.acStatus || ''}</td>
+            <td>${dateStr}</td>
+            <td style="text-align: right;">${item.amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          </tr>
+        `;
+      }).join('');
+      
+      // Add total row
+      const totalRow = `
+        <tr style="background-color: #e0e0e0; font-weight: bold; font-size: 16px;">
+          <td colspan="2" style="text-align: right;">Total Paid by ${tenantName} (${property}):</td>
+          <td style="text-align: right;">${totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        </tr>
+      `;
+      
+      tfoot.innerHTML = totalRow;
+      tfoot.style.display = 'table-footer-group';
+      
+      console.log('[Tenant Report] ✓ Report rendered with', data.length, 'records');
+    }
+    
+    function clearTenantFilters() {
+      document.getElementById('tenantSelect').value = '';
+      currentTenantReportData = [];
+      
+      const tbody = document.querySelector('#tenantReportTable tbody');
+      const tfoot = document.getElementById('tenantTotal');
+      
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="3" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              Select tenant and click "Generate Tenant Report" to view monthly rent collections
+            </td>
+          </tr>
+        `;
+      }
+      
+      if (tfoot) {
+        tfoot.style.display = 'none';
+        tfoot.innerHTML = '';
+      }
+    }
+    
+    function exportTenantReportPDF() {
+      if (currentTenantReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      if (!window.jspdf || !window.PDFUtils) {
+        alert('PDF libraries not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4'); // landscape orientation
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 10;
+      const tableStartX = margin;
+      
+      // Get tenant info
+      const tenantSelect = document.getElementById('tenantSelect');
+      const tenantValue = tenantSelect ? tenantSelect.value : '';
+      const [tenantName, property, tag] = tenantValue.split('|');
+      
+      // Title
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Tenant-Based Monthly Rent Collection Report', pageWidth / 2, 20, { align: 'center' });
+      
+      // Prepare filter criteria for PDFUtils.drawFilterCriteria
+      const filterCriteria = [
+        { label: 'Tenant', value: tenantName || 'N/A', color: [68, 114, 196] }, // Blue
+        { label: 'Property', value: property || 'N/A', color: [112, 173, 71] } // Green
+      ];
+      
+      // Draw filter criteria using PDFUtils
+      let currentY = window.PDFUtils.drawFilterCriteria(doc, filterCriteria, 32, pageWidth);
+      
+      // Headers
+      const headers = ['Account Status', 'Income_Date', 'Amount'];
+      
+      // Prepare data for column width calculation
+      const dataArrayForMeasurement = currentTenantReportData.map(item => {
+        let dateStr = item.incomeDate || '';
+        if (dateStr && dateStr.includes('-')) {
+          const parts = dateStr.split('-');
+          if (parts.length === 3) {
+            dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          }
+        }
+        return [
+          String(item.acStatus || ''),
+          String(dateStr),
+          String(parseFloat(item.amount || 0).toFixed(2))
+        ];
+      });
+      
+      // Calculate optimal column widths using PDFUtils
+      const colWidths = window.PDFUtils.calculateOptimalColumnWidths(
+        doc,
+        dataArrayForMeasurement,
+        headers,
+        null,
+        {
+          fixedWidthColumns: [2], // Amount column
+          fixedWidthValues: [25.4], // Amount: 1 inch (25.4mm)
+          fontSize: 7,
+          padding: 12,
+          minWidth: 15
+        }
+      );
+      
+      // Ensure Amount column is exactly 1 inch
+      colWidths[2] = 25.4;
+      
+      const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+      
+      // Start Y position after filters
+      currentY = currentY + 5; // Add spacing after filters
+      
+      // State for page tracking
+      const state = {
+        currentPage: 1,
+        totalPagesEstimate: 1,
+        currentY: currentY
+      };
+      
+      // Function to check and add page break
+      const checkPageBreak = (y, rowHeight) => {
+        const footerSpace = 25;
+        if (y + rowHeight > pageHeight - footerSpace) {
+          state.currentY = window.PDFUtils.addNewPageWithHeaders(
+            doc,
+            headers,
+            colWidths,
+            actualTableStartX,
+            30,
+            state,
+            () => {
+              window.PDFUtils.drawFooter(
+                doc,
+                state.currentPage,
+                state.totalPagesEstimate,
+                currentTenantReportData.length,
+                pageWidth,
+                { generationDate: new Date() }
+              );
+            },
+            { 
+              headerHeight: 8, 
+              fontSize: 9,
+              pageWidth: pageWidth,
+              autoCenter: true
+            }
+          );
+          return state.currentY;
+        }
+        return y;
+      };
+      
+      // Draw table headers using PDFUtils with auto-centering enabled
+      state.currentY = window.PDFUtils.drawTableHeaders(
+        doc,
+        headers,
+        colWidths,
+        tableStartX,
+        state.currentY,
+        { 
+          headerHeight: 8, 
+          fontSize: 9,
+          pageWidth: pageWidth,
+          autoCenter: true
+        }
+      );
+      
+      // Get the actual (possibly centered) table start X position
+      const actualTableStartX = doc._centeredTableStartX || tableStartX;
+      
+      // Calculate total
+      let totalAmount = 0;
+      currentTenantReportData.forEach(item => {
+        totalAmount += item.amount;
+      });
+      
+      // Render data rows using PDFUtils
+      currentTenantReportData.forEach((item, index) => {
+        let dateStr = item.incomeDate || '';
+        if (dateStr && dateStr.includes('-')) {
+          const parts = dateStr.split('-');
+          if (parts.length === 3) {
+            dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          }
+        }
+        
+        const rowData = [
+          item.acStatus || '',
+          dateStr,
+          parseFloat(item.amount || 0).toFixed(2)
+        ];
+        
+        // Check page break
+        state.currentY = checkPageBreak(state.currentY, 10);
+        
+        // Render row with dynamic height
+        state.currentY = window.PDFUtils.renderTableRowWithDynamicHeight(
+          doc,
+          {
+            currentY: state.currentY,
+            rowData: rowData,
+            colWidths: colWidths,
+            tableStartX: actualTableStartX,
+            totalTableWidth: totalTableWidth,
+            rowIndex: index,
+            checkPageBreak: checkPageBreak
+          },
+          {
+            baseHeight: 5,
+            lineSpacing: 4,
+            padding: 4,
+            fontSize: 7,
+            fontFamily: 'helvetica',
+            fontStyle: 'normal'
+          }
+        );
+        
+        state.currentY += 1;
+      });
+      
+      // Check for page break before summary tiles
+      if (state.currentY > pageHeight - 50) {
+        state.currentY = window.PDFUtils.addNewPageWithHeaders(
+          doc,
+          headers,
+          colWidths,
+          actualTableStartX,
+          30,
+          state,
+          () => {
+            window.PDFUtils.drawFooter(
+              doc,
+              state.currentPage,
+              state.totalPagesEstimate,
+              currentTenantReportData.length,
+              pageWidth,
+              { generationDate: new Date() }
+            );
+          },
+          { 
+            headerHeight: 8, 
+            fontSize: 9,
+            pageWidth: pageWidth,
+            autoCenter: true
+          }
+        );
+      }
+      
+      state.currentY += 10; // Space before summary tiles
+      
+      // Prepare grand total (no subtotals for single tenant)
+      const grandTotal = {
+        label: '',
+        amount: totalAmount,
+        currency: null,
+        bgColor: [0, 0, 0], // Black background
+        textColor: [255, 255, 0] // Yellow text
+      };
+      
+      // Draw summary tiles using PDFUtils (only grand total)
+      state.currentY = window.PDFUtils.drawSummaryTiles(
+        doc,
+        [], // No subtotals
+        grandTotal,
+        state.currentY,
+        pageWidth,
+        {
+          margin: 10,
+          tileHeight: 15,
+          tileSpacing: 5,
+          rowSpacing: 8,
+          fontSize: 10,
+          labelFontSize: 8,
+          borderWidth: 0.5,
+          padding: 3
+        }
+      );
+      
+      // Draw footer on all pages
+      const totalPages = doc.internal.pages.length - 1;
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        window.PDFUtils.drawFooter(
+          doc,
+          i,
+          totalPages,
+          currentTenantReportData.length,
+          pageWidth,
+          { generationDate: new Date() }
+        );
+      }
+      
+      const fileName = `Tenant_Report_${tenantName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+    }
+  </script>
+</body>
+</html>
+

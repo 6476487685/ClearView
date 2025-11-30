@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ClearView — Rental Collection Report</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="assets/xlsx.full.min.js"></script>
+  <script src="pdf_utils.js"></script>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --border-light: #f3f4f6;
+      --surface: #ffffff;
+      --bg: #f9fafb;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --divider: #e2e8f0;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    
+    /* Header */
+    .header {
+      background: var(--surface);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      font-weight: 400;
+      position: relative;
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
+    }
+    
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      align-items: flex-start;
+    }
+    
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #b87333;
+      letter-spacing: -0.02em;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+      margin: 0;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    button {
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.1s ease;
+      font-family: inherit;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    button.black, button.primary {
+      background: var(--text-primary);
+      color: #fff;
+    }
+    
+    button.black:hover, button.primary:hover {
+      background: #374151;
+    }
+    
+    /* Main Content */
+    .main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .report-header {
+      margin-bottom: 24px;
+    }
+    
+    .report-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .report-header p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    /* Filters Card */
+    .filters-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+    
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .filter-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .filter-group select,
+    .filter-group input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      background: var(--surface);
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+    
+    .filter-group select:focus,
+    .filter-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .filter-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+    
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text-primary);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--border-light);
+    }
+    
+    /* Report Table */
+    .report-table-container {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    
+    .income-report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    .income-report-table thead {
+      background: var(--border-light);
+    }
+    
+    .income-report-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    
+    .income-report-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-primary);
+    }
+    
+    .income-report-table tbody tr:hover {
+      background: var(--bg);
+    }
+    
+    .income-report-table tfoot tr {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    
+    .income-report-table tfoot tr:last-child {
+      background-color: #e0e0e0;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <h1 class="header-title">Rental Collection Report</h1>
+      <button class="black" onclick="window.location.href='12_Reports_Dashboard.html'">← Back to Reports Dashboard</button>
+    </div>
+  </header>
+  
+  <main class="main-content">
+    <!-- Report Header -->
+    <div class="report-header">
+      <h2>Rental Income Report</h2>
+      <p>Generate consolidated rental income reports by property</p>
+    </div>
+    
+    <!-- Rental Income Filters -->
+    <div class="filters-card">
+      <h3 style="margin: 0 0 16px 0; font-size: 16px;">Rental Income Filters</h3>
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="rentalProperty">Property</label>
+          <select id="rentalProperty">
+            <option value="">All Properties</option>
+            <option value="15SM">15SM</option>
+            <option value="15SM-BSMT">15SM-BSMT</option>
+            <option value="208AMA">208AMA</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="rentalCategory">Income_Category</label>
+          <select id="rentalCategory" disabled>
+            <option value="Income-Rent-Receivable" selected>Income-Rent-Receivable</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="rentalHolder">Ac_Holder</label>
+          <select id="rentalHolder">
+            <option value="">All Holders</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="btnGenerateRentalReport">Generate Rental Report</button>
+        <button class="btn btn-secondary" id="btnClearRentalFilters">Clear</button>
+      </div>
+    </div>
+    
+    <!-- Export Buttons -->
+    <div class="filters-card" style="margin-top: 20px;">
+      <h3 style="margin: 0 0 16px 0; font-size: 16px;">Export Options</h3>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="btnPrint" style="background: #10b981;">🖨️ Print</button>
+        <button class="btn btn-primary" id="btnPDF" style="background: #ef4444;">📄 PDF</button>
+        <button class="btn btn-primary" id="btnExcel" style="background: #10b981;">📊 Excel</button>
+      </div>
+    </div>
+    </div>
+    
+    <!-- Rental Income Report Table -->
+    <div class="report-table-container">
+      <table id="rentalIncomeReportTable" class="income-report-table">
+        <thead>
+          <tr>
+            <th>Income_Description</th>
+            <th>Income_Ac_Tag</th>
+            <th>Currency</th>
+            <th>Amount</th>
+            <th>Ac_Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              Select property and click "Generate Rental Report" to view rental income data
+            </td>
+          </tr>
+        </tbody>
+        <tfoot id="rentalIncomeTotal" style="display: none;">
+          <!-- Total will be inserted here -->
+        </tfoot>
+      </table>
+    </div>
+  </main>
+  
+  <script>
+    // Store current report data for export
+    let currentRentalReportData = [];
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      initRentalIncomeReport();
+      
+      // Add export event listeners
+      document.getElementById('btnPrint').addEventListener('click', printRentalReport);
+      document.getElementById('btnPDF').addEventListener('click', exportRentalReportPDF);
+      document.getElementById('btnExcel').addEventListener('click', exportRentalReportExcel);
+    });
+    
+    // ===== RENTAL INCOME REPORT MODULE =====
+    function initRentalIncomeReport() {
+      // Populate filters
+      populateRentalIncomeFilters();
+      
+      // Event listeners
+      document.getElementById('btnGenerateRentalReport').addEventListener('click', generateRentalIncomeReport);
+      document.getElementById('btnClearRentalFilters').addEventListener('click', clearRentalIncomeFilters);
+    }
+    
+    function populateRentalIncomeFilters() {
+      console.log('[Rental Income Report] === Populating Filters ===');
+      const records = JSON.parse(localStorage.getItem('income_records') || '[]');
+      
+      // Income_Category is fixed to "Income-Rent-Receivable" and disabled
+      const categorySelect = document.getElementById('rentalCategory');
+      if (categorySelect) {
+        categorySelect.value = 'Income-Rent-Receivable';
+        console.log('[Rental Income Report] ✓ Category set to Income-Rent-Receivable (disabled)');
+      }
+      
+      // Populate Ac_Holder dropdown
+      const holders = [...new Set(records.map(r => r.holder).filter(Boolean))].sort();
+      const holderSelect = document.getElementById('rentalHolder');
+      if (holderSelect) {
+        holderSelect.innerHTML = '<option value="">All Holders</option>' + 
+          holders.map(h => `<option value="${h}">${h}</option>`).join('');
+        console.log('[Rental Income Report] ✓ Holders populated:', holders.length);
+      }
+    }
+    
+    function generateRentalIncomeReport() {
+      console.log('[Rental Income Report] === Generating Report ===');
+      const records = JSON.parse(localStorage.getItem('income_records') || '[]');
+      
+      // Get filter values
+      const propertyFilter = document.getElementById('rentalProperty').value;
+      const categoryFilter = document.getElementById('rentalCategory').value;
+      const holderFilter = document.getElementById('rentalHolder').value;
+      
+      // Always filter by Income-Rent-Receivable category (default and disabled)
+      const fixedCategory = 'Income-Rent-Receivable';
+      
+      // Filter records based on Income_Ac_Tag ending with selected property
+      let filteredRecords = records.filter(record => {
+        const tag = record.tag || '';
+        
+        // If no property selected (All Properties), include all 3 properties
+        let tagMatches = false;
+        if (!propertyFilter) {
+          // Show all properties: 15SM, 15SM-BSMT, and 208AMA
+          tagMatches = (tag.endsWith('15SM') || tag.endsWith('208AMA'));
+        } else {
+          // Check if Income_Ac_Tag ends with the selected property
+          if (propertyFilter === '15SM-BSMT') {
+            tagMatches = tag.endsWith('15SM-BSMT');
+          } else if (propertyFilter === '15SM') {
+            tagMatches = tag.endsWith('15SM') && !tag.endsWith('15SM-BSMT'); // Exclude 15SM-BSMT
+          } else if (propertyFilter === '208AMA') {
+            tagMatches = tag.endsWith('208AMA');
+          }
+        }
+        
+        if (!tagMatches) return false;
+        
+        // Apply fixed category filter (Income-Rent-Receivable)
+        if (record.cat !== fixedCategory) return false;
+        
+        // Apply holder filter (only if a specific holder is selected)
+        if (holderFilter && record.holder !== holderFilter) return false;
+        
+        return true;
+      });
+      
+      console.log('[Rental Income Report] Filtered records:', filteredRecords.length);
+      
+      // If no property selected (All Properties), group by holders
+      let consolidatedArray;
+      if (!propertyFilter) {
+        // Group by holder first, then consolidate within each holder group
+        const holderGroups = {};
+        
+        filteredRecords.forEach(record => {
+          const holder = record.holder || 'Unknown';
+          
+          if (!holderGroups[holder]) {
+            holderGroups[holder] = {};
+          }
+          
+          const desc = record.desc || 'Unknown';
+          const tag = record.tag || '';
+          const currency = record.cur || 'Unknown';
+          const acStatus = record.acstatus || '';
+          
+          // Create a unique key combining description, tag, currency, and acStatus
+          const key = `${desc}|${tag}|${currency}|${acStatus}`;
+          
+          if (!holderGroups[holder][key]) {
+            holderGroups[holder][key] = {
+              holder: holder,
+              desc: desc,
+              tag: tag,
+              currency: currency,
+              acStatus: acStatus,
+              amount: 0
+            };
+          }
+          
+          holderGroups[holder][key].amount += parseFloat(record.amt || 0);
+        });
+        
+        // Convert to array, grouped by holder
+        consolidatedArray = [];
+        Object.keys(holderGroups).sort().forEach(holder => {
+          const holderData = Object.values(holderGroups[holder]).sort((a, b) => {
+            if (a.desc !== b.desc) return a.desc.localeCompare(b.desc);
+            if (a.tag !== b.tag) return a.tag.localeCompare(b.tag);
+            if (a.currency !== b.currency) return a.currency.localeCompare(b.currency);
+            return a.acStatus.localeCompare(b.acStatus);
+          });
+          consolidatedArray.push(...holderData);
+        });
+      } else {
+        // Single property selected - consolidate by Income_Description as before
+        const consolidatedData = {};
+        
+        filteredRecords.forEach(record => {
+          const desc = record.desc || 'Unknown';
+          const tag = record.tag || '';
+          const currency = record.cur || 'Unknown';
+          const acStatus = record.acstatus || '';
+          
+          // Create a unique key combining description, tag, currency, and acStatus
+          const key = `${desc}|${tag}|${currency}|${acStatus}`;
+          
+          if (!consolidatedData[key]) {
+            consolidatedData[key] = {
+              holder: record.holder || 'Unknown',
+              desc: desc,
+              tag: tag,
+              currency: currency,
+              acStatus: acStatus,
+              amount: 0
+            };
+          }
+          
+          consolidatedData[key].amount += parseFloat(record.amt || 0);
+        });
+        
+        // Convert to array and sort by description (primary), then by other fields
+        consolidatedArray = Object.values(consolidatedData).sort((a, b) => {
+          if (a.desc !== b.desc) return a.desc.localeCompare(b.desc);
+          if (a.tag !== b.tag) return a.tag.localeCompare(b.tag);
+          if (a.currency !== b.currency) return a.currency.localeCompare(b.currency);
+          return a.acStatus.localeCompare(b.acStatus);
+        });
+      }
+      
+      // Store data for export
+      currentRentalReportData = consolidatedArray;
+      
+      // Render table
+      renderRentalIncomeReport(consolidatedArray, !propertyFilter);
+    }
+    
+    function renderRentalIncomeReport(data, groupedByHolder = false) {
+      const tbody = document.querySelector('#rentalIncomeReportTable tbody');
+      const tfoot = document.getElementById('rentalIncomeTotal');
+      
+      if (!tbody) {
+        console.error('[Rental Income Report] ERROR: tbody not found!');
+        return;
+      }
+      
+      if (data.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              No rental income data found for the selected filters
+            </td>
+          </tr>
+        `;
+        tfoot.style.display = 'none';
+        return;
+      }
+      
+      let totalAmount = 0;
+      const totalByCurrency = {};
+      
+      let rows = '';
+      
+      if (groupedByHolder) {
+        // Group data by holder
+        const holderGroups = {};
+        data.forEach(item => {
+          const holder = item.holder || 'Unknown';
+          if (!holderGroups[holder]) {
+            holderGroups[holder] = [];
+          }
+          holderGroups[holder].push(item);
+          
+          // Track totals
+          const amount = parseFloat(item.amount || 0);
+          totalAmount += amount;
+          if (!totalByCurrency[item.currency]) {
+            totalByCurrency[item.currency] = 0;
+          }
+          totalByCurrency[item.currency] += amount;
+        });
+        
+        // Render each holder group
+        Object.keys(holderGroups).sort().forEach((holder, holderIndex) => {
+          const holderItems = holderGroups[holder];
+          
+          // Holder header row
+          rows = rows + `
+            <tr style="background-color: #e3f2fd; font-weight: bold; font-size: 14px;">
+              <td colspan="5" style="padding: 12px; border-bottom: 2px solid #1976d2;">
+                Ac_Holder: ${holder}
+              </td>
+            </tr>
+          `;
+          
+          // Holder data rows
+          holderItems.forEach(item => {
+            const amount = parseFloat(item.amount || 0);
+            rows = rows + `
+              <tr>
+                <td>${item.desc || ''}</td>
+                <td>${item.tag || ''}</td>
+                <td>${item.currency || ''}</td>
+                <td style="text-align: right;">${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td>${item.acStatus || ''}</td>
+              </tr>
+            `;
+          });
+          
+          // Calculate holder subtotals
+          const holderTotalByCurrency = {};
+          holderItems.forEach(item => {
+            const amount = parseFloat(item.amount || 0);
+            if (!holderTotalByCurrency[item.currency]) {
+              holderTotalByCurrency[item.currency] = 0;
+            }
+            holderTotalByCurrency[item.currency] += amount;
+          });
+          
+          // Holder subtotal rows
+          Object.keys(holderTotalByCurrency).sort().forEach(currency => {
+            const currencyAmount = holderTotalByCurrency[currency];
+            rows = rows + `
+              <tr style="background-color: #f5f5f5; font-weight: bold;">
+                <td colspan="2" style="text-align: right; padding-right: 20px;">Subtotal for ${holder} (${currency}):</td>
+                <td></td>
+                <td style="text-align: right;">${currencyAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                <td></td>
+              </tr>
+            `;
+          });
+          
+          // Add spacing between holders
+          if (holderIndex < Object.keys(holderGroups).length - 1) {
+            rows = rows + `
+              <tr style="height: 10px;">
+                <td colspan="5"></td>
+              </tr>
+            `;
+          }
+        });
+      } else {
+        // Not grouped by holder - render normally
+        data.forEach(item => {
+          const amount = parseFloat(item.amount || 0);
+          totalAmount += amount;
+          
+          if (!totalByCurrency[item.currency]) {
+            totalByCurrency[item.currency] = 0;
+          }
+          totalByCurrency[item.currency] += amount;
+          
+          rows = rows + `
+            <tr>
+              <td>${item.desc || ''}</td>
+              <td>${item.tag || ''}</td>
+              <td>${item.currency || ''}</td>
+              <td style="text-align: right;">${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+              <td>${item.acStatus || ''}</td>
+            </tr>
+          `;
+        });
+      }
+      
+      tbody.innerHTML = rows;
+      
+      // Generate grand totals row
+      const totalRows = Object.keys(totalByCurrency).sort().map(currency => {
+        const amount = totalByCurrency[currency];
+        return `
+          <tr style="background-color: #f0f0f0; font-weight: bold;">
+            <td colspan="3" style="text-align: right;">Total (${currency}):</td>
+            <td style="text-align: right;">${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            <td></td>
+          </tr>
+        `;
+      }).join('');
+      
+      const grandTotalRow = `
+        <tr style="background-color: #e0e0e0; font-weight: bold; font-size: 16px;">
+          <td colspan="3" style="text-align: right;">Grand Total:</td>
+          <td style="text-align: right;">${totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td></td>
+        </tr>
+      `;
+      
+      tfoot.innerHTML = totalRows + grandTotalRow;
+      tfoot.style.display = 'table-footer-group';
+      
+      console.log('[Rental Income Report] ✓ Report rendered with', data.length, 'consolidated rows');
+    }
+    
+    function clearRentalIncomeFilters() {
+      document.getElementById('rentalProperty').value = '';
+      // Keep category fixed to Income-Rent-Receivable (disabled)
+      document.getElementById('rentalCategory').value = 'Income-Rent-Receivable';
+      document.getElementById('rentalHolder').value = '';
+      
+      // Clear stored report data
+      currentRentalReportData = [];
+      
+      const tbody = document.querySelector('#rentalIncomeReportTable tbody');
+      const tfoot = document.getElementById('rentalIncomeTotal');
+      
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              Select property (or leave as "All Properties") and click "Generate Rental Report" to view rental income data
+            </td>
+          </tr>
+        `;
+      }
+      
+      if (tfoot) {
+        tfoot.style.display = 'none';
+        tfoot.innerHTML = '';
+      }
+      
+      console.log('[Rental Income Report] ✓ Filters cleared');
+    }
+    
+    // ===== EXPORT FUNCTIONS =====
+    
+    function printRentalReport() {
+      if (currentRentalReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      const printWindow = window.open('', '_blank');
+      const propertyFilter = document.getElementById('rentalProperty').value || 'All Properties';
+      const holderFilter = document.getElementById('rentalHolder').value || 'All Holders';
+      
+      // Get table and tfoot elements
+      const table = document.getElementById('rentalIncomeReportTable');
+      const tfoot = document.getElementById('rentalIncomeTotal');
+      
+      // Clone table for printing
+      const tableClone = table.cloneNode(true);
+      
+      // Ensure tfoot is visible in clone
+      if (tfoot && tableClone.tFoot) {
+        tableClone.tFoot.style.display = 'table-footer-group';
+      }
+      
+      // Create table HTML with tfoot included
+      let tableHTML = tableClone.outerHTML;
+      
+      // Remove the style="display: none;" from tfoot if present
+      tableHTML = tableHTML.replace(/style="display:\s*none;?"/gi, '');
+      
+      printWindow.document.write('<!DOCTYPE html><html><head><title>Rental Collection Report - Print</title>');
+      printWindow.document.write('<style>');
+      printWindow.document.write('body { font-family: Arial, sans-serif; padding: 20px; }');
+      printWindow.document.write('h1 { text-align: center; margin-bottom: 10px; }');
+      printWindow.document.write('.report-info { text-align: center; margin-bottom: 20px; color: #666; }');
+      printWindow.document.write('table { width: 100%; border-collapse: collapse; margin-top: 20px; }');
+      printWindow.document.write('th { background-color: #f0f0f0; padding: 10px; text-align: left; border: 1px solid #ddd; font-weight: bold; }');
+      printWindow.document.write('td { padding: 8px; border: 1px solid #ddd; }');
+      printWindow.document.write('tfoot tr { background-color: #f0f0f0; font-weight: bold; }');
+      printWindow.document.write('tfoot tr:last-child { background-color: #e0e0e0; font-size: 16px; }');
+      printWindow.document.write('@media print { body { margin: 0; padding: 15px; } @page { margin: 1cm; } }');
+      printWindow.document.write('</style></head><body>');
+      printWindow.document.write('<h1>Rental Collection Report</h1>');
+      printWindow.document.write('<div class="report-info">');
+      printWindow.document.write('<p><strong>Property:</strong> ' + propertyFilter + ' | <strong>Ac_Holder:</strong> ' + holderFilter + '</p>');
+      printWindow.document.write('<p><strong>Category:</strong> Income-Rent-Receivable</p>');
+      printWindow.document.write('<p><strong>Generated:</strong> ' + new Date().toLocaleString() + '</p>');
+      printWindow.document.write('</div>');
+      printWindow.document.write(tableHTML);
+      printWindow.document.write('<scr' + 'ipt>window.onload = function() { window.print(); };</scr' + 'ipt>');
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+    }
+    
+    function exportRentalReportPDF() {
+      if (currentRentalReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      if (!window.jspdf) {
+        alert('PDF library not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      if (!window.PDFUtils) {
+        alert('PDF utilities not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4'); // landscape orientation
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 10;
+      const tableStartX = margin;
+      
+      // Get filter values (empty string means "All Properties")
+      const propertyFilterElement = document.getElementById('rentalProperty');
+      const propertyFilter = propertyFilterElement ? (propertyFilterElement.value || '') : '';
+      const holderFilterElement = document.getElementById('rentalHolder');
+      const holderFilter = holderFilterElement ? (holderFilterElement.value || 'All Holders') : 'All Holders';
+      
+      // Title
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Rental Collection Report', pageWidth / 2, 20, { align: 'center' });
+      
+      // Prepare filter criteria for PDFUtils.drawFilterCriteria
+      const filterCriteria = [
+        { label: 'Property', value: propertyFilter, color: [68, 114, 196] }, // Blue
+        { label: 'Ac_Holder', value: holderFilter, color: [112, 173, 71] }, // Green
+        { label: 'Category', value: 'Income-Rent-Receivable', color: [146, 208, 80] } // Light Green
+      ];
+      
+      // Draw filter criteria using PDFUtils
+      let currentY = window.PDFUtils.drawFilterCriteria(doc, filterCriteria, 32, pageWidth);
+      
+      // Prepare data for column width calculation
+      const dataArrayForMeasurement = currentRentalReportData.map(item => [
+        String(item.desc || ''),
+        String(item.tag || ''),
+        String(item.currency || ''),
+        String(parseFloat(item.amount || 0).toFixed(2)),
+        String(item.acStatus || '')
+      ]);
+      
+      // Headers
+      const headers = ['Income_Description', 'Income_Ac_Tag', 'Currency', 'Amount', 'Ac_Status'];
+      
+      // Calculate optimal column widths using PDFUtils
+      const colWidths = window.PDFUtils.calculateOptimalColumnWidths(
+        doc,
+        dataArrayForMeasurement,
+        headers,
+        null,
+        {
+          fixedWidthColumns: [2, 3], // Currency and Amount columns
+          fixedWidthValues: [20, 25.4], // Currency: 20mm, Amount: 1 inch (25.4mm)
+          fontSize: 7,
+          padding: 12,
+          minWidth: 15
+        }
+      );
+      
+      // Ensure Amount column is exactly 1 inch
+      colWidths[3] = 25.4;
+      
+      const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+      
+      // Start Y position after filters
+      currentY = currentY + 5; // Add spacing after filters
+      
+      // State for page tracking
+      const state = {
+        currentPage: 1,
+        totalPagesEstimate: 1,
+        currentY: currentY
+      };
+      
+      // Function to check and add page break
+      const checkPageBreak = (y, rowHeight) => {
+        const footerSpace = 25;
+        if (y + rowHeight > pageHeight - footerSpace) {
+          // Add new page with headers - use stored centered position
+          state.currentY = window.PDFUtils.addNewPageWithHeaders(
+            doc,
+            headers,
+            colWidths,
+            actualTableStartX,
+            30,
+            state,
+            () => {
+              window.PDFUtils.drawFooter(
+                doc,
+                state.currentPage,
+                state.totalPagesEstimate,
+                currentRentalReportData.length,
+                pageWidth,
+                { generationDate: new Date() }
+              );
+            },
+            { 
+              headerHeight: 8, 
+              fontSize: 9,
+              pageWidth: pageWidth,
+              autoCenter: true
+            }
+          );
+          return state.currentY;
+        }
+        return y;
+      };
+      
+      // Draw table headers using PDFUtils with auto-centering enabled
+      state.currentY = window.PDFUtils.drawTableHeaders(
+        doc,
+        headers,
+        colWidths,
+        tableStartX,
+        state.currentY,
+        { 
+          headerHeight: 8, 
+          fontSize: 9,
+          pageWidth: pageWidth,
+          autoCenter: true
+        }
+      );
+      
+      // Get the actual (possibly centered) table start X position
+      const actualTableStartX = doc._centeredTableStartX || tableStartX;
+      
+      // Note: propertyFilter is already declared above at line 785
+      // Calculate totals
+      let totalAmount = 0;
+      const totalByCurrency = {};
+      const totalByProperty = {}; // For property-based subtotals when "All Properties" is selected
+      
+      currentRentalReportData.forEach(item => {
+        const amount = parseFloat(item.amount || 0);
+        totalAmount += amount;
+        
+        if (!totalByCurrency[item.currency]) {
+          totalByCurrency[item.currency] = 0;
+        }
+        totalByCurrency[item.currency] += amount;
+        
+        // Calculate property-based totals if "All Properties" is selected
+        if (!propertyFilter && item.tag) {
+          let propertyKey = '';
+          if (item.tag.endsWith('15SM-BSMT')) {
+            propertyKey = '15SM-BSMT';
+          } else if (item.tag.endsWith('15SM')) {
+            propertyKey = '15SM';
+          } else if (item.tag.endsWith('208AMA')) {
+            propertyKey = '208AMA';
+          }
+          
+          if (propertyKey) {
+            if (!totalByProperty[propertyKey]) {
+              totalByProperty[propertyKey] = 0;
+            }
+            totalByProperty[propertyKey] += amount;
+          }
+        }
+      });
+      
+      // Render data rows using PDFUtils
+      currentRentalReportData.forEach((item, index) => {
+        const rowData = [
+          item.desc || '',
+          item.tag || '',
+          item.currency || '',
+          parseFloat(item.amount || 0).toFixed(2),
+          item.acStatus || ''
+        ];
+        
+        // Check page break
+        state.currentY = checkPageBreak(state.currentY, 10); // Estimate row height
+        
+        // Render row with dynamic height - use actual (possibly centered) table start X
+        state.currentY = window.PDFUtils.renderTableRowWithDynamicHeight(
+          doc,
+          {
+            currentY: state.currentY,
+            rowData: rowData,
+            colWidths: colWidths,
+            tableStartX: actualTableStartX,
+            totalTableWidth: totalTableWidth,
+            rowIndex: index,
+            checkPageBreak: checkPageBreak
+          },
+          {
+            baseHeight: 5,
+            lineSpacing: 4,
+            padding: 4,
+            fontSize: 7,
+            fontFamily: 'helvetica',
+            fontStyle: 'normal'
+          }
+        );
+        
+        // Add spacing between rows
+        state.currentY += 1;
+      });
+      
+      // Check for page break before summary tiles
+      // Ensure we have enough space for tiles (estimate 40mm for tiles)
+      if (state.currentY > pageHeight - 50) {
+        state.currentY = window.PDFUtils.addNewPageWithHeaders(
+          doc,
+          headers,
+          colWidths,
+          actualTableStartX,
+          30,
+          state,
+          () => {
+            window.PDFUtils.drawFooter(
+              doc,
+              state.currentPage,
+              state.totalPagesEstimate,
+              currentRentalReportData.length,
+              pageWidth,
+              { generationDate: new Date() }
+            );
+          },
+          { 
+            headerHeight: 8, 
+            fontSize: 9,
+            pageWidth: pageWidth,
+            autoCenter: true
+          }
+        );
+      }
+      
+      state.currentY += 10; // Space before summary tiles
+      
+      // Prepare subtotals for tiles
+      // Priority: If "All Properties" selected, show property subtotals; otherwise show currency subtotals
+      const subtotals = [];
+      
+      if (!propertyFilter && Object.keys(totalByProperty).length > 0) {
+        // Show property-based subtotals when "All Properties" is selected
+        const propertyColors = {
+          '15SM': [255, 248, 220],      // Light yellow/beige
+          '15SM-BSMT': [230, 230, 230], // Light grey
+          '208AMA': [220, 255, 220]     // Light green
+        };
+        
+        // Get primary currency (most common currency in the data)
+        const primaryCurrency = Object.keys(totalByCurrency).sort()[0] || '';
+        
+        ['15SM', '15SM-BSMT', '208AMA'].forEach(prop => {
+          if (totalByProperty[prop] !== undefined) {
+            subtotals.push({
+              label: `Subtotal for ${prop}`,
+              amount: totalByProperty[prop],
+              currency: primaryCurrency,
+              bgColor: propertyColors[prop] || [240, 240, 240],
+              textColor: [0, 0, 0]
+            });
+          }
+        });
+      } else {
+        // Show currency-based subtotals
+        const currencyColors = [
+          [255, 248, 220], // Light yellow/beige
+          [230, 230, 230], // Light grey
+          [220, 255, 220]  // Light green
+        ];
+        
+        Object.keys(totalByCurrency).sort().forEach((currency, index) => {
+          const amount = totalByCurrency[currency];
+          subtotals.push({
+            label: `Subtotal`,
+            amount: amount,
+            currency: currency,
+            bgColor: currencyColors[index % currencyColors.length],
+            textColor: [0, 0, 0]
+          });
+        });
+      }
+      
+      // Prepare grand total (no label shown, just amount prominently)
+      const primaryCurrency = Object.keys(totalByCurrency).sort()[0] || '';
+      const grandTotal = {
+        label: '', // No label for grand total, just show amount
+        amount: totalAmount,
+        currency: Object.keys(totalByCurrency).length === 1 ? primaryCurrency : null,
+        bgColor: [0, 0, 0], // Black background
+        textColor: [255, 255, 0] // Yellow text
+      };
+      
+      // Draw summary tiles using PDFUtils
+      state.currentY = window.PDFUtils.drawSummaryTiles(
+        doc,
+        subtotals,
+        grandTotal,
+        state.currentY,
+        pageWidth,
+        {
+          margin: 10,
+          tileHeight: 15,
+          tileSpacing: 5,
+          rowSpacing: 8,
+          fontSize: 10,
+          labelFontSize: 8,
+          borderWidth: 0.5,
+          padding: 3
+        }
+      );
+      
+      // Draw footer on all pages
+      const totalPages = doc.internal.pages.length - 1;
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        window.PDFUtils.drawFooter(
+          doc,
+          i,
+          totalPages,
+          currentRentalReportData.length,
+          pageWidth,
+          { generationDate: new Date() }
+        );
+      }
+      
+      const fileName = `Rental_Collection_Report_${propertyFilter}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+    }
+    
+    function exportRentalReportExcel() {
+      if (currentRentalReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      if (typeof XLSX === 'undefined') {
+        alert('Excel library not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      const propertyFilter = document.getElementById('rentalProperty').value || 'All Properties';
+      const holderFilter = document.getElementById('rentalHolder').value || 'All Holders';
+      
+      // Prepare data for Excel
+      const headers = ['Income_Description', 'Income_Ac_Tag', 'Currency', 'Amount', 'Ac_Status'];
+      const data = currentRentalReportData.map(item => [
+        item.desc || '',
+        item.tag || '',
+        item.currency || '',
+        parseFloat(item.amount || 0),
+        item.acStatus || ''
+      ]);
+      
+      // Calculate totals
+      const totalByCurrency = {};
+      let grandTotal = 0;
+      
+      currentRentalReportData.forEach(item => {
+        const amount = parseFloat(item.amount || 0);
+        grandTotal += amount;
+        
+        if (!totalByCurrency[item.currency]) {
+          totalByCurrency[item.currency] = 0;
+        }
+        totalByCurrency[item.currency] += amount;
+      });
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Create worksheet data
+      const wsData = [
+        ['Rental Collection Report'],
+        [`Property: ${propertyFilter} | Ac_Holder: ${holderFilter}`],
+        [`Category: Income-Rent-Receivable | Generated: ${new Date().toLocaleString()}`],
+        [], // Empty row
+        headers // Headers
+      ];
+      
+      // Add data rows
+      wsData.push(...data);
+      
+      // Add empty row
+      wsData.push([]);
+      
+      // Add totals by currency
+      Object.keys(totalByCurrency).sort().forEach(currency => {
+        const amount = totalByCurrency[currency];
+        wsData.push(['', '', `Total (${currency}):`, amount, '']);
+      });
+      
+      // Add grand total
+      wsData.push(['', '', 'Grand Total:', grandTotal, '']);
+      
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 30 }, // Income_Description
+        { wch: 25 }, // Income_Ac_Tag
+        { wch: 12 }, // Currency
+        { wch: 15 }, // Amount
+        { wch: 15 }  // Ac_Status
+      ];
+      
+      // Merge header cells
+      if (!ws['!merges']) ws['!merges'] = [];
+      ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } });
+      ws['!merges'].push({ s: { r: 1, c: 0 }, e: { r: 1, c: 4 } });
+      ws['!merges'].push({ s: { r: 2, c: 0 }, e: { r: 2, c: 4 } });
+      
+      // Style header row (row 4, index 4)
+      const headerRowIndex = 4;
+      headers.forEach((header, colIndex) => {
+        const cellAddress = XLSX.utils.encode_cell({ r: headerRowIndex, c: colIndex });
+        if (!ws[cellAddress]) ws[cellAddress] = { t: 's', v: header };
+        ws[cellAddress].s = {
+          font: { bold: true },
+          fill: { fgColor: { rgb: "E0E0E0" } },
+          alignment: { horizontal: "center" }
+        };
+      });
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Rental Collection');
+      
+      // Generate filename
+      const fileName = `Rental_Collection_Report_${propertyFilter}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      
+      // Save file
+      XLSX.writeFile(wb, fileName);
+    }
+  </script>
+</body>
+</html>

@@ -8,6 +8,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="10_Global_Master_Data_Export.js"></script>
+  <script src="pdf_utils.js"></script>
 </head>
 
 <body>
@@ -74,7 +75,8 @@
               <th class="resizable">Category</th>
               <th class="resizable">Account Tag</th>
               <th class="resizable">Currency</th>
-              <th class="resizable">Amount</th>
+              <th class="resizable">Invested_Amount</th>
+              <th class="resizable">Expected_Amount</th>
               <th class="resizable">Mode</th>
               <th class="resizable">Holder</th>
               <th class="resizable">Invest Date</th>
@@ -95,7 +97,7 @@
   <div id="investmentModal" class="modal">
     <div class="modal-content">
       <h3 id="modalTitle">Add Investment</h3>
-      <form id="investmentForm">
+      <form id="investmentForm" novalidate>
         <div class="row-full">
           <label for="desc">Description</label>
           <input type="text" id="desc" required>
@@ -107,9 +109,17 @@
             <select id="cat"></select>
           </div>
           <div>
-            <label for="amt">Amount</label>
-            <input type="text" id="amt" placeholder="0.00" pattern="[0-9]+(\.[0-9]{1,2})?" title="Enter amount with up to 2 decimal places">
+            <label for="investedamount">Invested_Amount</label>
+            <input type="text" id="investedamount" placeholder="0.00" title="Enter invested amount with up to 2 decimal places (e.g., 497925.75)">
           </div>
+          <div>
+            <label for="expectedamount">Expected_Amount</label>
+            <input type="text" id="expectedamount" placeholder="0.00" title="Enter expected amount with up to 2 decimal places (e.g., 535018.75)">
+          </div>
+          <div></div>
+        </div>
+
+        <div class="row4">
           <div>
             <label for="tag">Account Tag</label>
             <select id="tag"></select>
@@ -118,6 +128,8 @@
             <label for="holder">Holder</label>
             <select id="holder"></select>
           </div>
+          <div></div>
+          <div></div>
         </div>
 
         <div class="row4">
@@ -148,12 +160,10 @@
             <label for="freq">Frequency</label>
             <select id="freq"></select>
           </div>
-          <div>
-            <label for="acstatus">Account Status</label>
-            <select id="acstatus">
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 20px;">
+            <label for="acstatus" style="margin: 0;">Account Status:</label>
+            <input type="checkbox" id="acstatus" checked style="width: 20px; height: 20px; cursor: pointer;">
+            <span id="acstatusLabel" style="font-weight: 600; user-select: none;">Active</span>
           </div>
         </div>
 

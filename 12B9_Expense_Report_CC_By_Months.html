@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>ClearView — Credit Card By Months Expense Report</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="assets/xlsx.full.min.js"></script>
+  <script src="pdf_utils.js"></script>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --border: #e5e7eb;
+      --border-light: #f3f4f6;
+      --surface: #ffffff;
+      --bg: #f9fafb;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --divider: #e2e8f0;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    
+    /* Header */
+    .header {
+      background: var(--surface);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      font-weight: 400;
+      position: relative;
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3),0 1px 3px 1px rgba(60,64,67,0.15);
+    }
+    
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      align-items: flex-start;
+    }
+    
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #b87333;
+      letter-spacing: -0.02em;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+      margin: 0;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    button {
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.1s ease;
+      font-family: inherit;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    button.black, button.primary {
+      background: var(--text-primary);
+      color: #fff;
+    }
+    
+    button.black:hover, button.primary:hover {
+      background: #374151;
+    }
+    
+    /* Main Content */
+    .main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .report-header {
+      margin-bottom: 24px;
+    }
+    
+    .report-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .report-header p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    /* Filters Card */
+    .filters-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+    }
+    
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .filter-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .filter-group select,
+    .filter-group input {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      background: var(--surface);
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+    
+    .filter-group select:focus,
+    .filter-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .filter-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+    
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text-primary);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--border-light);
+    }
+    
+    /* Report Table */
+    .report-table-container {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    
+    .expense-report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    .expense-report-table thead {
+      background: var(--border-light);
+    }
+    
+    .expense-report-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    
+    .expense-report-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-primary);
+    }
+    
+    .expense-report-table tbody tr:hover {
+      background: var(--bg);
+    }
+    
+    .expense-report-table tfoot tr {
+      background-color: #f0f0f0;
+      font-weight: bold;
+    }
+    
+    .expense-report-table tfoot tr:last-child {
+      background-color: #e0e0e0;
+      font-size: 16px;
+    }
+    
+    .tag-header-row {
+      background-color: #e3f2fd;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    
+    .subtotal-row {
+      background-color: #fff2cc;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <h1 class="header-title">Credit Card By Months Expense Report</h1>
+      <button class="black" onclick="window.location.href='12_Reports_Dashboard.html'">← Back to Reports Dashboard</button>
+    </div>
+  </header>
+  
+  <main class="main-content">
+    <!-- Report Header -->
+    <div class="report-header">
+      <h2>Credit Card By Months Expense Report</h2>
+      <p>Generate and export credit card expense reports consolidated by Month and Year</p>
+    </div>
+    
+    <!-- Expense Report Filters -->
+    <div class="filters-card">
+      <h3 style="margin: 0 0 16px 0; font-size: 16px;">Report Filters</h3>
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="filterYear">Year (Quick Select)</label>
+          <select id="filterYear">
+            <option value="">Select Year</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterMonth">Month</label>
+          <select id="filterMonth">
+            <option value="">All Months</option>
+            <option value="01">January</option>
+            <option value="02">February</option>
+            <option value="03">March</option>
+            <option value="04">April</option>
+            <option value="05">May</option>
+            <option value="06">June</option>
+            <option value="07">July</option>
+            <option value="08">August</option>
+            <option value="09">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filterFromDate">From Date</label>
+          <input type="date" id="filterFromDate">
+        </div>
+        <div class="filter-group">
+          <label for="filterToDate">To Date</label>
+          <input type="date" id="filterToDate">
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="btnGenerateReport">Generate Report</button>
+        <button class="btn btn-secondary" id="btnClearFilters">Clear</button>
+      </div>
+    </div>
+    
+    <!-- Export Buttons -->
+    <div class="filters-card" style="margin-top: 20px;">
+      <h3 style="margin: 0 0 16px 0; font-size: 16px;">Export Options</h3>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="btnPrint" style="background: #3b82f6;">🖨️ Print</button>
+        <button class="btn btn-primary" id="btnPDF" style="background: #ef4444;">📄 PDF</button>
+        <button class="btn btn-primary" id="btnExcel" style="background: #10b981;">📊 Excel</button>
+      </div>
+    </div>
+    
+    <!-- Expense Report Table -->
+    <div class="report-table-container">
+      <table id="expenseReportTable" class="expense-report-table">
+        <thead>
+          <tr>
+            <th>Expanse_Ac_Tag</th>
+            <th>Ac_Holder</th>
+            <th>Ac_Status</th>
+            <th>Amount_Paid</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              Click "Generate Report" to view credit card expense data
+            </td>
+          </tr>
+        </tbody>
+        <tfoot id="expenseReportTotal" style="display: none;">
+          <!-- Total will be inserted here -->
+        </tfoot>
+      </table>
+    </div>
+  </main>
+  
+  <script>
+    // Store current report data for export
+    let currentExpenseReportData = [];
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      initExpenseReport();
+      document.getElementById('btnPrint').addEventListener('click', printExpenseReport);
+      document.getElementById('btnPDF').addEventListener('click', exportExpenseReportPDF);
+      document.getElementById('btnExcel').addEventListener('click', exportExpenseReportExcel);
+    });
+    
+    // ===== ELECTRICITY EXPENSE REPORT MODULE =====
+    function initExpenseReport() {
+      // Populate filters
+      populateExpenseReportFilters();
+      
+      // Event listeners
+      document.getElementById('btnGenerateReport').addEventListener('click', generateExpenseReport);
+      document.getElementById('btnClearFilters').addEventListener('click', clearExpenseFilters);
+    }
+    
+    function populateExpenseReportFilters() {
+      console.log('[Credit Card By Months Expense Report] === Populating Filters ===');
+      const records = JSON.parse(localStorage.getItem('expense_records') || '[]');
+      console.log('[Credit Card By Months Expense Report] Total records found:', records.length);
+      
+      // Filter by category: Credit Cards/BT
+      const creditCardRecords = records.filter(r => {
+        const category = r.Expense_Category || r.Expanse_Category || r.cat || '';
+        return category === 'Credit Cards/BT';
+      });
+      
+      console.log('[Credit Card By Months Expense Report] Credit Card records found:', creditCardRecords.length);
+      
+      // Populate years from Paid_Date
+      const yearValues = creditCardRecords.map(r => {
+        const dateValue = r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '';
+        if (!dateValue) return null;
+        
+        // Convert to string - handle Date objects, strings, or other types
+        let dateStr = '';
+        if (dateValue instanceof Date) {
+          dateStr = dateValue.toISOString().split('T')[0];
+        } else if (typeof dateValue === 'string') {
+          dateStr = dateValue;
+        } else {
+          dateStr = String(dateValue);
+        }
+        
+        // Ensure we have a valid string
+        if (!dateStr || typeof dateStr !== 'string') {
+          return null;
+        }
+        
+        // Handle YYYY-MM-DD format
+        if (dateStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+          return dateStr.substring(0, 4);
+        }
+        // Handle DD/MM/YYYY or MM/DD/YYYY format
+        if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+          const parts = dateStr.split('/');
+          return parts[parts.length - 1];
+        }
+        // Try to extract first 4 digits as year
+        const yearMatch = dateStr.match(/^\d{4}/);
+        if (yearMatch) {
+          return yearMatch[0];
+        }
+        
+        return null;
+      }).filter(Boolean).filter(y => y.length === 4 && parseInt(y) >= 1900 && parseInt(y) <= 2100);
+      
+      const years = [...new Set(yearValues)].sort((a, b) => b.localeCompare(a));
+      console.log('[Credit Card By Months Expense Report] Unique years found:', years.length, years);
+      
+      const yearSelect = document.getElementById('filterYear');
+      if (yearSelect) {
+        if (years.length > 0) {
+          yearSelect.innerHTML = '<option value="">Select Year</option>' + 
+            years.map(y => `<option value="${y}">${y}</option>`).join('');
+          console.log('[Credit Card By Months Expense Report] ✓ Years populated in dropdown');
+        } else {
+          yearSelect.innerHTML = '<option value="">No years found in data</option>';
+          console.warn('[Credit Card By Months Expense Report] ⚠ No valid years found in records.');
+        }
+      }
+      
+      // Month filter is already populated in HTML, no need to populate dynamically
+      
+      // Set up year selector after populating
+      setTimeout(() => {
+        setupYearSelector();
+      }, 100);
+    }
+    
+    function setupYearSelector() {
+      const yearSelect = document.getElementById('filterYear');
+      if (!yearSelect) {
+        console.error('[Credit Card By Months Expense Report] ERROR: filterYear element not found!');
+        return;
+      }
+      
+      // Remove any existing event listeners by cloning and replacing the element
+      const newYearSelect = yearSelect.cloneNode(true);
+      if (yearSelect.parentNode) {
+        yearSelect.parentNode.replaceChild(newYearSelect, yearSelect);
+      }
+      
+      // Attach event listener to the new element
+      newYearSelect.addEventListener('change', function() {
+        console.log('[Credit Card By Months Expense Report] Year dropdown changed to:', this.value);
+        const fromDateEl = document.getElementById('filterFromDate');
+        const toDateEl = document.getElementById('filterToDate');
+        
+        if (this.value && fromDateEl && toDateEl) {
+          const fromDate = `${this.value}-01-01`;
+          const toDate = `${this.value}-12-31`;
+          fromDateEl.value = fromDate;
+          toDateEl.value = toDate;
+          console.log('[Electricity Expense Report] Date range set to:', fromDate, 'to', toDate);
+        } else if (!this.value && fromDateEl && toDateEl) {
+          // Clear dates if year is deselected
+          fromDateEl.value = '';
+          toDateEl.value = '';
+          console.log('[Electricity Expense Report] Date range cleared');
+        }
+      });
+      
+      console.log('[Electricity Expense Report] ✓ Year selector event listener attached');
+    }
+    
+    function generateExpenseReport() {
+      console.log('[Credit Card By Months Expense Report] === Generating Report ===');
+      let records = JSON.parse(localStorage.getItem('expense_records') || '[]');
+      
+      // Fix existing dates in records (convert numeric dates to YYYY-MM-DD)
+      records = records.map(r => ({
+        ...r,
+        paidDate: convertExcelDateToYYYYMMDD(r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '')
+      }));
+      
+      // Filter by category: Credit Cards/BT
+      let filteredRecords = records.filter(r => {
+        const category = r.Expense_Category || r.Expanse_Category || r.cat || '';
+        return category === 'Credit Cards/BT';
+      });
+      
+      console.log('[Credit Card By Months Expense Report] Credit Card records after category filter:', filteredRecords.length);
+      
+      // Get filters
+      const monthFilter = document.getElementById('filterMonth').value;
+      const yearFilter = document.getElementById('filterYear').value;
+      const fromDate = document.getElementById('filterFromDate').value;
+      const toDate = document.getElementById('filterToDate').value;
+      
+      // Filter by year and month
+      filteredRecords = filteredRecords.filter(r => {
+        const paidDate = r.paidDate || convertExcelDateToYYYYMMDD(r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '');
+        if (!paidDate) return false; // Exclude records without dates for month/year consolidation
+        
+        // Filter by year if selected
+        if (yearFilter) {
+          const recordYear = paidDate.substring(0, 4);
+          if (recordYear !== yearFilter) return false;
+        }
+        
+        // Filter by month if selected
+        if (monthFilter) {
+          const recordMonth = paidDate.substring(5, 7);
+          if (recordMonth !== monthFilter) return false;
+        }
+        
+        // Filter by date range if provided
+        if (fromDate && paidDate && paidDate < fromDate) return false;
+        if (toDate && paidDate && paidDate > toDate) return false;
+        
+        return true;
+      });
+      
+      console.log('[Credit Card By Months Expense Report] Filtered records after all filters:', filteredRecords.length);
+      
+      // Sort by paid date
+      filteredRecords.sort((a, b) => {
+        const dateA = a.paidDate || convertExcelDateToYYYYMMDD(a.Expense_Paid_Date || a.Expanse_Paid_Date || a.paid || '');
+        const dateB = b.paidDate || convertExcelDateToYYYYMMDD(b.Expense_Paid_Date || b.Expanse_Paid_Date || b.paid || '');
+        return dateA.localeCompare(dateB);
+      });
+      
+      // Store data for export
+      currentExpenseReportData = filteredRecords;
+      
+      // Render report (consolidated by month/year)
+      renderExpenseReport(filteredRecords, monthFilter, yearFilter);
+    }
+    
+    function renderExpenseReport(records, monthFilter, yearFilter) {
+      const tbody = document.querySelector('#expenseReportTable tbody');
+      const tfoot = document.getElementById('expenseReportTotal');
+      
+      if (!tbody) {
+        console.error('[Credit Card By Months Expense Report] ERROR: tbody not found!');
+        return;
+      }
+      
+      if (records.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              No credit card expense data found for the selected filters
+            </td>
+          </tr>
+        `;
+        tfoot.style.display = 'none';
+        return;
+      }
+      
+      // Group by month/year, then by card (Expanse_Ac_Tag)
+      const groupedByMonthYear = {};
+      records.forEach(record => {
+        const paidDate = record.paidDate || convertExcelDateToYYYYMMDD(record.Expense_Paid_Date || record.Expanse_Paid_Date || record.paid || '');
+        if (!paidDate) return;
+        
+        const monthYear = paidDate.substring(0, 7); // YYYY-MM
+        const tag = record.Expense_Tag || record.Expanse_Ac_Tag || record.tag || '';
+        
+        if (!groupedByMonthYear[monthYear]) {
+          groupedByMonthYear[monthYear] = {};
+        }
+        if (!groupedByMonthYear[monthYear][tag]) {
+          groupedByMonthYear[monthYear][tag] = [];
+        }
+        groupedByMonthYear[monthYear][tag].push(record);
+      });
+      
+      const sortedMonthYears = Object.keys(groupedByMonthYear).sort();
+      let rows = '';
+      let grandTotal = 0;
+      
+      // Month names for display
+      const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+      
+      // Render grouped by month/year -> card (matching image structure)
+      sortedMonthYears.forEach(monthYear => {
+        const monthYearCards = groupedByMonthYear[monthYear];
+        let monthYearSubtotal = 0;
+        
+        const [year, month] = monthYear.split('-');
+        const monthName = monthNames[parseInt(month)];
+        
+        // Period header row (matching image: "Period: January, 2024")
+        rows += `
+          <tr class="tag-header-row">
+            <td colspan="4" style="padding: 12px; border-bottom: 2px solid #1976d2; background-color: #e3f2fd; text-align: center;">
+              <strong>Period: ${monthName}, ${year}</strong>
+            </td>
+          </tr>
+        `;
+        
+        // Sort cards by holder first, then by tag name
+        const sortedTags = Object.keys(monthYearCards).sort((tagA, tagB) => {
+          const recordsA = monthYearCards[tagA];
+          const recordsB = monthYearCards[tagB];
+          const holderA = (recordsA[0].Expense_Holder || recordsA[0].Ac_Holder || recordsA[0].holder || '').toLowerCase();
+          const holderB = (recordsB[0].Expense_Holder || recordsB[0].Ac_Holder || recordsB[0].holder || '').toLowerCase();
+          
+          // First sort by holder
+          if (holderA !== holderB) {
+            return holderA.localeCompare(holderB);
+          }
+          // If holders are the same, sort by tag name
+          return tagA.localeCompare(tagB);
+        });
+        
+        // Show individual cards for this month/year
+        sortedTags.forEach(tag => {
+          const cardRecords = monthYearCards[tag];
+          let cardSubtotal = 0;
+          let acHolder = '';
+          let acStatus = '';
+          
+          // Calculate total for this card and get Ac_Holder and Ac_Status
+          cardRecords.forEach(record => {
+            const amountPaid = parseFloat(record.Expense_Amount_Paid || record.Amount_Paid || record.amt || 0);
+            cardSubtotal += amountPaid;
+            if (!acHolder) {
+              acHolder = record.Expense_Holder || record.Ac_Holder || record.holder || '';
+            }
+            if (!acStatus) {
+              acStatus = record.Expense_Account_Status || record.Ac_Status || record.acstatus || 'Active';
+            }
+          });
+          
+          monthYearSubtotal += cardSubtotal;
+          grandTotal += cardSubtotal;
+          
+          // Row showing individual card details
+          rows += `
+            <tr>
+              <td style="padding-left: 20px;">${tag}</td>
+              <td>${acHolder}</td>
+              <td>${acStatus}</td>
+              <td style="text-align: right;">${cardSubtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            </tr>
+          `;
+        });
+        
+        // Total row for this month/year (matching image: "Total for January, 2024")
+        rows += `
+          <tr class="subtotal-row" style="background-color: #000000; font-weight: bold;">
+            <td colspan="3" style="text-align: left; padding-left: 20px; font-weight: 700; color: #FFD700; font-size: 1.1em;">Total for ${monthName}, ${year}</td>
+            <td style="text-align: right; padding-right: 20px; font-weight: 700; color: #FFD700; font-size: 1.1em;">${monthYearSubtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          </tr>
+        `;
+        
+        // Add spacing between month/years
+        rows += `
+          <tr style="height: 15px;">
+            <td colspan="4"></td>
+          </tr>
+        `;
+      });
+      
+      tbody.innerHTML = rows;
+      
+      // No grand total row - removed as per user request
+      tfoot.style.display = 'none';
+      tfoot.innerHTML = '';
+      
+      console.log('[Credit Card By Months Expense Report] ✓ Report rendered with', records.length, 'records');
+    }
+    
+    function clearExpenseFilters() {
+      document.getElementById('filterYear').value = '';
+      document.getElementById('filterMonth').value = '';
+      document.getElementById('filterFromDate').value = '';
+      document.getElementById('filterToDate').value = '';
+      
+      const tbody = document.querySelector('#expenseReportTable tbody');
+      const tfoot = document.getElementById('expenseReportTotal');
+      
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+              Click "Generate Report" to view credit card expense data
+            </td>
+          </tr>
+        `;
+      }
+      
+      if (tfoot) {
+        tfoot.style.display = 'none';
+        tfoot.innerHTML = '';
+      }
+      
+      currentExpenseReportData = [];
+      
+      console.log('[Credit Card By Months Expense Report] ✓ Filters cleared');
+    }
+    
+    // Helper function to convert Excel serial dates to YYYY-MM-DD format
+    function convertExcelDateToYYYYMMDD(value){
+      if(!value || value==='')return '';
+      // If already a date string in YYYY-MM-DD format, return as is
+      if(typeof value==='string' && /^\d{4}-\d{2}-\d{2}$/.test(value))return value;
+      // If it's a valid date string (other formats), parse it
+      const dateStr=String(value).trim();
+      if(dateStr.match(/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}$/)){
+        const parts=dateStr.split(/[-\/]/);
+        const year=parts[0];
+        const month=String(parts[1]).padStart(2,'0');
+        const day=String(parts[2]).padStart(2,'0');
+        return `${year}-${month}-${day}`;
+      }
+      // If it's a number (Excel serial date), convert it
+      const num=Number(value);
+      if(!isNaN(num) && num>0){
+        const excelEpoch=new Date(1899,11,30);
+        const jsDate=new Date(excelEpoch.getTime()+num*86400000);
+        if(!isNaN(jsDate.getTime())){
+          const year=jsDate.getFullYear();
+          const month=String(jsDate.getMonth()+1).padStart(2,'0');
+          const day=String(jsDate.getDate()).padStart(2,'0');
+          return `${year}-${month}-${day}`;
+        }
+      }
+      // Try parsing as a regular date string
+      try {
+        const parsedDate = new Date(value);
+        if(!isNaN(parsedDate.getTime())){
+          const year=parsedDate.getFullYear();
+          const month=String(parsedDate.getMonth()+1).padStart(2,'0');
+          const day=String(parsedDate.getDate()).padStart(2,'0');
+          return `${year}-${month}-${day}`;
+        }
+      } catch(e) {
+        // Ignore parsing errors
+      }
+      return value;
+    }
+    
+    // Helper function to format date for display
+    function formatDateForDisplay(value){
+      return convertExcelDateToYYYYMMDD(value);
+    }
+    
+    // ===== EXPORT FUNCTIONS =====
+    
+    function printExpenseReport() {
+      if (currentExpenseReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      const reportTable = document.getElementById('expenseReportTable');
+      if (!reportTable) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      const printWindow = window.open('', '_blank');
+      const monthFilter = document.getElementById('filterMonth').value || 'All Months';
+      const yearFilter = document.getElementById('filterYear').value || '';
+      const fromDate = document.getElementById('filterFromDate').value || '';
+      const toDate = document.getElementById('filterToDate').value || '';
+      
+      const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+      const monthName = monthFilter && monthFilter !== 'All Months' ? monthNames[parseInt(monthFilter)] : 'All Months';
+      
+      let filterInfo = `<strong>Month:</strong> ${monthName} | <strong>Year:</strong> ${yearFilter || 'All Years'} | <strong>Category:</strong> Credit Cards/BT`;
+      if (yearFilter) {
+        filterInfo += ` | <strong>Year:</strong> ${yearFilter}`;
+      }
+      if (fromDate && toDate) {
+        filterInfo += ` | <strong>Date Range:</strong> ${fromDate} to ${toDate}`;
+      }
+      
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Credit Card By Months Expense Report</title>
+          <style>
+            @page { size: landscape; margin: 15mm; }
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; font-size: 10px; }
+            th { background: #4472C4; color: #fff; padding: 8px 6px; border: 1px solid #BFBFBF; font-weight: 600; }
+            td { padding: 6px; border: 1px solid #BFBFBF; }
+            .tag-header-row { background: #e3f2fd; font-weight: bold; }
+            .subtotal-row { background: #fff2cc; font-weight: 600; }
+            tfoot tr { background-color: #e0e0e0; font-weight: bold; font-size: 16px; }
+            @media print {
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1 style="text-align: center; font-size: 16px; font-weight: bold;">Credit Card By Months Expense Report</h1>
+          <div style="text-align: center; margin-bottom: 20px; color: #666;">
+            <p>${filterInfo}</p>
+            <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
+          </div>
+          ${reportTable.outerHTML}
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+    
+    function exportExpenseReportPDF() {
+      if (!currentExpenseReportData || currentExpenseReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      if (!window.jspdf || !window.PDFUtils) {
+        alert('PDF libraries not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4'); // landscape, millimeters, A4
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      
+      // Helper function to format dates
+      function formatDate(dateStr) {
+        if (!dateStr) return '';
+        if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          return dateStr.replace(/-/g, '/');
+        }
+        const date = new Date(dateStr);
+        if (Number.isNaN(date.getTime())) {
+          return String(dateStr || '');
+        }
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}/${month}/${day}`;
+      }
+      
+      // Title
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Credit Card By Months Expense Report', pageWidth / 2, 10, { align: 'center' });
+      
+      // Filter criteria
+      const monthFilter = document.getElementById('filterMonth').value || 'All Months';
+      const yearFilter = document.getElementById('filterYear').value || '';
+      const fromDate = document.getElementById('filterFromDate').value || '';
+      const toDate = document.getElementById('filterToDate').value || '';
+      
+      const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+      const monthName = monthFilter && monthFilter !== 'All Months' ? monthNames[parseInt(monthFilter)] : 'All Months';
+      
+      const filterCriteria = [
+        { label: 'Category', value: 'Credit Cards/BT', color: [68, 114, 196] },
+        { label: 'Month', value: monthName, color: [112, 173, 71] }
+      ];
+      
+      if (yearFilter) {
+        filterCriteria.push({ label: 'Year', value: yearFilter, color: [146, 208, 80] });
+      }
+      if (fromDate) {
+        filterCriteria.push({ label: 'From Date', value: formatDate(fromDate), color: [146, 208, 80] });
+      }
+      if (toDate) {
+        filterCriteria.push({ label: 'To Date', value: formatDate(toDate), color: [112, 48, 160] });
+      }
+      
+      // Draw Filter Criteria using PDFUtils
+      const filterY = window.PDFUtils.drawFilterCriteria(doc, filterCriteria, 18, pageWidth);
+      
+      // Headers
+      const headers = ['Expanse_Ac_Tag', 'Ac_Holder', 'Ac_Status', 'Amount_Paid'];
+      
+      // Prepare data for column width calculation (grouped by month/year -> card)
+      // Reuse monthNames from above (already declared for filter criteria)
+      
+      // Group by month/year, then by card (Expanse_Ac_Tag) for measurement
+      const groupedByMonthYear = {};
+      currentExpenseReportData.forEach(r => {
+        const paidDate = r.paidDate || convertExcelDateToYYYYMMDD(r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '');
+        if (!paidDate) return;
+        const monthYear = paidDate.substring(0, 7); // YYYY-MM
+        const tag = r.Expense_Tag || r.Expanse_Ac_Tag || r.tag || '';
+        if (!groupedByMonthYear[monthYear]) {
+          groupedByMonthYear[monthYear] = {};
+        }
+        if (!groupedByMonthYear[monthYear][tag]) {
+          groupedByMonthYear[monthYear][tag] = [];
+        }
+        groupedByMonthYear[monthYear][tag].push(r);
+      });
+      
+      // Prepare data for column width calculation
+      const data = [];
+      Object.keys(groupedByMonthYear).sort().forEach(monthYear => {
+        const monthYearCards = groupedByMonthYear[monthYear];
+        Object.keys(monthYearCards).sort().forEach(tag => {
+          const cardRecords = monthYearCards[tag];
+          const totalAmount = cardRecords.reduce((sum, r) => sum + parseFloat(r.Expense_Amount_Paid || r.Amount_Paid || r.amt || 0), 0);
+          const acHolder = cardRecords[0].Expense_Holder || cardRecords[0].Ac_Holder || cardRecords[0].holder || '';
+          const acStatus = cardRecords[0].Expense_Account_Status || cardRecords[0].Ac_Status || cardRecords[0].acstatus || 'Active';
+          data.push({
+            tag: tag,
+            holder: acHolder,
+            status: acStatus,
+            amount: String(totalAmount.toFixed(2))
+          });
+        });
+      });
+      
+      // Calculate optimal column widths
+      const dataArrayForMeasurement = data.map(row => [row.tag, row.holder, row.status, row.amount]);
+      
+      const colWidths = window.PDFUtils.calculateOptimalColumnWidths(
+        doc,
+        dataArrayForMeasurement,
+        headers,
+        formatDate,
+        {
+          fixedWidthColumns: [3], // Amount_Paid column
+          fixedWidthValues: [25.4], // Amount: 1 inch (25.4mm)
+          fontSize: 7,
+          padding: 12,
+          minWidth: 12
+        }
+      );
+      
+      // Adjust Amount column to exactly 1 inch
+      colWidths[3] = 25.4;
+      
+      // Add 1cm (10mm) gap between filters and Expanse_Ac_Tag grouping parameter
+      let currentY = filterY + 10;
+      let currentPage = 1;
+      const state = { currentPage: 1, totalPagesEstimate: 1, currentY };
+      
+      // Calculate total table width and center it
+      const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+      const tableStartX = (pageWidth - totalTableWidth) / 2;
+      
+      // Helper function to add footer
+      function addFooter() {
+        window.PDFUtils.drawFooter(doc, state.currentPage, state.totalPagesEstimate, currentExpenseReportData.length, pageWidth, {
+          generationDate: new Date()
+        });
+      }
+      
+      // Helper function to add new page and redraw headers
+      function addNewPage() {
+        state.currentY = window.PDFUtils.addNewPageWithHeaders(
+          doc, headers, colWidths, tableStartX, 30, state, addFooter, {
+            headerHeight: 8,
+            fontSize: 9,
+            pageWidth: pageWidth,
+            autoCenter: true
+          }
+        );
+        currentY = state.currentY;
+        tableHeaderDrawn = true;
+      }
+      
+      // Add initial footer
+      addFooter();
+      
+      // Reuse groupedByMonthYear from above (already grouped for column width calculation)
+      const sortedMonthYears = Object.keys(groupedByMonthYear).sort();
+      let globalRowIndex = 0;
+      let tableHeaderDrawn = false;
+      
+      // Render data grouped by month/year -> card (matching image structure)
+      sortedMonthYears.forEach(monthYear => {
+        const monthYearCards = groupedByMonthYear[monthYear];
+        let monthYearSubtotal = 0;
+        
+        const [year, month] = monthYear.split('-');
+        const monthName = monthNames[parseInt(month)];
+        
+        // Period header (matching image: "Period: January, 2024")
+        if (currentY + 12 > pageHeight - 25) {
+          addNewPage();
+        }
+        
+        doc.setFillColor(227, 242, 253); // Light blue background
+        doc.rect(tableStartX, currentY, totalTableWidth, 8, 'F');
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Period: ${monthName}, ${year}`, pageWidth / 2, currentY + 5, { align: 'center' });
+        currentY += 10;
+        
+        // Draw table header for this period
+        if (currentY + 8 > pageHeight - 25) {
+          addNewPage();
+        }
+        currentY = window.PDFUtils.drawTableHeaders(doc, headers, colWidths, tableStartX, currentY, {
+          headerHeight: 8,
+          fontSize: 9,
+          pageWidth: pageWidth,
+          autoCenter: true
+        });
+        tableHeaderDrawn = true;
+        
+        // Sort cards by holder first, then by tag name
+        const sortedTags = Object.keys(monthYearCards).sort((tagA, tagB) => {
+          const recordsA = monthYearCards[tagA];
+          const recordsB = monthYearCards[tagB];
+          const holderA = (recordsA[0].Expense_Holder || recordsA[0].Ac_Holder || recordsA[0].holder || '').toLowerCase();
+          const holderB = (recordsB[0].Expense_Holder || recordsB[0].Ac_Holder || recordsB[0].holder || '').toLowerCase();
+          
+          // First sort by holder
+          if (holderA !== holderB) {
+            return holderA.localeCompare(holderB);
+          }
+          // If holders are the same, sort by tag name
+          return tagA.localeCompare(tagB);
+        });
+        
+        // Show individual cards for this month/year
+        sortedTags.forEach(tag => {
+          const cardRecords = monthYearCards[tag];
+          let cardSubtotal = 0;
+          let acHolder = '';
+          let acStatus = '';
+          
+          // Calculate total for this card and get Ac_Holder and Ac_Status
+          cardRecords.forEach(r => {
+            const amountPaid = parseFloat(r.Expense_Amount_Paid || r.Amount_Paid || r.amt || 0);
+            cardSubtotal += amountPaid;
+            if (!acHolder) {
+              acHolder = r.Expense_Holder || r.Ac_Holder || r.holder || '';
+            }
+            if (!acStatus) {
+              acStatus = r.Expense_Account_Status || r.Ac_Status || r.acstatus || 'Active';
+            }
+          });
+          
+          monthYearSubtotal += cardSubtotal;
+          
+          const rowData = [
+            tag,
+            acHolder,
+            acStatus,
+            cardSubtotal.toFixed(2)
+          ];
+          
+          const rowHeightInfo = window.PDFUtils.calculateDynamicRowHeight(doc, rowData, colWidths, {
+            baseHeight: 5,
+            lineSpacing: 4,
+            padding: 4
+          });
+          
+          if (currentY + rowHeightInfo.cellHeight > pageHeight - 25) {
+            addNewPage();
+          }
+          
+          const rowStartY = currentY;
+          const isEvenRow = globalRowIndex % 2 === 0;
+          const rowBgColor = isEvenRow ? [242, 242, 242] : [255, 255, 255]; // Light gray for even, white for odd
+          
+          currentY = window.PDFUtils.renderTableRowWithDynamicHeight(doc, {
+            rowY: currentY,
+            currentY: currentY,
+            rowData: rowData,
+            colWidths: colWidths,
+            tableStartX: tableStartX,
+            totalTableWidth: totalTableWidth,
+            rowIndex: globalRowIndex,
+            checkPageBreak: null
+          }, {
+            baseHeight: 5,
+            lineSpacing: 4,
+            padding: 4,
+            fontSize: 7
+          });
+          
+          // Manually right-align the amount column (index 3) by overwriting it
+          doc.setFontSize(7);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(0, 0, 0);
+          const amountStartX = tableStartX + colWidths[0] + colWidths[1] + colWidths[2];
+          const amountEndX = amountStartX + colWidths[3];
+          const amountY = rowStartY + rowHeightInfo.cellHeight / 2 + 2.5;
+          // Clear the cell first by drawing the correct background color rectangle
+          doc.setFillColor(rowBgColor[0], rowBgColor[1], rowBgColor[2]);
+          doc.rect(amountStartX, rowStartY, colWidths[3], rowHeightInfo.cellHeight, 'F');
+          // Redraw the border
+          doc.setDrawColor(200, 200, 200);
+          doc.setLineWidth(0.1);
+          doc.rect(amountStartX, rowStartY, colWidths[3], rowHeightInfo.cellHeight);
+          // Draw the amount right-aligned
+          doc.text(cardSubtotal.toFixed(2), amountEndX - 2, amountY, { align: 'right' });
+          
+          currentY += 1;
+          globalRowIndex++;
+        });
+        
+        // Total row for this month/year (matching image: "Total for January, 2024")
+        if (currentY + 8 > pageHeight - 25) {
+          addNewPage();
+        }
+        
+        doc.setFillColor(0, 0, 0); // Black background
+        doc.rect(tableStartX, currentY, totalTableWidth, 8, 'F');
+        doc.setFontSize(9); // Slightly increased from 8
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(255, 215, 0); // Golden color (#FFD700)
+        doc.text(`Total for ${monthName}, ${year}`, tableStartX + 2, currentY + 5, { align: 'left' });
+        doc.text(monthYearSubtotal.toFixed(2), tableStartX + totalTableWidth - 2, currentY + 5, { align: 'right' });
+        currentY += 11;
+        
+        // Add spacing between periods
+        currentY += 3;
+      });
+      
+      state.currentY = currentY;
+      
+      // Update final page count and redraw all footers
+      state.totalPagesEstimate = doc.internal.pages.length - 1;
+      for (let i = 1; i <= state.totalPagesEstimate; i++) {
+        doc.setPage(i);
+        window.PDFUtils.drawFooter(doc, i, state.totalPagesEstimate, currentExpenseReportData.length, pageWidth, {
+          generationDate: new Date()
+        });
+      }
+      
+      doc.save('Credit_Card_By_Months_Expense_Report_' + new Date().toISOString().split('T')[0] + '.pdf');
+    }
+    
+    function exportExpenseReportExcel() {
+      if (!currentExpenseReportData || currentExpenseReportData.length === 0) {
+        alert('Please generate a report first.');
+        return;
+      }
+      
+      if (typeof XLSX === 'undefined') {
+        alert('Excel library not loaded. Please refresh the page and try again.');
+        return;
+      }
+      
+      const monthFilter = document.getElementById('filterMonth').value || 'All Months';
+      const yearFilter = document.getElementById('filterYear').value || '';
+      const fromDate = document.getElementById('filterFromDate').value || '';
+      const toDate = document.getElementById('filterToDate').value || '';
+      
+      // Prepare data for Excel
+      const headers = ['Expanse_Ac_Tag', 'Ac_Holder', 'Ac_Status', 'Amount_Paid'];
+      
+      // Group by month/year, then by card (Expanse_Ac_Tag)
+      const groupedByMonthYear = {};
+      currentExpenseReportData.forEach(r => {
+        const paidDate = r.paidDate || convertExcelDateToYYYYMMDD(r.Expense_Paid_Date || r.Expanse_Paid_Date || r.paid || '');
+        if (!paidDate) return;
+        const monthYear = paidDate.substring(0, 7); // YYYY-MM
+        const tag = r.Expense_Tag || r.Expanse_Ac_Tag || r.tag || '';
+        if (!groupedByMonthYear[monthYear]) {
+          groupedByMonthYear[monthYear] = {};
+        }
+        if (!groupedByMonthYear[monthYear][tag]) {
+          groupedByMonthYear[monthYear][tag] = [];
+        }
+        groupedByMonthYear[monthYear][tag].push(r);
+      });
+      
+      const sortedMonthYears = Object.keys(groupedByMonthYear).sort();
+      
+      // Month names for display
+      const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Build filter info line
+      const monthName = monthFilter && monthFilter !== 'All Months' ? monthNames[parseInt(monthFilter)] : 'All Months';
+      let filterInfo = `Category: Credit Cards/BT | Month: ${monthName} | Year: ${yearFilter || 'All Years'}`;
+      if (fromDate && toDate) {
+        filterInfo += ` | Date Range: ${fromDate} to ${toDate}`;
+      }
+      
+      // Create worksheet data
+      const wsData = [
+        ['Credit Card By Months Expense Report'],
+        [filterInfo],
+        [`Generated: ${new Date().toLocaleString()}`],
+        []
+      ];
+      
+      // Add data grouped by month/year -> card (matching image structure)
+      sortedMonthYears.forEach(monthYear => {
+        const [year, month] = monthYear.split('-');
+        const monthName = monthNames[parseInt(month)];
+        const monthYearCards = groupedByMonthYear[monthYear];
+        let monthYearSubtotal = 0;
+        
+        // Period header
+        wsData.push([`Period: ${monthName}, ${year}`]);
+        wsData.push(headers);
+        
+        // Sort cards by holder first, then by tag name
+        const sortedTags = Object.keys(monthYearCards).sort((tagA, tagB) => {
+          const recordsA = monthYearCards[tagA];
+          const recordsB = monthYearCards[tagB];
+          const holderA = (recordsA[0].Expense_Holder || recordsA[0].Ac_Holder || recordsA[0].holder || '').toLowerCase();
+          const holderB = (recordsB[0].Expense_Holder || recordsB[0].Ac_Holder || recordsB[0].holder || '').toLowerCase();
+          
+          // First sort by holder
+          if (holderA !== holderB) {
+            return holderA.localeCompare(holderB);
+          }
+          // If holders are the same, sort by tag name
+          return tagA.localeCompare(tagB);
+        });
+        
+        // Show individual cards for this month/year
+        sortedTags.forEach(tag => {
+          const cardRecords = monthYearCards[tag];
+          let cardSubtotal = 0;
+          let acHolder = '';
+          let acStatus = '';
+          
+          // Calculate total for this card and get Ac_Holder and Ac_Status
+          cardRecords.forEach(r => {
+            const amountPaid = parseFloat(r.Expense_Amount_Paid || r.Amount_Paid || r.amt || 0);
+            cardSubtotal += amountPaid;
+            if (!acHolder) {
+              acHolder = r.Expense_Holder || r.Ac_Holder || r.holder || '';
+            }
+            if (!acStatus) {
+              acStatus = r.Expense_Account_Status || r.Ac_Status || r.acstatus || 'Active';
+            }
+          });
+          
+          monthYearSubtotal += cardSubtotal;
+          
+          // Row showing individual card details
+          wsData.push([
+            tag,
+            acHolder,
+            acStatus,
+            cardSubtotal
+          ]);
+        });
+        
+        // Total row for this month/year (matching image: "Total for January, 2024")
+        wsData.push(['', '', `Total for ${monthName}, ${year}`, monthYearSubtotal]);
+        wsData.push([]);
+      });
+      
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 35 }, // Expanse_Ac_Tag
+        { wch: 15 }, // Ac_Holder
+        { wch: 18 }, // Ac_Status
+        { wch: 18 }  // Amount_Paid
+      ];
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Credit Card By Months');
+      
+      // Generate filename
+      const fileName = `Credit_Card_By_Months_Expense_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
+      
+      // Save file
+      XLSX.writeFile(wb, fileName);
+    }
+  </script>
+</body>
+</html>
+

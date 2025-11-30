@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inspection Report Modal - NS Lease Generator</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body { 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        margin: 0; 
+        padding: 20px; 
+        background: #f5f5f5;
+    }
+
+    .pdf-button {
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        margin: 5px;
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    .pdf-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .excel-table-container {
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        overflow: auto;
+        background: #fff;
+        position: relative;
+    }
+    
+    .excel-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 13px;
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    
+    .excel-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: #f3f4f6;
+    }
+    
+    .excel-table th {
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-bottom: 2px solid #9ca3af;
+        padding: 6px 8px;
+        text-align: left;
+        font-weight: 600;
+        color: #111827;
+        position: relative;
+        user-select: none;
+        white-space: nowrap;
+        min-width: 80px;
+    }
+    
+    .excel-table th.resizable {
+        padding-right: 18px;
+    }
+    
+    .excel-table td {
+        border: 1px solid #d1d5db;
+        padding: 4px 6px;
+        background: #fff;
+        vertical-align: middle;
+    }
+    
+    .excel-table tbody tr:hover {
+        background: #f9fafb;
+    }
+    
+    .excel-table input,
+    .excel-table textarea {
+        width: 100%;
+        border: none;
+        padding: 4px 6px;
+        background: transparent;
+        font-size: 13px;
+        font-family: inherit;
+        outline: none;
+    }
+    
+    .excel-table input:focus,
+    .excel-table textarea:focus {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+    }
+    
+    .excel-table .inspection-comment1,
+    .excel-table .inspection-comment2 {
+        resize: none;
+        overflow: hidden;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        min-height: 24px;
+        line-height: 1.4;
+    }
+    
+    .column-resizer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 4px;
+        height: 100%;
+        cursor: col-resize;
+        background: transparent;
+        z-index: 1;
+    }
+
+    .column-resizer:hover {
+        background: #3b82f6;
+    }
+
+    .column-resizer.active {
+        background: #2563eb;
+    }
+
+    @keyframes flash {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    .flashing-text {
+        animation: flash 1s infinite;
+    }
+</style>
+</head>
+<body>
+    <h1>Inspection Report Modal Test</h1>
+    <button class="pdf-button" onclick="openInspectionReportCRUD()">Open Inspection Report Modal</button>
+
+    <!-- INSPECTION REPORT CRUD MODAL -->
+    <div id="inspectionReportCRUDBackdrop" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 50;"></div>
+    <div id="inspectionReportCRUDModal" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 95vw; max-width: 1400px; max-height: 75vh; background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.25); z-index: 51; padding: 18px; flex-direction: column; overflow: hidden;">
+        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 10px; flex-shrink: 0;">
+            <h3 style="margin:0;">📋 Manage Inspection Report</h3>
+            <button class="pdf-button" onclick="closeInspectionReportCRUD()" style="background:#ef4444;">✖ Close</button>
+        </div>
+        <div style="margin-bottom: 10px; padding: 10px; background: #f0f9ff; border-radius: 6px; font-size: 12px; flex-shrink: 0;">
+            <strong>Instructions:</strong> Edit sections, comments, and codes. Use "Add Row" to create new entries. Column headers can be resized by dragging the border between columns.
+            <br><br>
+            <strong class="flashing-text">Conditional Codes: B: Broken, M: Missing, D: Damaged, G: Good, S: Scratched/Marked</strong><br>
+            <strong class="flashing-text">Cleanliness Codes: C: Clean, DT: Dirty, ST: Stained</strong>
+        </div>
+        <div class="excel-table-container" style="flex: 1; overflow: auto; margin-bottom: 10px; min-height: 0;">
+            <table class="excel-table" id="inspectionReportTable">
+                <thead>
+                    <tr>
+                        <th class="resizable" style="width: 200px;">Sections</th>
+                        <th class="resizable" style="width: 120px;" title="Condition at Beginning of Tenancy">Comment</th>
+                        <th class="resizable" style="width: 80px;" title="Condition at Beginning of Tenancy">Code</th>
+                        <th class="resizable" style="width: 120px;" title="Condition at End of Tenancy">Comment</th>
+                        <th class="resizable" style="width: 80px;" title="Condition at End of Tenancy">Code</th>
+                        <th style="width: 100px; text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inspectionReportCRUDBody"></tbody>
+            </table>
+        </div>
+        <div style="display:flex; justify-content: space-between; align-items:center; flex-shrink: 0;">
+            <button class="pdf-button" onclick="addInspectionRow()" style="background:#10b981;">＋ Add Row</button>
+            <div style="display:flex; gap:8px;">
+                <button class="pdf-button" onclick="saveInspectionReportCRUD()" style="background:#3b82f6;">✔ Save</button>
+                <button class="pdf-button" onclick="closeInspectionReportCRUD()" style="background:#6b7280;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+let inspectionReportData = null;
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Initialize column resizers
+function initColumnResizers() {
+    const tables = document.querySelectorAll('.excel-table');
+    tables.forEach(table => {
+        const tableId = table.id || 'default';
+        const headers = table.querySelectorAll('thead th.resizable');
+        
+        try {
+            const savedWidths = JSON.parse(localStorage.getItem(`columnWidths_${tableId}`) || '{}');
+            headers.forEach((header, index) => {
+                if (savedWidths[index]) {
+                    const width = savedWidths[index];
+                    header.style.width = width + 'px';
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const cell = row.children[index];
+                        if (cell) {
+                            cell.style.width = width + 'px';
+                        }
+                    });
+                }
+            });
+        } catch (e) {
+            console.error("Error loading column widths:", e);
+        }
+        
+        headers.forEach((header, index) => {
+            const existingResizer = header.querySelector('.column-resizer');
+            if (existingResizer) {
+                existingResizer.remove();
+            }
+            
+            const resizer = document.createElement('div');
+            resizer.className = 'column-resizer';
+            header.appendChild(resizer);
+            
+            let startX, startWidth, th;
+            
+            resizer.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                th = header;
+                startX = e.pageX;
+                startWidth = th.offsetWidth;
+                resizer.classList.add('active');
+                
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+            });
+            
+            function resize(e) {
+                if (!th) return;
+                const width = startWidth + (e.pageX - startX);
+                if (width >= 50) {
+                    th.style.width = width + 'px';
+                    const colIndex = Array.from(th.parentElement.children).indexOf(th);
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const cell = row.children[colIndex];
+                        if (cell) {
+                            cell.style.width = width + 'px';
+                        }
+                    });
+                }
+            }
+            
+            function stopResize() {
+                resizer.classList.remove('active');
+                document.removeEventListener('mousemove', resize);
+                document.removeEventListener('mouseup', stopResize);
+                
+                try {
+                    const savedWidths = {};
+                    headers.forEach((h, idx) => {
+                        savedWidths[idx] = parseInt(h.style.width) || h.offsetWidth;
+                    });
+                    localStorage.setItem(`columnWidths_${tableId}`, JSON.stringify(savedWidths));
+                } catch (e) {
+                    console.error("Error saving column widths:", e);
+                }
+            }
+        });
+    });
+}
+
+function openInspectionReportCRUD() {
+    const tbody = document.getElementById("inspectionReportCRUDBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    
+    // Load inspection report data from stored workbook or create empty structure
+    try {
+        const savedData = localStorage.getItem("inspectionReportData");
+        if (savedData) {
+            const wb = XLSX.read(savedData, { type: 'base64' });
+            inspectionReportData = wb;
+            const sheetName = wb.SheetNames.find(n => n.toLowerCase().includes("inspection")) || wb.SheetNames[0];
+            const sheet = wb.Sheets[sheetName];
+            if (sheet) {
+                const sheetData = XLSX.utils.sheet_to_json(sheet, {header: 1, defval: ""});
+                loadInspectionReportData(sheetData);
+            }
+        } else {
+            // Create empty structure
+            appendInspectionRow({section: "", comment1: "", code1: "", comment2: "", code2: "", isSectionHeader: false});
+        }
+    } catch (e) {
+        console.error("Error loading inspection report:", e);
+        appendInspectionRow({section: "", comment1: "", code1: "", comment2: "", code2: "", isSectionHeader: false});
+    }
+    
+    document.getElementById("inspectionReportCRUDBackdrop").style.display = "block";
+    document.getElementById("inspectionReportCRUDModal").style.display = "flex";
+    setTimeout(initColumnResizers, 100);
+}
+
+function loadInspectionReportData(sheetData) {
+    const tbody = document.getElementById("inspectionReportCRUDBody");
+    if (!sheetData || sheetData.length === 0) return;
+    
+    // Find header row
+    let headerRowIndex = 5; // Row 6 (0-indexed)
+    if (sheetData.length <= headerRowIndex) {
+        for (let i = 0; i < Math.min(10, sheetData.length); i++) {
+            const row = sheetData[i];
+            if (row && row.length >= 5) {
+                const firstCell = String(row[0] || "").trim().toLowerCase();
+                const secondCell = String(row[1] || "").trim().toLowerCase();
+                if (firstCell.includes("section") && (secondCell.includes("comment") || secondCell.includes("code"))) {
+                    headerRowIndex = i;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // Start reading data from row after header
+    let currentSection = "";
+    for (let i = headerRowIndex + 1; i < sheetData.length; i++) {
+        const row = sheetData[i];
+        if (!row || row.length === 0) continue;
+        
+        const section = String(row[0] || "").trim();
+        const comment1 = String(row[1] || "").trim();
+        const code1 = String(row[2] || "").trim();
+        const comment2 = String(row[3] || "").trim();
+        const code2 = String(row[4] || "").trim();
+        
+        // Check if this is a section header
+        const isSectionHeader = section && section.length > 0 && 
+                               (!comment1 && !code1 && !comment2 && !code2) &&
+                               (section.toLowerCase().includes("overall") || 
+                                section.toLowerCase().includes("kitchen") ||
+                                section.toLowerCase().includes("bathroom") ||
+                                section.toLowerCase().includes("furniture") ||
+                                section.toLowerCase().includes("refrigerator"));
+        
+        if (isSectionHeader) {
+            currentSection = section;
+            appendInspectionRow({section: section, comment1: "", code1: "", comment2: "", code2: "", isSectionHeader: true});
+        } else if (section || comment1 || code1 || comment2 || code2) {
+            const fullSection = section || currentSection;
+            appendInspectionRow({section: fullSection, comment1: comment1, code1: code1, comment2: comment2, code2: code2, isSectionHeader: false});
+        }
+    }
+    
+    if (tbody.children.length === 0) {
+        appendInspectionRow({section: "", comment1: "", code1: "", comment2: "", code2: "", isSectionHeader: false});
+    }
+}
+
+function appendInspectionRow(data) {
+    const tbody = document.getElementById("inspectionReportCRUDBody");
+    const tr = document.createElement("tr");
+    tr.dataset.isSectionHeader = data.isSectionHeader ? "true" : "false";
+    
+    if (data.isSectionHeader) {
+        tr.style.backgroundColor = "#000080";
+        tr.style.color = "#fff";
+        tr.innerHTML = `
+            <td><input type="text" value="${escapeHtml(data.section || "")}" placeholder="Section Name" style="background:#000080; color:#fff; font-weight:bold; border:1px solid #fff;" class="inspection-section"></td>
+            <td colspan="4" style="font-style:italic; padding:4px 6px;">Section Header</td>
+            <td style="text-align:center;">
+                <button class="pdf-button" style="background:#ef4444; padding:4px 8px; font-size:11px;" onclick="this.closest('tr').remove()">🗑</button>
+            </td>`;
+    } else {
+        tr.innerHTML = `
+            <td><input type="text" value="${escapeHtml(data.section || "")}" placeholder="Sections" class="inspection-section"></td>
+            <td><textarea placeholder="Comment" class="inspection-comment1">${escapeHtml(data.comment1 || "")}</textarea></td>
+            <td><input type="text" value="${escapeHtml(data.code1 || "")}" placeholder="Code" style="text-align:center;" class="inspection-code1"></td>
+            <td><textarea placeholder="Comment" class="inspection-comment2">${escapeHtml(data.comment2 || "")}</textarea></td>
+            <td><input type="text" value="${escapeHtml(data.code2 || "")}" placeholder="Code" style="text-align:center;" class="inspection-code2"></td>
+            <td style="text-align:center;">
+                <button class="pdf-button" style="background:#ef4444; padding:4px 8px; font-size:11px;" onclick="this.closest('tr').remove()">🗑</button>
+            </td>`;
+    }
+    tbody.appendChild(tr);
+    
+    // Auto-resize textareas for comment columns
+    if (!data.isSectionHeader) {
+        const comment1Textarea = tr.querySelector('.inspection-comment1');
+        const comment2Textarea = tr.querySelector('.inspection-comment2');
+        
+        const autoResize = (textarea) => {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.max(24, textarea.scrollHeight) + 'px';
+        };
+        
+        if (comment1Textarea) {
+            autoResize(comment1Textarea);
+            comment1Textarea.addEventListener('input', () => autoResize(comment1Textarea));
+        }
+        if (comment2Textarea) {
+            autoResize(comment2Textarea);
+            comment2Textarea.addEventListener('input', () => autoResize(comment2Textarea));
+        }
+    }
+}
+
+function addInspectionRow() {
+    appendInspectionRow({section: "", comment1: "", code1: "", comment2: "", code2: "", isSectionHeader: false});
+}
+
+function saveInspectionReportCRUD() {
+    const rows = Array.from(document.querySelectorAll("#inspectionReportCRUDBody tr"));
+    const sheetData = [];
+    
+    // Add empty rows 1-5 (to match Excel structure)
+    for (let i = 0; i < 5; i++) {
+        sheetData.push(["", "", "", "", ""]);
+    }
+    
+    // Add header row at Row 6: Sections, Comment, Code, Comment, Code
+    sheetData.push(["Sections", "Comment", "Code", "Comment", "Code"]);
+    
+    // Process rows
+    rows.forEach(row => {
+        const isSectionHeader = row.dataset.isSectionHeader === "true";
+        const section = row.querySelector(".inspection-section").value.trim();
+        
+        if (isSectionHeader) {
+            if (section) {
+                sheetData.push([section, "", "", "", ""]);
+            }
+        } else {
+            const comment1 = row.querySelector(".inspection-comment1").value.trim();
+            const code1 = row.querySelector(".inspection-code1").value.trim();
+            const comment2 = row.querySelector(".inspection-comment2").value.trim();
+            const code2 = row.querySelector(".inspection-code2").value.trim();
+            
+            if (section || comment1 || code1 || comment2 || code2) {
+                sheetData.push([section, comment1, code1, comment2, code2]);
+            }
+        }
+    });
+    
+    // Create new workbook with inspection report
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    
+    // Set column widths
+    ws['!cols'] = [
+        {wch: 40}, // Sections
+        {wch: 15}, // Begin Code
+        {wch: 30}, // Begin Comment
+        {wch: 15}, // End Code
+        {wch: 30}  // End Comment
+    ];
+    
+    XLSX.utils.book_append_sheet(wb, ws, "Inspection_Report");
+    
+    // Store the workbook
+    inspectionReportData = wb;
+    
+    // Save to localStorage for persistence
+    try {
+        const wbBase64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+        localStorage.setItem("inspectionReportData", wbBase64);
+    } catch (e) {
+        console.error("Error saving inspection report to localStorage:", e);
+    }
+    
+    closeInspectionReportCRUD();
+    alert("✓ Inspection Report saved to localStorage!");
+}
+
+function closeInspectionReportCRUD() {
+    document.getElementById("inspectionReportCRUDBackdrop").style.display = "none";
+    document.getElementById("inspectionReportCRUDModal").style.display = "none";
+}
+
+// Close modal when clicking backdrop
+document.getElementById("inspectionReportCRUDBackdrop").addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeInspectionReportCRUD();
+    }
+});
+</script>
+</body>
+</html>
+
+
+
+
+
+

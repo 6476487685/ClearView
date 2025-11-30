@@ -24,16 +24,91 @@ document.addEventListener("DOMContentLoaded",()=>{
  let editIndex=null;
 
 // Don't load sample data - start with empty array
- const getData=()=>JSON.parse(localStorage.getItem('income_records'))||[];
+
+// Helper function to convert Excel serial dates to YYYY-MM-DD format
+function convertExcelDateToYYYYMMDD(value){
+  if(!value || value==='')return '';
+  // If already a date string in YYYY-MM-DD format, return as is
+  if(typeof value==='string' && /^\d{4}-\d{2}-\d{2}$/.test(value))return value;
+  // If it's a valid date string (other formats), parse it
+  const dateStr=String(value).trim();
+  if(dateStr.match(/^\d{4}[-\/]\d{1,2}[-\/]\d{1,2}$/)){
+    const parts=dateStr.split(/[-\/]/);
+    const year=parts[0];
+    const month=String(parts[1]).padStart(2,'0');
+    const day=String(parts[2]).padStart(2,'0');
+    return `${year}-${month}-${day}`;
+  }
+  // If it's a number (Excel serial date), convert it
+  const num=Number(value);
+  if(!isNaN(num) && num>0){
+    const excelEpoch=new Date(1899,11,30);
+    const jsDate=new Date(excelEpoch.getTime()+num*86400000);
+    if(!isNaN(jsDate.getTime())){
+      const year=jsDate.getFullYear();
+      const month=String(jsDate.getMonth()+1).padStart(2,'0');
+      const day=String(jsDate.getDate()).padStart(2,'0');
+      return `${year}-${month}-${day}`;
+    }
+  }
+  // Try parsing as a regular date string (e.g., "2025-01-15" or "01/15/2025")
+  try {
+    const parsedDate = new Date(value);
+    if(!isNaN(parsedDate.getTime())){
+      const year=parsedDate.getFullYear();
+      const month=String(parsedDate.getMonth()+1).padStart(2,'0');
+      const day=String(parsedDate.getDate()).padStart(2,'0');
+      return `${year}-${month}-${day}`;
+    }
+  } catch(e) {
+    // Ignore parsing errors
+  }
+  return value;
+}
+
+// Helper function to format date for display (fixes existing bad data)
+function formatDateForDisplay(value){
+  return convertExcelDateToYYYYMMDD(value);
+}
+
+// Function to fix existing dates in income records
+function fixExistingIncomeDates(){
+   const records = JSON.parse(localStorage.getItem('income_records') || '[]');
+   if(records.length === 0) return;
+   
+   let needsFix = false;
+   const fixedRecords = records.map(r => {
+     const paidDate = convertExcelDateToYYYYMMDD(r.paid || '');
+     if(r.paid && paidDate !== r.paid) needsFix = true;
+     
+     return {
+       ...r,
+       paid: paidDate || r.paid || ''
+     };
+   });
+   
+   if(needsFix){
+     localStorage.setItem('income_records', JSON.stringify(fixedRecords));
+     console.log('✓ Fixed date formats in income records');
+   }
+ }
+
+ const getData=()=>{
+   // Fix dates on first load
+   fixExistingIncomeDates();
+   return JSON.parse(localStorage.getItem('income_records'))||[];
+ };
  const saveData=d=>localStorage.setItem('income_records',JSON.stringify(d));
 
  function renderTable(d){
   tbody.innerHTML='';
   d.forEach((r,i)=>{
    const tr=document.createElement('tr');
+   // Format date for display
+   const paidDate = formatDateForDisplay(r.paid || '');
    tr.innerHTML=`<td>${i+1}</td><td>${r.desc}</td><td>${r.cat}</td><td>${r.tag}</td>
    <td>${r.cur}</td><td>${Number(r.amt).toFixed(2)}</td><td>${r.mode}</td><td>${r.holder}</td>
-   <td>${r.paid}</td><td>${r.freq}</td><td>${r.acstatus}</td><td>${r.txnstatus}</td>
+   <td>${paidDate}</td><td>${r.freq}</td><td>${r.acstatus}</td><td>${r.txnstatus}</td>
    <td><span class='del' title='Delete'>🗑️</span></td>`;
    tbody.appendChild(tr);
   });
@@ -41,6 +116,56 @@ document.addEventListener("DOMContentLoaded",()=>{
   // Update record count
   const recordCount = document.getElementById('recordCount');
   if(recordCount)recordCount.textContent=d.length;
+  
+  // Calculate and display totals by currency
+  const incomeByCurrency = {};
+  d.forEach(r => {
+    const currency = r.cur || 'Unknown';
+    const amount = parseFloat(r.amt || 0);
+    if (!incomeByCurrency[currency]) {
+      incomeByCurrency[currency] = 0;
+    }
+    incomeByCurrency[currency] += amount;
+  });
+  
+  const currencyDisplay = document.getElementById('incomeByCurrency');
+  if (currencyDisplay && Object.keys(incomeByCurrency).length > 0) {
+    const currencyTexts = Object.keys(incomeByCurrency).sort().map(cur => {
+      return `<strong>Total ${cur}:</strong> ${incomeByCurrency[cur].toFixed(2)} ${cur}`;
+    });
+    currencyDisplay.innerHTML = currencyTexts.join(' | ');
+    currencyDisplay.style.display = 'inline';
+  }
+  
+  // Calculate and display totals by holder and currency (e.g., "Om: 50000 USD", "Om: 134089.44 CAD")
+  // Cannot add different currencies together - show separate totals for each holder-currency combination
+  const incomeByHolderCurrency = {}; // Structure: {holder: {currency: amount}}
+  d.forEach(r => {
+    const holder = r.holder || 'Unknown';
+    const currency = r.cur || 'Unknown';
+    const amount = parseFloat(r.amt || 0);
+    if (!incomeByHolderCurrency[holder]) {
+      incomeByHolderCurrency[holder] = {};
+    }
+    if (!incomeByHolderCurrency[holder][currency]) {
+      incomeByHolderCurrency[holder][currency] = 0;
+    }
+    incomeByHolderCurrency[holder][currency] += amount;
+  });
+  
+  const holderDisplay = document.getElementById('incomeByHolder');
+  if (holderDisplay && Object.keys(incomeByHolderCurrency).length > 0) {
+    const holderTexts = [];
+    Object.keys(incomeByHolderCurrency).sort().forEach(holder => {
+      const currencies = incomeByHolderCurrency[holder];
+      Object.keys(currencies).sort().forEach(currency => {
+        const amount = currencies[currency];
+        holderTexts.push(`<strong>${holder}:</strong> ${amount.toFixed(2)} ${currency}`);
+      });
+    });
+    holderDisplay.innerHTML = holderTexts.join(' | ');
+    holderDisplay.style.display = 'inline';
+  }
  }
  renderTable(getData());
 
@@ -56,11 +181,40 @@ if(btnImportExcel && excelFileInput){
       try{
         const data=new Uint8Array(ev.target.result);
         const workbook=XLSX.read(data,{type:'array'});
-        if(!workbook.SheetNames.includes('Txn_Income')){
-          alert('Txn_Income sheet not found in the Excel file.');
+        console.log('Available sheets:', workbook.SheetNames);
+        
+        // Try to find income sheet with various name variations
+        let incomeSheetName = null;
+        const possibleSheetNames = ['Txn_Income', 'Txn_Income_Data', 'Income', 'Income_Data', 'Incomes', 'Income_Records'];
+        
+        for (const name of possibleSheetNames) {
+          if (workbook.SheetNames.includes(name)) {
+            incomeSheetName = name;
+            break;
+          }
+        }
+        
+        // If no exact match found, look for sheets containing "income"
+        if (!incomeSheetName) {
+          for (const sheetName of workbook.SheetNames) {
+            const lowerName = sheetName.toLowerCase();
+            if (lowerName.includes('income')) {
+              incomeSheetName = sheetName;
+              console.log(`Found income sheet with similar name: ${sheetName}`);
+              break;
+            }
+          }
+        }
+        
+        if (!incomeSheetName) {
+          // Show detailed error with available sheets
+          const availableSheets = workbook.SheetNames.join(', ');
+          alert(`Income sheet not found in the Excel file.\n\nAvailable sheets: ${availableSheets}\n\nPlease ensure your Excel file has a sheet named 'Txn_Income' or contains 'income' in the name.`);
           return;
         }
-        const sheet=workbook.Sheets['Txn_Income'];
+        
+        console.log(`Loading data from sheet: ${incomeSheetName}`);
+        const sheet=workbook.Sheets[incomeSheetName];
         const jsonData=XLSX.utils.sheet_to_json(sheet);
         if(jsonData[0]){
           localStorage.setItem('last_import_headers_Txn_Income', JSON.stringify(Object.keys(jsonData[0])));
@@ -87,15 +241,24 @@ if(btnImportExcel && excelFileInput){
             amt:amt!==''?amt:0,
             mode:getValue('Mode_Txn','Txn_Mode','Mode','Payment_Mode'),
             holder:getValue('Ac_Holder','Holder'),
-            paid:getValue('Income_Date','Paid_Date','Date','Paid'),
+            paid:convertExcelDateToYYYYMMDD(getValue('Income_Date','Paid_Date','Date','Paid')),
             freq:getValue('Frequency','Freq'),
             acstatus:getValue('Ac_Status','Account_Status','AcStatus'),
             txnstatus:getValue('Status_Txn','Txn_Status','Status')
           };
         });
         localStorage.setItem('income_records',JSON.stringify(incomes));
-        alert(`Successfully loaded ${incomes.length} income records from Excel! Reloading page...`);
-        setTimeout(()=>window.location.reload(),800);
+        console.log(`✓ Successfully loaded ${incomes.length} income records from Excel`);
+        console.log('First record:', incomes[0]);
+        
+        // Refresh the table immediately without reloading
+        const incomeData = getData();
+        renderTable(incomeData);
+        
+        alert(`Successfully loaded ${incomes.length} income records from Excel!`);
+        
+        // Optionally reload page after a delay to refresh filters
+        // setTimeout(()=>window.location.reload(),800);
       }catch(err){
         console.error('Error reading Income Excel:',err);
         alert('Error reading Excel: '+err.message);
